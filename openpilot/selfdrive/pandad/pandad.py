@@ -3,6 +3,17 @@
 import os
 import signal
 import subprocess
+import sys
+from pathlib import Path
+
+# The compatibility fixture must never enter this wrapper's automatic reset or
+# flash path, including on invalid/unbound configuration. Dispatch before Panda
+# and hardware imports; the native entry has the same fail-closed guard.
+if __name__ == "__main__" and sys.argv[1:] == ["--compat-offline"]:
+  executable = Path(__file__).resolve().with_name("pandad")
+  os.execv(str(executable), [str(executable), "--compat-offline"])
+if "SONGPLUS_PANDA_PROFILE_JSON" in os.environ or any(a.startswith("--compat-") for a in sys.argv[1:]):
+  raise SystemExit("Compatibility requires the explicit local --compat-offline entry; device startup is disabled")
 
 from panda import Panda, PandaDFU
 from openpilot.common.basedir import BASEDIR

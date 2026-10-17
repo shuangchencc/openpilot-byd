@@ -7,6 +7,7 @@ from openpilot.cereal import messaging, log
 from opendbc.car.structs import car
 from openpilot.common.filter_simple import FirstOrderFilter
 from openpilot.common.params import Params
+from openpilot.selfdrive.pandad.compatibility.message_policy import policy_from_environment
 from openpilot.common.realtime import drop_realtime
 from openpilot.common.swaglog import cloudlog
 from openpilot.selfdrive.ui.lib.prime_state import PrimeState
@@ -45,6 +46,7 @@ class UIState:
     return cls._instance
 
   def _initialize(self):
+    self.panda_policy = policy_from_environment()
     self.params = Params()
     self.sm = messaging.SubMaster(
       [
@@ -129,6 +131,8 @@ class UIState:
 
   @property
   def engaged(self) -> bool:
+    if self.panda_policy is not None:
+      return self.started and self.panda_policy.enabled(self.sm, time.monotonic_ns())
     return self.started and self.sm["selfdriveState"].enabled
 
   def is_onroad(self) -> bool:
@@ -157,7 +161,11 @@ class UIState:
 
   def _update_state(self) -> None:
     # Handle panda states updates
-    if self.sm.updated["pandaStates"]:
+    if self.panda_policy is not None:
+      observation = self.panda_policy.hardware(self.sm, time.monotonic_ns())
+      self.panda_type = observation.vehicle_type if observation.valid else log.PandaState.PandaType.unknown
+      self.ignition = observation.ignition
+    elif self.sm.updated["pandaStates"]:
       panda_states = self.sm["pandaStates"]
 
       if len(panda_states) > 0:
@@ -186,7 +194,9 @@ class UIState:
         callback()
 
   def _update_status(self) -> None:
-    if self.started and self.sm.updated["selfdriveState"]:
+    if self.panda_policy is not None:
+      self.status = UIStatus.ENGAGED if self.engaged else UIStatus.DISENGAGED
+    elif self.started and self.sm.updated["selfdriveState"]:
       ss = self.sm["selfdriveState"]
       state = ss.state
 

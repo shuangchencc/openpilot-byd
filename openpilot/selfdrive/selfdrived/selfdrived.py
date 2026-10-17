@@ -12,6 +12,7 @@ from msgq.visionipc import VisionIpcClient
 
 
 from openpilot.common.params import Params
+from openpilot.selfdrive.pandad.compatibility.message_policy import policy_from_environment
 from openpilot.common.realtime import config_realtime_process, Priority, Ratekeeper, DT_CTRL
 from openpilot.common.swaglog import cloudlog
 from openpilot.common.gps import get_gps_location_service
@@ -48,6 +49,7 @@ IGNORED_SAFETY_MODES = (SafetyModel.silent, SafetyModel.noOutput)
 
 class SelfdriveD:
   def __init__(self, CP=None):
+    self.panda_policy = policy_from_environment()
     self.params = Params()
 
     # Ensure the current branch is cached, otherwise the first cycle lags
@@ -260,9 +262,17 @@ class SelfdriveD:
     if self.sm['deviceState'].memoryUsagePercent > 90 and not SIMULATION:
       self.events.add(EventName.lowMemory)
 
+    # The explicit dual-board profile validates the fan owner's observation.
+    fan_rpm = self.sm['peripheralState'].fanSpeedRpm
+    if self.panda_policy is not None:
+      fan_rpm = self.panda_policy.fan_rpm(self.sm, time.monotonic_ns())
+      if not self.panda_policy.group_ready(self.sm, time.monotonic_ns()):
+        self.events.add(EventName.controlsMismatch)
+      if fan_rpm is None and self.panda_policy.fan_required:
+        self.events.add(EventName.fanMalfunction)
     # Alert if fan isn't spinning for 5 seconds
-    if self.sm['peripheralState'].pandaType != log.PandaState.PandaType.unknown:
-      if self.sm['peripheralState'].fanSpeedRpm < 500 and self.sm['deviceState'].fanSpeedPercentDesired > 50:
+    if fan_rpm is not None and self.sm['peripheralState'].pandaType != log.PandaState.PandaType.unknown:
+      if fan_rpm < 500 and self.sm['deviceState'].fanSpeedPercentDesired > 50:
         # allow enough time for the fan controller in the panda to recover from stalls
         if (self.sm.frame - self.last_functional_fan_frame) * DT_CTRL > 15.0:
           self.events.add(EventName.fanMalfunction)
@@ -479,7 +489,7 @@ class SelfdriveD:
           self.sm.ignore_alive.append('wideRoadCameraState')
           self.sm.ignore_valid.append('wideRoadCameraState')
 
-        if REPLAY and any(ps.controlsAllowed for ps in self.sm['pandaStates']):
+        if self.panda_policy is None and REPLAY and any(ps.controlsAllowed for ps in self.sm['pandaStates']):
           self.state_machine.state = State.enabled
 
         self.initialized = True
@@ -524,12 +534,14 @@ class SelfdriveD:
   def publish_selfdriveState(self, CS):
     # selfdriveState
     ss_msg = messaging.new_message('selfdriveState')
-    ss_msg.valid = True
+    group_ready = self.panda_policy is None or self.panda_policy.group_ready(self.sm, time.monotonic_ns())
+    ss_msg.valid = group_ready
     ss = ss_msg.selfdriveState
-    ss.enabled = self.enabled
-    ss.active = self.active
-    ss.state = self.state_machine.state
-    ss.engageable = not self.events.contains(ET.NO_ENTRY)
+    # Synthetic profiles never authorize engagement, even after reconnect.
+    ss.enabled = self.enabled and self.panda_policy is None
+    ss.active = self.active and self.panda_policy is None
+    ss.state = self.state_machine.state if self.panda_policy is None else State.disabled
+    ss.engageable = self.panda_policy is None and not self.events.contains(ET.NO_ENTRY)
     ss.personality = self.personality
 
     ss.alertText1 = self.AM.current_alert.alert_text_1
@@ -550,11 +562,19 @@ class SelfdriveD:
       self.pm.send('onroadEvents', ce_send)
     self.events_prev = self.events.names.copy()
 
+  def apply_panda_gate(self):
+    if self.panda_policy is not None:
+      # Offline-only P0 profiles have no actual-control permission. A fresh
+      # publisher or process restart must not resurrect a previous enable.
+      self.state_machine.state = State.disabled
+      self.enabled = self.active = False
+
   def step(self):
     CS = self.data_sample()
     self.update_events(CS)
     if not self.CP.passive and self.initialized:
       self.enabled, self.active = self.state_machine.update(self.events)
+    self.apply_panda_gate()
     self.update_alerts(CS)
 
     self.publish_selfdriveState(CS)

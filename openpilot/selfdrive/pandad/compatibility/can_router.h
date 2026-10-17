@@ -120,6 +120,8 @@ public:
   // timestamp and original token must be preserved, including on republication.
   RouterResult<bool> validate_rx_frame(const RoutedRxFrame &frame, std::uint64_t now_us);
   RouterResult<RouterDepths> inspect(std::uint64_t now_us);
+  // P4 barrier changes discard local work even if physical handles stay live.
+  void discard_pending() { clear_all(); }
   const RouterCounters &counters() const { return counters_; }
 
 private:

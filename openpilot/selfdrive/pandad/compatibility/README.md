@@ -120,3 +120,15 @@ runner `tools/validate_panda_sessions.py` replays all four patches and executes
 P0/P1/P2 regressions plus P3 on macOS/Linux. Existing active pandad/SPI sources
 remain unchanged. P4 must integrate health/safety, production lifecycle events,
 configuration/engagement barriers and message consumers before real use.
+
+## P4 integration (current stage)
+
+The earlier P0–P3 sections describe their historical standalone scope. P4 adds
+`ControlSession`, `PandadRuntime`, the bounded `PandadLoop`, unchanged-schema
+cereal adapters, an explicit `pandad --compat-offline` entry and opt-in Python
+consumer policy. See [P4-INTEGRATION.md](P4-INTEGRATION.md) and
+[CONTROL-SESSION.md](CONTROL-SESSION.md) for configuration/readback, liveness,
+source-age, role and re-engagement contracts. Every backend used by this entry
+is an in-memory fake; no physical profile can be activated. The Linux daemon is
+compiled and linked including its retained original SPI path, but only its
+explicit offline entry is executed. Real deployment permissions remain false.

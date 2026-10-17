@@ -9,6 +9,7 @@ from openpilot.cereal import log
 from opendbc.car.structs import car
 
 from openpilot.common.params import Params
+from openpilot.selfdrive.pandad.compatibility.message_policy import policy_from_environment
 from openpilot.common.realtime import config_realtime_process, Priority, Ratekeeper
 from openpilot.common.swaglog import cloudlog, ForwardingHandler
 
@@ -29,8 +30,10 @@ EventName = log.OnroadEvent.EventName
 carlog.addHandler(ForwardingHandler(cloudlog))
 
 
-def obd_callback(params: Params) -> ObdCallback:
+def obd_callback(params: Params, panda_policy=None) -> ObdCallback:
   def set_obd_multiplexing(obd_multiplexing: bool):
+    if panda_policy is not None:
+      panda_policy.require_diagnostics_disabled()
     if params.get_bool("ObdMultiplexingEnabled") != obd_multiplexing:
       cloudlog.warning(f"Setting OBD multiplexing to {obd_multiplexing}")
       params.remove("ObdMultiplexingChanged")
@@ -40,7 +43,7 @@ def obd_callback(params: Params) -> ObdCallback:
   return set_obd_multiplexing
 
 
-def can_comm_callbacks(logcan: messaging.SubSocket, sendcan: messaging.PubSocket) -> tuple[CanRecvCallable, CanSendCallable]:
+def can_comm_callbacks(logcan: messaging.SubSocket, sendcan: messaging.PubSocket, panda_policy=None) -> tuple[CanRecvCallable, CanSendCallable]:
   def can_recv(wait_for_one: bool = False) -> list[list[CanData]]:
     """
     wait_for_one: wait the normal logcan socket timeout for a CAN packet, may return empty list if nothing comes
@@ -49,10 +52,15 @@ def can_comm_callbacks(logcan: messaging.SubSocket, sendcan: messaging.PubSocket
     """
     ret = []
     for can in messaging.drain_sock(logcan, wait_for_one=wait_for_one):
+      if panda_policy is not None and not panda_policy.accept_can(can, time.monotonic_ns()):
+        continue
       ret.append([CanData(msg.address, msg.dat, msg.src) for msg in can.can])
     return ret
 
   def can_send(msgs: list[CanData]) -> None:
+    if panda_policy is not None:
+      # Diagnostic/fingerprint callbacks never send from an offline profile.
+      return
     sendcan.send(can_list_to_can_capnp(msgs, msgtype='sendcan'))
 
   return can_recv, can_send
@@ -64,6 +72,10 @@ class Car:
   CP: car.CarParams
 
   def __init__(self, CI=None, RI=None) -> None:
+    self.panda_policy = policy_from_environment()
+    if self.panda_policy is not None and CI is None:
+      # Fail before sockets, Params writes, VIN/firmware queries or multiplexing.
+      self.panda_policy.require_diagnostics_disabled()
     self.can_sock = messaging.sub_sock('can', timeout=20)
     self.sm = messaging.SubMaster(['pandaStates', 'carControl', 'onroadEvents'])
     self.pm = messaging.PubMaster(['sendcan', 'carState', 'carParams', 'carOutput', 'radarTracks'])
@@ -78,7 +90,7 @@ class Car:
 
     self.params = Params()
 
-    self.can_callbacks = can_comm_callbacks(self.can_sock, self.pm.sock['sendcan'])
+    self.can_callbacks = can_comm_callbacks(self.can_sock, self.pm.sock['sendcan'], self.panda_policy)
 
     is_release = self.params.get_bool("IsReleaseBranch")
 
@@ -98,7 +110,7 @@ class Car:
         with car.CarParams.from_bytes(cached_params_raw) as _cached_params:
           cached_params = _cached_params
 
-      self.CI = get_car(*self.can_callbacks, obd_callback(self.params), alpha_long_allowed, is_release, cached_params)
+      self.CI = get_car(*self.can_callbacks, obd_callback(self.params, self.panda_policy), alpha_long_allowed, is_release, cached_params)
       self.RI = interfaces[self.CI.CP.carFingerprint].RadarInterface(self.CI.CP)
       self.CP = self.CI.CP
 
@@ -112,10 +124,12 @@ class Car:
     openpilot_enabled_toggle = self.params.get_bool("OpenpilotEnabledToggle")
     controller_available = self.CI.CC is not None and openpilot_enabled_toggle and not self.CP.dashcamOnly
     self.CP.passive = not controller_available or self.CP.dashcamOnly
+    if self.panda_policy is not None:
+      self.CP.passive = True
     if self.CP.passive:
       safety_config = structs.CarParams.SafetyConfig()
       safety_config.safetyModel = structs.CarParams.SafetyModel.noOutput
-      self.CP.safetyConfigs = [safety_config]
+      self.CP.safetyConfigs = [safety_config] * (2 if self.panda_policy is not None else 1)
 
     if self.CP.secOcRequired:
       # Copy user key if available
@@ -161,6 +175,9 @@ class Car:
     """carState update loop, driven by can"""
 
     can_strs = messaging.drain_sock_raw(self.can_sock, wait_for_one=True)
+    if self.panda_policy is not None:
+      now_ns = time.monotonic_ns()
+      can_strs = [raw for raw in can_strs if self.panda_policy.accept_can(messaging.log_from_bytes(raw), now_ns)]
     can_list = can_capnp_to_list(can_strs)
 
     # Update carState from CAN
@@ -170,6 +187,8 @@ class Car:
     RD: structs.RadarDataT | None = self.RI.update(can_list)
 
     self.sm.update(0)
+    if self.panda_policy is not None and not self.panda_policy.group_ready(self.sm, time.monotonic_ns()):
+      CS.canValid = False
 
     can_rcv_valid = len(can_strs) > 0
 
@@ -180,8 +199,9 @@ class Car:
     if can_rcv_valid and REPLAY:
       self.can_log_mono_time = messaging.log_from_bytes(can_strs[0]).logMonoTime
 
-    self.v_cruise_helper.update_v_cruise(CS, self.sm['carControl'].enabled, self.is_metric)
-    if self.sm['carControl'].enabled and not self.CC_prev.enabled:
+    requested_enabled = self.sm['carControl'].enabled and self.panda_policy is None
+    self.v_cruise_helper.update_v_cruise(CS, requested_enabled, self.is_metric)
+    if requested_enabled and not self.CC_prev.enabled:
       # Use CarState w/ buttons from the step selfdrived enables on
       self.v_cruise_helper.initialize_v_cruise(self.CS_prev, self.initial_cruise_speed)
 
@@ -223,6 +243,11 @@ class Car:
 
   def controls_update(self, CS: car.CarState, CC: car.CarControl):
     """control update loop, driven by carControl"""
+
+    if self.panda_policy is not None:
+      # The current profile has no vehicle-control or diagnostic permission.
+      # Do not initialize a controller, set ControlsReady, apply or publish TX.
+      return
 
     if not self.initialized_prev:
       # Initialize CarInterface, once controls are ready

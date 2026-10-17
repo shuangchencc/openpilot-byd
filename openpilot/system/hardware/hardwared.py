@@ -15,6 +15,7 @@ from openpilot.cereal.services import SERVICE_LIST
 from openpilot.common.utils import strip_deprecated_keys
 from openpilot.common.filter_simple import FirstOrderFilter
 from openpilot.common.params import Params
+from openpilot.selfdrive.pandad.compatibility.message_policy import policy_from_environment
 from openpilot.common.realtime import DT_HW
 from openpilot.selfdrive.selfdrived.alertmanager import set_offroad_alert
 from openpilot.common.hardware import HARDWARE, COMMA_HARDWARE, PC
@@ -200,6 +201,7 @@ def hw_state_thread(end_event, hw_queue):
 
 
 def hardware_thread(end_event, hw_queue) -> None:
+  panda_policy = policy_from_environment()
   system_stats = LinuxSystemStats() if sys.platform == "linux" else None
   pm = messaging.PubMaster(['deviceState'])
   sm = messaging.SubMaster(["peripheralState", "gpsLocationExternal", "selfdriveState", "pandaStates", "chestnutState"], poll="pandaStates")
@@ -265,7 +267,11 @@ def hardware_thread(end_event, hw_queue) -> None:
       offroad_cycle_count = sm.frame
     onroad_conditions["not_onroad_cycle"] = (sm.frame - offroad_cycle_count) >= ONROAD_CYCLE_TIME * SERVICE_LIST['pandaStates'].frequency
 
-    if sm.updated['pandaStates'] and len(pandaStates) > 0:
+    if panda_policy is not None:
+      panda_observation = panda_policy.hardware(sm, time.monotonic_ns())
+      onroad_conditions['ignition'] = panda_observation.ignition
+      in_car = panda_observation.in_car
+    elif sm.updated['pandaStates'] and len(pandaStates) > 0:
 
       # Set ignition based on any panda connected
       onroad_conditions["ignition"] = any(ps.ignitionLine or ps.ignitionCan for ps in pandaStates if ps.pandaType != log.PandaState.PandaType.unknown)
@@ -393,8 +399,9 @@ def hardware_thread(end_event, hw_queue) -> None:
       params.put_bool("IsEngaged", False, block=True)
       engaged_prev = False
 
-    if sm.updated['selfdriveState']:
-      engaged = sm['selfdriveState'].enabled
+    if sm.updated['selfdriveState'] or panda_policy is not None:
+      engaged = (sm['selfdriveState'].enabled if panda_policy is None
+                 else panda_policy.enabled(sm, time.monotonic_ns()))
       if engaged != engaged_prev:
         params.put_bool("IsEngaged", engaged, block=True)
         engaged_prev = engaged
@@ -431,7 +438,9 @@ def hardware_thread(end_event, hw_queue) -> None:
         off_ts = time.monotonic()
 
     # Offroad power monitoring
-    voltage = None if peripheralState.pandaType == log.PandaState.PandaType.unknown else peripheralState.voltage
+    voltage = (None if peripheralState.pandaType == log.PandaState.PandaType.unknown else peripheralState.voltage)
+    if panda_policy is not None:
+      voltage = panda_policy.hardware(sm, time.monotonic_ns()).voltage
     power_monitor.calculate(voltage, onroad_conditions["ignition"])
     msg.deviceState.offroadPowerUsageUwh = power_monitor.get_power_used()
     msg.deviceState.carBatteryCapacityUwh = max(0, power_monitor.get_car_battery_capacity())
