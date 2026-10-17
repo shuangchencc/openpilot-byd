@@ -1,8 +1,8 @@
-# Offline dual-Panda contracts and codecs (P0/P1)
+# Offline dual-Panda contracts and codecs (P0/P1/P2)
 
 Standalone Python standard-library contracts and C++17 CAN codecs against
 openpilot `35e78a9d`, panda `a5919516`, opendbc `b3bd79a6`. This package is not
-imported by the active pandad and contains no device backend or installer.
+imported by the active pandad. P2 adds explicit native backends, without a runtime factory or installer.
 
 `profiles/unbound.json` loads with every identity/role unset and every permission
 false. Registry fixtures must explicitly use synthetic identities and supported
@@ -39,7 +39,51 @@ missing fixtures fail, never skip. The probe includes the pinned Panda `board/`
 and opendbc repository headers and reports host ABI only. Tests never import
 Panda, discover devices, compile MCU firmware or start the original pandad.
 
-P2–P7 still own real USB/SPI backends, runtime integration, connection epochs,
+P3–P7 still own runtime integration, connection epochs,
 whole-group freshness/safety barriers, F4 firmware, system-level fault handling
 and deployment packaging. Existing pandad startup/flash behavior is unchanged
 because this isolated package is not connected to that entry point.
+
+## P2 transport contract
+
+`transport.h/.cc` wraps a caller-owned backend and clock with a per-session lock,
+finite deadline and permanent cooperative cancellation. Results preserve actual
+bytes, confirmed prefixes, unknown remaining progress and the adapter's original
+status. Short reads return immediately; only known-zero-byte read timeouts can
+retry. Writes never replay, including after short completion, timeout or cancel.
+Uncertain/error writes poison that session; another board is never selected as
+fallback. One backend/clock/parser belongs to one session and must outlive callers.
+
+`usb_backend` selects a normal-firmware Panda by exact bound serial and DOS/RED
+software type, rejects ambiguity, and checks active configuration descriptors for
+interface0/alt0 bulk endpoints 0x81/0x03. It excludes bootstub/DFU and never detaches
+a driver, resets, clears halt or changes USB configuration/alternate setting.
+Construction and default `open_bound` are inert. Explicit device permission AND
+`bulk_alt0_verified=true` are required before enumeration. This flag is a future
+caller's evidence requirement, not proof from descriptors: the pinned firmware
+implements SET_INTERFACE but lacks GET_INTERFACE. No P0 profile can currently
+activate this C++ library, and actual alternate state remains unverified.
+
+`libusb_api` is real libusb code behind an injectable API. Every backend owns its
+context/handle. Native opening/claiming is outside the transfer-time contract.
+Tests inject a fake API; the native link smoke test only constructs an unopened
+object and exercises rejected default opening.
+
+`spi_backend` preserves successful current wire requests (4096-byte envelope,
+9-byte header, 7-byte reply header, little-endian ID and CRC32; 4032-byte chunks,
+first read1013). It emits each chunk once and never resends an uncertain request,
+including reads that may already have consumed the MCU queue. NACK returns Busy.
+The old concrete SPI files and active pandad path remain byte-identical. The new
+SPI adapter intentionally replaces old infinite/retry behavior with bounded
+errors; it does not claim error-path equivalence. No USB fallback exists.
+`linux_spi_io` links the real spidev syscalls and nonblocking flock, but has an
+inert constructor. Explicit open configures mode/bits/speed; it is never called
+by acceptance. A synchronous kernel ioctl cannot be forcibly cancelled here.
+
+The frozen budget table is `TIMING-BUDGET.md`. `timing_budget.h` is pure candidate
+health/heartbeat/queue policy; actual scheduler and whole-group barrier wiring
+remain P3/P4. Passing fake-clock tests is not a real-time hardware guarantee.
+The engineering validator `tools/validate_panda_transport.py` cleanly composes
+P0/P1/P2 patches, reruns P0/P1, and builds/tests P2 on macOS and Linux under
+network/device-node isolation. Linux includes real libusb and spidev linkage;
+it is a standalone transport target, not a full active pandad daemon build.
