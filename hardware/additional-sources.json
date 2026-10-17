@@ -1,0 +1,74 @@
+[
+  {
+    "repository": "dragonpilot/dragonpilot",
+    "commit": "94ad85cfda64773a960d048dc11cac02d4aa86a5",
+    "path": "selfdrive/pandad_tici/panda.h",
+    "url": "https://github.com/dragonpilot/dragonpilot/blob/94ad85cfda64773a960d048dc11cac02d4aa86a5/selfdrive/pandad_tici/panda.h",
+    "local_path": "/Users/shuang/Code/openpilot/songplus-port-lab/hardware/evidence/dragonpilot-94ad85cf/selfdrive/pandad_tici/panda.h",
+    "sha256": "fdf47483dbe7fac3b17f5871b589da0c8c3f9e0fe8431e5a6a786e889208ace9",
+    "bytes": 2958
+  },
+  {
+    "repository": "dragonpilot/dragonpilot",
+    "commit": "94ad85cfda64773a960d048dc11cac02d4aa86a5",
+    "path": "selfdrive/modeld/SConscript",
+    "url": "https://github.com/dragonpilot/dragonpilot/blob/94ad85cfda64773a960d048dc11cac02d4aa86a5/selfdrive/modeld/SConscript",
+    "local_path": "/Users/shuang/Code/openpilot/songplus-port-lab/hardware/evidence/dragonpilot-94ad85cf/selfdrive/modeld/SConscript",
+    "sha256": "ab872f6167fbdfa99c76ca0f0523f02c84061d02093b32e698bec012a9321662",
+    "bytes": 6179
+  },
+  {
+    "repository": "dragonpilot/dragonpilot",
+    "commit": "94ad85cfda64773a960d048dc11cac02d4aa86a5",
+    "path": "selfdrive/modeld/modeld.py",
+    "url": "https://github.com/dragonpilot/dragonpilot/blob/94ad85cfda64773a960d048dc11cac02d4aa86a5/selfdrive/modeld/modeld.py",
+    "local_path": "/Users/shuang/Code/openpilot/songplus-port-lab/hardware/evidence/dragonpilot-94ad85cf/selfdrive/modeld/modeld.py",
+    "sha256": "1774d11a09f086cd7fd5b0dc0e32859d7d1d34e9dc6832e058f361e6277a91e6",
+    "bytes": 17010
+  },
+  {
+    "repository": "dragonpilot/dragonpilot",
+    "commit": "94ad85cfda64773a960d048dc11cac02d4aa86a5",
+    "path": "panda_tici/board/SConscript",
+    "url": "https://github.com/dragonpilot/dragonpilot/blob/94ad85cfda64773a960d048dc11cac02d4aa86a5/panda_tici/board/SConscript",
+    "local_path": "/Users/shuang/Code/openpilot/songplus-port-lab/hardware/evidence/dragonpilot-94ad85cf/panda_tici/board/SConscript",
+    "sha256": "5f09764e1a72c17f9dc7f95f0a5f17a4faca601cacd886f3fc4c3fdfc10111d3",
+    "bytes": 390
+  },
+  {
+    "repository": "commaai/opendbc",
+    "commit": "06ade56b49162e3f35e354df115e97b02de81d7a",
+    "path": "opendbc/safety/modes/byd.h",
+    "url": "https://github.com/commaai/opendbc/blob/06ade56b49162e3f35e354df115e97b02de81d7a/opendbc/safety/modes/byd.h",
+    "local_path": "/Users/shuang/Code/openpilot/songplus-port-lab/hardware/evidence/opendbc-06ade56b/opendbc/safety/modes/byd.h",
+    "sha256": "db860808da7e9923e982d69f2a7d7950c8a2a384d2fee33e9e302733d3897199",
+    "bytes": 4179
+  },
+  {
+    "repository": "commaai/opendbc",
+    "commit": "06ade56b49162e3f35e354df115e97b02de81d7a",
+    "path": "opendbc/safety/declarations.h",
+    "url": "https://github.com/commaai/opendbc/blob/06ade56b49162e3f35e354df115e97b02de81d7a/opendbc/safety/declarations.h",
+    "local_path": "/Users/shuang/Code/openpilot/songplus-port-lab/hardware/evidence/opendbc-06ade56b/opendbc/safety/declarations.h",
+    "sha256": "2aa8e441c5fade1965911e5c34e2cf05fee47edf3a4a28926ea4ad8a184adb59",
+    "bytes": 14321
+  },
+  {
+    "repository": "commaai/opendbc",
+    "commit": "06ade56b49162e3f35e354df115e97b02de81d7a",
+    "path": "opendbc/safety/safety.h",
+    "url": "https://github.com/commaai/opendbc/blob/06ade56b49162e3f35e354df115e97b02de81d7a/opendbc/safety/safety.h",
+    "local_path": "/Users/shuang/Code/openpilot/songplus-port-lab/hardware/evidence/opendbc-06ade56b/opendbc/safety/safety.h",
+    "sha256": "9a5e1b8dd8bd55cee24a7bb8c971fb4b7f3cbfe1462bd612c827810ba43ff902",
+    "bytes": 17085
+  },
+  {
+    "repository": "commaai/opendbc",
+    "commit": "06ade56b49162e3f35e354df115e97b02de81d7a",
+    "path": "opendbc/car/car.capnp",
+    "url": "https://github.com/commaai/opendbc/blob/06ade56b49162e3f35e354df115e97b02de81d7a/opendbc/car/car.capnp",
+    "local_path": "/Users/shuang/Code/openpilot/songplus-port-lab/hardware/evidence/opendbc-06ade56b/opendbc/car/car.capnp",
+    "sha256": "ef3454f5add03a98f31b08c2c89473e28ddaf1bfd4d787f1c71cfbe4093abdac",
+    "bytes": 21267
+  }
+]

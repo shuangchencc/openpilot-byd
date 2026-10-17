@@ -1,0 +1,9 @@
+{
+  "schema": "can-jsonl-manifest/v1",
+  "data_kind": "synthetic",
+  "log_file": "synthetic-can-data.jsonl",
+  "sha256": "5afaa29c8b461522716ace15031f76bc72bfefa9d59c5bf3cc69912931dfc20f",
+  "timestamp_unit": "ns",
+  "timestamp_clock": "monotonic",
+  "description": "Deliberately synthetic counters and byte ramps for parser tests; not a vehicle capture, no physical signal assignments, no personal data."
+}

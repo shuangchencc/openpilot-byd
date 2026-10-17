@@ -1,0 +1,42 @@
+{
+  "schema": "research-evidence-summary/v1",
+  "content_kind": "derived_summary_not_original",
+  "created_date": "2026-10-18",
+  "timezone": "Asia/Shanghai",
+  "source_provenance": [
+    {
+      "path_relative_to_original_workspace": "migration-lab/VALIDATION-RESULT.txt",
+      "sha256": "bcc76e7652dcf75cf964acae73a85018c0d07dc5b597151b241ac2041f7eb584",
+      "bytes": 5471,
+      "required_for_offline_validation": false
+    },
+    {
+      "path_relative_to_original_workspace": "migration-lab/validation-result.json",
+      "sha256": "6bb3dd01f70703d5500f41d4930c678e5e44af6e60e1f1eb263a7585c902b460",
+      "bytes": 104966,
+      "required_for_offline_validation": false
+    },
+    {
+      "path_relative_to_original_workspace": "migration-lab/synthetic-sequence-result.json",
+      "sha256": "0af958bc572e707f6531b7a923bb3849ccea4f7596800c04ac7d5358526c154a",
+      "bytes": 6116,
+      "required_for_offline_validation": false
+    }
+  ],
+  "facts": {
+    "reported_tests_passed": 41,
+    "synthetic_pipeline_frames": 480,
+    "model_graph_executions": 720,
+    "legacy_message_roundtrips": 1920,
+    "cp099_ORT_policy": "type-incompatible; reference CPU evaluator used",
+    "target_QCOM_backend": "not verified"
+  },
+  "limits": [
+    "This is a synthetic-input/CPU research acceptance, not C3XL real-time or road-performance evidence.",
+    "Missing sim_pose semantics, camera input/calibration/synchronization and live-process coupling remain.",
+    "Target engineering approach uses matching official model/parser/schema/planner components; this bridge is not its runtime dependency.",
+    "Models, pickle files and native model code are not copied or executed by this package."
+  ],
+  "runtime_dependency": false,
+  "target_functions_executed_for_this_summary": false
+}

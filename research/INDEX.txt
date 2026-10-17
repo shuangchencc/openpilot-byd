@@ -1,0 +1,61 @@
+研究成果迁入说明
+日期：2026-10-18，Asia/Shanghai
+
+入口与可复现边界
+  index.json：10 项成果，分别标为 verified / partial / candidate / missing。
+  evidence-manifest.json：41 个文件的 SHA-256、字节数与来源。
+  plan-manifest.json：6 份历史采样计划快照的 SHA-256、字节数与取得过程。
+  python research/verify.py：只读取本工程文件，验证清单、摘要与来源绑定。
+  python hardware/verify_source_evidence.py：核对 31 个来源、44 个文本锚点、9 项补丁计划。
+
+上述命令不需要 migration-audit、migration-lab、op_rootdir 或
+independent-port-research 目录，也不导入快照源码、恢复函数或原生库。
+原始目录只作为历史证据出处保留在 JSON 的 provenance 字段。
+采样计划固定在 research/plans/capture-plan-20261017/，校验不读取工作中的
+capture-plan/ 目录。原 PLAN.txt 按预先保存的 12430 字节与 SHA-256 恢复；
+其它 5 份文本审阅后原样保存。另一任务新增的实机检查/日志导出工具、
+COMMANDS.txt 和后续现场上下文不属于本轮基线，也没有复制到此快照。
+
+verified 的含义
+仅表示引用的历史报告对指定离线研究范围给出了验收通过；迁入时重新计算
+来源报告哈希、整理事实，不重跑原实验，也不把旧验收当作本次新测试。
+本次真正重跑的可迁移校验与测试见统一工程验证结果。
+
+已记录的已验证研究
+  - 1 个 byd_short_checksum：1,419,440 个 bytes 用例与 72 个边界/类型用例。
+  - 7 个 bydcan 纯 helper：111,890 条 oracle 与 50 个额外形状用例。
+  - 3 张初始化静态表：37 个指纹条目、38 个 DBC 名称映射、空 FW_VERSIONS。
+  - 模型桥接研究：41 项测试、480 个合成流水线帧；CPU/消息兼容性范围。
+
+部分完成，不能遗漏的更新
+  - create_steer_module_message 已有 62,100 项原 native packer 差分，
+    其中 62,040 个完整 CAN 返回值。
+  - 2026-10-18 后续 8 个 builder 与 getter 源码恢复已有报告；7 个 builder
+    的 42,761 项 native 对照通过。LKAS_HUD_ADAS 缺少匹配 DBC，仍未验收。
+  - 控制器 __init__/update 和另 7 个 controller helper 有静态 CFG 比对与
+    依赖 smoke 结果；未发现最终完整控制器 CAN/状态差分验收报告。
+  - 备份完整性已有记录，实际恢复入口、loader、恢复演练仍未通过。
+
+候选与缺失
+  - 9 项硬件补丁均未实施，板卡/总线/相机/GPU/新系统仍待实证。
+  - 完整 rlog 采样与事件标注方案已保留；真实导入链和本车协议仍待验证。
+  - 宋 PLUS 独立状态解析、编码器、控制器和 Panda safety 未完成；本车确认
+    协议条目仍为 0，不存在可安装版本。
+
+材料选择与许可
+硬件校验保留实际被锚点或补丁计划引用的 28 份公共源码全文快照，以及
+硬件观察、备份状态、旧 Panda 枚举的 3 份新事实摘要。原 55 条来源中的
+24 条未使用来源不再作为验证依赖；原文件保持原处，没有删除或改写。
+
+公共快照属于指定提交 dragonpilot 与 opendbc，仅供静态比较。对应精确
+版本的 MIT LICENSE 已保留（含 panda_tici 子树）；逐文件版权标记不变。
+迁入并不自动批准它们进入运行路径，后续复用需按具体文件审查许可证。
+
+恢复研究的代码、原加密样本、字节码、身份适配器、native 二进制、模型、
+原始 oracle、设备配置及备份镜像均未迁入。它们既不进入生产源码，也不
+作为本工程构建或测试依赖。恢复算法的来源与再分发许可尚未在此确认，
+不能因“能够独立运行”就视为已完成许可审查或车辆协议验证。
+
+摘要明确标为 derived_summary_not_original。摘要文件使用自己的哈希；
+原报告的路径、哈希和字节数单列在 source_provenance 中，绝不把摘要
+伪称为原报告的原样副本。所有摘要删去设备身份和配置值，只保留工程事实。

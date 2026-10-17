@@ -1,0 +1,29 @@
+{
+  "client_date": "2026-10-17",
+  "timezone": "Asia/Shanghai",
+  "python": "3.14.7 (main, Aug  5 2026, 10:29:49) [Clang 21.0.0 (clang-2100.1.1.101)]",
+  "test_command": "python3 -m unittest discover -s /Users/shuang/Code/openpilot/songplus-port-lab/replay/tests -v",
+  "unit_tests_run": 26,
+  "unit_tests_passed": 26,
+  "unit_test_result": "OK",
+  "unit_test_elapsed_seconds_reported": 0.035,
+  "cli_validate": "passed",
+  "cli_summarize": "passed",
+  "fixture_source_kind": "synthetic",
+  "fixture_frame_count": 10,
+  "fixture_bus_frame_counts": {
+    "0": 7,
+    "1": 2,
+    "2": 1
+  },
+  "fixture_message_count": 4,
+  "candidate_code_executed": false,
+  "hardware_access": false,
+  "scope": "All input fixtures synthetic; integrity/statistics tests do not validate a vehicle protocol or behavior.",
+  "files": {
+    "canlog.py": "a0ba945cd16cdaded3058c36abf5ebdd8767ff11fafae6f5ac4ac483ffb7e573",
+    "tests/test_canlog.py": "9e95bb80bd3781921326d956c0a2e87187c966c57bef7cbca82ff430e5518532",
+    "fixtures/synthetic-can-data.jsonl": "5afaa29c8b461522716ace15031f76bc72bfefa9d59c5bf3cc69912931dfc20f",
+    "fixtures/synthetic-can-data.manifest.json": "03c266b269d93f801a073b91cd70bd16691a6305bd910c7aec8536f830cd75d9"
+  }
+}

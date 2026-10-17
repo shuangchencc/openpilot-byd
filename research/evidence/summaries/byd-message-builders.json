@@ -1,0 +1,48 @@
+{
+  "schema": "research-evidence-summary/v1",
+  "content_kind": "derived_summary_not_original",
+  "created_date": "2026-10-18",
+  "timezone": "Asia/Shanghai",
+  "source_provenance": [
+    {
+      "path_relative_to_original_workspace": "migration-lab/byd-recovery/helpers-can-lab/message/RECOVERY-RESULT.txt",
+      "sha256": "0dfa7d543d20d281c35f848644df6c94b4b3cfa014b15fc232b80a8685f9d913",
+      "bytes": 5735,
+      "required_for_offline_validation": false
+    },
+    {
+      "path_relative_to_original_workspace": "migration-lab/byd-recovery/messages-state-lab/FINAL-REVIEW.txt",
+      "sha256": "7bd38966c44ce2576019bd2c5c7109a2e2175e9e3f42ea9f9a20c9f82406ff67",
+      "bytes": 4194,
+      "required_for_offline_validation": false
+    }
+  ],
+  "facts": {
+    "steer_module_builder": {
+      "cases": 62100,
+      "complete_CAN_returns": 62040,
+      "recorded_mismatches": 0
+    },
+    "later_builder_suite": {
+      "new_builder_bodies_restored": 8,
+      "builders_with_accepted_native_CAN_comparison": 7,
+      "oracle_records": 42761,
+      "complete_CAN_frames": 41146,
+      "recorded_mismatches": 0
+    },
+    "getter_records": 141,
+    "observed_bydcan_business_functions_with_source": 18,
+    "whole_byd_modules_recovered": 0,
+    "decoded_DBC_messages_reported": 42,
+    "decoded_DBC_signals_reported": 244,
+    "missing_message": "LKAS_HUD_ADAS"
+  },
+  "limits": [
+    "Source/body recovery and finite native-binary comparisons are not an independent maintainable encoder.",
+    "Original ARM64 packer/libdbc and a private identity adapter were still required; none are copied into this project.",
+    "create_lkas_hud has static CFG evidence and matched negative failure only; 3934 generated HUD inputs were not executed.",
+    "No full-module, controller, firmware or vehicle acceptance."
+  ],
+  "runtime_dependency": false,
+  "target_functions_executed_for_this_summary": false
+}

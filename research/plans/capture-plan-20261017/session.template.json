@@ -1,0 +1,77 @@
+{
+  "schema": "capture-session-plan/v1",
+  "template_only": true,
+  "collection_state": "not_started",
+  "session_id": null,
+  "vehicle": {
+    "model": "宋 PLUS DM-i",
+    "model_year": 2023,
+    "edition": "冠军版",
+    "range_km": 110,
+    "trim": "旗舰 PLUS",
+    "identity_basis": "user_confirmed",
+    "camera_module_changed": "unknown",
+    "radar_module_changed": "unknown",
+    "steering_module_changed": "unknown"
+  },
+  "collection": {
+    "preferred_method": "copy_existing_complete_rlog_after_parking",
+    "new_collector_can_transmit": false,
+    "existing_system_transmission": "unknown",
+    "device_connected_for_this_plan": false
+  },
+  "context": {
+    "phone_timezone": "Asia/Shanghai",
+    "phone_start_iso8601": null,
+    "phone_end_iso8601": null,
+    "phone_clock_sync_method": null,
+    "video_file": null,
+    "video_start_elapsed_s": null,
+    "video_end_elapsed_s": null,
+    "observer": null,
+    "vehicle_ready": null,
+    "gear": null,
+    "parking_brake": null,
+    "auto_hold": null,
+    "ev_hev_mode": null,
+    "soc_percent": null,
+    "grade_description": null
+  },
+  "device": {
+    "user_reported_name": "C3XL",
+    "running_software_version": null,
+    "running_directory": null,
+    "boot_identity": null,
+    "route_ids": [],
+    "log_root": null,
+    "panda_order_observed": [],
+    "physical_bus_mapping": "unknown",
+    "settings_changed_for_capture": false
+  },
+  "control_observations": {
+    "instrument_acc_display": null,
+    "c3xl_display": null,
+    "always_active_lateral_observed": "unknown",
+    "logged_lateral_active": null,
+    "logged_longitudinal_active": null,
+    "longitudinal_source": "unknown",
+    "source_assignment_evidence": []
+  },
+  "files": [],
+  "alignment": {
+    "status": "unaligned",
+    "anchors": [],
+    "estimated_uncertainty_ms": null,
+    "clock_jumps": []
+  },
+  "quality": {
+    "raw_log_complete": null,
+    "can_present": null,
+    "sendcan_present": null,
+    "health_available": null,
+    "health_deltas": [],
+    "missing_segments": [],
+    "warnings": []
+  },
+  "notes": "Template only; not a recording manifest and not evidence. Preserve original rlog and observation timestamps; do not fill unknown values by guessing."
+}

@@ -1,0 +1,22 @@
+{
+  "schema": "can-jsonl-report/v1",
+  "validation": "passed",
+  "source": {
+    "manifest_declared_data_kind": "synthetic",
+    "description": "Deliberately synthetic counters and byte ramps for parser tests; not a vehicle capture, no physical signal assignments, no personal data.",
+    "log_file": "synthetic-can-data.jsonl",
+    "verified_sha256": "5afaa29c8b461522716ace15031f76bc72bfefa9d59c5bf3cc69912931dfc20f",
+    "timestamp_clock": "monotonic",
+    "timestamp_unit": "ns",
+    "provenance_note": "A hash binds the bytes to this manifest; it does not prove a recorded origin or a vehicle identity."
+  },
+  "frame_count": 10,
+  "first_timestamp_ns": 0,
+  "last_timestamp_ns": 30000000,
+  "bus_frame_counts": {
+    "0": 7,
+    "1": 2,
+    "2": 1
+  },
+  "operation": "validate"
+}

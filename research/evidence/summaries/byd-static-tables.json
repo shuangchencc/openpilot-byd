@@ -1,0 +1,27 @@
+{
+  "schema": "research-evidence-summary/v1",
+  "content_kind": "derived_summary_not_original",
+  "created_date": "2026-10-18",
+  "timezone": "Asia/Shanghai",
+  "source_provenance": [
+    {
+      "path_relative_to_original_workspace": "migration-lab/byd-recovery/runtime-lab/static-data/result.json",
+      "sha256": "ade5fea0c50a98d1c86f025ccfddb521a6b66108232d1ff9869c01843824db09",
+      "bytes": 3647,
+      "required_for_offline_validation": false
+    }
+  ],
+  "facts": {
+    "FINGERPRINTS_entries": 37,
+    "DBC_name_mapping_entries": 38,
+    "FW_VERSIONS_entries": 0,
+    "roundtrip": "Types, values, dictionary order and enum identity reported equal."
+  },
+  "limits": [
+    "DBC table maps names; it does not contain decoded message definitions.",
+    "Observed empty firmware table is preserved as a finding; no firmware data inferred.",
+    "Tables and protected initialization code are not bundled or runtime dependencies."
+  ],
+  "runtime_dependency": false,
+  "target_functions_executed_for_this_summary": false
+}

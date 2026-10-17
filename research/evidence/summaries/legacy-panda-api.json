@@ -1,0 +1,27 @@
+{
+  "schema": "research-evidence-summary/v1",
+  "content_kind": "derived_summary_not_original",
+  "created_date": "2026-10-18",
+  "timezone": "Asia/Shanghai",
+  "source_provenance": [
+    {
+      "path_relative_to_original_workspace": "op_rootdir/data/openpilot/panda/python/__init__.py",
+      "sha256": "c2df6b142adb4ae1a4163128760a8e03a4659eae349b3f7b062231cec7a762c7",
+      "bytes": 30385,
+      "required_for_offline_validation": false
+    }
+  ],
+  "facts": {
+    "observed_constant_name": "Panda.SAFETY_BYD",
+    "observed_constant_value": 32,
+    "original_line": 146,
+    "original_line_text": "  SAFETY_BYD = 32"
+  },
+  "limits": [
+    "This single observed enum is not a reusable safety implementation.",
+    "Original installed source license/provenance unresolved; no installed module copied.",
+    "Legacy safety ID and safetyParam must not be transplanted to the target firmware."
+  ],
+  "runtime_dependency": false,
+  "target_functions_executed_for_this_summary": false
+}

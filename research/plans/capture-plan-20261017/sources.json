@@ -1,0 +1,251 @@
+{
+  "schema": "capture-plan-sources/v1",
+  "review_date": "2026-10-18",
+  "workspace_root": "/Users/shuang/Code/openpilot",
+  "device_access_performed": false,
+  "vehicle_recording_created": false,
+  "local_sources": [
+    {
+      "id": "L01",
+      "workspace_relative_path": "op_rootdir/data/params/d_tmp/EnableLogging",
+      "sha256": "6b86b273ff34fce19d6b804eff5a3f5747ada4eaa22f1d49c01e52ddb7875b4b",
+      "line_ranges": [
+        {
+          "start": 1,
+          "end": 1
+        }
+      ],
+      "supports": "Old extracted parameter snapshot only; not current state",
+      "scope": "Local snapshot or explicitly labeled pinned reference; not live device inspection"
+    },
+    {
+      "id": "L02",
+      "workspace_relative_path": "op_rootdir/data/openpilot/system/manager/process_config.py",
+      "sha256": "eddf85d5dbdcc05540845576f75442a49d37fa7ed45e4a6afe094d8dd02e1581",
+      "line_ranges": [
+        {
+          "start": 23,
+          "end": 29
+        },
+        {
+          "start": 75,
+          "end": 90
+        }
+      ],
+      "supports": "Logger startup conditions and process registration",
+      "scope": "Local snapshot or explicitly labeled pinned reference; not live device inspection"
+    },
+    {
+      "id": "L03",
+      "workspace_relative_path": "op_rootdir/data/openpilot/cereal/services.py",
+      "sha256": "9d6d3b1c2e5598aae3a56212d50dcf371cf213a296847a210eda6ef91a26e242",
+      "line_ranges": [
+        {
+          "start": 22,
+          "end": 65
+        }
+      ],
+      "supports": "Full logging flags; local CAN qlog decimation 1223, sendcan 139",
+      "scope": "Local snapshot or explicitly labeled pinned reference; not live device inspection"
+    },
+    {
+      "id": "L04",
+      "workspace_relative_path": "op_rootdir/data/openpilot/system/hardware/hw.py",
+      "sha256": "6d14fc6585b84173db861f54189c79f355b6bd5e5be7ea9f8b98595ba2416e32",
+      "line_ranges": [
+        {
+          "start": 14,
+          "end": 20
+        }
+      ],
+      "supports": "Default data root and environment override",
+      "scope": "Local snapshot or explicitly labeled pinned reference; not live device inspection"
+    },
+    {
+      "id": "L05",
+      "workspace_relative_path": "op_rootdir/data/openpilot/system/loggerd/loggerd.h",
+      "sha256": "c7825347362f6641da3c5b78b02ffb148861cfcde78cac68045590429a8717f9",
+      "line_ranges": [
+        {
+          "start": 28,
+          "end": 32
+        },
+        {
+          "start": 59,
+          "end": 77
+        },
+        {
+          "start": 105,
+          "end": 112
+        }
+      ],
+      "supports": "Segment length and video controls",
+      "scope": "Local snapshot or explicitly labeled pinned reference; not live device inspection"
+    },
+    {
+      "id": "L06",
+      "workspace_relative_path": "op_rootdir/data/openpilot/system/loggerd/deleter.py",
+      "sha256": "d84150b0c395484897be72dfb9df8addd9f70dbb166b42676b24ceadb897a0f6",
+      "line_ranges": [
+        {
+          "start": 11,
+          "end": 18
+        },
+        {
+          "start": 47,
+          "end": 76
+        }
+      ],
+      "supports": "Space thresholds and deletion semantics",
+      "scope": "Local snapshot or explicitly labeled pinned reference; not live device inspection"
+    },
+    {
+      "id": "L07",
+      "workspace_relative_path": "op_rootdir/data/openpilot/system/loggerd/uploader.py",
+      "sha256": "208927beca6ee81e71094ac9701a3993be19910f32a5dc9d0b21c64afa98a759",
+      "line_ranges": [
+        {
+          "start": 87,
+          "end": 88
+        },
+        {
+          "start": 129,
+          "end": 140
+        }
+      ],
+      "supports": "Automatic upload priorities do not promise full rlogs",
+      "scope": "Local snapshot or explicitly labeled pinned reference; not live device inspection"
+    },
+    {
+      "id": "L08",
+      "workspace_relative_path": "op_rootdir/data/openpilot/cereal/log.capnp",
+      "sha256": "5b2bcbf12be59203b9666b4d5193aecdb58e58852f713cfdf0cee1f7a4e8cdb0",
+      "line_ranges": [
+        {
+          "start": 338,
+          "end": 343
+        },
+        {
+          "start": 1911,
+          "end": 1918
+        },
+        {
+          "start": 2252,
+          "end": 2284
+        }
+      ],
+      "supports": "Raw CAN fields, clock and event timestamp schema",
+      "scope": "Local snapshot or explicitly labeled pinned reference; not live device inspection"
+    },
+    {
+      "id": "L09",
+      "workspace_relative_path": "op_rootdir/data/openpilot/tools/lib/logreader.py",
+      "sha256": "d06609174edabd1502564e9584b81e2cbe49b26e15fa4a665b99f58d5ff2068f",
+      "line_ranges": [
+        {
+          "start": 30,
+          "end": 70
+        },
+        {
+          "start": 75,
+          "end": 80
+        },
+        {
+          "start": 96,
+          "end": 119
+        }
+      ],
+      "supports": "Compression handling; corrupt-message warning and qlog fallback",
+      "scope": "Local snapshot or explicitly labeled pinned reference; not live device inspection"
+    },
+    {
+      "id": "L10",
+      "workspace_relative_path": "migration-audit/offline-handoff/START-HERE.txt",
+      "sha256": "1c6c10b24606e9af76ca16684d2af80473677efedad809adaf4688a05dc16535",
+      "line_ranges": [
+        {
+          "start": 14,
+          "end": 20
+        }
+      ],
+      "supports": "Prior backups exclude route recordings; different snapshot contexts",
+      "scope": "Local snapshot or explicitly labeled pinned reference; not live device inspection"
+    },
+    {
+      "id": "L11",
+      "workspace_relative_path": "migration-audit/device-evidence-current.json",
+      "sha256": "4193644c96fed7bd45eee41889e621e917a36d446704f43838ea3663ac6873a8",
+      "line_ranges": [
+        {
+          "start": 92,
+          "end": 109
+        },
+        {
+          "start": 178,
+          "end": 193
+        },
+        {
+          "start": 214,
+          "end": 226
+        }
+      ],
+      "supports": "Historical Panda order/overflow/errors, not current fault conclusion",
+      "scope": "Local snapshot or explicitly labeled pinned reference; not live device inspection"
+    },
+    {
+      "id": "L12",
+      "workspace_relative_path": "independent-port-research/hardware/evidence/dragonpilot-94ad85cf/selfdrive/pandad_tici/pandad.cc",
+      "sha256": "0d32bee3faf988ac9a7af8c64e4fb76a4230ddc494c0ab057a70b292375f4926",
+      "line_ranges": [
+        {
+          "start": 21,
+          "end": 29
+        },
+        {
+          "start": 113,
+          "end": 131
+        }
+      ],
+      "supports": "Pinned DP reference only: board ordering and batched CAN events",
+      "scope": "Local snapshot or explicitly labeled pinned reference; not live device inspection"
+    },
+    {
+      "id": "L13",
+      "workspace_relative_path": "op_rootdir/data/openpilot/panda/python/__init__.py",
+      "sha256": "c2df6b142adb4ae1a4163128760a8e03a4659eae349b3f7b062231cec7a762c7",
+      "line_ranges": [
+        {
+          "start": 263,
+          "end": 265
+        },
+        {
+          "start": 327,
+          "end": 337
+        }
+      ],
+      "supports": "Current extracted Panda constructor has device-write side effects",
+      "scope": "Local snapshot or explicitly labeled pinned reference; not live device inspection"
+    },
+    {
+      "id": "L14",
+      "workspace_relative_path": "songplus-port-lab/hardware/evidence/dragonpilot-94ad85cf/selfdrive/pandad_tici/panda.h",
+      "sha256": "fdf47483dbe7fac3b17f5871b589da0c8c3f9e0fe8431e5a6a786e889208ace9",
+      "line_ranges": [
+        {
+          "start": 23,
+          "end": 26
+        }
+      ],
+      "supports": "DP-only reference bus-return/reject offsets, not asserted for target",
+      "scope": "Local snapshot or explicitly labeled pinned reference; not live device inspection"
+    }
+  ],
+  "public_sources": [
+    {
+      "id": "W01",
+      "url": "https://docs.comma.ai/concepts/logs/",
+      "accessed_date": "2026-10-17",
+      "supports": "rlog versus decimated qlog, route segments; general official description, not customized-device runtime proof"
+    }
+  ]
+}

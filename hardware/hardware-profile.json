@@ -1,0 +1,1612 @@
+{
+  "schema_version": 1,
+  "profile_id": "songplus-dmi-2023-c3xl-unconfirmed",
+  "created_date": "2026-10-17",
+  "timezone": "Asia/Shanghai",
+  "status": "offline_research_only",
+  "deployment_ready": false,
+  "hardware_compatibility_confirmed": false,
+  "vehicle": {
+    "make": "BYD",
+    "model": "Song Plus DM-i",
+    "year": 2023,
+    "edition": "Champion Edition 110 km Flagship PLUS",
+    "source": "user_confirmed"
+  },
+  "device_identity": {
+    "commercial_name_user_reported": "Mr One C3XL",
+    "pcb_revision": null,
+    "som_revision": null,
+    "camera_sensor_per_port": null,
+    "must_not_equate": [
+      "C3XL and O3XL",
+      "C3XL and official comma 3X",
+      "device tree tici and official hardware authenticity"
+    ]
+  },
+  "observed_prior_readonly": {
+    "device_tree_model": "comma tici",
+    "architecture": "aarch64",
+    "kernel": "4.9.103+",
+    "MemTotal_kB": 3699784,
+    "os": "AGNOS 10.1",
+    "active_slot": "B",
+    "inactive_slot_os": "AGNOS 12.4 (not boot tested)",
+    "modem": "Quectel EC25, USB 2c7c:0125",
+    "panda_usb_id": "bbaa:ddcc (two enumerations)",
+    "panda_types_passively_reported": [
+      "redPanda",
+      "dos"
+    ],
+    "panda_version": "DEV-e26a80db-DEBUG",
+    "spi_node": "/dev/spidev0.0",
+    "usb_controllers": [
+      "a800000.dwc3",
+      "a600000.dwc3"
+    ],
+    "usb_gadget_udc": "a600000.dwc3; gadget binding empty at inspection",
+    "software": "custom sunnypilot 0.9.8.0, installed tree has no .git"
+  },
+  "candidate_source": {
+    "repository": "dragonpilot/dragonpilot",
+    "commit": "94ad85cfda64773a960d048dc11cac02d4aa86a5",
+    "observed_branch": "pre-build",
+    "purpose": "selective hardware-support source; not an installer"
+  },
+  "safety_framework_reference": {
+    "repository": "commaai/opendbc",
+    "commit": "06ade56b49162e3f35e354df115e97b02de81d7a",
+    "vehicle_support_equivalence": false,
+    "old_byd_safety_id": 32,
+    "reference_byd_safety_id": 35,
+    "reference_byd_safety_param_used": false
+  },
+  "execution_policy": {
+    "device_access": false,
+    "candidate_import": false,
+    "candidate_execution": false,
+    "network": false,
+    "firmware_flash": false,
+    "os_update": false,
+    "meaning": "Policy for local verifier and current lab work, not claims about upstream scripts."
+  },
+  "required_runtime_features": {
+    "driver_monitoring_required": true,
+    "audible_alerts_required": true,
+    "auto_lite_fallback_allowed": false,
+    "chestnut_model_compatibility_claimed": false
+  },
+  "bus_mapping_candidate": {
+    "panda_bus_offset": 4,
+    "physical_mapping_confirmed": false,
+    "order_condition": "DP sorting puts internal DOS first and external RED_PANDA second; actual board roles unconfirmed",
+    "conditional_first_panda_host_buses": [
+      0,
+      1,
+      2
+    ],
+    "conditional_second_panda_host_buses": [
+      4,
+      5,
+      6
+    ],
+    "physical_can_ports_per_board": 3,
+    "stride_is_not_physical_port_count": true,
+    "formula": "host_bus = panda_local_bus + sorted_panda_index * 4",
+    "safety_bus_space": "Each MCU evaluates its local bus 0/1/2. Host aggregate bus 4/5/6 is not the MCU-local bus."
+  },
+  "boot_candidate": {
+    "current_os": "10.1",
+    "inactive_os": "12.4 (not boot-tested)",
+    "dp_target_userland": "18.4",
+    "dp_non_tizi_override_partitions": [
+      "abl",
+      "boot"
+    ],
+    "boot_hash_raw": "0191529aa97d90d1fa04b472d80230b777606459e1e1e9e2323c9519839827b4",
+    "abl_hash_raw": "32a2174b5f764e95dfc54cf358ba01752943b1b3b90e626149c3da7d5f1830b6",
+    "recovery_loader_confirmed": false,
+    "restore_rehearsal_completed": false
+  },
+  "unresolved_hardware_requirements": [
+    "Exact PCB/product revision and SoC identification independent of device-tree model",
+    "Physical connector to USB-controller mapping and power/data capability",
+    "Harness wiring/pinout, external box MCU and provisioning",
+    "BYD encrypted implementation and reproducible source",
+    "Device-specific USB recovery loader and working recovery entry",
+    "Camera hardware patch provenance and target OS driver compatibility",
+    "Three camera identities/optics/ports and kernel/ISP ABI",
+    "Actual dual-Panda bus mapping and protocol versions",
+    "QCOM model throughput, memory headroom and sustained thermals",
+    "Working driver-monitoring and audible alerts on target stack",
+    "Target F4/H7 safety framework build/size/behavior validation"
+  ],
+  "source_evidence": [
+    {
+      "repository": "dragonpilot/dragonpilot",
+      "commit": "94ad85cfda64773a960d048dc11cac02d4aa86a5",
+      "path": "launch_chffrplus.sh",
+      "url": "https://github.com/dragonpilot/dragonpilot/blob/94ad85cfda64773a960d048dc11cac02d4aa86a5/launch_chffrplus.sh",
+      "raw_url": "https://raw.githubusercontent.com/dragonpilot/dragonpilot/94ad85cfda64773a960d048dc11cac02d4aa86a5/launch_chffrplus.sh",
+      "local_path": "../research/evidence/public-source/dragonpilot-94ad85cf/launch_chffrplus.sh",
+      "sha256": "f0842bede4cf47478b6a788d30c9f05eef6c785f53501d33d39d0782e932cef2",
+      "bytes": 8438,
+      "evidence_kind": "public_source_snapshot",
+      "references": [
+        {
+          "start_line": 35,
+          "end_line": 104,
+          "supports": "tici MCU detection; F4 DOS/H7 TRES selection"
+        },
+        {
+          "start_line": 106,
+          "end_line": 132,
+          "supports": "aux USB Panda role switching"
+        },
+        {
+          "start_line": 163,
+          "end_line": 171,
+          "supports": "Lite probe"
+        },
+        {
+          "start_line": 6,
+          "end_line": 28,
+          "supports": "boot success and automatic AGNOS update"
+        }
+      ],
+      "id": "dp.launch",
+      "original_local_path": "../../independent-port-research/hardware/evidence/dragonpilot-94ad85cf/launch_chffrplus.sh",
+      "provenance": {
+        "path_relative_to_original_workspace": "independent-port-research/hardware/evidence/dragonpilot-94ad85cf/launch_chffrplus.sh",
+        "sha256": "f0842bede4cf47478b6a788d30c9f05eef6c785f53501d33d39d0782e932cef2",
+        "bytes": 8438,
+        "required_for_offline_validation": false
+      },
+      "usage": "inert_reference_only_not_runtime_or_production_source",
+      "license_review": "MIT_repository_license_retained_individual_notice_review_required",
+      "license_evidence": "research/evidence/licenses/dragonpilot-94ad85cf-LICENSE"
+    },
+    {
+      "repository": "dragonpilot/dragonpilot",
+      "commit": "94ad85cfda64773a960d048dc11cac02d4aa86a5",
+      "path": "launch_env.sh",
+      "url": "https://github.com/dragonpilot/dragonpilot/blob/94ad85cfda64773a960d048dc11cac02d4aa86a5/launch_env.sh",
+      "raw_url": "https://raw.githubusercontent.com/dragonpilot/dragonpilot/94ad85cfda64773a960d048dc11cac02d4aa86a5/launch_env.sh",
+      "local_path": "../research/evidence/public-source/dragonpilot-94ad85cf/launch_env.sh",
+      "sha256": "742988ee4795eccfdcf248a7c6d4d13f1d1e5db315bf890f2065d929e2cdd611",
+      "bytes": 541,
+      "evidence_kind": "public_source_snapshot",
+      "references": [
+        {
+          "start_line": 18,
+          "end_line": 20,
+          "supports": "AGNOS 18.4 target"
+        }
+      ],
+      "id": "dp.launch_env",
+      "original_local_path": "../../independent-port-research/hardware/evidence/dragonpilot-94ad85cf/launch_env.sh",
+      "provenance": {
+        "path_relative_to_original_workspace": "independent-port-research/hardware/evidence/dragonpilot-94ad85cf/launch_env.sh",
+        "sha256": "742988ee4795eccfdcf248a7c6d4d13f1d1e5db315bf890f2065d929e2cdd611",
+        "bytes": 541,
+        "required_for_offline_validation": false
+      },
+      "usage": "inert_reference_only_not_runtime_or_production_source",
+      "license_review": "MIT_repository_license_retained_individual_notice_review_required",
+      "license_evidence": "research/evidence/licenses/dragonpilot-94ad85cf-LICENSE"
+    },
+    {
+      "repository": "dragonpilot/dragonpilot",
+      "commit": "94ad85cfda64773a960d048dc11cac02d4aa86a5",
+      "path": "system/hardware/tici/agnos.json",
+      "url": "https://github.com/dragonpilot/dragonpilot/blob/94ad85cfda64773a960d048dc11cac02d4aa86a5/system/hardware/tici/agnos.json",
+      "raw_url": "https://raw.githubusercontent.com/dragonpilot/dragonpilot/94ad85cfda64773a960d048dc11cac02d4aa86a5/system/hardware/tici/agnos.json",
+      "local_path": "../research/evidence/public-source/dragonpilot-94ad85cf/system/hardware/tici/agnos.json",
+      "sha256": "c6977d057f66f5b05553a337fc7580f81e9492f44418c9a781460f3c172f3b84",
+      "bytes": 3791,
+      "evidence_kind": "public_source_snapshot",
+      "id": "dp.agnos_manifest",
+      "original_local_path": "../../independent-port-research/hardware/evidence/dragonpilot-94ad85cf/system/hardware/tici/agnos.json",
+      "provenance": {
+        "path_relative_to_original_workspace": "independent-port-research/hardware/evidence/dragonpilot-94ad85cf/system/hardware/tici/agnos.json",
+        "sha256": "c6977d057f66f5b05553a337fc7580f81e9492f44418c9a781460f3c172f3b84",
+        "bytes": 3791,
+        "required_for_offline_validation": false
+      },
+      "usage": "inert_reference_only_not_runtime_or_production_source",
+      "license_review": "MIT_repository_license_retained_individual_notice_review_required",
+      "license_evidence": "research/evidence/licenses/dragonpilot-94ad85cf-LICENSE"
+    },
+    {
+      "repository": "dragonpilot/dragonpilot",
+      "commit": "94ad85cfda64773a960d048dc11cac02d4aa86a5",
+      "path": "system/hardware/tici/agnos_tici.json",
+      "url": "https://github.com/dragonpilot/dragonpilot/blob/94ad85cfda64773a960d048dc11cac02d4aa86a5/system/hardware/tici/agnos_tici.json",
+      "raw_url": "https://raw.githubusercontent.com/dragonpilot/dragonpilot/94ad85cfda64773a960d048dc11cac02d4aa86a5/system/hardware/tici/agnos_tici.json",
+      "local_path": "../research/evidence/public-source/dragonpilot-94ad85cf/system/hardware/tici/agnos_tici.json",
+      "sha256": "920d24dadb50a70dc1838b0b5ae05189ab7930baeee6d3e1d0af9ad4e75b6e3d",
+      "bytes": 3791,
+      "evidence_kind": "public_source_snapshot",
+      "id": "dp.tici_manifest",
+      "original_local_path": "../../independent-port-research/hardware/evidence/dragonpilot-94ad85cf/system/hardware/tici/agnos_tici.json",
+      "provenance": {
+        "path_relative_to_original_workspace": "independent-port-research/hardware/evidence/dragonpilot-94ad85cf/system/hardware/tici/agnos_tici.json",
+        "sha256": "920d24dadb50a70dc1838b0b5ae05189ab7930baeee6d3e1d0af9ad4e75b6e3d",
+        "bytes": 3791,
+        "required_for_offline_validation": false
+      },
+      "usage": "inert_reference_only_not_runtime_or_production_source",
+      "license_review": "MIT_repository_license_retained_individual_notice_review_required",
+      "license_evidence": "research/evidence/licenses/dragonpilot-94ad85cf-LICENSE"
+    },
+    {
+      "repository": "dragonpilot/dragonpilot",
+      "commit": "94ad85cfda64773a960d048dc11cac02d4aa86a5",
+      "path": "system/hardware/tici/agnos.py",
+      "url": "https://github.com/dragonpilot/dragonpilot/blob/94ad85cfda64773a960d048dc11cac02d4aa86a5/system/hardware/tici/agnos.py",
+      "raw_url": "https://raw.githubusercontent.com/dragonpilot/dragonpilot/94ad85cfda64773a960d048dc11cac02d4aa86a5/system/hardware/tici/agnos.py",
+      "local_path": "../research/evidence/public-source/dragonpilot-94ad85cf/system/hardware/tici/agnos.py",
+      "sha256": "ed582c144b15cf776c233474fd49f768481a6b879587944df2399ed0ea08d1fa",
+      "bytes": 12259,
+      "evidence_kind": "public_source_snapshot",
+      "references": [
+        {
+          "start_line": 308,
+          "end_line": 336,
+          "supports": "non-tizi abl/boot overrides with hardcoded manifest path"
+        }
+      ],
+      "id": "dp.agnos_updater",
+      "original_local_path": "../../independent-port-research/hardware/evidence/dragonpilot-94ad85cf/system/hardware/tici/agnos.py",
+      "provenance": {
+        "path_relative_to_original_workspace": "independent-port-research/hardware/evidence/dragonpilot-94ad85cf/system/hardware/tici/agnos.py",
+        "sha256": "ed582c144b15cf776c233474fd49f768481a6b879587944df2399ed0ea08d1fa",
+        "bytes": 12259,
+        "required_for_offline_validation": false
+      },
+      "usage": "inert_reference_only_not_runtime_or_production_source",
+      "license_review": "MIT_repository_license_retained_individual_notice_review_required",
+      "license_evidence": "research/evidence/licenses/dragonpilot-94ad85cf-LICENSE"
+    },
+    {
+      "repository": "dragonpilot/dragonpilot",
+      "commit": "94ad85cfda64773a960d048dc11cac02d4aa86a5",
+      "path": "system/hardware/tici/hardware.py",
+      "url": "https://github.com/dragonpilot/dragonpilot/blob/94ad85cfda64773a960d048dc11cac02d4aa86a5/system/hardware/tici/hardware.py",
+      "raw_url": "https://raw.githubusercontent.com/dragonpilot/dragonpilot/94ad85cfda64773a960d048dc11cac02d4aa86a5/system/hardware/tici/hardware.py",
+      "local_path": "../research/evidence/public-source/dragonpilot-94ad85cf/system/hardware/tici/hardware.py",
+      "sha256": "a8cf5963a95801981170655d327b1132bf85eed019ddff38fb954e517f1f21a4",
+      "bytes": 15171,
+      "evidence_kind": "public_source_snapshot",
+      "id": "dp.hardware",
+      "original_local_path": "../../independent-port-research/hardware/evidence/dragonpilot-94ad85cf/system/hardware/tici/hardware.py",
+      "provenance": {
+        "path_relative_to_original_workspace": "independent-port-research/hardware/evidence/dragonpilot-94ad85cf/system/hardware/tici/hardware.py",
+        "sha256": "a8cf5963a95801981170655d327b1132bf85eed019ddff38fb954e517f1f21a4",
+        "bytes": 15171,
+        "required_for_offline_validation": false
+      },
+      "usage": "inert_reference_only_not_runtime_or_production_source",
+      "license_review": "MIT_repository_license_retained_individual_notice_review_required",
+      "license_evidence": "research/evidence/licenses/dragonpilot-94ad85cf-LICENSE"
+    },
+    {
+      "repository": "dragonpilot/dragonpilot",
+      "commit": "94ad85cfda64773a960d048dc11cac02d4aa86a5",
+      "path": "system/camerad/SConscript",
+      "url": "https://github.com/dragonpilot/dragonpilot/blob/94ad85cfda64773a960d048dc11cac02d4aa86a5/system/camerad/SConscript",
+      "raw_url": "https://raw.githubusercontent.com/dragonpilot/dragonpilot/94ad85cfda64773a960d048dc11cac02d4aa86a5/system/camerad/SConscript",
+      "local_path": "../research/evidence/public-source/dragonpilot-94ad85cf/system/camerad/SConscript",
+      "sha256": "84902515737be0ba372326e5afcefd519ce98a78a3a4ffa68846c7b9a1c247b6",
+      "bytes": 525,
+      "evidence_kind": "public_source_snapshot",
+      "references": [
+        {
+          "start_line": 1,
+          "end_line": 9,
+          "supports": "AR0231/OX03C10/OS04C10 included in build"
+        }
+      ],
+      "id": "dp.camera_build",
+      "original_local_path": "../../independent-port-research/hardware/evidence/dragonpilot-94ad85cf/system/camerad/SConscript",
+      "provenance": {
+        "path_relative_to_original_workspace": "independent-port-research/hardware/evidence/dragonpilot-94ad85cf/system/camerad/SConscript",
+        "sha256": "84902515737be0ba372326e5afcefd519ce98a78a3a4ffa68846c7b9a1c247b6",
+        "bytes": 525,
+        "required_for_offline_validation": false
+      },
+      "usage": "inert_reference_only_not_runtime_or_production_source",
+      "license_review": "MIT_repository_license_retained_individual_notice_review_required",
+      "license_evidence": "research/evidence/licenses/dragonpilot-94ad85cf-LICENSE"
+    },
+    {
+      "repository": "dragonpilot/dragonpilot",
+      "commit": "94ad85cfda64773a960d048dc11cac02d4aa86a5",
+      "path": "system/camerad/cameras/spectra.cc",
+      "url": "https://github.com/dragonpilot/dragonpilot/blob/94ad85cfda64773a960d048dc11cac02d4aa86a5/system/camerad/cameras/spectra.cc",
+      "raw_url": "https://raw.githubusercontent.com/dragonpilot/dragonpilot/94ad85cfda64773a960d048dc11cac02d4aa86a5/system/camerad/cameras/spectra.cc",
+      "local_path": "../research/evidence/public-source/dragonpilot-94ad85cf/system/camerad/cameras/spectra.cc",
+      "sha256": "0be4245101b099c2c27d4f73ed66bd10a35a33a91d3431d8873c8f2f9516fb5f",
+      "bytes": 59202,
+      "evidence_kind": "public_source_snapshot",
+      "references": [
+        {
+          "start_line": 1040,
+          "end_line": 1057,
+          "supports": "sensor probe chain"
+        }
+      ],
+      "id": "dp.camera_probe",
+      "original_local_path": "../../independent-port-research/hardware/evidence/dragonpilot-94ad85cf/system/camerad/cameras/spectra.cc",
+      "provenance": {
+        "path_relative_to_original_workspace": "independent-port-research/hardware/evidence/dragonpilot-94ad85cf/system/camerad/cameras/spectra.cc",
+        "sha256": "0be4245101b099c2c27d4f73ed66bd10a35a33a91d3431d8873c8f2f9516fb5f",
+        "bytes": 59202,
+        "required_for_offline_validation": false
+      },
+      "usage": "inert_reference_only_not_runtime_or_production_source",
+      "license_review": "MIT_repository_license_retained_individual_notice_review_required",
+      "license_evidence": "research/evidence/licenses/dragonpilot-94ad85cf-LICENSE"
+    },
+    {
+      "repository": "dragonpilot/dragonpilot",
+      "commit": "94ad85cfda64773a960d048dc11cac02d4aa86a5",
+      "path": "system/camerad/sensors/ar0231.cc",
+      "url": "https://github.com/dragonpilot/dragonpilot/blob/94ad85cfda64773a960d048dc11cac02d4aa86a5/system/camerad/sensors/ar0231.cc",
+      "raw_url": "https://raw.githubusercontent.com/dragonpilot/dragonpilot/94ad85cfda64773a960d048dc11cac02d4aa86a5/system/camerad/sensors/ar0231.cc",
+      "local_path": "../research/evidence/public-source/dragonpilot-94ad85cf/system/camerad/sensors/ar0231.cc",
+      "sha256": "4ec1579df82ccccfb29708b4a14ac48f391dc2e34e75b11b9668ed8b100c9523",
+      "bytes": 7265,
+      "evidence_kind": "public_source_snapshot",
+      "references": [
+        {
+          "start_line": 20,
+          "end_line": 42,
+          "supports": "AR0231 sensor ID and geometry"
+        },
+        {
+          "start_line": 122,
+          "end_line": 125,
+          "supports": "port addresses"
+        }
+      ],
+      "id": "dp.sensor_ar",
+      "original_local_path": "../../independent-port-research/hardware/evidence/dragonpilot-94ad85cf/system/camerad/sensors/ar0231.cc",
+      "provenance": {
+        "path_relative_to_original_workspace": "independent-port-research/hardware/evidence/dragonpilot-94ad85cf/system/camerad/sensors/ar0231.cc",
+        "sha256": "4ec1579df82ccccfb29708b4a14ac48f391dc2e34e75b11b9668ed8b100c9523",
+        "bytes": 7265,
+        "required_for_offline_validation": false
+      },
+      "usage": "inert_reference_only_not_runtime_or_production_source",
+      "license_review": "MIT_repository_license_retained_individual_notice_review_required",
+      "license_evidence": "research/evidence/licenses/dragonpilot-94ad85cf-LICENSE"
+    },
+    {
+      "repository": "dragonpilot/dragonpilot",
+      "commit": "94ad85cfda64773a960d048dc11cac02d4aa86a5",
+      "path": "system/camerad/sensors/ox03c10.cc",
+      "url": "https://github.com/dragonpilot/dragonpilot/blob/94ad85cfda64773a960d048dc11cac02d4aa86a5/system/camerad/sensors/ox03c10.cc",
+      "raw_url": "https://raw.githubusercontent.com/dragonpilot/dragonpilot/94ad85cfda64773a960d048dc11cac02d4aa86a5/system/camerad/sensors/ox03c10.cc",
+      "local_path": "../research/evidence/public-source/dragonpilot-94ad85cf/system/camerad/sensors/ox03c10.cc",
+      "sha256": "205f915afc2422358c1cbc26d69b98da0b4ee0571c3fc79595dc4acee8231877",
+      "bytes": 7770,
+      "evidence_kind": "public_source_snapshot",
+      "references": [
+        {
+          "start_line": 27,
+          "end_line": 45,
+          "supports": "OX03C10 sensor ID and geometry"
+        },
+        {
+          "start_line": 129,
+          "end_line": 132,
+          "supports": "port addresses"
+        }
+      ],
+      "id": "dp.sensor_ox",
+      "original_local_path": "../../independent-port-research/hardware/evidence/dragonpilot-94ad85cf/system/camerad/sensors/ox03c10.cc",
+      "provenance": {
+        "path_relative_to_original_workspace": "independent-port-research/hardware/evidence/dragonpilot-94ad85cf/system/camerad/sensors/ox03c10.cc",
+        "sha256": "205f915afc2422358c1cbc26d69b98da0b4ee0571c3fc79595dc4acee8231877",
+        "bytes": 7770,
+        "required_for_offline_validation": false
+      },
+      "usage": "inert_reference_only_not_runtime_or_production_source",
+      "license_review": "MIT_repository_license_retained_individual_notice_review_required",
+      "license_evidence": "research/evidence/licenses/dragonpilot-94ad85cf-LICENSE"
+    },
+    {
+      "repository": "dragonpilot/dragonpilot",
+      "commit": "94ad85cfda64773a960d048dc11cac02d4aa86a5",
+      "path": "system/camerad/sensors/os04c10.cc",
+      "url": "https://github.com/dragonpilot/dragonpilot/blob/94ad85cfda64773a960d048dc11cac02d4aa86a5/system/camerad/sensors/os04c10.cc",
+      "raw_url": "https://raw.githubusercontent.com/dragonpilot/dragonpilot/94ad85cfda64773a960d048dc11cac02d4aa86a5/system/camerad/sensors/os04c10.cc",
+      "local_path": "../research/evidence/public-source/dragonpilot-94ad85cf/system/camerad/sensors/os04c10.cc",
+      "sha256": "8a3463b7c2c38492a0d9fc648c5444b91882cb7294b2523c0eda476d6a4b5ef6",
+      "bytes": 7212,
+      "evidence_kind": "public_source_snapshot",
+      "references": [
+        {
+          "start_line": 24,
+          "end_line": 45,
+          "supports": "OS04C10 sensor ID and geometry"
+        },
+        {
+          "start_line": 122,
+          "end_line": 125,
+          "supports": "port addresses"
+        }
+      ],
+      "id": "dp.sensor_os",
+      "original_local_path": "../../independent-port-research/hardware/evidence/dragonpilot-94ad85cf/system/camerad/sensors/os04c10.cc",
+      "provenance": {
+        "path_relative_to_original_workspace": "independent-port-research/hardware/evidence/dragonpilot-94ad85cf/system/camerad/sensors/os04c10.cc",
+        "sha256": "8a3463b7c2c38492a0d9fc648c5444b91882cb7294b2523c0eda476d6a4b5ef6",
+        "bytes": 7212,
+        "required_for_offline_validation": false
+      },
+      "usage": "inert_reference_only_not_runtime_or_production_source",
+      "license_review": "MIT_repository_license_retained_individual_notice_review_required",
+      "license_evidence": "research/evidence/licenses/dragonpilot-94ad85cf-LICENSE"
+    },
+    {
+      "repository": "dragonpilot/dragonpilot",
+      "commit": "94ad85cfda64773a960d048dc11cac02d4aa86a5",
+      "path": "system/manager/process_config.py",
+      "url": "https://github.com/dragonpilot/dragonpilot/blob/94ad85cfda64773a960d048dc11cac02d4aa86a5/system/manager/process_config.py",
+      "raw_url": "https://raw.githubusercontent.com/dragonpilot/dragonpilot/94ad85cfda64773a960d048dc11cac02d4aa86a5/system/manager/process_config.py",
+      "local_path": "../research/evidence/public-source/dragonpilot-94ad85cf/system/manager/process_config.py",
+      "sha256": "19733a8c7c9062e331ce3f4820be37c80d7b94c29c36b8511218c57b27a441d2",
+      "bytes": 7112,
+      "evidence_kind": "public_source_snapshot",
+      "references": [
+        {
+          "start_line": 94,
+          "end_line": 115,
+          "supports": "Lite process gating; DOS pandad selection"
+        }
+      ],
+      "id": "dp.processes",
+      "original_local_path": "../../independent-port-research/hardware/evidence/dragonpilot-94ad85cf/system/manager/process_config.py",
+      "provenance": {
+        "path_relative_to_original_workspace": "independent-port-research/hardware/evidence/dragonpilot-94ad85cf/system/manager/process_config.py",
+        "sha256": "19733a8c7c9062e331ce3f4820be37c80d7b94c29c36b8511218c57b27a441d2",
+        "bytes": 7112,
+        "required_for_offline_validation": false
+      },
+      "usage": "inert_reference_only_not_runtime_or_production_source",
+      "license_review": "MIT_repository_license_retained_individual_notice_review_required",
+      "license_evidence": "research/evidence/licenses/dragonpilot-94ad85cf-LICENSE"
+    },
+    {
+      "repository": "dragonpilot/dragonpilot",
+      "commit": "94ad85cfda64773a960d048dc11cac02d4aa86a5",
+      "path": "panda_tici/python/__init__.py",
+      "url": "https://github.com/dragonpilot/dragonpilot/blob/94ad85cfda64773a960d048dc11cac02d4aa86a5/panda_tici/python/__init__.py",
+      "raw_url": "https://raw.githubusercontent.com/dragonpilot/dragonpilot/94ad85cfda64773a960d048dc11cac02d4aa86a5/panda_tici/python/__init__.py",
+      "local_path": "../research/evidence/public-source/dragonpilot-94ad85cf/panda_tici/python/__init__.py",
+      "sha256": "474bb40626070bd1b85c7b81fad2aa1c4de3eb06f0e9562948795c5cbfe71483",
+      "bytes": 28256,
+      "evidence_kind": "public_source_snapshot",
+      "references": [
+        {
+          "start_line": 118,
+          "end_line": 140,
+          "supports": "Panda hardware types and protocol versions"
+        },
+        {
+          "start_line": 230,
+          "end_line": 232,
+          "supports": "Lite UNO/DOS remapping"
+        }
+      ],
+      "id": "dp.panda_python",
+      "original_local_path": "../../independent-port-research/hardware/evidence/dragonpilot-94ad85cf/panda_tici/python/__init__.py",
+      "provenance": {
+        "path_relative_to_original_workspace": "independent-port-research/hardware/evidence/dragonpilot-94ad85cf/panda_tici/python/__init__.py",
+        "sha256": "474bb40626070bd1b85c7b81fad2aa1c4de3eb06f0e9562948795c5cbfe71483",
+        "bytes": 28256,
+        "required_for_offline_validation": false
+      },
+      "usage": "inert_reference_only_not_runtime_or_production_source",
+      "license_review": "MIT_repository_license_retained_individual_notice_review_required",
+      "license_evidence": "research/evidence/licenses/dragonpilot-94ad85cf-panda_tici-LICENSE"
+    },
+    {
+      "repository": "dragonpilot/dragonpilot",
+      "commit": "94ad85cfda64773a960d048dc11cac02d4aa86a5",
+      "path": "panda_tici/board/boards/dos.h",
+      "url": "https://github.com/dragonpilot/dragonpilot/blob/94ad85cfda64773a960d048dc11cac02d4aa86a5/panda_tici/board/boards/dos.h",
+      "raw_url": "https://raw.githubusercontent.com/dragonpilot/dragonpilot/94ad85cfda64773a960d048dc11cac02d4aa86a5/panda_tici/board/boards/dos.h",
+      "local_path": "../research/evidence/public-source/dragonpilot-94ad85cf/panda_tici/board/boards/dos.h",
+      "sha256": "ec15964f5d3cb106a0fb5932fb34d71e1d2bd5d01780c979eaeec471318a42ed",
+      "bytes": 4164,
+      "evidence_kind": "public_source_snapshot",
+      "id": "dp.dos_board",
+      "original_local_path": "../../independent-port-research/hardware/evidence/dragonpilot-94ad85cf/panda_tici/board/boards/dos.h",
+      "provenance": {
+        "path_relative_to_original_workspace": "independent-port-research/hardware/evidence/dragonpilot-94ad85cf/panda_tici/board/boards/dos.h",
+        "sha256": "ec15964f5d3cb106a0fb5932fb34d71e1d2bd5d01780c979eaeec471318a42ed",
+        "bytes": 4164,
+        "required_for_offline_validation": false
+      },
+      "usage": "inert_reference_only_not_runtime_or_production_source",
+      "license_review": "MIT_repository_license_retained_individual_notice_review_required",
+      "license_evidence": "research/evidence/licenses/dragonpilot-94ad85cf-panda_tici-LICENSE"
+    },
+    {
+      "repository": "dragonpilot/dragonpilot",
+      "commit": "94ad85cfda64773a960d048dc11cac02d4aa86a5",
+      "path": "panda_tici/board/boards/red.h",
+      "url": "https://github.com/dragonpilot/dragonpilot/blob/94ad85cfda64773a960d048dc11cac02d4aa86a5/panda_tici/board/boards/red.h",
+      "raw_url": "https://raw.githubusercontent.com/dragonpilot/dragonpilot/94ad85cfda64773a960d048dc11cac02d4aa86a5/panda_tici/board/boards/red.h",
+      "local_path": "../research/evidence/public-source/dragonpilot-94ad85cf/panda_tici/board/boards/red.h",
+      "sha256": "0d07dddd4e4a0e571f617f74c929735caa2a1cd5a405a9f23142c38781d390a5",
+      "bytes": 4096,
+      "evidence_kind": "public_source_snapshot",
+      "id": "dp.red_board",
+      "original_local_path": "../../independent-port-research/hardware/evidence/dragonpilot-94ad85cf/panda_tici/board/boards/red.h",
+      "provenance": {
+        "path_relative_to_original_workspace": "independent-port-research/hardware/evidence/dragonpilot-94ad85cf/panda_tici/board/boards/red.h",
+        "sha256": "0d07dddd4e4a0e571f617f74c929735caa2a1cd5a405a9f23142c38781d390a5",
+        "bytes": 4096,
+        "required_for_offline_validation": false
+      },
+      "usage": "inert_reference_only_not_runtime_or_production_source",
+      "license_review": "MIT_repository_license_retained_individual_notice_review_required",
+      "license_evidence": "research/evidence/licenses/dragonpilot-94ad85cf-panda_tici-LICENSE"
+    },
+    {
+      "repository": "dragonpilot/dragonpilot",
+      "commit": "94ad85cfda64773a960d048dc11cac02d4aa86a5",
+      "path": "panda_tici/board/stm32f4/board.h",
+      "url": "https://github.com/dragonpilot/dragonpilot/blob/94ad85cfda64773a960d048dc11cac02d4aa86a5/panda_tici/board/stm32f4/board.h",
+      "raw_url": "https://raw.githubusercontent.com/dragonpilot/dragonpilot/94ad85cfda64773a960d048dc11cac02d4aa86a5/panda_tici/board/stm32f4/board.h",
+      "local_path": "../research/evidence/public-source/dragonpilot-94ad85cf/panda_tici/board/stm32f4/board.h",
+      "sha256": "f65f4c1d45a1a56a8b0c70f166424778d13a68708981d48b0954f1e85c899c5b",
+      "bytes": 1739,
+      "evidence_kind": "public_source_snapshot",
+      "references": [
+        {
+          "start_line": 1,
+          "end_line": 42,
+          "supports": "DOS board identification including Lite handling"
+        }
+      ],
+      "id": "dp.f4_board",
+      "original_local_path": "../../independent-port-research/hardware/evidence/dragonpilot-94ad85cf/panda_tici/board/stm32f4/board.h",
+      "provenance": {
+        "path_relative_to_original_workspace": "independent-port-research/hardware/evidence/dragonpilot-94ad85cf/panda_tici/board/stm32f4/board.h",
+        "sha256": "f65f4c1d45a1a56a8b0c70f166424778d13a68708981d48b0954f1e85c899c5b",
+        "bytes": 1739,
+        "required_for_offline_validation": false
+      },
+      "usage": "inert_reference_only_not_runtime_or_production_source",
+      "license_review": "MIT_repository_license_retained_individual_notice_review_required",
+      "license_evidence": "research/evidence/licenses/dragonpilot-94ad85cf-panda_tici-LICENSE"
+    },
+    {
+      "repository": "dragonpilot/dragonpilot",
+      "commit": "94ad85cfda64773a960d048dc11cac02d4aa86a5",
+      "path": "selfdrive/pandad_tici/pandad.py",
+      "url": "https://github.com/dragonpilot/dragonpilot/blob/94ad85cfda64773a960d048dc11cac02d4aa86a5/selfdrive/pandad_tici/pandad.py",
+      "raw_url": "https://raw.githubusercontent.com/dragonpilot/dragonpilot/94ad85cfda64773a960d048dc11cac02d4aa86a5/selfdrive/pandad_tici/pandad.py",
+      "local_path": "../research/evidence/public-source/dragonpilot-94ad85cf/selfdrive/pandad_tici/pandad.py",
+      "sha256": "36e9bc2ea2b13773d4c0ce9436fc0724a15e0863868bff95e652366dcafb8f68",
+      "bytes": 5767,
+      "evidence_kind": "public_source_snapshot",
+      "references": [
+        {
+          "start_line": 25,
+          "end_line": 65,
+          "supports": "automatic firmware flash and recovery"
+        },
+        {
+          "start_line": 101,
+          "end_line": 133,
+          "supports": "all Panda handling; deterministic sorting"
+        }
+      ],
+      "id": "dp.pandad_python",
+      "original_local_path": "../../independent-port-research/hardware/evidence/dragonpilot-94ad85cf/selfdrive/pandad_tici/pandad.py",
+      "provenance": {
+        "path_relative_to_original_workspace": "independent-port-research/hardware/evidence/dragonpilot-94ad85cf/selfdrive/pandad_tici/pandad.py",
+        "sha256": "36e9bc2ea2b13773d4c0ce9436fc0724a15e0863868bff95e652366dcafb8f68",
+        "bytes": 5767,
+        "required_for_offline_validation": false
+      },
+      "usage": "inert_reference_only_not_runtime_or_production_source",
+      "license_review": "MIT_repository_license_retained_individual_notice_review_required",
+      "license_evidence": "research/evidence/licenses/dragonpilot-94ad85cf-LICENSE"
+    },
+    {
+      "repository": "dragonpilot/dragonpilot",
+      "commit": "94ad85cfda64773a960d048dc11cac02d4aa86a5",
+      "path": "selfdrive/pandad_tici/pandad.cc",
+      "url": "https://github.com/dragonpilot/dragonpilot/blob/94ad85cfda64773a960d048dc11cac02d4aa86a5/selfdrive/pandad_tici/pandad.cc",
+      "raw_url": "https://raw.githubusercontent.com/dragonpilot/dragonpilot/94ad85cfda64773a960d048dc11cac02d4aa86a5/selfdrive/pandad_tici/pandad.cc",
+      "local_path": "../research/evidence/public-source/dragonpilot-94ad85cf/selfdrive/pandad_tici/pandad.cc",
+      "sha256": "0d32bee3faf988ac9a7af8c64e4fb76a4230ddc494c0ab057a70b292375f4926",
+      "bytes": 17966,
+      "evidence_kind": "public_source_snapshot",
+      "references": [
+        {
+          "start_line": 205,
+          "end_line": 207,
+          "supports": "explicit DOS plus RED_PANDA topology"
+        },
+        {
+          "start_line": 230,
+          "end_line": 235,
+          "supports": "DOS false ignition handling"
+        }
+      ],
+      "id": "dp.pandad_cpp",
+      "original_local_path": "../../independent-port-research/hardware/evidence/dragonpilot-94ad85cf/selfdrive/pandad_tici/pandad.cc",
+      "provenance": {
+        "path_relative_to_original_workspace": "independent-port-research/hardware/evidence/dragonpilot-94ad85cf/selfdrive/pandad_tici/pandad.cc",
+        "sha256": "0d32bee3faf988ac9a7af8c64e4fb76a4230ddc494c0ab057a70b292375f4926",
+        "bytes": 17966,
+        "required_for_offline_validation": false
+      },
+      "usage": "inert_reference_only_not_runtime_or_production_source",
+      "license_review": "MIT_repository_license_retained_individual_notice_review_required",
+      "license_evidence": "research/evidence/licenses/dragonpilot-94ad85cf-LICENSE"
+    },
+    {
+      "repository": "dragonpilot/dragonpilot",
+      "commit": "94ad85cfda64773a960d048dc11cac02d4aa86a5",
+      "path": "selfdrive/pandad_tici/panda.cc",
+      "url": "https://github.com/dragonpilot/dragonpilot/blob/94ad85cfda64773a960d048dc11cac02d4aa86a5/selfdrive/pandad_tici/panda.cc",
+      "raw_url": "https://raw.githubusercontent.com/dragonpilot/dragonpilot/94ad85cfda64773a960d048dc11cac02d4aa86a5/selfdrive/pandad_tici/panda.cc",
+      "local_path": "../research/evidence/public-source/dragonpilot-94ad85cf/selfdrive/pandad_tici/panda.cc",
+      "sha256": "9f3628422e9b5a49e56a60caffa5e4a568abc2d93639320143a6a9eeca031299",
+      "bytes": 8820,
+      "evidence_kind": "public_source_snapshot",
+      "references": [
+        {
+          "start_line": 15,
+          "end_line": 15,
+          "supports": "bus offset"
+        },
+        {
+          "start_line": 199,
+          "end_line": 211,
+          "supports": "send bus remap"
+        },
+        {
+          "start_line": 287,
+          "end_line": 287,
+          "supports": "receive bus remap"
+        }
+      ],
+      "id": "dp.panda_transport",
+      "original_local_path": "../../independent-port-research/hardware/evidence/dragonpilot-94ad85cf/selfdrive/pandad_tici/panda.cc",
+      "provenance": {
+        "path_relative_to_original_workspace": "independent-port-research/hardware/evidence/dragonpilot-94ad85cf/selfdrive/pandad_tici/panda.cc",
+        "sha256": "9f3628422e9b5a49e56a60caffa5e4a568abc2d93639320143a6a9eeca031299",
+        "bytes": 8820,
+        "required_for_offline_validation": false
+      },
+      "usage": "inert_reference_only_not_runtime_or_production_source",
+      "license_review": "MIT_repository_license_retained_individual_notice_review_required",
+      "license_evidence": "research/evidence/licenses/dragonpilot-94ad85cf-LICENSE"
+    },
+    {
+      "repository": "dragonpilot/dragonpilot",
+      "commit": "94ad85cfda64773a960d048dc11cac02d4aa86a5",
+      "path": "common/transformations/camera.py",
+      "url": "https://github.com/dragonpilot/dragonpilot/blob/94ad85cfda64773a960d048dc11cac02d4aa86a5/common/transformations/camera.py",
+      "raw_url": "https://raw.githubusercontent.com/dragonpilot/dragonpilot/94ad85cfda64773a960d048dc11cac02d4aa86a5/common/transformations/camera.py",
+      "local_path": "../research/evidence/public-source/dragonpilot-94ad85cf/common/transformations/camera.py",
+      "sha256": "3ac87fd236aa9c9e284059c47c9eb96a7c6e0be5106f514a95e6ec06e1060fb5",
+      "bytes": 6141,
+      "evidence_kind": "public_source_snapshot",
+      "references": [
+        {
+          "start_line": 56,
+          "end_line": 71,
+          "supports": "device/sensor camera configurations"
+        }
+      ],
+      "id": "dp.camera_geometry",
+      "original_local_path": "../../independent-port-research/hardware/evidence/dragonpilot-94ad85cf/common/transformations/camera.py",
+      "provenance": {
+        "path_relative_to_original_workspace": "independent-port-research/hardware/evidence/dragonpilot-94ad85cf/common/transformations/camera.py",
+        "sha256": "3ac87fd236aa9c9e284059c47c9eb96a7c6e0be5106f514a95e6ec06e1060fb5",
+        "bytes": 6141,
+        "required_for_offline_validation": false
+      },
+      "usage": "inert_reference_only_not_runtime_or_production_source",
+      "license_review": "MIT_repository_license_retained_individual_notice_review_required",
+      "license_evidence": "research/evidence/licenses/dragonpilot-94ad85cf-LICENSE"
+    },
+    {
+      "id": "obs.inventory",
+      "evidence_kind": "derived_summary_not_original",
+      "local_path": "../research/evidence/summaries/hardware-observations.json",
+      "sha256": "da208460a3c7f9946270868ac713148ccdeb4f11be71c4bb2a807e1d0463adbd",
+      "bytes": 2510,
+      "provenance": {
+        "path_relative_to_original_workspace": "migration-audit/offline-handoff/hardware-inventory.json",
+        "sha256": "f10ecc1296bf9b393f5e9b27fbac52bfde56e8ade7450c122ebbf44da47e0026",
+        "bytes": 3227,
+        "required_for_offline_validation": false
+      },
+      "limit": "New redacted factual summary; its hash is not the source-file hash. Original not required to validate this package."
+    },
+    {
+      "id": "obs.backup",
+      "evidence_kind": "derived_summary_not_original",
+      "local_path": "../research/evidence/summaries/recovery-backup.json",
+      "sha256": "8d7dd5299850580aa8953b0b96ac0970b309ac330f2aac85f06da97527fc9ccf",
+      "bytes": 2020,
+      "provenance": {
+        "path_relative_to_original_workspace": "migration-audit/recovery-backup-20261017/preparation-result.json",
+        "sha256": "4e2fafb4bf633acaf0d697656d6a49d010fafadadc0cc9480cf733895be1d593",
+        "bytes": 1491,
+        "required_for_offline_validation": false
+      },
+      "limit": "New redacted factual summary; its hash is not the source-file hash. Original not required to validate this package."
+    },
+    {
+      "repository": "dragonpilot/dragonpilot",
+      "commit": "94ad85cfda64773a960d048dc11cac02d4aa86a5",
+      "path": "selfdrive/pandad_tici/panda.h",
+      "url": "https://github.com/dragonpilot/dragonpilot/blob/94ad85cfda64773a960d048dc11cac02d4aa86a5/selfdrive/pandad_tici/panda.h",
+      "local_path": "../research/evidence/public-source/dragonpilot-94ad85cf/selfdrive/pandad_tici/panda.h",
+      "sha256": "fdf47483dbe7fac3b17f5871b589da0c8c3f9e0fe8431e5a6a786e889208ace9",
+      "bytes": 2958,
+      "id": "dp.panda_header",
+      "evidence_kind": "public_source_snapshot",
+      "original_local_path": "evidence/dragonpilot-94ad85cf/selfdrive/pandad_tici/panda.h",
+      "provenance": {
+        "path_relative_to_original_workspace": "songplus-port-lab/hardware/evidence/dragonpilot-94ad85cf/selfdrive/pandad_tici/panda.h",
+        "sha256": "fdf47483dbe7fac3b17f5871b589da0c8c3f9e0fe8431e5a6a786e889208ace9",
+        "bytes": 2958,
+        "required_for_offline_validation": false
+      },
+      "usage": "inert_reference_only_not_runtime_or_production_source",
+      "license_review": "MIT_repository_license_retained_individual_notice_review_required",
+      "license_evidence": "research/evidence/licenses/dragonpilot-94ad85cf-LICENSE"
+    },
+    {
+      "repository": "dragonpilot/dragonpilot",
+      "commit": "94ad85cfda64773a960d048dc11cac02d4aa86a5",
+      "path": "selfdrive/modeld/SConscript",
+      "url": "https://github.com/dragonpilot/dragonpilot/blob/94ad85cfda64773a960d048dc11cac02d4aa86a5/selfdrive/modeld/SConscript",
+      "local_path": "../research/evidence/public-source/dragonpilot-94ad85cf/selfdrive/modeld/SConscript",
+      "sha256": "ab872f6167fbdfa99c76ca0f0523f02c84061d02093b32e698bec012a9321662",
+      "bytes": 6179,
+      "id": "dp.model_build",
+      "evidence_kind": "public_source_snapshot",
+      "original_local_path": "evidence/dragonpilot-94ad85cf/selfdrive/modeld/SConscript",
+      "provenance": {
+        "path_relative_to_original_workspace": "songplus-port-lab/hardware/evidence/dragonpilot-94ad85cf/selfdrive/modeld/SConscript",
+        "sha256": "ab872f6167fbdfa99c76ca0f0523f02c84061d02093b32e698bec012a9321662",
+        "bytes": 6179,
+        "required_for_offline_validation": false
+      },
+      "usage": "inert_reference_only_not_runtime_or_production_source",
+      "license_review": "MIT_repository_license_retained_individual_notice_review_required",
+      "license_evidence": "research/evidence/licenses/dragonpilot-94ad85cf-LICENSE"
+    },
+    {
+      "repository": "dragonpilot/dragonpilot",
+      "commit": "94ad85cfda64773a960d048dc11cac02d4aa86a5",
+      "path": "selfdrive/modeld/modeld.py",
+      "url": "https://github.com/dragonpilot/dragonpilot/blob/94ad85cfda64773a960d048dc11cac02d4aa86a5/selfdrive/modeld/modeld.py",
+      "local_path": "../research/evidence/public-source/dragonpilot-94ad85cf/selfdrive/modeld/modeld.py",
+      "sha256": "1774d11a09f086cd7fd5b0dc0e32859d7d1d34e9dc6832e058f361e6277a91e6",
+      "bytes": 17010,
+      "id": "dp.model_runner",
+      "evidence_kind": "public_source_snapshot",
+      "original_local_path": "evidence/dragonpilot-94ad85cf/selfdrive/modeld/modeld.py",
+      "provenance": {
+        "path_relative_to_original_workspace": "songplus-port-lab/hardware/evidence/dragonpilot-94ad85cf/selfdrive/modeld/modeld.py",
+        "sha256": "1774d11a09f086cd7fd5b0dc0e32859d7d1d34e9dc6832e058f361e6277a91e6",
+        "bytes": 17010,
+        "required_for_offline_validation": false
+      },
+      "usage": "inert_reference_only_not_runtime_or_production_source",
+      "license_review": "MIT_repository_license_retained_individual_notice_review_required",
+      "license_evidence": "research/evidence/licenses/dragonpilot-94ad85cf-LICENSE"
+    },
+    {
+      "repository": "dragonpilot/dragonpilot",
+      "commit": "94ad85cfda64773a960d048dc11cac02d4aa86a5",
+      "path": "panda_tici/board/SConscript",
+      "url": "https://github.com/dragonpilot/dragonpilot/blob/94ad85cfda64773a960d048dc11cac02d4aa86a5/panda_tici/board/SConscript",
+      "local_path": "../research/evidence/public-source/dragonpilot-94ad85cf/panda_tici/board/SConscript",
+      "sha256": "5f09764e1a72c17f9dc7f95f0a5f17a4faca601cacd886f3fc4c3fdfc10111d3",
+      "bytes": 390,
+      "id": "dp.panda_build",
+      "evidence_kind": "public_source_snapshot",
+      "original_local_path": "evidence/dragonpilot-94ad85cf/panda_tici/board/SConscript",
+      "provenance": {
+        "path_relative_to_original_workspace": "songplus-port-lab/hardware/evidence/dragonpilot-94ad85cf/panda_tici/board/SConscript",
+        "sha256": "5f09764e1a72c17f9dc7f95f0a5f17a4faca601cacd886f3fc4c3fdfc10111d3",
+        "bytes": 390,
+        "required_for_offline_validation": false
+      },
+      "usage": "inert_reference_only_not_runtime_or_production_source",
+      "license_review": "MIT_repository_license_retained_individual_notice_review_required",
+      "license_evidence": "research/evidence/licenses/dragonpilot-94ad85cf-panda_tici-LICENSE"
+    },
+    {
+      "repository": "commaai/opendbc",
+      "commit": "06ade56b49162e3f35e354df115e97b02de81d7a",
+      "path": "opendbc/safety/modes/byd.h",
+      "url": "https://github.com/commaai/opendbc/blob/06ade56b49162e3f35e354df115e97b02de81d7a/opendbc/safety/modes/byd.h",
+      "local_path": "../research/evidence/public-source/opendbc-06ade56b/opendbc/safety/modes/byd.h",
+      "sha256": "db860808da7e9923e982d69f2a7d7950c8a2a384d2fee33e9e302733d3897199",
+      "bytes": 4179,
+      "id": "od.byd_safety",
+      "evidence_kind": "public_source_snapshot",
+      "original_local_path": "evidence/opendbc-06ade56b/opendbc/safety/modes/byd.h",
+      "provenance": {
+        "path_relative_to_original_workspace": "songplus-port-lab/hardware/evidence/opendbc-06ade56b/opendbc/safety/modes/byd.h",
+        "sha256": "db860808da7e9923e982d69f2a7d7950c8a2a384d2fee33e9e302733d3897199",
+        "bytes": 4179,
+        "required_for_offline_validation": false
+      },
+      "usage": "inert_reference_only_not_runtime_or_production_source",
+      "license_review": "MIT_repository_license_retained_individual_notice_review_required",
+      "license_evidence": "research/evidence/licenses/opendbc-06ade56b-LICENSE"
+    },
+    {
+      "repository": "commaai/opendbc",
+      "commit": "06ade56b49162e3f35e354df115e97b02de81d7a",
+      "path": "opendbc/safety/declarations.h",
+      "url": "https://github.com/commaai/opendbc/blob/06ade56b49162e3f35e354df115e97b02de81d7a/opendbc/safety/declarations.h",
+      "local_path": "../research/evidence/public-source/opendbc-06ade56b/opendbc/safety/declarations.h",
+      "sha256": "2aa8e441c5fade1965911e5c34e2cf05fee47edf3a4a28926ea4ad8a184adb59",
+      "bytes": 14321,
+      "id": "od.declarations",
+      "evidence_kind": "public_source_snapshot",
+      "original_local_path": "evidence/opendbc-06ade56b/opendbc/safety/declarations.h",
+      "provenance": {
+        "path_relative_to_original_workspace": "songplus-port-lab/hardware/evidence/opendbc-06ade56b/opendbc/safety/declarations.h",
+        "sha256": "2aa8e441c5fade1965911e5c34e2cf05fee47edf3a4a28926ea4ad8a184adb59",
+        "bytes": 14321,
+        "required_for_offline_validation": false
+      },
+      "usage": "inert_reference_only_not_runtime_or_production_source",
+      "license_review": "MIT_repository_license_retained_individual_notice_review_required",
+      "license_evidence": "research/evidence/licenses/opendbc-06ade56b-LICENSE"
+    },
+    {
+      "repository": "commaai/opendbc",
+      "commit": "06ade56b49162e3f35e354df115e97b02de81d7a",
+      "path": "opendbc/safety/safety.h",
+      "url": "https://github.com/commaai/opendbc/blob/06ade56b49162e3f35e354df115e97b02de81d7a/opendbc/safety/safety.h",
+      "local_path": "../research/evidence/public-source/opendbc-06ade56b/opendbc/safety/safety.h",
+      "sha256": "9a5e1b8dd8bd55cee24a7bb8c971fb4b7f3cbfe1462bd612c827810ba43ff902",
+      "bytes": 17085,
+      "id": "od.registry",
+      "evidence_kind": "public_source_snapshot",
+      "original_local_path": "evidence/opendbc-06ade56b/opendbc/safety/safety.h",
+      "provenance": {
+        "path_relative_to_original_workspace": "songplus-port-lab/hardware/evidence/opendbc-06ade56b/opendbc/safety/safety.h",
+        "sha256": "9a5e1b8dd8bd55cee24a7bb8c971fb4b7f3cbfe1462bd612c827810ba43ff902",
+        "bytes": 17085,
+        "required_for_offline_validation": false
+      },
+      "usage": "inert_reference_only_not_runtime_or_production_source",
+      "license_review": "MIT_repository_license_retained_individual_notice_review_required",
+      "license_evidence": "research/evidence/licenses/opendbc-06ade56b-LICENSE"
+    },
+    {
+      "repository": "commaai/opendbc",
+      "commit": "06ade56b49162e3f35e354df115e97b02de81d7a",
+      "path": "opendbc/car/car.capnp",
+      "url": "https://github.com/commaai/opendbc/blob/06ade56b49162e3f35e354df115e97b02de81d7a/opendbc/car/car.capnp",
+      "local_path": "../research/evidence/public-source/opendbc-06ade56b/opendbc/car/car.capnp",
+      "sha256": "ef3454f5add03a98f31b08c2c89473e28ddaf1bfd4d787f1c71cfbe4093abdac",
+      "bytes": 21267,
+      "id": "od.schema",
+      "evidence_kind": "public_source_snapshot",
+      "original_local_path": "evidence/opendbc-06ade56b/opendbc/car/car.capnp",
+      "provenance": {
+        "path_relative_to_original_workspace": "songplus-port-lab/hardware/evidence/opendbc-06ade56b/opendbc/car/car.capnp",
+        "sha256": "ef3454f5add03a98f31b08c2c89473e28ddaf1bfd4d787f1c71cfbe4093abdac",
+        "bytes": 21267,
+        "required_for_offline_validation": false
+      },
+      "usage": "inert_reference_only_not_runtime_or_production_source",
+      "license_review": "MIT_repository_license_retained_individual_notice_review_required",
+      "license_evidence": "research/evidence/licenses/opendbc-06ade56b-LICENSE"
+    },
+    {
+      "id": "obs.old_panda_api",
+      "evidence_kind": "derived_summary_not_original",
+      "local_path": "../research/evidence/summaries/legacy-panda-api.json",
+      "sha256": "40ba5153b88eafd8f346f0147ec5ede9577ca8826161ab9e794deb9f213ebad7",
+      "bytes": 988,
+      "provenance": {
+        "path_relative_to_original_workspace": "op_rootdir/data/openpilot/panda/python/__init__.py",
+        "sha256": "c2df6b142adb4ae1a4163128760a8e03a4659eae349b3f7b062231cec7a762c7",
+        "bytes": 30385,
+        "required_for_offline_validation": false
+      },
+      "limit": "New redacted factual summary; its hash is not the source-file hash. Original not required to validate this package."
+    }
+  ],
+  "critical_code_anchors": [
+    {
+      "id": "a.dos_selection",
+      "source_id": "dp.launch",
+      "start_line": 99,
+      "end_line": 99,
+      "expected_text": "    export TICI_DOS=1"
+    },
+    {
+      "id": "a.tres_selection",
+      "source_id": "dp.launch",
+      "start_line": 103,
+      "end_line": 103,
+      "expected_text": "    export TICI_TRES=1"
+    },
+    {
+      "id": "a.aux_role",
+      "source_id": "dp.launch",
+      "start_line": 119,
+      "end_line": 119,
+      "expected_text": "  echo host | sudo tee \"$mode\" >/dev/null 2>&1"
+    },
+    {
+      "id": "a.persist_write",
+      "source_id": "dp.launch",
+      "start_line": 90,
+      "end_line": 90,
+      "expected_text": "      echo \"$mcu\" | sudo tee \"$cache\" >/dev/null 2>&1"
+    },
+    {
+      "id": "a.os_auto",
+      "source_id": "dp.launch",
+      "start_line": 21,
+      "end_line": 21,
+      "expected_text": "  if [ $(< /VERSION) != \"$AGNOS_VERSION\" ]; then"
+    },
+    {
+      "id": "a.lite_probe",
+      "source_id": "dp.launch",
+      "start_line": 165,
+      "end_line": 165,
+      "expected_text": "    output=$(i2cget -y 0 0x10 0x00 2>/dev/null)"
+    },
+    {
+      "id": "a.pandad_select",
+      "source_id": "dp.processes",
+      "start_line": 115,
+      "end_line": 115,
+      "expected_text": "  PythonProcess(\"pandad\", \"selfdrive.pandad.pandad\" if not TICI_DOS else \"selfdrive.pandad_tici.pandad\", always_run),"
+    },
+    {
+      "id": "a.bus_stride",
+      "source_id": "dp.panda_header",
+      "start_line": 26,
+      "end_line": 26,
+      "expected_text": "#define PANDA_BUS_OFFSET 4"
+    },
+    {
+      "id": "a.bus_index",
+      "source_id": "dp.pandad_cpp",
+      "start_line": 59,
+      "end_line": 59,
+      "expected_text": "    panda = std::make_unique<Panda>(serial, (index * PANDA_BUS_OFFSET));"
+    },
+    {
+      "id": "a.dual_panda",
+      "source_id": "dp.pandad_cpp",
+      "start_line": 205,
+      "end_line": 207,
+      "expected_text": "  const bool red_panda_comma_three = (pandas.size() == 2) &&\n                                     (pandas[0]->hw_type == cereal::PandaState::PandaType::DOS) &&\n                                     (pandas[1]->hw_type == cereal::PandaState::PandaType::RED_PANDA);"
+    },
+    {
+      "id": "a.ignition",
+      "source_id": "dp.pandad_cpp",
+      "start_line": 234,
+      "end_line": 236,
+      "expected_text": "    if (red_panda_comma_three && (panda->hw_type == cereal::PandaState::PandaType::DOS)) {\n      health.ignition_line_pkt = 0;\n    }"
+    },
+    {
+      "id": "a.bus_send",
+      "source_id": "dp.panda_transport",
+      "start_line": 211,
+      "end_line": 211,
+      "expected_text": "    header.bus = bus - bus_offset;"
+    },
+    {
+      "id": "a.bus_recv",
+      "source_id": "dp.panda_transport",
+      "start_line": 287,
+      "end_line": 287,
+      "expected_text": "    canData.src = header.bus + bus_offset;"
+    },
+    {
+      "id": "a.order",
+      "source_id": "dp.pandad_python",
+      "start_line": 129,
+      "end_line": 129,
+      "expected_text": "      pandas.sort(key=lambda x: (not x.is_internal(), x.get_type(), x.get_usb_serial()))"
+    },
+    {
+      "id": "a.f4types",
+      "source_id": "dp.panda_python",
+      "start_line": 136,
+      "end_line": 136,
+      "expected_text": "  F4_DEVICES = [HW_TYPE_WHITE_PANDA, HW_TYPE_GREY_PANDA, HW_TYPE_BLACK_PANDA, HW_TYPE_UNO, HW_TYPE_DOS]"
+    },
+    {
+      "id": "a.h7types",
+      "source_id": "dp.panda_python",
+      "start_line": 137,
+      "end_line": 137,
+      "expected_text": "  H7_DEVICES = [HW_TYPE_RED_PANDA, HW_TYPE_RED_PANDA_V2, HW_TYPE_TRES, HW_TYPE_CUATRO]"
+    },
+    {
+      "id": "a.packet_versions",
+      "source_id": "dp.panda_python",
+      "start_line": 130,
+      "end_line": 132,
+      "expected_text": "  CAN_PACKET_VERSION = 4\n  HEALTH_PACKET_VERSION = 17\n  CAN_HEALTH_PACKET_VERSION = 5"
+    },
+    {
+      "id": "a.heartbeat",
+      "source_id": "dp.panda_python",
+      "start_line": 248,
+      "end_line": 251,
+      "expected_text": "    if self._disable_checks:\n      self.set_heartbeat_disabled()\n      self.set_power_save(0)\n"
+    },
+    {
+      "id": "a.resetcomms",
+      "source_id": "dp.panda_python",
+      "start_line": 253,
+      "end_line": 253,
+      "expected_text": "    self.can_reset_communications()"
+    },
+    {
+      "id": "a.speedwrite",
+      "source_id": "dp.panda_python",
+      "start_line": 261,
+      "end_line": 261,
+      "expected_text": "      self.set_can_speed_kbps(bus, self._can_speed_kbps)"
+    },
+    {
+      "id": "a.f4build",
+      "source_id": "dp.panda_build",
+      "start_line": 7,
+      "end_line": 8,
+      "expected_text": "  \"panda\": base_project_f4,\n  \"panda_h7\": base_project_h7,"
+    },
+    {
+      "id": "a.sensor_chain",
+      "source_id": "dp.camera_probe",
+      "start_line": 1050,
+      "end_line": 1052,
+      "expected_text": "  if (!init_sensor_lambda(new OS04C10) &&\n      !init_sensor_lambda(new OX03C10) &&\n      !init_sensor_lambda(new AR0231)) {"
+    },
+    {
+      "id": "a.sensor_ar",
+      "source_id": "dp.sensor_ar",
+      "start_line": 36,
+      "end_line": 37,
+      "expected_text": "  probe_reg_addr = 0x3000;\n  probe_expected_data = 0x354;"
+    },
+    {
+      "id": "a.sensor_ox",
+      "source_id": "dp.sensor_ox",
+      "start_line": 40,
+      "end_line": 41,
+      "expected_text": "  probe_reg_addr = 0x300a;\n  probe_expected_data = 0x5803;"
+    },
+    {
+      "id": "a.sensor_os",
+      "source_id": "dp.sensor_os",
+      "start_line": 40,
+      "end_line": 41,
+      "expected_text": "  probe_reg_addr = 0x300a;\n  probe_expected_data = 0x5304;"
+    },
+    {
+      "id": "a.sensor_build",
+      "source_id": "dp.camera_build",
+      "start_line": 7,
+      "end_line": 7,
+      "expected_text": "                           'cameras/cdm.cc', 'sensors/ar0231.cc', 'sensors/ox03c10.cc', 'sensors/os04c10.cc'])"
+    },
+    {
+      "id": "a.target_agnos",
+      "source_id": "dp.launch_env",
+      "start_line": 19,
+      "end_line": 19,
+      "expected_text": "  export AGNOS_VERSION=\"18.4\""
+    },
+    {
+      "id": "a.abl_boot",
+      "source_id": "dp.agnos_updater",
+      "start_line": 320,
+      "end_line": 320,
+      "expected_text": "  partition_name_to_use = {'abl', 'boot'}"
+    },
+    {
+      "id": "a.agnos_tizi",
+      "source_id": "dp.agnos_updater",
+      "start_line": 317,
+      "end_line": 318,
+      "expected_text": "    if f.read().strip('\\x00').split('comma ')[-1] == 'tizi':\n      return partitions"
+    },
+    {
+      "id": "a.hardcoded_manifest",
+      "source_id": "dp.agnos_updater",
+      "start_line": 325,
+      "end_line": 325,
+      "expected_text": "    encoded_path = \"L2RhdGEvb3BlbnBpbG90L3N5c3RlbS9oYXJkd2FyZS90aWNpL2Fnbm9zX3RpY2kuanNvbg==\""
+    },
+    {
+      "id": "a.qcom",
+      "source_id": "dp.model_build",
+      "start_line": 40,
+      "end_line": 42,
+      "expected_text": "elif 'QCOM' in available:\n  tg_backend = 'QCOM'\n  tg_flags = f'DEV={tg_backend} IMAGE=1 FLOAT16=1 NOLOCALS=1 JIT_BATCH_SIZE=0 OPENPILOT_HACKS=1'"
+    },
+    {
+      "id": "a.model_pair",
+      "source_id": "dp.model_build",
+      "start_line": 90,
+      "end_line": 91,
+      "expected_text": "  driving_onnx_deps = [p for m in [f'{file_prefix}driving_vision', f'{file_prefix}driving_policy']\n                       for p in get_existing_chunks(File(f\"models/{m}.onnx\").abspath)]"
+    },
+    {
+      "id": "a.model_pickle",
+      "source_id": "dp.model_runner",
+      "start_line": 86,
+      "end_line": 86,
+      "expected_text": "    jits = pickle.loads(read_file_chunked(modeld_pkl_path(usbgpu)))"
+    },
+    {
+      "id": "a.dm_model",
+      "source_id": "dp.processes",
+      "start_line": 98,
+      "end_line": 98,
+      "expected_text": "  PythonProcess(\"dmonitoringmodeld\", \"selfdrive.modeld.dmonitoringmodeld\", driverview, enabled=(WEBCAM or not PC) and not LITE),"
+    },
+    {
+      "id": "a.dm_monitor",
+      "source_id": "dp.processes",
+      "start_line": 113,
+      "end_line": 113,
+      "expected_text": "  PythonProcess(\"dmonitoringd\", \"selfdrive.monitoring.dmonitoringd\", driverview, enabled=(WEBCAM or not PC) and not LITE),"
+    },
+    {
+      "id": "a.sound",
+      "source_id": "dp.processes",
+      "start_line": 102,
+      "end_line": 102,
+      "expected_text": "  PythonProcess(\"soundd\", \"selfdrive.ui.soundd\", driverview, enabled=not LITE),"
+    },
+    {
+      "id": "a.flash",
+      "source_id": "dp.pandad_python",
+      "start_line": 41,
+      "end_line": 41,
+      "expected_text": "    panda.flash()"
+    },
+    {
+      "id": "a.dfu_recover",
+      "source_id": "dp.pandad_python",
+      "start_line": 102,
+      "end_line": 102,
+      "expected_text": "          PandaDFU(serial).recover()"
+    },
+    {
+      "id": "a.old_safety_id",
+      "source_id": "obs.old_panda_api",
+      "start_line": 16,
+      "end_line": 16,
+      "expected_text": "    \"observed_constant_value\": 32,"
+    },
+    {
+      "id": "a.new_safety_id",
+      "source_id": "od.declarations",
+      "start_line": 37,
+      "end_line": 37,
+      "expected_text": "#define SAFETY_BYD 35U"
+    },
+    {
+      "id": "a.new_schema_id",
+      "source_id": "od.schema",
+      "start_line": 647,
+      "end_line": 647,
+      "expected_text": "    byd @35;"
+    },
+    {
+      "id": "a.new_safety_param_unused",
+      "source_id": "od.byd_safety",
+      "start_line": 94,
+      "end_line": 94,
+      "expected_text": "  SAFETY_UNUSED(param);"
+    },
+    {
+      "id": "a.atto_params",
+      "source_id": "od.byd_safety",
+      "start_line": 62,
+      "end_line": 67,
+      "expected_text": "  // NOTE: based off BYD_ATTO_3 to match openpilot\n  const AngleSteeringParams BYD_STEERING_PARAMS = {\n    .slip_factor = -0.0006166479109059387,  // calc_slip_factor(VM)\n    .steer_ratio = 14.8,\n    .wheelbase = 2.72,\n  };"
+    },
+    {
+      "id": "a.new_tx",
+      "source_id": "od.byd_safety",
+      "start_line": 96,
+      "end_line": 100,
+      "expected_text": "  static const CanMsg BYD_TX_MSGS[] = {\n    {0x1E2, 0, 8, .check_relay = true},   // STEERING_MODULE_ADAS (lateral steering command)\n    {0x316, 0, 8, .check_relay = true},   // LKAS_HUD_ADAS (dash HUD)\n    {0x3B0, 0, 8, .check_relay = false},  // PCM_BUTTONS (cruise cancel button spoof)\n  };"
+    }
+  ],
+  "patch_plan": [
+    {
+      "id": "H01",
+      "title": "明确硬件 profile 与识别边界",
+      "depends_on": [],
+      "implemented": false,
+      "source_ids": [
+        "dp.launch",
+        "dp.hardware",
+        "obs.inventory"
+      ],
+      "anchor_ids": [
+        "a.dos_selection",
+        "a.tres_selection",
+        "a.persist_write"
+      ],
+      "reusable_code": [
+        "tici 平台入口与 F4/H7 分类是候选结构。"
+      ],
+      "planned_changes": [
+        "将硬件身份与商业型号分开；确认前不得自动套用 tizi/TRES/LITE。",
+        "保存两块 Panda 与物理端口关系，不依据单次 Panda() 返回值选择 board。"
+      ],
+      "hardware_confirmation_required": [
+        "SOM/SoC/PCB 版本、有效内存和真实 MCU；C3XL 与 O3XL 不默认等同。"
+      ],
+      "offline_verification": [
+        "检查 profile 中已观察值与 unknown 字段严格分离。"
+      ]
+    },
+    {
+      "id": "H02",
+      "title": "DOS/F4 与 redPanda/H7 支持层",
+      "depends_on": [
+        "H01"
+      ],
+      "implemented": false,
+      "source_ids": [
+        "dp.panda_python",
+        "dp.f4_board",
+        "dp.dos_board",
+        "dp.red_board",
+        "dp.panda_build",
+        "dp.pandad_python"
+      ],
+      "anchor_ids": [
+        "a.f4types",
+        "a.h7types",
+        "a.packet_versions",
+        "a.f4build",
+        "a.heartbeat",
+        "a.resetcomms",
+        "a.speedwrite"
+      ],
+      "reusable_code": [
+        "保留 F4/DOS board 与 H7 red board，以及按 MCU 构建两个固件目标的结构。"
+      ],
+      "planned_changes": [
+        "对接目标 opendbc safety API、CAN/health 包版本和编译工具链；不能把旧固件原样配新主机。",
+        "将诊断路径与会写控制请求的 Panda 构造函数分离；禁用 heartbeat、通信reset、CAN速率写入都不是被动查询。"
+      ],
+      "hardware_confirmation_required": [
+        "内部/外部 MCU 型号、board revision、bootstub、provisioning、GPIO、收发器与实际连接方式。"
+      ],
+      "offline_verification": [
+        "先做 MCU 目标与 safety 接口静态映射，之后才安排本地固件构建/单测；本轮不生成固件。"
+      ]
+    },
+    {
+      "id": "H03",
+      "title": "双 Panda 总线映射和第二 USB 端口",
+      "depends_on": [
+        "H01",
+        "H02"
+      ],
+      "implemented": false,
+      "source_ids": [
+        "dp.panda_header",
+        "dp.pandad_cpp",
+        "dp.panda_transport",
+        "dp.pandad_python",
+        "dp.launch"
+      ],
+      "anchor_ids": [
+        "a.bus_stride",
+        "a.bus_index",
+        "a.dual_panda",
+        "a.ignition",
+        "a.bus_send",
+        "a.bus_recv",
+        "a.order",
+        "a.aux_role"
+      ],
+      "reusable_code": [
+        "PANDA_BUS_OFFSET=4、按内部优先排序、发送减offset/接收加offset及DOS假点火处理。"
+      ],
+      "planned_changes": [
+        "定义 host global bus 与 Panda local bus 双向表，并把车型层路由与每块板 safetyConfigs 绑定。",
+        "将 USB role 切换改成已确认硬件 profile 的独立授权动作；不在只读诊断中调用 set_aux_panda。"
+      ],
+      "hardware_confirmation_required": [
+        "DOS 是否真是第一块、redPanda 是否第二块；车辆线束接在哪块板哪条 CAN；a600000 与外壳接口对应。"
+      ],
+      "offline_verification": [
+        "离线回放验证 Host 4/5/6 仅在第二块 Panda 映射下对应 local 0/1/2；禁止将 MCU-local safety bus 改成 host bus。"
+      ]
+    },
+    {
+      "id": "H04",
+      "title": "三路摄像头、标定与旧传感器支持",
+      "depends_on": [
+        "H01"
+      ],
+      "implemented": false,
+      "source_ids": [
+        "dp.camera_build",
+        "dp.camera_probe",
+        "dp.sensor_ar",
+        "dp.sensor_ox",
+        "dp.sensor_os",
+        "dp.camera_geometry"
+      ],
+      "anchor_ids": [
+        "a.sensor_chain",
+        "a.sensor_ar",
+        "a.sensor_ox",
+        "a.sensor_os",
+        "a.sensor_build"
+      ],
+      "reusable_code": [
+        "AR0231/OX03C10/OS04C10 编译与探测链、各自曝光/格式实现及设备sensor参数映射。"
+      ],
+      "planned_changes": [
+        "按真实sensor/镜头/端口维护相机参数与标定；保持道路双相机和驾驶员相机功能。",
+        "绑定匹配的 kernel/DTB/CSI/ISP ABI，不能仅移植 sensor.cc。"
+      ],
+      "hardware_confirmation_required": [
+        "每个相机实际型号、镜头、供电/时钟/CSI通道、I2C地址、输出尺寸、时间戳和驱动来源。"
+      ],
+      "offline_verification": [
+        "已有日志字段核对和离线帧/时间戳/几何检查；未知sensor保持unknown，不执行I2C探测。"
+      ]
+    },
+    {
+      "id": "H05",
+      "title": "tici 启动链和 AGNOS 分区组合",
+      "depends_on": [
+        "H01",
+        "H04"
+      ],
+      "implemented": false,
+      "source_ids": [
+        "dp.launch_env",
+        "dp.agnos_updater",
+        "dp.agnos_manifest",
+        "dp.tici_manifest",
+        "obs.backup"
+      ],
+      "anchor_ids": [
+        "a.target_agnos",
+        "a.abl_boot",
+        "a.agnos_tizi",
+        "a.hardcoded_manifest"
+      ],
+      "reusable_code": [
+        "目标18.4 manifest与非tizi覆盖abl/boot的源码作为设计参考。"
+      ],
+      "planned_changes": [
+        "用精确硬件profile取代“所有非tizi”的宽泛条件；解析失败应拒绝生成部署配置而非退回其它机型manifest。",
+        "取消硬编码/data/openpilot依赖；把用户态、kernel/boot、ABL、DTB和恢复loader分别列出hash。",
+        "当前仅记录镜像hash/兼容缺口，不下载系统镜像、不组装刷机包。"
+      ],
+      "hardware_confirmation_required": [
+        "现机10.1可用启动链、非活动12.4未验证；18.4运行兼容性、实际恢复端口/loader/恢复演练；备份GPT异常的处置需另案。"
+      ],
+      "offline_verification": [
+        "静态对比目标/备份manifest；校验boot/abl锁定hash；通过不代表可启动。"
+      ]
+    },
+    {
+      "id": "H06",
+      "title": "GPU、模型接口和用户态 ABI",
+      "depends_on": [
+        "H04",
+        "H05"
+      ],
+      "implemented": false,
+      "source_ids": [
+        "dp.model_build",
+        "dp.model_runner",
+        "dp.launch_env"
+      ],
+      "anchor_ids": [
+        "a.qcom",
+        "a.model_pair",
+        "a.model_pickle"
+      ],
+      "reusable_code": [
+        "QCOM后端配置和成套vision/policy编译运行结构可作该固定版本的研究基线。"
+      ],
+      "planned_changes": [
+        "锁定相同提交的tinygrad、模型元数据、输入时序、输出解析和相机warp；后续官方supercombo等新接口需单独迁移。",
+        "按已确定目标GPU编译，不将开发机自动检测的CPU/CUDA产物当作车机产物。",
+        "显式核对libc/Python共享库、GPU驱动/内存接口及传感器帧格式；仅普通设备模型列入本机候选。"
+      ],
+      "hardware_confirmation_required": [
+        "准确SoC/GPU/驱动、可用RAM、20Hz耗时/峰值内存、持续散热与掉帧；无实机基准。"
+      ],
+      "offline_verification": [
+        "先比较离线模型输入输出契约；本轮不加载pickle/模型或启动编译脚本。"
+      ]
+    },
+    {
+      "id": "H07",
+      "title": "保持驾驶员监控和可听告警",
+      "depends_on": [
+        "H01",
+        "H04",
+        "H06"
+      ],
+      "implemented": false,
+      "source_ids": [
+        "dp.processes",
+        "dp.launch"
+      ],
+      "anchor_ids": [
+        "a.lite_probe",
+        "a.dm_model",
+        "a.dm_monitor",
+        "a.sound"
+      ],
+      "reusable_code": [
+        "正常设备下dmonitoringmodeld、dmonitoringd、soundd进程依赖。"
+      ],
+      "planned_changes": [
+        "不能沿用一次I2C失败就设置LITE的路径；独立配置中明确dm_required=true、audio_alerts_required=true。",
+        "未知或失败的驾驶员相机不应通过Lite标志隐藏；模型与相机修复需单独验证。"
+      ],
+      "hardware_confirmation_required": [
+        "驾驶员相机可用性、朝向、内参/曝光、声音硬件和提示可听性。"
+      ],
+      "offline_verification": [
+        "静态确认必要进程未被LITE条件意外关闭；实际监控效果待以后验证。"
+      ]
+    },
+    {
+      "id": "H08",
+      "title": "隔离启动副作用和恢复操作",
+      "depends_on": [
+        "H01",
+        "H02",
+        "H03",
+        "H05"
+      ],
+      "implemented": false,
+      "source_ids": [
+        "dp.launch",
+        "dp.pandad_python",
+        "dp.panda_python",
+        "obs.backup"
+      ],
+      "anchor_ids": [
+        "a.os_auto",
+        "a.persist_write",
+        "a.aux_role",
+        "a.flash",
+        "a.dfu_recover",
+        "a.heartbeat",
+        "a.resetcomms",
+        "a.speedwrite"
+      ],
+      "reusable_code": [
+        "只复用经审查的数据结构和纯逻辑；原launcher/pandad入口不作为研究工具。"
+      ],
+      "planned_changes": [
+        "新研究入口默认无设备访问，无自动OS升级/固件刷新/reset/恢复/USB角色写入/persist写入。",
+        "所有未来有副作用操作独立成审查单元；当前验证器仅文件hash与字符串比较。",
+        "保留原可用系统与恢复证据；不能把备份完整性当作已验证无损回滚。"
+      ],
+      "hardware_confirmation_required": [
+        "每个GPIO/USB/DFU入口的实际对应及设备专用恢复路径。"
+      ],
+      "offline_verification": [
+        "验证器不得导入候选模块、调用subprocess/network、访问/dev或运行launcher；进行损坏hash/关键文本负向检查。"
+      ]
+    },
+    {
+      "id": "H09",
+      "title": "新版 opendbc safety 与旧硬件适配边界",
+      "depends_on": [
+        "H02",
+        "H03",
+        "H08"
+      ],
+      "implemented": false,
+      "source_ids": [
+        "od.byd_safety",
+        "od.declarations",
+        "od.registry",
+        "od.schema",
+        "obs.old_panda_api",
+        "dp.panda_python",
+        "dp.panda_build"
+      ],
+      "anchor_ids": [
+        "a.old_safety_id",
+        "a.new_safety_id",
+        "a.new_schema_id",
+        "a.new_safety_param_unused",
+        "a.atto_params",
+        "a.new_tx",
+        "a.packet_versions"
+      ],
+      "reusable_code": [
+        "官方opendbc@06ade56b的框架/声明/注册可作为新的统一safety接口基础；旧DOS/red板硬件支持可单独移植。"
+      ],
+      "planned_changes": [
+        "旧BYD safety enum 32与官方35必须由schema/host/firmware一致定义，不能靠改一个整数拼接。",
+        "旧safetyParam=33在官方BYD实现被忽略；官方ATTO3角度参数、报文白名单不可等同宋PLUS或原纵向实现。",
+        "保留每块MCU本地bus语义，车型全局bus映射在主机适配层处理；宋车型safety需求由独立车辆/安全工作线确定。",
+        "F4与H7分别构建/测试公共safety框架和数据结构；本轮未证明当前官方框架在该F4板可编译/容纳/执行。"
+      ],
+      "hardware_confirmation_required": [
+        "实际MCU flash/RAM、固件工具链、报文协议与接线、宋车型报文语义；不可使用ATTO3参数直接实车。"
+      ],
+      "offline_verification": [
+        "静态确认enum差异、param未用、ATTO3限定及TX白名单；固件测试通过仍不代表可上车。"
+      ]
+    }
+  ],
+  "verification_limit": "Source hash and text-anchor PASS is NOT DEPLOYMENT READINESS; no source patch or firmware package is generated.",
+  "evidence_packaging": {
+    "schema": "self-contained-hardware-evidence/v1",
+    "created_date": "2026-10-18",
+    "manifest": "research/evidence-manifest.json",
+    "scope": "31 files required by existing anchors and patch plan; unused historical snapshots excluded.",
+    "external_files_required": false,
+    "public_code_execution_allowed": false,
+    "production_import_allowed": false,
+    "historical_source_ids_omitted": [
+      "dp.extra00",
+      "dp.extra07",
+      "dp.extra08",
+      "dp.extra10",
+      "dp.extra15",
+      "dp.extra18",
+      "dp.extra25",
+      "prior.27",
+      "prior.28",
+      "prior.29",
+      "prior.31",
+      "prior.32",
+      "prior.33",
+      "prior.34",
+      "prior.36",
+      "prior.37",
+      "prior.38",
+      "prior.39",
+      "prior.40",
+      "prior.41",
+      "prior.42",
+      "prior.43",
+      "prior.44",
+      "obs.research_manifest"
+    ]
+  }
+}

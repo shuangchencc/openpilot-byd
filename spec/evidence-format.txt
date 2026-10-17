@@ -1,0 +1,67 @@
+Offline evidence contract, schema version 1
+
+Run from any directory:
+  python3 /Users/shuang/Code/openpilot/songplus-port-lab/spec/evidence_gate.py
+
+Python entry point:
+  validate_documents(protocol_dict, requirements_dict, lab_root_path)
+
+Exit 0 means the inventory is consistent and the requested OFFLINE development
+stage has its required evidence. Initial protocol_research can pass with zero
+confirmed vehicle signals. Exit 1 reports malformed/inconsistent evidence or a
+blocked development stage. The JSON always reports actuation_allowed=false;
+the tool contains no firmware builder, CAN packer or vehicle/device connection.
+
+The source family identifiers are intentionally separate:
+  officialAtto3: commaai/opendbc @06ade56b49162e3f35e354df115e97b02de81d7a
+  huheasHanTorque: huheas/carrotpilot @43a030a5fe76c44697431bd75b20e82792ec611e
+  qzwfAtto3: qzwf/opendbc @591705c9dd1c527d9e732d41bc2c80e468654cbb
+
+Every initial CAN entry is candidate. candidate_can and source_interpretation
+describe the upstream hypothesis, not a measured definition for this vehicle.
+target_vehicle_interpretation remains null until a reviewed trace is available.
+Neither a Song 23 enum nor the cached BYD_SONG_PLUS_DMI_23_ALT fingerprint is
+evidence of compatibility. No proposed safetyParam is assigned. The cached 33
+is retained solely as an unresolved observation from a different fork.
+
+Evidence files are read only from relative paths within lab_root_path. Every
+recording, trace manifest and test/review artifact needs a SHA256 that matches
+the actual nonempty file. Missing, modified or escaping paths fail validation.
+
+recordings[] fields:
+  id, path, sha256, vehicle_id, origin="passive_vehicle_capture",
+  synthetic=false, capture_session (nonempty string).
+
+traces[] fields:
+  id, path, sha256, vehicle_id, family, recording_id,
+  claim_ids (list), requirement_ids (list).
+
+The trace file is JSON containing those same binding fields, except id/path/
+sha256 are not needed inside it. It additionally requires:
+  recording_sha256: exactly the recording's pinned hash
+  observations: nonempty list of {start_frame, end_frame, finding}
+    frame indexes are integers, 0 <= start_frame <= end_frame
+  review: {status: "reviewed", reviewer: nonempty string}
+
+A claim can be marked verified only with both recording_refs and trace_refs,
+matching vehicle/family/claim bindings, nonempty target_vehicle_interpretation,
+and vehicle_compatibility="verified_from_passive_evidence". Verified claims
+must belong to target_hypothesis.selected_family. No cross-family union is
+accepted. The declared count must match the inventory; invalid inventories
+report zero accepted confirmations plus the separate declared count.
+
+artifacts[] fields:
+  id, path, sha256, vehicle_id, family, requirement_ids,
+  kind="offline_test_result" or "source_review".
+
+Requirements marked evidenced must cite fixtures of the required kind with
+matching family and requirement IDs. Required gates cannot be removed or
+renamed. Longitudinal offline development additionally requires target protocol,
+steering/driver/RX evidence, TX inactive tests, forwarding ownership, stock ACC
+isolation, AEB preservation and lateral boundary/fault test evidence.
+
+The validator checks inventory integrity and references. It cannot establish
+that the person submitting a recording identified it truthfully, that raw CAN
+bytes have the proposed meaning, or that test assertions are sufficient.
+It does not turn an evidenced requirement into authorization to actuate.
+Human trace review and the actual safety-test implementation remain distinct.

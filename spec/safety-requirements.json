@@ -1,0 +1,111 @@
+{
+  "schema_version": 1,
+  "scope": "offline_research",
+  "target_vehicle_id": "byd_song_plus_dmi_2023_champion_110km_flagship_plus",
+  "actuation_allowed": false,
+  "requirements": [
+    {
+      "id": "target_protocol_identity",
+      "status": "unknown",
+      "required_evidence_kind": "trace",
+      "acceptance": "Exact ECU/firmware and bus-layout identity, supported by this target vehicle passive recording and reviewed trace.",
+      "evidence_refs": []
+    },
+    {
+      "id": "steering_command_and_feedback",
+      "status": "unknown",
+      "required_evidence_kind": "trace",
+      "acceptance": "Determine angle/torque mode and actual feedback/sign/units without merging candidate families.",
+      "evidence_refs": []
+    },
+    {
+      "id": "driver_brake_cancel_override",
+      "status": "unknown",
+      "required_evidence_kind": "trace",
+      "acceptance": "Demonstrate driver brake, accelerator, cancel and steering override identities, distinct from stock ACC braking.",
+      "evidence_refs": []
+    },
+    {
+      "id": "rx_integrity_and_liveness",
+      "status": "unknown",
+      "required_evidence_kind": "trace",
+      "acceptance": "Document safety-relevant addresses, buses, lengths, periods, checksum/counter/quality fields and loss semantics.",
+      "evidence_refs": []
+    },
+    {
+      "id": "tx_allowlist_and_disengaged_state",
+      "status": "unknown",
+      "required_evidence_kind": "artifact",
+      "acceptance": "Review minimum TX surface and offline tests proving inactive/invalid commands cannot grant authority.",
+      "evidence_refs": []
+    },
+    {
+      "id": "relay_and_forward_ownership",
+      "status": "unknown",
+      "required_evidence_kind": "trace",
+      "acceptance": "Establish harness buses, original ECU ownership and forwarding transitions; no unsupported takeover assumption.",
+      "evidence_refs": []
+    },
+    {
+      "id": "stock_acc_isolation",
+      "status": "unknown",
+      "required_evidence_kind": "trace",
+      "acceptance": "Demonstrate lateral ownership can be separated from stock ACC and does not suppress its control stream.",
+      "evidence_refs": []
+    },
+    {
+      "id": "stock_aeb_preservation",
+      "status": "unknown",
+      "required_evidence_kind": "trace",
+      "acceptance": "Resolve AEB channel and priority from evidence, including unknowns; a deceleration heuristic is insufficient.",
+      "evidence_refs": []
+    },
+    {
+      "id": "lateral_boundary_and_fault_tests",
+      "status": "unknown",
+      "required_evidence_kind": "artifact",
+      "acceptance": "Offline boundary, timing, disengagement, malformed-frame, loss and recovery tests for this exact family.",
+      "evidence_refs": []
+    },
+    {
+      "id": "build_registration_and_release_tests",
+      "status": "unknown",
+      "required_evidence_kind": "artifact",
+      "acceptance": "Pinned upstream/fork integration review and reproducible release-path safety tests; existing model enum is insufficient.",
+      "evidence_refs": []
+    },
+    {
+      "id": "independent_safety_review",
+      "status": "unknown",
+      "required_evidence_kind": "artifact",
+      "acceptance": "Independent review of target-specific logic and evidence, not a vendor support statement.",
+      "evidence_refs": []
+    },
+    {
+      "id": "longitudinal_command_and_neutral",
+      "status": "unknown",
+      "required_evidence_kind": "trace",
+      "acceptance": "Resolve acceleration/brake/neutral/enable/stop-resume protocol independently of lateral support.",
+      "evidence_refs": []
+    },
+    {
+      "id": "longitudinal_pedal_override",
+      "status": "unknown",
+      "required_evidence_kind": "trace",
+      "acceptance": "Resolve driver overrides and cancellation for longitudinal control.",
+      "evidence_refs": []
+    },
+    {
+      "id": "longitudinal_limits_and_aeb_tests",
+      "status": "unknown",
+      "required_evidence_kind": "artifact",
+      "acceptance": "Offline longitudinal state and boundary tests, including AEB priority and malformed/late/replayed messages.",
+      "evidence_refs": []
+    }
+  ],
+  "notes": [
+    "No safety thresholds are introduced or modified by this evidence gate.",
+    "Evidence verification records provenance and inventory consistency; it does not certify decoded semantics or safe actuation.",
+    "Longitudinal offline development requires prior lateral and stock ACC/AEB isolation evidence; the validator never authorizes road operation."
+  ]
+}

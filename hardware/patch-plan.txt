@@ -1,0 +1,232 @@
+宋 PLUS DM-i 2023 冠军版 110km 旗舰 PLUS：C3XL 硬件支持补丁计划
+日期：2026-10-17；状态：仅离线工程；所有补丁尚未实施。
+固定候选：dragonpilot/dragonpilot@94ad85cfda64773a960d048dc11cac02d4aa86a5
+固定安全框架参考：commaai/opendbc@06ade56b49162e3f35e354df115e97b02de81d7a
+本目录不是部署包，任何验证通过都不代表实机兼容或可上车。
+
+关键架构边界：
+- 现机记录为tici、MemTotal 3699784 kB、AGNOS10.1、DOS+redPanda；商业C3XL/O3XL/C3X不能等同。
+- DP总线间隔为4（并非4个物理CAN口）；只有“DOS第一、red第二”的条件成立时，第二块本地0/1/2对应主机4/5/6；MCU safety仍检查本地总线。
+- 固定DP模型栈为vision/policy配套；不宣称与最新官方supercombo文件直接兼容。
+- 原Panda构造函数本身会写heartbeat、reset通信、CAN速率等配置；仅“创建Panda再查询”不是只读。
+- 新opendbc BYD enum35与旧32不同，且官方BYD忽略param、使用ATTO3参数；不能将旧param33或旧safety配置直接搬入。
+
+H01 明确硬件 profile 与识别边界
+依赖：无
+实际来源文件（固定SHA，不等于已完成目标修改）：
+  dp.launch | launch_chffrplus.sh
+    https://github.com/dragonpilot/dragonpilot/blob/94ad85cfda64773a960d048dc11cac02d4aa86a5/launch_chffrplus.sh
+  dp.hardware | system/hardware/tici/hardware.py
+    https://github.com/dragonpilot/dragonpilot/blob/94ad85cfda64773a960d048dc11cac02d4aa86a5/system/hardware/tici/hardware.py
+  obs.inventory | ../../migration-audit/offline-handoff/hardware-inventory.json
+    本地证据：/Users/shuang/Code/openpilot/migration-audit/offline-handoff/hardware-inventory.json
+可复用部分：
+  - tici 平台入口与 F4/H7 分类是候选结构。
+计划修改：
+  - 将硬件身份与商业型号分开；确认前不得自动套用 tizi/TRES/LITE。
+  - 保存两块 Panda 与物理端口关系，不依据单次 Panda() 返回值选择 board。
+必须硬件确认：
+  - SOM/SoC/PCB 版本、有效内存和真实 MCU；C3XL 与 O3XL 不默认等同。
+离线验证：
+  - 检查 profile 中已观察值与 unknown 字段严格分离。
+关键代码锚点：a.dos_selection, a.tres_selection, a.persist_write
+
+H02 DOS/F4 与 redPanda/H7 支持层
+依赖：H01
+实际来源文件（固定SHA，不等于已完成目标修改）：
+  dp.panda_python | panda_tici/python/__init__.py
+    https://github.com/dragonpilot/dragonpilot/blob/94ad85cfda64773a960d048dc11cac02d4aa86a5/panda_tici/python/__init__.py
+  dp.f4_board | panda_tici/board/stm32f4/board.h
+    https://github.com/dragonpilot/dragonpilot/blob/94ad85cfda64773a960d048dc11cac02d4aa86a5/panda_tici/board/stm32f4/board.h
+  dp.dos_board | panda_tici/board/boards/dos.h
+    https://github.com/dragonpilot/dragonpilot/blob/94ad85cfda64773a960d048dc11cac02d4aa86a5/panda_tici/board/boards/dos.h
+  dp.red_board | panda_tici/board/boards/red.h
+    https://github.com/dragonpilot/dragonpilot/blob/94ad85cfda64773a960d048dc11cac02d4aa86a5/panda_tici/board/boards/red.h
+  dp.panda_build | panda_tici/board/SConscript
+    https://github.com/dragonpilot/dragonpilot/blob/94ad85cfda64773a960d048dc11cac02d4aa86a5/panda_tici/board/SConscript
+  dp.pandad_python | selfdrive/pandad_tici/pandad.py
+    https://github.com/dragonpilot/dragonpilot/blob/94ad85cfda64773a960d048dc11cac02d4aa86a5/selfdrive/pandad_tici/pandad.py
+可复用部分：
+  - 保留 F4/DOS board 与 H7 red board，以及按 MCU 构建两个固件目标的结构。
+计划修改：
+  - 对接目标 opendbc safety API、CAN/health 包版本和编译工具链；不能把旧固件原样配新主机。
+  - 将诊断路径与会写控制请求的 Panda 构造函数分离；禁用 heartbeat、通信reset、CAN速率写入都不是被动查询。
+必须硬件确认：
+  - 内部/外部 MCU 型号、board revision、bootstub、provisioning、GPIO、收发器与实际连接方式。
+离线验证：
+  - 先做 MCU 目标与 safety 接口静态映射，之后才安排本地固件构建/单测；本轮不生成固件。
+关键代码锚点：a.f4types, a.h7types, a.packet_versions, a.f4build, a.heartbeat, a.resetcomms, a.speedwrite
+
+H03 双 Panda 总线映射和第二 USB 端口
+依赖：H01, H02
+实际来源文件（固定SHA，不等于已完成目标修改）：
+  dp.panda_header | selfdrive/pandad_tici/panda.h
+    https://github.com/dragonpilot/dragonpilot/blob/94ad85cfda64773a960d048dc11cac02d4aa86a5/selfdrive/pandad_tici/panda.h
+  dp.pandad_cpp | selfdrive/pandad_tici/pandad.cc
+    https://github.com/dragonpilot/dragonpilot/blob/94ad85cfda64773a960d048dc11cac02d4aa86a5/selfdrive/pandad_tici/pandad.cc
+  dp.panda_transport | selfdrive/pandad_tici/panda.cc
+    https://github.com/dragonpilot/dragonpilot/blob/94ad85cfda64773a960d048dc11cac02d4aa86a5/selfdrive/pandad_tici/panda.cc
+  dp.pandad_python | selfdrive/pandad_tici/pandad.py
+    https://github.com/dragonpilot/dragonpilot/blob/94ad85cfda64773a960d048dc11cac02d4aa86a5/selfdrive/pandad_tici/pandad.py
+  dp.launch | launch_chffrplus.sh
+    https://github.com/dragonpilot/dragonpilot/blob/94ad85cfda64773a960d048dc11cac02d4aa86a5/launch_chffrplus.sh
+可复用部分：
+  - PANDA_BUS_OFFSET=4、按内部优先排序、发送减offset/接收加offset及DOS假点火处理。
+计划修改：
+  - 定义 host global bus 与 Panda local bus 双向表，并把车型层路由与每块板 safetyConfigs 绑定。
+  - 将 USB role 切换改成已确认硬件 profile 的独立授权动作；不在只读诊断中调用 set_aux_panda。
+必须硬件确认：
+  - DOS 是否真是第一块、redPanda 是否第二块；车辆线束接在哪块板哪条 CAN；a600000 与外壳接口对应。
+离线验证：
+  - 离线回放验证 Host 4/5/6 仅在第二块 Panda 映射下对应 local 0/1/2；禁止将 MCU-local safety bus 改成 host bus。
+关键代码锚点：a.bus_stride, a.bus_index, a.dual_panda, a.ignition, a.bus_send, a.bus_recv, a.order, a.aux_role
+
+H04 三路摄像头、标定与旧传感器支持
+依赖：H01
+实际来源文件（固定SHA，不等于已完成目标修改）：
+  dp.camera_build | system/camerad/SConscript
+    https://github.com/dragonpilot/dragonpilot/blob/94ad85cfda64773a960d048dc11cac02d4aa86a5/system/camerad/SConscript
+  dp.camera_probe | system/camerad/cameras/spectra.cc
+    https://github.com/dragonpilot/dragonpilot/blob/94ad85cfda64773a960d048dc11cac02d4aa86a5/system/camerad/cameras/spectra.cc
+  dp.sensor_ar | system/camerad/sensors/ar0231.cc
+    https://github.com/dragonpilot/dragonpilot/blob/94ad85cfda64773a960d048dc11cac02d4aa86a5/system/camerad/sensors/ar0231.cc
+  dp.sensor_ox | system/camerad/sensors/ox03c10.cc
+    https://github.com/dragonpilot/dragonpilot/blob/94ad85cfda64773a960d048dc11cac02d4aa86a5/system/camerad/sensors/ox03c10.cc
+  dp.sensor_os | system/camerad/sensors/os04c10.cc
+    https://github.com/dragonpilot/dragonpilot/blob/94ad85cfda64773a960d048dc11cac02d4aa86a5/system/camerad/sensors/os04c10.cc
+  dp.camera_geometry | common/transformations/camera.py
+    https://github.com/dragonpilot/dragonpilot/blob/94ad85cfda64773a960d048dc11cac02d4aa86a5/common/transformations/camera.py
+可复用部分：
+  - AR0231/OX03C10/OS04C10 编译与探测链、各自曝光/格式实现及设备sensor参数映射。
+计划修改：
+  - 按真实sensor/镜头/端口维护相机参数与标定；保持道路双相机和驾驶员相机功能。
+  - 绑定匹配的 kernel/DTB/CSI/ISP ABI，不能仅移植 sensor.cc。
+必须硬件确认：
+  - 每个相机实际型号、镜头、供电/时钟/CSI通道、I2C地址、输出尺寸、时间戳和驱动来源。
+离线验证：
+  - 已有日志字段核对和离线帧/时间戳/几何检查；未知sensor保持unknown，不执行I2C探测。
+关键代码锚点：a.sensor_chain, a.sensor_ar, a.sensor_ox, a.sensor_os, a.sensor_build
+
+H05 tici 启动链和 AGNOS 分区组合
+依赖：H01, H04
+实际来源文件（固定SHA，不等于已完成目标修改）：
+  dp.launch_env | launch_env.sh
+    https://github.com/dragonpilot/dragonpilot/blob/94ad85cfda64773a960d048dc11cac02d4aa86a5/launch_env.sh
+  dp.agnos_updater | system/hardware/tici/agnos.py
+    https://github.com/dragonpilot/dragonpilot/blob/94ad85cfda64773a960d048dc11cac02d4aa86a5/system/hardware/tici/agnos.py
+  dp.agnos_manifest | system/hardware/tici/agnos.json
+    https://github.com/dragonpilot/dragonpilot/blob/94ad85cfda64773a960d048dc11cac02d4aa86a5/system/hardware/tici/agnos.json
+  dp.tici_manifest | system/hardware/tici/agnos_tici.json
+    https://github.com/dragonpilot/dragonpilot/blob/94ad85cfda64773a960d048dc11cac02d4aa86a5/system/hardware/tici/agnos_tici.json
+  obs.backup | ../../migration-audit/recovery-backup-20261017/preparation-result.json
+    本地证据：/Users/shuang/Code/openpilot/migration-audit/recovery-backup-20261017/preparation-result.json
+可复用部分：
+  - 目标18.4 manifest与非tizi覆盖abl/boot的源码作为设计参考。
+计划修改：
+  - 用精确硬件profile取代“所有非tizi”的宽泛条件；解析失败应拒绝生成部署配置而非退回其它机型manifest。
+  - 取消硬编码/data/openpilot依赖；把用户态、kernel/boot、ABL、DTB和恢复loader分别列出hash。
+  - 当前仅记录镜像hash/兼容缺口，不下载系统镜像、不组装刷机包。
+必须硬件确认：
+  - 现机10.1可用启动链、非活动12.4未验证；18.4运行兼容性、实际恢复端口/loader/恢复演练；备份GPT异常的处置需另案。
+离线验证：
+  - 静态对比目标/备份manifest；校验boot/abl锁定hash；通过不代表可启动。
+关键代码锚点：a.target_agnos, a.abl_boot, a.agnos_tizi, a.hardcoded_manifest
+
+H06 GPU、模型接口和用户态 ABI
+依赖：H04, H05
+实际来源文件（固定SHA，不等于已完成目标修改）：
+  dp.model_build | selfdrive/modeld/SConscript
+    https://github.com/dragonpilot/dragonpilot/blob/94ad85cfda64773a960d048dc11cac02d4aa86a5/selfdrive/modeld/SConscript
+  dp.model_runner | selfdrive/modeld/modeld.py
+    https://github.com/dragonpilot/dragonpilot/blob/94ad85cfda64773a960d048dc11cac02d4aa86a5/selfdrive/modeld/modeld.py
+  dp.launch_env | launch_env.sh
+    https://github.com/dragonpilot/dragonpilot/blob/94ad85cfda64773a960d048dc11cac02d4aa86a5/launch_env.sh
+可复用部分：
+  - QCOM后端配置和成套vision/policy编译运行结构可作该固定版本的研究基线。
+计划修改：
+  - 锁定相同提交的tinygrad、模型元数据、输入时序、输出解析和相机warp；后续官方supercombo等新接口需单独迁移。
+  - 按已确定目标GPU编译，不将开发机自动检测的CPU/CUDA产物当作车机产物。
+  - 显式核对libc/Python共享库、GPU驱动/内存接口及传感器帧格式；仅普通设备模型列入本机候选。
+必须硬件确认：
+  - 准确SoC/GPU/驱动、可用RAM、20Hz耗时/峰值内存、持续散热与掉帧；无实机基准。
+离线验证：
+  - 先比较离线模型输入输出契约；本轮不加载pickle/模型或启动编译脚本。
+关键代码锚点：a.qcom, a.model_pair, a.model_pickle
+
+H07 保持驾驶员监控和可听告警
+依赖：H01, H04, H06
+实际来源文件（固定SHA，不等于已完成目标修改）：
+  dp.processes | system/manager/process_config.py
+    https://github.com/dragonpilot/dragonpilot/blob/94ad85cfda64773a960d048dc11cac02d4aa86a5/system/manager/process_config.py
+  dp.launch | launch_chffrplus.sh
+    https://github.com/dragonpilot/dragonpilot/blob/94ad85cfda64773a960d048dc11cac02d4aa86a5/launch_chffrplus.sh
+可复用部分：
+  - 正常设备下dmonitoringmodeld、dmonitoringd、soundd进程依赖。
+计划修改：
+  - 不能沿用一次I2C失败就设置LITE的路径；独立配置中明确dm_required=true、audio_alerts_required=true。
+  - 未知或失败的驾驶员相机不应通过Lite标志隐藏；模型与相机修复需单独验证。
+必须硬件确认：
+  - 驾驶员相机可用性、朝向、内参/曝光、声音硬件和提示可听性。
+离线验证：
+  - 静态确认必要进程未被LITE条件意外关闭；实际监控效果待以后验证。
+关键代码锚点：a.lite_probe, a.dm_model, a.dm_monitor, a.sound
+
+H08 隔离启动副作用和恢复操作
+依赖：H01, H02, H03, H05
+实际来源文件（固定SHA，不等于已完成目标修改）：
+  dp.launch | launch_chffrplus.sh
+    https://github.com/dragonpilot/dragonpilot/blob/94ad85cfda64773a960d048dc11cac02d4aa86a5/launch_chffrplus.sh
+  dp.pandad_python | selfdrive/pandad_tici/pandad.py
+    https://github.com/dragonpilot/dragonpilot/blob/94ad85cfda64773a960d048dc11cac02d4aa86a5/selfdrive/pandad_tici/pandad.py
+  dp.panda_python | panda_tici/python/__init__.py
+    https://github.com/dragonpilot/dragonpilot/blob/94ad85cfda64773a960d048dc11cac02d4aa86a5/panda_tici/python/__init__.py
+  obs.backup | ../../migration-audit/recovery-backup-20261017/preparation-result.json
+    本地证据：/Users/shuang/Code/openpilot/migration-audit/recovery-backup-20261017/preparation-result.json
+可复用部分：
+  - 只复用经审查的数据结构和纯逻辑；原launcher/pandad入口不作为研究工具。
+计划修改：
+  - 新研究入口默认无设备访问，无自动OS升级/固件刷新/reset/恢复/USB角色写入/persist写入。
+  - 所有未来有副作用操作独立成审查单元；当前验证器仅文件hash与字符串比较。
+  - 保留原可用系统与恢复证据；不能把备份完整性当作已验证无损回滚。
+必须硬件确认：
+  - 每个GPIO/USB/DFU入口的实际对应及设备专用恢复路径。
+离线验证：
+  - 验证器不得导入候选模块、调用subprocess/network、访问/dev或运行launcher；进行损坏hash/关键文本负向检查。
+关键代码锚点：a.os_auto, a.persist_write, a.aux_role, a.flash, a.dfu_recover, a.heartbeat, a.resetcomms, a.speedwrite
+
+H09 新版 opendbc safety 与旧硬件适配边界
+依赖：H02, H03, H08
+实际来源文件（固定SHA，不等于已完成目标修改）：
+  od.byd_safety | opendbc/safety/modes/byd.h
+    https://github.com/commaai/opendbc/blob/06ade56b49162e3f35e354df115e97b02de81d7a/opendbc/safety/modes/byd.h
+  od.declarations | opendbc/safety/declarations.h
+    https://github.com/commaai/opendbc/blob/06ade56b49162e3f35e354df115e97b02de81d7a/opendbc/safety/declarations.h
+  od.registry | opendbc/safety/safety.h
+    https://github.com/commaai/opendbc/blob/06ade56b49162e3f35e354df115e97b02de81d7a/opendbc/safety/safety.h
+  od.schema | opendbc/car/car.capnp
+    https://github.com/commaai/opendbc/blob/06ade56b49162e3f35e354df115e97b02de81d7a/opendbc/car/car.capnp
+  obs.old_panda_api | ../../op_rootdir/data/openpilot/panda/python/__init__.py
+    本地证据：/Users/shuang/Code/openpilot/op_rootdir/data/openpilot/panda/python/__init__.py
+  dp.panda_python | panda_tici/python/__init__.py
+    https://github.com/dragonpilot/dragonpilot/blob/94ad85cfda64773a960d048dc11cac02d4aa86a5/panda_tici/python/__init__.py
+  dp.panda_build | panda_tici/board/SConscript
+    https://github.com/dragonpilot/dragonpilot/blob/94ad85cfda64773a960d048dc11cac02d4aa86a5/panda_tici/board/SConscript
+可复用部分：
+  - 官方opendbc@06ade56b的框架/声明/注册可作为新的统一safety接口基础；旧DOS/red板硬件支持可单独移植。
+计划修改：
+  - 旧BYD safety enum 32与官方35必须由schema/host/firmware一致定义，不能靠改一个整数拼接。
+  - 旧safetyParam=33在官方BYD实现被忽略；官方ATTO3角度参数、报文白名单不可等同宋PLUS或原纵向实现。
+  - 保留每块MCU本地bus语义，车型全局bus映射在主机适配层处理；宋车型safety需求由独立车辆/安全工作线确定。
+  - F4与H7分别构建/测试公共safety框架和数据结构；本轮未证明当前官方框架在该F4板可编译/容纳/执行。
+必须硬件确认：
+  - 实际MCU flash/RAM、固件工具链、报文协议与接线、宋车型报文语义；不可使用ATTO3参数直接实车。
+离线验证：
+  - 静态确认enum差异、param未用、ATTO3限定及TX白名单；固件测试通过仍不代表可上车。
+关键代码锚点：a.old_safety_id, a.new_safety_id, a.new_schema_id, a.new_safety_param_unused, a.atto_params, a.new_tx, a.packet_versions
+
+验证方法：
+仅运行本目录 verify_source_evidence.py；默认读取 hardware-profile.json，并读取已归档本地UTF-8文本。
+脚本只用标准库文件读取/hash/JSON/字符串比较；不连接网络、不访问设备、不导入候选、不执行launcher/pandad、不反序列化pickle。
+可用 --report 指定本目录内一个尚不存在的JSON输出文件。默认stdout输出结果。
+PASS只说明当前证据文件与固定hash/关键文本相符，并且计划依赖闭合；明确 NOT DEPLOYMENT READINESS。
+对已有研究目录未作改动；补充源码只保存于本目录evidence。

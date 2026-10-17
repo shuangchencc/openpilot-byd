@@ -1,0 +1,41 @@
+{
+  "schema": "research-evidence-summary/v1",
+  "content_kind": "derived_summary_not_original",
+  "created_date": "2026-10-18",
+  "timezone": "Asia/Shanghai",
+  "source_provenance": [
+    {
+      "path_relative_to_original_workspace": "migration-lab/byd-recovery/helpers-can-lab/helpers/INDEPENDENT-REVIEW.txt",
+      "sha256": "72e3632fc79981d786755d960b8e02ac5bf9dafe2d1241502f0e2426769dd158",
+      "bytes": 8080,
+      "required_for_offline_validation": false
+    },
+    {
+      "path_relative_to_original_workspace": "migration-lab/byd-recovery/helpers-can-lab/helpers/RECOVERY-RESULT.txt",
+      "sha256": "51992ef9b0fdfc59093a6c3e7ab071597e90d08c2d147f6821405848a7e33a4a",
+      "bytes": 6659,
+      "required_for_offline_validation": false
+    }
+  ],
+  "facts": {
+    "functions": [
+      "byd_lane_status",
+      "is_counter_ahead",
+      "is_stock_lkas_working",
+      "is_steering_standby",
+      "is_steering_need_activate",
+      "is_steering_activated",
+      "is_lose_frame"
+    ],
+    "oracle_records": 111890,
+    "additional_shape_cases": 50,
+    "recorded_mismatches": 0,
+    "scope": "Finite recorded return/exception comparisons and captured control-flow coverage."
+  },
+  "limits": [
+    "Does not establish DBC, packing, controller, safety firmware, or vehicle correctness.",
+    "Recovered implementation excluded from production source pending provenance/license review."
+  ],
+  "runtime_dependency": false,
+  "target_functions_executed_for_this_summary": false
+}

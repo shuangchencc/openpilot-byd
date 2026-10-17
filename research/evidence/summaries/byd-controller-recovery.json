@@ -1,0 +1,47 @@
+{
+  "schema": "research-evidence-summary/v1",
+  "content_kind": "derived_summary_not_original",
+  "created_date": "2026-10-18",
+  "timezone": "Asia/Shanghai",
+  "source_provenance": [
+    {
+      "path_relative_to_original_workspace": "migration-lab/byd-recovery/controller-lab/capture/CORE-INDEPENDENT-REVIEW.txt",
+      "sha256": "c25ec98952be27ed3a8ce07a6e53dec00b00890144f328fac88625d8b6dc07ef",
+      "bytes": 5114,
+      "required_for_offline_validation": false
+    },
+    {
+      "path_relative_to_original_workspace": "migration-lab/byd-recovery/controller-lab/helpers/RECOVERY-RESULT.txt",
+      "sha256": "8854290a909e7c23d61bd720dd74d71374820542862af655b9e0b0fa18b50727",
+      "bytes": 3773,
+      "required_for_offline_validation": false
+    },
+    {
+      "path_relative_to_original_workspace": "migration-lab/byd-recovery/controller-lab/dependencies/DEPENDENCY-RESULT.txt",
+      "sha256": "4d7eb68eab260170f90552abc7d0e612efeccebed161cd7e2d551d40f25cbb53",
+      "bytes": 6009,
+      "required_for_offline_validation": false
+    }
+  ],
+  "facts": {
+    "methods": [
+      "CarController.__init__",
+      "CarController.update"
+    ],
+    "method_unique_reachable_nodes": {
+      "__init__": 177,
+      "update": 1184
+    },
+    "controller_helper_functions": 7,
+    "helper_CFG_instruction_pairs": 840,
+    "original_import_and_constructor_smoke": "reported passed",
+    "standalone_dependency_smoke": "reported passed"
+  },
+  "limits": [
+    "No final whole-controller frozen CAN/state differential report found at packaging time.",
+    "Static CFG equivalence does not prove runtime timing, dependency projections, firmware safety or vehicle operation.",
+    "Recovered bodies and original native support are excluded from this engineering runtime."
+  ],
+  "runtime_dependency": false,
+  "target_functions_executed_for_this_summary": false
+}

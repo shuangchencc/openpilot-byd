@@ -1,0 +1,15 @@
+{
+  "upstream_directory": "upstream-opendbc",
+  "upstream_commit": "06ade56b49162e3f35e354df115e97b02de81d7a",
+  "profiles": {
+    "official_atto3_reference": {
+      "source_vehicle": "BYD Atto 3 (reference only)",
+      "target_vehicle_status": "candidate_not_validated_for_song",
+      "source_commit": "06ade56b49162e3f35e354df115e97b02de81d7a",
+      "dbc_path": "opendbc/dbc/byd_atto3.dbc",
+      "dbc_sha256": "536d6c2a1805b0ead4d426892e28f66b6a43b08736b3d72db2838bb60842d012",
+      "source_url": "https://github.com/commaai/opendbc/blob/06ade56b49162e3f35e354df115e97b02de81d7a/opendbc/dbc/byd_atto3.dbc",
+      "checksum_implementation": "Pinned official parser rules only; not transplanted from another fork"
+    }
+  }
+}

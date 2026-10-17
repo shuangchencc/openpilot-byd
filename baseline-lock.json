@@ -1,0 +1,25 @@
+{
+  "schema": "songplus-lab-baseline/v1",
+  "date": "2026-10-17",
+  "target_vehicle": "宋 PLUS DM-i 2023 冠军版 110km 旗舰 PLUS",
+  "opendbc_commit": "06ade56b49162e3f35e354df115e97b02de81d7a",
+  "dragonpilot_hardware_reference_commit": "94ad85cfda64773a960d048dc11cac02d4aa86a5",
+  "python_tested": "3.12.7",
+  "uv_bootstrap": "0.13.1",
+  "uv_lock_sha256": "8f130e47c924211a80f4115a07e0eef97f46f3ed1b922d0c9f46f7b19ff6cb05",
+  "initial_upstream_test_result": {
+    "tests_run": 51,
+    "skipped": 4,
+    "passed_excluding_skips": 47,
+    "exit_code": 0,
+    "log": "results/upstream-tests.log",
+    "log_sha256": "4f79a72febe8b5706001bcbdd5c4dc5941bbe820249abcf4efd7d72dfe66e531",
+    "modules": [
+      "opendbc.safety.tests.test_byd",
+      "opendbc.can.tests.test_packer_parser",
+      "opendbc.can.tests.test_dbc_parser"
+    ],
+    "scope": "Pinned official Atto3 safety and generic parser tests only; not Song vehicle or complete upstream suite"
+  },
+  "source_policy": "No installed Mr One encrypted vehicle code imported or copied into the new parser; public candidate files in hardware/evidence are inert source evidence, not deployed code."
+}

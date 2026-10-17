@@ -1,0 +1,33 @@
+{
+  "schema": "research-evidence-summary/v1",
+  "content_kind": "derived_summary_not_original",
+  "created_date": "2026-10-18",
+  "timezone": "Asia/Shanghai",
+  "source_provenance": [
+    {
+      "path_relative_to_original_workspace": "migration-lab/byd-recovery/checksum-lab/RECOVERY-REVIEW.txt",
+      "sha256": "380e5c7145941a39e76d6b65f4e95d7727f7b33eba3a364b30af6fa5fd193891",
+      "bytes": 10458,
+      "required_for_offline_validation": false
+    },
+    {
+      "path_relative_to_original_workspace": "migration-lab/byd-recovery/checksum-lab/recovery-result.json",
+      "sha256": "d303f4759bdddee8d819b6248e7d677d40777512dc7f23bb63c2580dd368a6c4",
+      "bytes": 3742,
+      "required_for_offline_validation": false
+    }
+  ],
+  "facts": {
+    "function": "byd_short_checksum",
+    "valid_bytes_cases": 1419440,
+    "boundary_and_type_cases": 72,
+    "recorded_mismatches": 0,
+    "scope": "Specified sample pure function; captured business instructions, independent frozen-oracle comparison and isolated execution."
+  },
+  "limits": [
+    "Not the full bydcan module, a complete CAN protocol, or vehicle correctness.",
+    "Recovered code/oracles/native samples remain in the original private research area; license provenance must be reviewed before incorporation."
+  ],
+  "runtime_dependency": false,
+  "target_functions_executed_for_this_summary": false
+}

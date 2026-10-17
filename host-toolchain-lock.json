@@ -1,0 +1,90 @@
+{
+  "schema": "songplus-host-toolchain-lock/v1",
+  "platform": "macOS arm64",
+  "minimum_macos": "26.0",
+  "purpose": "LLVM shared library required by tinygrad host-side Metal model compilation; not C3XL software",
+  "llvm_library": ".bootstrap/llvm-host/libLLVM.dylib",
+  "archives": [
+    {
+      "name": "llvm",
+      "version": "21.1.8",
+      "revision": 1,
+      "bottle_tag": "arm64_tahoe",
+      "url": "https://ghcr.io/v2/homebrew/core/llvm/21/blobs/sha256:aef68da81e94be677a2260d4901f156b54e70fbde69a92c0b47d28573eca0f8e",
+      "sha256": "aef68da81e94be677a2260d4901f156b54e70fbde69a92c0b47d28573eca0f8e",
+      "scope": "repository:homebrew/core/llvm/21:pull",
+      "archive_path": ".bootstrap/llvm-host/llvm.bottle.tar.gz",
+      "files": [
+        {
+          "member": "llvm@21/21.1.8_1/LICENSE.TXT",
+          "path": ".bootstrap/llvm-host/llvm-LICENSE.txt",
+          "source_sha256": "8d85c1057d742e597985c7d4e6320b015a9139385cff4cbae06ffc0ebe89afee"
+        },
+        {
+          "member": "llvm@21/21.1.8_1/lib/libLLVM.dylib",
+          "path": ".bootstrap/llvm-host/libLLVM.dylib",
+          "source_sha256": "6167f889e620fff2630599fd72edba92d7acd13290bbfc670ec3cb3f73da5fa3"
+        }
+      ],
+      "formula_url": "https://formulae.brew.sh/api/formula/llvm@21.json",
+      "formula_sha256": "fc706679f876246c427a3ce2e44fd46c653a126cde712dd50766ab77a20a17fe"
+    },
+    {
+      "name": "zstd",
+      "version": "1.5.7",
+      "revision": 1,
+      "bottle_tag": "arm64_tahoe",
+      "url": "https://ghcr.io/v2/homebrew/core/zstd/blobs/sha256:628a4ef53428d0078e3d76d297171ce8d0294f5ec1de3f20305e08c4dd333565",
+      "sha256": "628a4ef53428d0078e3d76d297171ce8d0294f5ec1de3f20305e08c4dd333565",
+      "scope": "repository:homebrew/core/zstd:pull",
+      "archive_path": ".bootstrap/llvm-host/zstd.bottle.tar.gz",
+      "files": [
+        {
+          "member": "zstd/1.5.7_1/LICENSE",
+          "path": ".bootstrap/llvm-host/zstd-LICENSE.txt",
+          "source_sha256": "7055266497633c9025b777c78eb7235af13922117480ed5c674677adc381c9d8"
+        },
+        {
+          "member": "zstd/1.5.7_1/lib/libzstd.1.5.7.dylib",
+          "path": ".bootstrap/llvm-host/libzstd.1.dylib",
+          "source_sha256": "317404b10937a8f0d232a1c93b6eac4324c0581fe313f2f9384a098c6a4a79a7"
+        }
+      ],
+      "formula_url": "https://formulae.brew.sh/api/formula/zstd.json",
+      "formula_sha256": "ca0cc06d664bd88ac73dafa5163829349f861fdc541fc5ab524dea5f601363f2"
+    }
+  ],
+  "relocations": [
+    {
+      "path": ".bootstrap/llvm-host/libLLVM.dylib",
+      "id": "@loader_path/libLLVM.dylib",
+      "changes": {
+        "@@HOMEBREW_PREFIX@@/opt/zstd/lib/libzstd.1.dylib": "@loader_path/libzstd.1.dylib"
+      }
+    },
+    {
+      "path": ".bootstrap/llvm-host/libzstd.1.dylib",
+      "id": "@loader_path/libzstd.1.dylib",
+      "changes": {}
+    }
+  ],
+  "files": [
+    {
+      "path": ".bootstrap/llvm-host/llvm-LICENSE.txt",
+      "sha256": "8d85c1057d742e597985c7d4e6320b015a9139385cff4cbae06ffc0ebe89afee"
+    },
+    {
+      "path": ".bootstrap/llvm-host/libLLVM.dylib",
+      "sha256": "7bb7d7694bf844528f21cc4329f95b6aeb3cc4750382367879e65a99e0437005"
+    },
+    {
+      "path": ".bootstrap/llvm-host/zstd-LICENSE.txt",
+      "sha256": "7055266497633c9025b777c78eb7235af13922117480ed5c674677adc381c9d8"
+    },
+    {
+      "path": ".bootstrap/llvm-host/libzstd.1.dylib",
+      "sha256": "cd3e68ff36064951f47971e2279eb44f982fd62d924f17effc74851946cc814f"
+    }
+  ],
+  "code_signing": "ad-hoc, no timestamp, for project-local relocated libraries only"
+}

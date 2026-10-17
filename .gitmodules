@@ -1,0 +1,6 @@
+[submodule "upstream-opendbc"]
+	path = upstream-opendbc
+	url = https://github.com/commaai/opendbc.git
+[submodule "upstream-openpilot"]
+	path = upstream-openpilot
+	url = https://github.com/commaai/openpilot.git

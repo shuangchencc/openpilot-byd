@@ -1,0 +1,1766 @@
+{
+  "schema": "can-jsonl-report/v1",
+  "validation": "passed",
+  "source": {
+    "manifest_declared_data_kind": "synthetic",
+    "description": "Deliberately synthetic counters and byte ramps for parser tests; not a vehicle capture, no physical signal assignments, no personal data.",
+    "log_file": "synthetic-can-data.jsonl",
+    "verified_sha256": "5afaa29c8b461522716ace15031f76bc72bfefa9d59c5bf3cc69912931dfc20f",
+    "timestamp_clock": "monotonic",
+    "timestamp_unit": "ns",
+    "provenance_note": "A hash binds the bytes to this manifest; it does not prove a recorded origin or a vehicle identity."
+  },
+  "frame_count": 10,
+  "first_timestamp_ns": 0,
+  "last_timestamp_ns": 30000000,
+  "bus_frame_counts": {
+    "0": 7,
+    "1": 2,
+    "2": 1
+  },
+  "operation": "summarize",
+  "interpretation": {
+    "frequency": "(frame_count - 1) / observed time span, per bus and numeric ID; duplicates are retained and flagged. This is a capture statistic, not a verified transmitter schedule.",
+    "raw_bytes": "Byte observations and adjacent-frame bit changes only; no signedness, endianness, scaling, units, physical meaning or safety behavior is inferred.",
+    "frame_format": "Input represents normalized data-frame payloads only. Numeric IDs do not preserve IDE/RTR/error flags; payloads <=8 bytes do not distinguish classic CAN from CAN-FD."
+  },
+  "messages": [
+    {
+      "bus": 0,
+      "address": 291,
+      "address_hex": "0x123",
+      "requires_29bit_identifier": false,
+      "frame_count": 4,
+      "first_timestamp_ns": 0,
+      "last_timestamp_ns": 20000000,
+      "length_counts": {
+        "8": 4
+      },
+      "contains_payload_requiring_can_fd": false,
+      "observed_interval_rate_hz": 150.0,
+      "rate_status": "computed_with_duplicate_timestamps",
+      "interval_ns": {
+        "count": 3,
+        "zero_count": 1,
+        "positive_count": 2,
+        "min": 0,
+        "max": 10000000,
+        "min_positive": 10000000,
+        "mean": 6666666.666666667
+      },
+      "raw_byte_candidates": [
+        {
+          "offset": 0,
+          "observations": 4,
+          "frames_without_byte": 0,
+          "distinct_values": [
+            0,
+            1,
+            3
+          ],
+          "min_raw_value": 0,
+          "max_raw_value": 3,
+          "adjacent_frame_comparisons": 3,
+          "changed_comparisons": 2,
+          "bit_flip_counts_lsb_first": [
+            1,
+            1,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ]
+        },
+        {
+          "offset": 1,
+          "observations": 4,
+          "frames_without_byte": 0,
+          "distinct_values": [
+            0,
+            1
+          ],
+          "min_raw_value": 0,
+          "max_raw_value": 1,
+          "adjacent_frame_comparisons": 3,
+          "changed_comparisons": 1,
+          "bit_flip_counts_lsb_first": [
+            1,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ]
+        },
+        {
+          "offset": 2,
+          "observations": 4,
+          "frames_without_byte": 0,
+          "distinct_values": [
+            0
+          ],
+          "min_raw_value": 0,
+          "max_raw_value": 0,
+          "adjacent_frame_comparisons": 3,
+          "changed_comparisons": 0,
+          "bit_flip_counts_lsb_first": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ]
+        },
+        {
+          "offset": 3,
+          "observations": 4,
+          "frames_without_byte": 0,
+          "distinct_values": [
+            0
+          ],
+          "min_raw_value": 0,
+          "max_raw_value": 0,
+          "adjacent_frame_comparisons": 3,
+          "changed_comparisons": 0,
+          "bit_flip_counts_lsb_first": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ]
+        },
+        {
+          "offset": 4,
+          "observations": 4,
+          "frames_without_byte": 0,
+          "distinct_values": [
+            0
+          ],
+          "min_raw_value": 0,
+          "max_raw_value": 0,
+          "adjacent_frame_comparisons": 3,
+          "changed_comparisons": 0,
+          "bit_flip_counts_lsb_first": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ]
+        },
+        {
+          "offset": 5,
+          "observations": 4,
+          "frames_without_byte": 0,
+          "distinct_values": [
+            0
+          ],
+          "min_raw_value": 0,
+          "max_raw_value": 0,
+          "adjacent_frame_comparisons": 3,
+          "changed_comparisons": 0,
+          "bit_flip_counts_lsb_first": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ]
+        },
+        {
+          "offset": 6,
+          "observations": 4,
+          "frames_without_byte": 0,
+          "distinct_values": [
+            0
+          ],
+          "min_raw_value": 0,
+          "max_raw_value": 0,
+          "adjacent_frame_comparisons": 3,
+          "changed_comparisons": 0,
+          "bit_flip_counts_lsb_first": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ]
+        },
+        {
+          "offset": 7,
+          "observations": 4,
+          "frames_without_byte": 0,
+          "distinct_values": [
+            0
+          ],
+          "min_raw_value": 0,
+          "max_raw_value": 0,
+          "adjacent_frame_comparisons": 3,
+          "changed_comparisons": 0,
+          "bit_flip_counts_lsb_first": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "bus": 0,
+      "address": 1110,
+      "address_hex": "0x456",
+      "requires_29bit_identifier": false,
+      "frame_count": 3,
+      "first_timestamp_ns": 5000000,
+      "last_timestamp_ns": 25000000,
+      "length_counts": {
+        "12": 1,
+        "16": 1,
+        "64": 1
+      },
+      "contains_payload_requiring_can_fd": true,
+      "observed_interval_rate_hz": 100.0,
+      "rate_status": "computed",
+      "interval_ns": {
+        "count": 2,
+        "zero_count": 0,
+        "positive_count": 2,
+        "min": 10000000,
+        "max": 10000000,
+        "min_positive": 10000000,
+        "mean": 10000000.0
+      },
+      "raw_byte_candidates": [
+        {
+          "offset": 0,
+          "observations": 3,
+          "frames_without_byte": 0,
+          "distinct_values": [
+            0
+          ],
+          "min_raw_value": 0,
+          "max_raw_value": 0,
+          "adjacent_frame_comparisons": 2,
+          "changed_comparisons": 0,
+          "bit_flip_counts_lsb_first": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ]
+        },
+        {
+          "offset": 1,
+          "observations": 3,
+          "frames_without_byte": 0,
+          "distinct_values": [
+            1
+          ],
+          "min_raw_value": 1,
+          "max_raw_value": 1,
+          "adjacent_frame_comparisons": 2,
+          "changed_comparisons": 0,
+          "bit_flip_counts_lsb_first": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ]
+        },
+        {
+          "offset": 2,
+          "observations": 3,
+          "frames_without_byte": 0,
+          "distinct_values": [
+            2
+          ],
+          "min_raw_value": 2,
+          "max_raw_value": 2,
+          "adjacent_frame_comparisons": 2,
+          "changed_comparisons": 0,
+          "bit_flip_counts_lsb_first": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ]
+        },
+        {
+          "offset": 3,
+          "observations": 3,
+          "frames_without_byte": 0,
+          "distinct_values": [
+            3
+          ],
+          "min_raw_value": 3,
+          "max_raw_value": 3,
+          "adjacent_frame_comparisons": 2,
+          "changed_comparisons": 0,
+          "bit_flip_counts_lsb_first": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ]
+        },
+        {
+          "offset": 4,
+          "observations": 3,
+          "frames_without_byte": 0,
+          "distinct_values": [
+            4
+          ],
+          "min_raw_value": 4,
+          "max_raw_value": 4,
+          "adjacent_frame_comparisons": 2,
+          "changed_comparisons": 0,
+          "bit_flip_counts_lsb_first": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ]
+        },
+        {
+          "offset": 5,
+          "observations": 3,
+          "frames_without_byte": 0,
+          "distinct_values": [
+            5
+          ],
+          "min_raw_value": 5,
+          "max_raw_value": 5,
+          "adjacent_frame_comparisons": 2,
+          "changed_comparisons": 0,
+          "bit_flip_counts_lsb_first": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ]
+        },
+        {
+          "offset": 6,
+          "observations": 3,
+          "frames_without_byte": 0,
+          "distinct_values": [
+            6
+          ],
+          "min_raw_value": 6,
+          "max_raw_value": 6,
+          "adjacent_frame_comparisons": 2,
+          "changed_comparisons": 0,
+          "bit_flip_counts_lsb_first": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ]
+        },
+        {
+          "offset": 7,
+          "observations": 3,
+          "frames_without_byte": 0,
+          "distinct_values": [
+            7
+          ],
+          "min_raw_value": 7,
+          "max_raw_value": 7,
+          "adjacent_frame_comparisons": 2,
+          "changed_comparisons": 0,
+          "bit_flip_counts_lsb_first": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ]
+        },
+        {
+          "offset": 8,
+          "observations": 3,
+          "frames_without_byte": 0,
+          "distinct_values": [
+            8
+          ],
+          "min_raw_value": 8,
+          "max_raw_value": 8,
+          "adjacent_frame_comparisons": 2,
+          "changed_comparisons": 0,
+          "bit_flip_counts_lsb_first": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ]
+        },
+        {
+          "offset": 9,
+          "observations": 3,
+          "frames_without_byte": 0,
+          "distinct_values": [
+            9
+          ],
+          "min_raw_value": 9,
+          "max_raw_value": 9,
+          "adjacent_frame_comparisons": 2,
+          "changed_comparisons": 0,
+          "bit_flip_counts_lsb_first": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ]
+        },
+        {
+          "offset": 10,
+          "observations": 3,
+          "frames_without_byte": 0,
+          "distinct_values": [
+            10
+          ],
+          "min_raw_value": 10,
+          "max_raw_value": 10,
+          "adjacent_frame_comparisons": 2,
+          "changed_comparisons": 0,
+          "bit_flip_counts_lsb_first": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ]
+        },
+        {
+          "offset": 11,
+          "observations": 3,
+          "frames_without_byte": 0,
+          "distinct_values": [
+            11
+          ],
+          "min_raw_value": 11,
+          "max_raw_value": 11,
+          "adjacent_frame_comparisons": 2,
+          "changed_comparisons": 0,
+          "bit_flip_counts_lsb_first": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ]
+        },
+        {
+          "offset": 12,
+          "observations": 2,
+          "frames_without_byte": 1,
+          "distinct_values": [
+            12
+          ],
+          "min_raw_value": 12,
+          "max_raw_value": 12,
+          "adjacent_frame_comparisons": 1,
+          "changed_comparisons": 0,
+          "bit_flip_counts_lsb_first": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ]
+        },
+        {
+          "offset": 13,
+          "observations": 2,
+          "frames_without_byte": 1,
+          "distinct_values": [
+            13
+          ],
+          "min_raw_value": 13,
+          "max_raw_value": 13,
+          "adjacent_frame_comparisons": 1,
+          "changed_comparisons": 0,
+          "bit_flip_counts_lsb_first": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ]
+        },
+        {
+          "offset": 14,
+          "observations": 2,
+          "frames_without_byte": 1,
+          "distinct_values": [
+            14
+          ],
+          "min_raw_value": 14,
+          "max_raw_value": 14,
+          "adjacent_frame_comparisons": 1,
+          "changed_comparisons": 0,
+          "bit_flip_counts_lsb_first": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ]
+        },
+        {
+          "offset": 15,
+          "observations": 2,
+          "frames_without_byte": 1,
+          "distinct_values": [
+            15
+          ],
+          "min_raw_value": 15,
+          "max_raw_value": 15,
+          "adjacent_frame_comparisons": 1,
+          "changed_comparisons": 0,
+          "bit_flip_counts_lsb_first": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ]
+        },
+        {
+          "offset": 16,
+          "observations": 1,
+          "frames_without_byte": 2,
+          "distinct_values": [
+            16
+          ],
+          "min_raw_value": 16,
+          "max_raw_value": 16,
+          "adjacent_frame_comparisons": 0,
+          "changed_comparisons": 0,
+          "bit_flip_counts_lsb_first": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ]
+        },
+        {
+          "offset": 17,
+          "observations": 1,
+          "frames_without_byte": 2,
+          "distinct_values": [
+            17
+          ],
+          "min_raw_value": 17,
+          "max_raw_value": 17,
+          "adjacent_frame_comparisons": 0,
+          "changed_comparisons": 0,
+          "bit_flip_counts_lsb_first": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ]
+        },
+        {
+          "offset": 18,
+          "observations": 1,
+          "frames_without_byte": 2,
+          "distinct_values": [
+            18
+          ],
+          "min_raw_value": 18,
+          "max_raw_value": 18,
+          "adjacent_frame_comparisons": 0,
+          "changed_comparisons": 0,
+          "bit_flip_counts_lsb_first": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ]
+        },
+        {
+          "offset": 19,
+          "observations": 1,
+          "frames_without_byte": 2,
+          "distinct_values": [
+            19
+          ],
+          "min_raw_value": 19,
+          "max_raw_value": 19,
+          "adjacent_frame_comparisons": 0,
+          "changed_comparisons": 0,
+          "bit_flip_counts_lsb_first": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ]
+        },
+        {
+          "offset": 20,
+          "observations": 1,
+          "frames_without_byte": 2,
+          "distinct_values": [
+            20
+          ],
+          "min_raw_value": 20,
+          "max_raw_value": 20,
+          "adjacent_frame_comparisons": 0,
+          "changed_comparisons": 0,
+          "bit_flip_counts_lsb_first": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ]
+        },
+        {
+          "offset": 21,
+          "observations": 1,
+          "frames_without_byte": 2,
+          "distinct_values": [
+            21
+          ],
+          "min_raw_value": 21,
+          "max_raw_value": 21,
+          "adjacent_frame_comparisons": 0,
+          "changed_comparisons": 0,
+          "bit_flip_counts_lsb_first": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ]
+        },
+        {
+          "offset": 22,
+          "observations": 1,
+          "frames_without_byte": 2,
+          "distinct_values": [
+            22
+          ],
+          "min_raw_value": 22,
+          "max_raw_value": 22,
+          "adjacent_frame_comparisons": 0,
+          "changed_comparisons": 0,
+          "bit_flip_counts_lsb_first": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ]
+        },
+        {
+          "offset": 23,
+          "observations": 1,
+          "frames_without_byte": 2,
+          "distinct_values": [
+            23
+          ],
+          "min_raw_value": 23,
+          "max_raw_value": 23,
+          "adjacent_frame_comparisons": 0,
+          "changed_comparisons": 0,
+          "bit_flip_counts_lsb_first": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ]
+        },
+        {
+          "offset": 24,
+          "observations": 1,
+          "frames_without_byte": 2,
+          "distinct_values": [
+            24
+          ],
+          "min_raw_value": 24,
+          "max_raw_value": 24,
+          "adjacent_frame_comparisons": 0,
+          "changed_comparisons": 0,
+          "bit_flip_counts_lsb_first": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ]
+        },
+        {
+          "offset": 25,
+          "observations": 1,
+          "frames_without_byte": 2,
+          "distinct_values": [
+            25
+          ],
+          "min_raw_value": 25,
+          "max_raw_value": 25,
+          "adjacent_frame_comparisons": 0,
+          "changed_comparisons": 0,
+          "bit_flip_counts_lsb_first": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ]
+        },
+        {
+          "offset": 26,
+          "observations": 1,
+          "frames_without_byte": 2,
+          "distinct_values": [
+            26
+          ],
+          "min_raw_value": 26,
+          "max_raw_value": 26,
+          "adjacent_frame_comparisons": 0,
+          "changed_comparisons": 0,
+          "bit_flip_counts_lsb_first": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ]
+        },
+        {
+          "offset": 27,
+          "observations": 1,
+          "frames_without_byte": 2,
+          "distinct_values": [
+            27
+          ],
+          "min_raw_value": 27,
+          "max_raw_value": 27,
+          "adjacent_frame_comparisons": 0,
+          "changed_comparisons": 0,
+          "bit_flip_counts_lsb_first": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ]
+        },
+        {
+          "offset": 28,
+          "observations": 1,
+          "frames_without_byte": 2,
+          "distinct_values": [
+            28
+          ],
+          "min_raw_value": 28,
+          "max_raw_value": 28,
+          "adjacent_frame_comparisons": 0,
+          "changed_comparisons": 0,
+          "bit_flip_counts_lsb_first": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ]
+        },
+        {
+          "offset": 29,
+          "observations": 1,
+          "frames_without_byte": 2,
+          "distinct_values": [
+            29
+          ],
+          "min_raw_value": 29,
+          "max_raw_value": 29,
+          "adjacent_frame_comparisons": 0,
+          "changed_comparisons": 0,
+          "bit_flip_counts_lsb_first": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ]
+        },
+        {
+          "offset": 30,
+          "observations": 1,
+          "frames_without_byte": 2,
+          "distinct_values": [
+            30
+          ],
+          "min_raw_value": 30,
+          "max_raw_value": 30,
+          "adjacent_frame_comparisons": 0,
+          "changed_comparisons": 0,
+          "bit_flip_counts_lsb_first": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ]
+        },
+        {
+          "offset": 31,
+          "observations": 1,
+          "frames_without_byte": 2,
+          "distinct_values": [
+            31
+          ],
+          "min_raw_value": 31,
+          "max_raw_value": 31,
+          "adjacent_frame_comparisons": 0,
+          "changed_comparisons": 0,
+          "bit_flip_counts_lsb_first": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ]
+        },
+        {
+          "offset": 32,
+          "observations": 1,
+          "frames_without_byte": 2,
+          "distinct_values": [
+            32
+          ],
+          "min_raw_value": 32,
+          "max_raw_value": 32,
+          "adjacent_frame_comparisons": 0,
+          "changed_comparisons": 0,
+          "bit_flip_counts_lsb_first": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ]
+        },
+        {
+          "offset": 33,
+          "observations": 1,
+          "frames_without_byte": 2,
+          "distinct_values": [
+            33
+          ],
+          "min_raw_value": 33,
+          "max_raw_value": 33,
+          "adjacent_frame_comparisons": 0,
+          "changed_comparisons": 0,
+          "bit_flip_counts_lsb_first": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ]
+        },
+        {
+          "offset": 34,
+          "observations": 1,
+          "frames_without_byte": 2,
+          "distinct_values": [
+            34
+          ],
+          "min_raw_value": 34,
+          "max_raw_value": 34,
+          "adjacent_frame_comparisons": 0,
+          "changed_comparisons": 0,
+          "bit_flip_counts_lsb_first": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ]
+        },
+        {
+          "offset": 35,
+          "observations": 1,
+          "frames_without_byte": 2,
+          "distinct_values": [
+            35
+          ],
+          "min_raw_value": 35,
+          "max_raw_value": 35,
+          "adjacent_frame_comparisons": 0,
+          "changed_comparisons": 0,
+          "bit_flip_counts_lsb_first": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ]
+        },
+        {
+          "offset": 36,
+          "observations": 1,
+          "frames_without_byte": 2,
+          "distinct_values": [
+            36
+          ],
+          "min_raw_value": 36,
+          "max_raw_value": 36,
+          "adjacent_frame_comparisons": 0,
+          "changed_comparisons": 0,
+          "bit_flip_counts_lsb_first": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ]
+        },
+        {
+          "offset": 37,
+          "observations": 1,
+          "frames_without_byte": 2,
+          "distinct_values": [
+            37
+          ],
+          "min_raw_value": 37,
+          "max_raw_value": 37,
+          "adjacent_frame_comparisons": 0,
+          "changed_comparisons": 0,
+          "bit_flip_counts_lsb_first": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ]
+        },
+        {
+          "offset": 38,
+          "observations": 1,
+          "frames_without_byte": 2,
+          "distinct_values": [
+            38
+          ],
+          "min_raw_value": 38,
+          "max_raw_value": 38,
+          "adjacent_frame_comparisons": 0,
+          "changed_comparisons": 0,
+          "bit_flip_counts_lsb_first": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ]
+        },
+        {
+          "offset": 39,
+          "observations": 1,
+          "frames_without_byte": 2,
+          "distinct_values": [
+            39
+          ],
+          "min_raw_value": 39,
+          "max_raw_value": 39,
+          "adjacent_frame_comparisons": 0,
+          "changed_comparisons": 0,
+          "bit_flip_counts_lsb_first": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ]
+        },
+        {
+          "offset": 40,
+          "observations": 1,
+          "frames_without_byte": 2,
+          "distinct_values": [
+            40
+          ],
+          "min_raw_value": 40,
+          "max_raw_value": 40,
+          "adjacent_frame_comparisons": 0,
+          "changed_comparisons": 0,
+          "bit_flip_counts_lsb_first": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ]
+        },
+        {
+          "offset": 41,
+          "observations": 1,
+          "frames_without_byte": 2,
+          "distinct_values": [
+            41
+          ],
+          "min_raw_value": 41,
+          "max_raw_value": 41,
+          "adjacent_frame_comparisons": 0,
+          "changed_comparisons": 0,
+          "bit_flip_counts_lsb_first": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ]
+        },
+        {
+          "offset": 42,
+          "observations": 1,
+          "frames_without_byte": 2,
+          "distinct_values": [
+            42
+          ],
+          "min_raw_value": 42,
+          "max_raw_value": 42,
+          "adjacent_frame_comparisons": 0,
+          "changed_comparisons": 0,
+          "bit_flip_counts_lsb_first": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ]
+        },
+        {
+          "offset": 43,
+          "observations": 1,
+          "frames_without_byte": 2,
+          "distinct_values": [
+            43
+          ],
+          "min_raw_value": 43,
+          "max_raw_value": 43,
+          "adjacent_frame_comparisons": 0,
+          "changed_comparisons": 0,
+          "bit_flip_counts_lsb_first": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ]
+        },
+        {
+          "offset": 44,
+          "observations": 1,
+          "frames_without_byte": 2,
+          "distinct_values": [
+            44
+          ],
+          "min_raw_value": 44,
+          "max_raw_value": 44,
+          "adjacent_frame_comparisons": 0,
+          "changed_comparisons": 0,
+          "bit_flip_counts_lsb_first": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ]
+        },
+        {
+          "offset": 45,
+          "observations": 1,
+          "frames_without_byte": 2,
+          "distinct_values": [
+            45
+          ],
+          "min_raw_value": 45,
+          "max_raw_value": 45,
+          "adjacent_frame_comparisons": 0,
+          "changed_comparisons": 0,
+          "bit_flip_counts_lsb_first": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ]
+        },
+        {
+          "offset": 46,
+          "observations": 1,
+          "frames_without_byte": 2,
+          "distinct_values": [
+            46
+          ],
+          "min_raw_value": 46,
+          "max_raw_value": 46,
+          "adjacent_frame_comparisons": 0,
+          "changed_comparisons": 0,
+          "bit_flip_counts_lsb_first": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ]
+        },
+        {
+          "offset": 47,
+          "observations": 1,
+          "frames_without_byte": 2,
+          "distinct_values": [
+            47
+          ],
+          "min_raw_value": 47,
+          "max_raw_value": 47,
+          "adjacent_frame_comparisons": 0,
+          "changed_comparisons": 0,
+          "bit_flip_counts_lsb_first": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ]
+        },
+        {
+          "offset": 48,
+          "observations": 1,
+          "frames_without_byte": 2,
+          "distinct_values": [
+            48
+          ],
+          "min_raw_value": 48,
+          "max_raw_value": 48,
+          "adjacent_frame_comparisons": 0,
+          "changed_comparisons": 0,
+          "bit_flip_counts_lsb_first": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ]
+        },
+        {
+          "offset": 49,
+          "observations": 1,
+          "frames_without_byte": 2,
+          "distinct_values": [
+            49
+          ],
+          "min_raw_value": 49,
+          "max_raw_value": 49,
+          "adjacent_frame_comparisons": 0,
+          "changed_comparisons": 0,
+          "bit_flip_counts_lsb_first": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ]
+        },
+        {
+          "offset": 50,
+          "observations": 1,
+          "frames_without_byte": 2,
+          "distinct_values": [
+            50
+          ],
+          "min_raw_value": 50,
+          "max_raw_value": 50,
+          "adjacent_frame_comparisons": 0,
+          "changed_comparisons": 0,
+          "bit_flip_counts_lsb_first": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ]
+        },
+        {
+          "offset": 51,
+          "observations": 1,
+          "frames_without_byte": 2,
+          "distinct_values": [
+            51
+          ],
+          "min_raw_value": 51,
+          "max_raw_value": 51,
+          "adjacent_frame_comparisons": 0,
+          "changed_comparisons": 0,
+          "bit_flip_counts_lsb_first": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ]
+        },
+        {
+          "offset": 52,
+          "observations": 1,
+          "frames_without_byte": 2,
+          "distinct_values": [
+            52
+          ],
+          "min_raw_value": 52,
+          "max_raw_value": 52,
+          "adjacent_frame_comparisons": 0,
+          "changed_comparisons": 0,
+          "bit_flip_counts_lsb_first": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ]
+        },
+        {
+          "offset": 53,
+          "observations": 1,
+          "frames_without_byte": 2,
+          "distinct_values": [
+            53
+          ],
+          "min_raw_value": 53,
+          "max_raw_value": 53,
+          "adjacent_frame_comparisons": 0,
+          "changed_comparisons": 0,
+          "bit_flip_counts_lsb_first": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ]
+        },
+        {
+          "offset": 54,
+          "observations": 1,
+          "frames_without_byte": 2,
+          "distinct_values": [
+            54
+          ],
+          "min_raw_value": 54,
+          "max_raw_value": 54,
+          "adjacent_frame_comparisons": 0,
+          "changed_comparisons": 0,
+          "bit_flip_counts_lsb_first": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ]
+        },
+        {
+          "offset": 55,
+          "observations": 1,
+          "frames_without_byte": 2,
+          "distinct_values": [
+            55
+          ],
+          "min_raw_value": 55,
+          "max_raw_value": 55,
+          "adjacent_frame_comparisons": 0,
+          "changed_comparisons": 0,
+          "bit_flip_counts_lsb_first": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ]
+        },
+        {
+          "offset": 56,
+          "observations": 1,
+          "frames_without_byte": 2,
+          "distinct_values": [
+            56
+          ],
+          "min_raw_value": 56,
+          "max_raw_value": 56,
+          "adjacent_frame_comparisons": 0,
+          "changed_comparisons": 0,
+          "bit_flip_counts_lsb_first": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ]
+        },
+        {
+          "offset": 57,
+          "observations": 1,
+          "frames_without_byte": 2,
+          "distinct_values": [
+            57
+          ],
+          "min_raw_value": 57,
+          "max_raw_value": 57,
+          "adjacent_frame_comparisons": 0,
+          "changed_comparisons": 0,
+          "bit_flip_counts_lsb_first": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ]
+        },
+        {
+          "offset": 58,
+          "observations": 1,
+          "frames_without_byte": 2,
+          "distinct_values": [
+            58
+          ],
+          "min_raw_value": 58,
+          "max_raw_value": 58,
+          "adjacent_frame_comparisons": 0,
+          "changed_comparisons": 0,
+          "bit_flip_counts_lsb_first": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ]
+        },
+        {
+          "offset": 59,
+          "observations": 1,
+          "frames_without_byte": 2,
+          "distinct_values": [
+            59
+          ],
+          "min_raw_value": 59,
+          "max_raw_value": 59,
+          "adjacent_frame_comparisons": 0,
+          "changed_comparisons": 0,
+          "bit_flip_counts_lsb_first": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ]
+        },
+        {
+          "offset": 60,
+          "observations": 1,
+          "frames_without_byte": 2,
+          "distinct_values": [
+            60
+          ],
+          "min_raw_value": 60,
+          "max_raw_value": 60,
+          "adjacent_frame_comparisons": 0,
+          "changed_comparisons": 0,
+          "bit_flip_counts_lsb_first": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ]
+        },
+        {
+          "offset": 61,
+          "observations": 1,
+          "frames_without_byte": 2,
+          "distinct_values": [
+            61
+          ],
+          "min_raw_value": 61,
+          "max_raw_value": 61,
+          "adjacent_frame_comparisons": 0,
+          "changed_comparisons": 0,
+          "bit_flip_counts_lsb_first": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ]
+        },
+        {
+          "offset": 62,
+          "observations": 1,
+          "frames_without_byte": 2,
+          "distinct_values": [
+            62
+          ],
+          "min_raw_value": 62,
+          "max_raw_value": 62,
+          "adjacent_frame_comparisons": 0,
+          "changed_comparisons": 0,
+          "bit_flip_counts_lsb_first": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ]
+        },
+        {
+          "offset": 63,
+          "observations": 1,
+          "frames_without_byte": 2,
+          "distinct_values": [
+            63
+          ],
+          "min_raw_value": 63,
+          "max_raw_value": 63,
+          "adjacent_frame_comparisons": 0,
+          "changed_comparisons": 0,
+          "bit_flip_counts_lsb_first": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "bus": 1,
+      "address": 291,
+      "address_hex": "0x123",
+      "requires_29bit_identifier": false,
+      "frame_count": 2,
+      "first_timestamp_ns": 1000000,
+      "last_timestamp_ns": 11000000,
+      "length_counts": {
+        "2": 2
+      },
+      "contains_payload_requiring_can_fd": false,
+      "observed_interval_rate_hz": 100.0,
+      "rate_status": "computed",
+      "interval_ns": {
+        "count": 1,
+        "zero_count": 0,
+        "positive_count": 1,
+        "min": 10000000,
+        "max": 10000000,
+        "min_positive": 10000000,
+        "mean": 10000000.0
+      },
+      "raw_byte_candidates": [
+        {
+          "offset": 0,
+          "observations": 2,
+          "frames_without_byte": 0,
+          "distinct_values": [
+            160,
+            161
+          ],
+          "min_raw_value": 160,
+          "max_raw_value": 161,
+          "adjacent_frame_comparisons": 1,
+          "changed_comparisons": 1,
+          "bit_flip_counts_lsb_first": [
+            1,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ]
+        },
+        {
+          "offset": 1,
+          "observations": 2,
+          "frames_without_byte": 0,
+          "distinct_values": [
+            0
+          ],
+          "min_raw_value": 0,
+          "max_raw_value": 0,
+          "adjacent_frame_comparisons": 1,
+          "changed_comparisons": 0,
+          "bit_flip_counts_lsb_first": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "bus": 2,
+      "address": 419364865,
+      "address_hex": "0x18FF0001",
+      "requires_29bit_identifier": true,
+      "frame_count": 1,
+      "first_timestamp_ns": 30000000,
+      "last_timestamp_ns": 30000000,
+      "length_counts": {
+        "0": 1
+      },
+      "contains_payload_requiring_can_fd": false,
+      "observed_interval_rate_hz": null,
+      "rate_status": "insufficient_frames",
+      "interval_ns": {
+        "count": 0,
+        "zero_count": 0,
+        "positive_count": 0,
+        "min": null,
+        "max": null,
+        "min_positive": null,
+        "mean": null
+      },
+      "raw_byte_candidates": []
+    }
+  ]
+}

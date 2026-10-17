@@ -1,0 +1,182 @@
+{
+  "schema": "songplus-research-index/v1",
+  "snapshot_date": "2026-10-18",
+  "timezone": "Asia/Shanghai",
+  "status_meanings": {
+    "verified": "Specified historical offline experiment accepted in the cited report; not vehicle or deployment acceptance.",
+    "partial": "Some evidence exists; stated acceptance gaps remain.",
+    "candidate": "Plan or public reference only; implementation/target confirmation pending.",
+    "missing": "Required engineering result/evidence not yet present."
+  },
+  "device_access_performed_by_packager": false,
+  "implementation_import_policy": "Reference summaries only. Recovered/private code requires separate provenance/license review and independent design before production incorporation.",
+  "items": [
+    {
+      "id": "byd-checksum",
+      "status": "verified",
+      "title": "1 个纯 checksum 的离线恢复验收",
+      "artifact_path": "research/evidence/summaries/byd-checksum.json",
+      "sha256": "0206e40d4a70eb70005f880bc1295176ca0915686e21e9579c713be5a1616129",
+      "bytes": 1369,
+      "validation_basis": "Historical reports read and indexed; original experiment not reexecuted during packaging.",
+      "production_source_included": false,
+      "runtime_dependency": false,
+      "license_status": "Not asserted for recovered implementation; no protected/recovered implementation included.",
+      "remaining": [
+        "Not the full bydcan module, a complete CAN protocol, or vehicle correctness.",
+        "Recovered code/oracles/native samples remain in the original private research area; license provenance must be reviewed before incorporation."
+      ]
+    },
+    {
+      "id": "byd-pure-helpers",
+      "status": "verified",
+      "title": "7 个纯辅助函数的离线恢复验收",
+      "artifact_path": "research/evidence/summaries/byd-pure-helpers.json",
+      "sha256": "5ad4b20d12a948f71c752c71dc985027253fef60e1ea8f7b4b7d7c90cb6ab41d",
+      "bytes": 1489,
+      "validation_basis": "Historical reports read and indexed; original experiment not reexecuted during packaging.",
+      "production_source_included": false,
+      "runtime_dependency": false,
+      "license_status": "Not asserted for recovered implementation; no protected/recovered implementation included.",
+      "remaining": [
+        "Does not establish DBC, packing, controller, safety firmware, or vehicle correctness.",
+        "Recovered implementation excluded from production source pending provenance/license review."
+      ]
+    },
+    {
+      "id": "byd-static-tables",
+      "status": "verified",
+      "title": "3 张初始化静态表导出与类型往返验证",
+      "artifact_path": "research/evidence/summaries/byd-static-tables.json",
+      "sha256": "0af204f75bee07082c9938ba94feb2b9912b37d8c357e4d3d68e2a69fffe03b6",
+      "bytes": 1028,
+      "validation_basis": "Historical reports read and indexed; original experiment not reexecuted during packaging.",
+      "production_source_included": false,
+      "runtime_dependency": false,
+      "license_status": "Not asserted for recovered implementation; no protected/recovered implementation included.",
+      "remaining": [
+        "DBC table maps names; it does not contain decoded message definitions.",
+        "Observed empty firmware table is preserved as a finding; no firmware data inferred.",
+        "Tables and protected initialization code are not bundled or runtime dependencies."
+      ]
+    },
+    {
+      "id": "byd-message-builders",
+      "status": "partial",
+      "title": "报文构造与 getter 新进展（2026-10-18）",
+      "artifact_path": "research/evidence/summaries/byd-message-builders.json",
+      "sha256": "3603256512931b3525b319ae138364d3b61b9fbe366d0be4a081b552ae7ebb77",
+      "bytes": 1900,
+      "validation_basis": "Historical reports read and indexed; original experiment not reexecuted during packaging.",
+      "production_source_included": false,
+      "runtime_dependency": false,
+      "license_status": "Not asserted for recovered implementation; no protected/recovered implementation included.",
+      "remaining": [
+        "Source/body recovery and finite native-binary comparisons are not an independent maintainable encoder.",
+        "Original ARM64 packer/libdbc and a private identity adapter were still required; none are copied into this project.",
+        "create_lkas_hud has static CFG evidence and matched negative failure only; 3934 generated HUD inputs were not executed.",
+        "No full-module, controller, firmware or vehicle acceptance."
+      ]
+    },
+    {
+      "id": "byd-controller-recovery",
+      "status": "partial",
+      "title": "控制器方法和另 7 个 helper 的静态恢复",
+      "artifact_path": "research/evidence/summaries/byd-controller-recovery.json",
+      "sha256": "a7bfc35b905d6336b6ccab9bfb27577d9d2f31862dff34a295b165f4fc2a6173",
+      "bytes": 1860,
+      "validation_basis": "Historical reports read and indexed; original experiment not reexecuted during packaging.",
+      "production_source_included": false,
+      "runtime_dependency": false,
+      "license_status": "Not asserted for recovered implementation; no protected/recovered implementation included.",
+      "remaining": [
+        "No final whole-controller frozen CAN/state differential report found at packaging time.",
+        "Static CFG equivalence does not prove runtime timing, dependency projections, firmware safety or vehicle operation.",
+        "Recovered bodies and original native support are excluded from this engineering runtime."
+      ]
+    },
+    {
+      "id": "model-bridge-prototype",
+      "status": "verified",
+      "title": "新模型接旧消息的合成离线研究原型",
+      "artifact_path": "research/evidence/summaries/model-bridge-prototype.json",
+      "sha256": "487e7ba872d75cd4459dffe891960bcd92e5a03ea0427f04734f3a8a648ea70d",
+      "bytes": 1784,
+      "validation_basis": "Historical reports read and indexed; original experiment not reexecuted during packaging.",
+      "production_source_included": false,
+      "runtime_dependency": false,
+      "license_status": "Not asserted for recovered implementation; no protected/recovered implementation included.",
+      "remaining": [
+        "This is a synthetic-input/CPU research acceptance, not C3XL real-time or road-performance evidence.",
+        "Missing sim_pose semantics, camera input/calibration/synchronization and live-process coupling remain.",
+        "Target engineering approach uses matching official model/parser/schema/planner components; this bridge is not its runtime dependency.",
+        "Models, pickle files and native model code are not copied or executed by this package."
+      ]
+    },
+    {
+      "id": "recovery-readiness",
+      "status": "partial",
+      "title": "备份完整性已记录，物理恢复未验证",
+      "artifact_path": "research/evidence/summaries/recovery-backup.json",
+      "sha256": "8d7dd5299850580aa8953b0b96ac0970b309ac330f2aac85f06da97527fc9ccf",
+      "bytes": 2020,
+      "validation_basis": "Historical backup report summarized; no raw image or device operation.",
+      "production_source_included": false,
+      "runtime_dependency": false,
+      "license_status": "Original factual summary; no proprietary code copied.",
+      "remaining": [
+        "Recovery port/device-specific loader and actual restore rehearsal missing.",
+        "GPT backup-header CRC anomaly remains documented, no repair applied."
+      ]
+    },
+    {
+      "id": "capture-plan",
+      "status": "candidate",
+      "title": "完整 rlog 与事件标注采样方案已准备",
+      "artifact_path": "research/plans/capture-plan-20261017/PLAN.txt",
+      "sha256": "36aca5d0597f01cf5fdf4df2272cf0af1a04e88912e6e9d362990cdf6ecf0b97",
+      "bytes": 12430,
+      "validation_basis": "Exact earlier plan snapshot retained under research/plans; PLAN bytes reconstructed from the later edit and verified against the preexisting pinned hash. Live capture/export tools are maintained by another task and not part of this baseline.",
+      "production_source_included": false,
+      "runtime_dependency": false,
+      "license_status": "Project-authored research planning text.",
+      "remaining": [
+        "A real complete rlog import must be validated.",
+        "Powered-at-home hardware is not a vehicle CAN capture source.",
+        "Existing SP098 sendcan and stock messages need separate provenance."
+      ],
+      "snapshot_manifest": "research/plan-manifest.json"
+    },
+    {
+      "id": "hardware-port-plan",
+      "status": "candidate",
+      "title": "9 项硬件补丁计划与 44 个关键文本锚点",
+      "artifact_path": "hardware/hardware-profile.json",
+      "sha256": "b045c2f98979bd96b11075e18845a3a8b9785b05ff283b987f088cc299b32d40",
+      "bytes": 72598,
+      "validation_basis": "31 local text sources; integrity and anchors only.",
+      "production_source_included": false,
+      "runtime_dependency": false,
+      "license_status": "Exact public repository licenses retained; file-level reuse review still required.",
+      "remaining": [
+        "All 9 patches remain unimplemented.",
+        "Physical Panda/bus mapping, camera identities, target OS/GPU/runtime and recovery are unverified."
+      ]
+    },
+    {
+      "id": "vehicle-port",
+      "status": "missing",
+      "title": "宋 PLUS 独立车型接口、安全固件及实车证据",
+      "artifact_path": "spec/protocol-evidence.json",
+      "sha256": "24fbb78772852c3772dc6b0d234e4cf429e379f3266c09b0e2acfb97782e6168",
+      "bytes": 17335,
+      "validation_basis": "Current evidence inventory starts with zero vehicle-confirmed claims.",
+      "production_source_included": false,
+      "runtime_dependency": false,
+      "license_status": "No recovered production implementation included.",
+      "remaining": [
+        "Verified vehicle protocol, independent CarState/controller/CAN encoder, reviewed Panda safety and vehicle tests missing."
+      ]
+    }
+  ]
+}

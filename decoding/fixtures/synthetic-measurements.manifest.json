@@ -1,0 +1,9 @@
+{
+  "schema": "can-jsonl-manifest/v1",
+  "data_kind": "synthetic",
+  "log_file": "synthetic-measurements.jsonl",
+  "sha256": "5c89688427853cc48e9bdeb242169ab67eacc078a566f25400afe8d5abc83118",
+  "timestamp_unit": "ns",
+  "timestamp_clock": "monotonic",
+  "description": "Human-constructed official Atto3 reference bytes: signed angle, speed, bad checksum, short frame. Not vehicle capture or Song protocol evidence."
+}

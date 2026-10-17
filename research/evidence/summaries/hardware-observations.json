@@ -1,0 +1,60 @@
+{
+  "schema": "research-evidence-summary/v1",
+  "content_kind": "derived_summary_not_original",
+  "created_date": "2026-10-18",
+  "timezone": "Asia/Shanghai",
+  "source_provenance": [
+    {
+      "path_relative_to_original_workspace": "migration-audit/offline-handoff/hardware-inventory.json",
+      "sha256": "f10ecc1296bf9b393f5e9b27fbac52bfde56e8ade7450c122ebbf44da47e0026",
+      "bytes": 3227,
+      "required_for_offline_validation": false
+    }
+  ],
+  "facts": {
+    "observation_date": "2026-10-17",
+    "user_reported_product": "Mr One C3XL, exact board revision unconfirmed",
+    "user_reported_external_box": "Called Red Panda by user; manufacturer and circuit revision unknown",
+    "observed_prior_readonly": {
+      "device_tree_model": "comma tici",
+      "architecture": "aarch64",
+      "kernel": "4.9.103+",
+      "MemTotal_kB": 3699784,
+      "os": "AGNOS 10.1",
+      "active_slot": "B",
+      "inactive_slot_os": "AGNOS 12.4 (not boot tested)",
+      "modem": "Quectel EC25, USB 2c7c:0125",
+      "panda_usb_id": "bbaa:ddcc (two enumerations)",
+      "panda_types_passively_reported": [
+        "redPanda",
+        "dos"
+      ],
+      "panda_version": "DEV-e26a80db-DEBUG",
+      "spi_node": "/dev/spidev0.0",
+      "usb_controllers": [
+        "a800000.dwc3",
+        "a600000.dwc3"
+      ],
+      "usb_gadget_udc": "a600000.dwc3; gadget binding empty at inspection",
+      "software": "custom sunnypilot 0.9.8.0, installed tree has no .git"
+    },
+    "unknowns": [
+      "Exact PCB/product revision and SoC identification independent of device-tree model",
+      "Physical connector to USB-controller mapping and power/data capability",
+      "Harness wiring/pinout, external box MCU and provisioning",
+      "BYD encrypted implementation and reproducible source",
+      "Device-specific USB recovery loader and working recovery entry",
+      "Camera hardware patch provenance and target OS driver compatibility"
+    ]
+  },
+  "limits": [
+    "Historical observations only; no current device access.",
+    "Device-tree identity does not establish commercial product identity",
+    "Cached configuration describes current settings, not proof of target-version vehicle compatibility",
+    "Backed-up Panda firmware files are not a complete MCU/provisioning dump",
+    "Backup verification is not a restore rehearsal",
+    "No device serials, credentials, raw configuration or firmware included."
+  ],
+  "runtime_dependency": false,
+  "target_functions_executed_for_this_summary": false
+}

@@ -1,0 +1,105 @@
+{
+  "schema": "research-plan-snapshots/v1",
+  "created_date": "2026-10-18",
+  "snapshot_id": "capture-plan-20261017",
+  "live_capture_plan_directory_required": false,
+  "scope": "Historical planning text only; concurrently developed live inspection/export tools and COMMANDS.txt are maintained by another task and excluded.",
+  "files": [
+    {
+      "path": "research/plans/capture-plan-20261017/PLAN.txt",
+      "sha256": "36aca5d0597f01cf5fdf4df2272cf0af1a04e88912e6e9d362990cdf6ecf0b97",
+      "bytes": 12430,
+      "content_kind": "historical_plan_snapshot",
+      "runtime_dependency": false,
+      "source_provenance": {
+        "original_repository_relative_path": "capture-plan/PLAN.txt",
+        "current_source_at_copy": {
+          "sha256": "234ac4ebd684b067a2362206e8876ebda36bc2d69f24f995e553f0b2fb430b5a",
+          "bytes": 12651
+        },
+        "required_for_offline_validation": false,
+        "method": "Removed exactly two later-added lines and matched preexisting pinned SHA-256 and size."
+      }
+    },
+    {
+      "path": "research/plans/capture-plan-20261017/FIELD-CARD.txt",
+      "sha256": "d523011df964957b049aef88be40a8c6d9db7a78b35ccbf5533003a52c7af500",
+      "bytes": 2500,
+      "content_kind": "historical_plan_snapshot",
+      "runtime_dependency": false,
+      "source_provenance": {
+        "original_repository_relative_path": "capture-plan/FIELD-CARD.txt",
+        "current_source_at_copy": {
+          "sha256": "d523011df964957b049aef88be40a8c6d9db7a78b35ccbf5533003a52c7af500",
+          "bytes": 2500
+        },
+        "required_for_offline_validation": false,
+        "method": "Copied reviewed existing non-sensitive text unchanged."
+      }
+    },
+    {
+      "path": "research/plans/capture-plan-20261017/TEMPLATES.txt",
+      "sha256": "fa64fc08c17e3b7218187a58c8f9dd9c4d9fe3a1b464c1e3c911389754187358",
+      "bytes": 2269,
+      "content_kind": "historical_plan_snapshot",
+      "runtime_dependency": false,
+      "source_provenance": {
+        "original_repository_relative_path": "capture-plan/TEMPLATES.txt",
+        "current_source_at_copy": {
+          "sha256": "fa64fc08c17e3b7218187a58c8f9dd9c4d9fe3a1b464c1e3c911389754187358",
+          "bytes": 2269
+        },
+        "required_for_offline_validation": false,
+        "method": "Copied reviewed existing non-sensitive text unchanged."
+      }
+    },
+    {
+      "path": "research/plans/capture-plan-20261017/events.template.jsonl",
+      "sha256": "241b6dfd9992a2202add6927f5d9bce2711dc5b22869e46ec98cd5cfe295b36b",
+      "bytes": 905,
+      "content_kind": "historical_plan_snapshot",
+      "runtime_dependency": false,
+      "source_provenance": {
+        "original_repository_relative_path": "capture-plan/events.template.jsonl",
+        "current_source_at_copy": {
+          "sha256": "241b6dfd9992a2202add6927f5d9bce2711dc5b22869e46ec98cd5cfe295b36b",
+          "bytes": 905
+        },
+        "required_for_offline_validation": false,
+        "method": "Copied reviewed existing non-sensitive text unchanged."
+      }
+    },
+    {
+      "path": "research/plans/capture-plan-20261017/session.template.json",
+      "sha256": "a7b72670a38fdc3148c37d2229cf4258889a89c5a35fe023b4775dc70efafbbe",
+      "bytes": 2220,
+      "content_kind": "historical_plan_snapshot",
+      "runtime_dependency": false,
+      "source_provenance": {
+        "original_repository_relative_path": "capture-plan/session.template.json",
+        "current_source_at_copy": {
+          "sha256": "a7b72670a38fdc3148c37d2229cf4258889a89c5a35fe023b4775dc70efafbbe",
+          "bytes": 2220
+        },
+        "required_for_offline_validation": false,
+        "method": "Copied reviewed existing non-sensitive text unchanged."
+      }
+    },
+    {
+      "path": "research/plans/capture-plan-20261017/sources.json",
+      "sha256": "2e7939eb5a7aa8d552596956207d0c31bd85dd3c8f90ad0161342b4da1413d04",
+      "bytes": 8058,
+      "content_kind": "historical_plan_snapshot",
+      "runtime_dependency": false,
+      "source_provenance": {
+        "original_repository_relative_path": "capture-plan/sources.json",
+        "current_source_at_copy": {
+          "sha256": "2e7939eb5a7aa8d552596956207d0c31bd85dd3c8f90ad0161342b4da1413d04",
+          "bytes": 8058
+        },
+        "required_for_offline_validation": false,
+        "method": "Copied reviewed existing non-sensitive text unchanged."
+      }
+    }
+  ]
+}

@@ -1,0 +1,43 @@
+{
+  "schema": "research-evidence-summary/v1",
+  "content_kind": "derived_summary_not_original",
+  "created_date": "2026-10-18",
+  "timezone": "Asia/Shanghai",
+  "source_provenance": [
+    {
+      "path_relative_to_original_workspace": "migration-audit/recovery-backup-20261017/preparation-result.json",
+      "sha256": "4e2fafb4bf633acaf0d697656d6a49d010fafadadc0cc9480cf733895be1d593",
+      "bytes": 1491,
+      "required_for_offline_validation": false
+    },
+    {
+      "path_relative_to_original_workspace": "migration-audit/recovery-backup-20261017/recovery-decision-matrix.json",
+      "sha256": "d4692388918dbf99ad24d2c8006cb99043b3625e40589a31522727e86b56f03a",
+      "bytes": 2325,
+      "required_for_offline_validation": false
+    }
+  ],
+  "facts": {
+    "completed_at": "2026-10-17T20:06:24.411275+08:00",
+    "status": "Backup preparation verified; physical recovery remains unverified",
+    "block_image_count": 13,
+    "block_raw_bytes": 30975074304,
+    "block_compressed_bytes": 3163905414,
+    "bundle_transport_integrity_passed": true,
+    "software_archive_members": 7503,
+    "gpt_finding": "sde backup table equals primary; backup header entry-array CRC inconsistent. Original bytes and offline candidate retained; no repair applied.",
+    "latest_configuration_files_verified": 182,
+    "configuration_capture_is_atomic": false,
+    "restore_rehearsal_completed": false,
+    "recovery_port_mapping_confirmed": false
+  },
+  "limits": [
+    "Not a full-device atomic snapshot or a tested restore",
+    "Recordings, logs and selected transient directories excluded from software archive",
+    "Initial archive parameters changed during capture; use separately verified latest configuration snapshot",
+    "Panda application and bootstub files preserved, but MCU provisioning and physical recovery not verified",
+    "No disk images, raw configuration, identity data, firmware or recovery loaders included."
+  ],
+  "runtime_dependency": false,
+  "target_functions_executed_for_this_summary": false
+}

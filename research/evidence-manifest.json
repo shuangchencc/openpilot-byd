@@ -1,0 +1,631 @@
+{
+  "schema": "research-evidence-manifest/v1",
+  "created_date": "2026-10-18",
+  "external_files_required": false,
+  "files": [
+    {
+      "id": "dp.launch",
+      "path": "research/evidence/public-source/dragonpilot-94ad85cf/launch_chffrplus.sh",
+      "sha256": "f0842bede4cf47478b6a788d30c9f05eef6c785f53501d33d39d0782e932cef2",
+      "bytes": 8438,
+      "content_kind": "public_source_snapshot",
+      "source_provenance": {
+        "path_relative_to_original_workspace": "independent-port-research/hardware/evidence/dragonpilot-94ad85cf/launch_chffrplus.sh",
+        "sha256": "f0842bede4cf47478b6a788d30c9f05eef6c785f53501d33d39d0782e932cef2",
+        "bytes": 8438,
+        "required_for_offline_validation": false
+      },
+      "runtime_dependency": false
+    },
+    {
+      "id": "dp.launch_env",
+      "path": "research/evidence/public-source/dragonpilot-94ad85cf/launch_env.sh",
+      "sha256": "742988ee4795eccfdcf248a7c6d4d13f1d1e5db315bf890f2065d929e2cdd611",
+      "bytes": 541,
+      "content_kind": "public_source_snapshot",
+      "source_provenance": {
+        "path_relative_to_original_workspace": "independent-port-research/hardware/evidence/dragonpilot-94ad85cf/launch_env.sh",
+        "sha256": "742988ee4795eccfdcf248a7c6d4d13f1d1e5db315bf890f2065d929e2cdd611",
+        "bytes": 541,
+        "required_for_offline_validation": false
+      },
+      "runtime_dependency": false
+    },
+    {
+      "id": "dp.agnos_manifest",
+      "path": "research/evidence/public-source/dragonpilot-94ad85cf/system/hardware/tici/agnos.json",
+      "sha256": "c6977d057f66f5b05553a337fc7580f81e9492f44418c9a781460f3c172f3b84",
+      "bytes": 3791,
+      "content_kind": "public_source_snapshot",
+      "source_provenance": {
+        "path_relative_to_original_workspace": "independent-port-research/hardware/evidence/dragonpilot-94ad85cf/system/hardware/tici/agnos.json",
+        "sha256": "c6977d057f66f5b05553a337fc7580f81e9492f44418c9a781460f3c172f3b84",
+        "bytes": 3791,
+        "required_for_offline_validation": false
+      },
+      "runtime_dependency": false
+    },
+    {
+      "id": "dp.tici_manifest",
+      "path": "research/evidence/public-source/dragonpilot-94ad85cf/system/hardware/tici/agnos_tici.json",
+      "sha256": "920d24dadb50a70dc1838b0b5ae05189ab7930baeee6d3e1d0af9ad4e75b6e3d",
+      "bytes": 3791,
+      "content_kind": "public_source_snapshot",
+      "source_provenance": {
+        "path_relative_to_original_workspace": "independent-port-research/hardware/evidence/dragonpilot-94ad85cf/system/hardware/tici/agnos_tici.json",
+        "sha256": "920d24dadb50a70dc1838b0b5ae05189ab7930baeee6d3e1d0af9ad4e75b6e3d",
+        "bytes": 3791,
+        "required_for_offline_validation": false
+      },
+      "runtime_dependency": false
+    },
+    {
+      "id": "dp.agnos_updater",
+      "path": "research/evidence/public-source/dragonpilot-94ad85cf/system/hardware/tici/agnos.py",
+      "sha256": "ed582c144b15cf776c233474fd49f768481a6b879587944df2399ed0ea08d1fa",
+      "bytes": 12259,
+      "content_kind": "public_source_snapshot",
+      "source_provenance": {
+        "path_relative_to_original_workspace": "independent-port-research/hardware/evidence/dragonpilot-94ad85cf/system/hardware/tici/agnos.py",
+        "sha256": "ed582c144b15cf776c233474fd49f768481a6b879587944df2399ed0ea08d1fa",
+        "bytes": 12259,
+        "required_for_offline_validation": false
+      },
+      "runtime_dependency": false
+    },
+    {
+      "id": "dp.hardware",
+      "path": "research/evidence/public-source/dragonpilot-94ad85cf/system/hardware/tici/hardware.py",
+      "sha256": "a8cf5963a95801981170655d327b1132bf85eed019ddff38fb954e517f1f21a4",
+      "bytes": 15171,
+      "content_kind": "public_source_snapshot",
+      "source_provenance": {
+        "path_relative_to_original_workspace": "independent-port-research/hardware/evidence/dragonpilot-94ad85cf/system/hardware/tici/hardware.py",
+        "sha256": "a8cf5963a95801981170655d327b1132bf85eed019ddff38fb954e517f1f21a4",
+        "bytes": 15171,
+        "required_for_offline_validation": false
+      },
+      "runtime_dependency": false
+    },
+    {
+      "id": "dp.camera_build",
+      "path": "research/evidence/public-source/dragonpilot-94ad85cf/system/camerad/SConscript",
+      "sha256": "84902515737be0ba372326e5afcefd519ce98a78a3a4ffa68846c7b9a1c247b6",
+      "bytes": 525,
+      "content_kind": "public_source_snapshot",
+      "source_provenance": {
+        "path_relative_to_original_workspace": "independent-port-research/hardware/evidence/dragonpilot-94ad85cf/system/camerad/SConscript",
+        "sha256": "84902515737be0ba372326e5afcefd519ce98a78a3a4ffa68846c7b9a1c247b6",
+        "bytes": 525,
+        "required_for_offline_validation": false
+      },
+      "runtime_dependency": false
+    },
+    {
+      "id": "dp.camera_probe",
+      "path": "research/evidence/public-source/dragonpilot-94ad85cf/system/camerad/cameras/spectra.cc",
+      "sha256": "0be4245101b099c2c27d4f73ed66bd10a35a33a91d3431d8873c8f2f9516fb5f",
+      "bytes": 59202,
+      "content_kind": "public_source_snapshot",
+      "source_provenance": {
+        "path_relative_to_original_workspace": "independent-port-research/hardware/evidence/dragonpilot-94ad85cf/system/camerad/cameras/spectra.cc",
+        "sha256": "0be4245101b099c2c27d4f73ed66bd10a35a33a91d3431d8873c8f2f9516fb5f",
+        "bytes": 59202,
+        "required_for_offline_validation": false
+      },
+      "runtime_dependency": false
+    },
+    {
+      "id": "dp.sensor_ar",
+      "path": "research/evidence/public-source/dragonpilot-94ad85cf/system/camerad/sensors/ar0231.cc",
+      "sha256": "4ec1579df82ccccfb29708b4a14ac48f391dc2e34e75b11b9668ed8b100c9523",
+      "bytes": 7265,
+      "content_kind": "public_source_snapshot",
+      "source_provenance": {
+        "path_relative_to_original_workspace": "independent-port-research/hardware/evidence/dragonpilot-94ad85cf/system/camerad/sensors/ar0231.cc",
+        "sha256": "4ec1579df82ccccfb29708b4a14ac48f391dc2e34e75b11b9668ed8b100c9523",
+        "bytes": 7265,
+        "required_for_offline_validation": false
+      },
+      "runtime_dependency": false
+    },
+    {
+      "id": "dp.sensor_ox",
+      "path": "research/evidence/public-source/dragonpilot-94ad85cf/system/camerad/sensors/ox03c10.cc",
+      "sha256": "205f915afc2422358c1cbc26d69b98da0b4ee0571c3fc79595dc4acee8231877",
+      "bytes": 7770,
+      "content_kind": "public_source_snapshot",
+      "source_provenance": {
+        "path_relative_to_original_workspace": "independent-port-research/hardware/evidence/dragonpilot-94ad85cf/system/camerad/sensors/ox03c10.cc",
+        "sha256": "205f915afc2422358c1cbc26d69b98da0b4ee0571c3fc79595dc4acee8231877",
+        "bytes": 7770,
+        "required_for_offline_validation": false
+      },
+      "runtime_dependency": false
+    },
+    {
+      "id": "dp.sensor_os",
+      "path": "research/evidence/public-source/dragonpilot-94ad85cf/system/camerad/sensors/os04c10.cc",
+      "sha256": "8a3463b7c2c38492a0d9fc648c5444b91882cb7294b2523c0eda476d6a4b5ef6",
+      "bytes": 7212,
+      "content_kind": "public_source_snapshot",
+      "source_provenance": {
+        "path_relative_to_original_workspace": "independent-port-research/hardware/evidence/dragonpilot-94ad85cf/system/camerad/sensors/os04c10.cc",
+        "sha256": "8a3463b7c2c38492a0d9fc648c5444b91882cb7294b2523c0eda476d6a4b5ef6",
+        "bytes": 7212,
+        "required_for_offline_validation": false
+      },
+      "runtime_dependency": false
+    },
+    {
+      "id": "dp.processes",
+      "path": "research/evidence/public-source/dragonpilot-94ad85cf/system/manager/process_config.py",
+      "sha256": "19733a8c7c9062e331ce3f4820be37c80d7b94c29c36b8511218c57b27a441d2",
+      "bytes": 7112,
+      "content_kind": "public_source_snapshot",
+      "source_provenance": {
+        "path_relative_to_original_workspace": "independent-port-research/hardware/evidence/dragonpilot-94ad85cf/system/manager/process_config.py",
+        "sha256": "19733a8c7c9062e331ce3f4820be37c80d7b94c29c36b8511218c57b27a441d2",
+        "bytes": 7112,
+        "required_for_offline_validation": false
+      },
+      "runtime_dependency": false
+    },
+    {
+      "id": "dp.panda_python",
+      "path": "research/evidence/public-source/dragonpilot-94ad85cf/panda_tici/python/__init__.py",
+      "sha256": "474bb40626070bd1b85c7b81fad2aa1c4de3eb06f0e9562948795c5cbfe71483",
+      "bytes": 28256,
+      "content_kind": "public_source_snapshot",
+      "source_provenance": {
+        "path_relative_to_original_workspace": "independent-port-research/hardware/evidence/dragonpilot-94ad85cf/panda_tici/python/__init__.py",
+        "sha256": "474bb40626070bd1b85c7b81fad2aa1c4de3eb06f0e9562948795c5cbfe71483",
+        "bytes": 28256,
+        "required_for_offline_validation": false
+      },
+      "runtime_dependency": false
+    },
+    {
+      "id": "dp.dos_board",
+      "path": "research/evidence/public-source/dragonpilot-94ad85cf/panda_tici/board/boards/dos.h",
+      "sha256": "ec15964f5d3cb106a0fb5932fb34d71e1d2bd5d01780c979eaeec471318a42ed",
+      "bytes": 4164,
+      "content_kind": "public_source_snapshot",
+      "source_provenance": {
+        "path_relative_to_original_workspace": "independent-port-research/hardware/evidence/dragonpilot-94ad85cf/panda_tici/board/boards/dos.h",
+        "sha256": "ec15964f5d3cb106a0fb5932fb34d71e1d2bd5d01780c979eaeec471318a42ed",
+        "bytes": 4164,
+        "required_for_offline_validation": false
+      },
+      "runtime_dependency": false
+    },
+    {
+      "id": "dp.red_board",
+      "path": "research/evidence/public-source/dragonpilot-94ad85cf/panda_tici/board/boards/red.h",
+      "sha256": "0d07dddd4e4a0e571f617f74c929735caa2a1cd5a405a9f23142c38781d390a5",
+      "bytes": 4096,
+      "content_kind": "public_source_snapshot",
+      "source_provenance": {
+        "path_relative_to_original_workspace": "independent-port-research/hardware/evidence/dragonpilot-94ad85cf/panda_tici/board/boards/red.h",
+        "sha256": "0d07dddd4e4a0e571f617f74c929735caa2a1cd5a405a9f23142c38781d390a5",
+        "bytes": 4096,
+        "required_for_offline_validation": false
+      },
+      "runtime_dependency": false
+    },
+    {
+      "id": "dp.f4_board",
+      "path": "research/evidence/public-source/dragonpilot-94ad85cf/panda_tici/board/stm32f4/board.h",
+      "sha256": "f65f4c1d45a1a56a8b0c70f166424778d13a68708981d48b0954f1e85c899c5b",
+      "bytes": 1739,
+      "content_kind": "public_source_snapshot",
+      "source_provenance": {
+        "path_relative_to_original_workspace": "independent-port-research/hardware/evidence/dragonpilot-94ad85cf/panda_tici/board/stm32f4/board.h",
+        "sha256": "f65f4c1d45a1a56a8b0c70f166424778d13a68708981d48b0954f1e85c899c5b",
+        "bytes": 1739,
+        "required_for_offline_validation": false
+      },
+      "runtime_dependency": false
+    },
+    {
+      "id": "dp.pandad_python",
+      "path": "research/evidence/public-source/dragonpilot-94ad85cf/selfdrive/pandad_tici/pandad.py",
+      "sha256": "36e9bc2ea2b13773d4c0ce9436fc0724a15e0863868bff95e652366dcafb8f68",
+      "bytes": 5767,
+      "content_kind": "public_source_snapshot",
+      "source_provenance": {
+        "path_relative_to_original_workspace": "independent-port-research/hardware/evidence/dragonpilot-94ad85cf/selfdrive/pandad_tici/pandad.py",
+        "sha256": "36e9bc2ea2b13773d4c0ce9436fc0724a15e0863868bff95e652366dcafb8f68",
+        "bytes": 5767,
+        "required_for_offline_validation": false
+      },
+      "runtime_dependency": false
+    },
+    {
+      "id": "dp.pandad_cpp",
+      "path": "research/evidence/public-source/dragonpilot-94ad85cf/selfdrive/pandad_tici/pandad.cc",
+      "sha256": "0d32bee3faf988ac9a7af8c64e4fb76a4230ddc494c0ab057a70b292375f4926",
+      "bytes": 17966,
+      "content_kind": "public_source_snapshot",
+      "source_provenance": {
+        "path_relative_to_original_workspace": "independent-port-research/hardware/evidence/dragonpilot-94ad85cf/selfdrive/pandad_tici/pandad.cc",
+        "sha256": "0d32bee3faf988ac9a7af8c64e4fb76a4230ddc494c0ab057a70b292375f4926",
+        "bytes": 17966,
+        "required_for_offline_validation": false
+      },
+      "runtime_dependency": false
+    },
+    {
+      "id": "dp.panda_transport",
+      "path": "research/evidence/public-source/dragonpilot-94ad85cf/selfdrive/pandad_tici/panda.cc",
+      "sha256": "9f3628422e9b5a49e56a60caffa5e4a568abc2d93639320143a6a9eeca031299",
+      "bytes": 8820,
+      "content_kind": "public_source_snapshot",
+      "source_provenance": {
+        "path_relative_to_original_workspace": "independent-port-research/hardware/evidence/dragonpilot-94ad85cf/selfdrive/pandad_tici/panda.cc",
+        "sha256": "9f3628422e9b5a49e56a60caffa5e4a568abc2d93639320143a6a9eeca031299",
+        "bytes": 8820,
+        "required_for_offline_validation": false
+      },
+      "runtime_dependency": false
+    },
+    {
+      "id": "dp.camera_geometry",
+      "path": "research/evidence/public-source/dragonpilot-94ad85cf/common/transformations/camera.py",
+      "sha256": "3ac87fd236aa9c9e284059c47c9eb96a7c6e0be5106f514a95e6ec06e1060fb5",
+      "bytes": 6141,
+      "content_kind": "public_source_snapshot",
+      "source_provenance": {
+        "path_relative_to_original_workspace": "independent-port-research/hardware/evidence/dragonpilot-94ad85cf/common/transformations/camera.py",
+        "sha256": "3ac87fd236aa9c9e284059c47c9eb96a7c6e0be5106f514a95e6ec06e1060fb5",
+        "bytes": 6141,
+        "required_for_offline_validation": false
+      },
+      "runtime_dependency": false
+    },
+    {
+      "id": "obs.inventory",
+      "path": "research/evidence/summaries/hardware-observations.json",
+      "sha256": "da208460a3c7f9946270868ac713148ccdeb4f11be71c4bb2a807e1d0463adbd",
+      "bytes": 2510,
+      "content_kind": "derived_summary_not_original",
+      "source_provenance": {
+        "path_relative_to_original_workspace": "migration-audit/offline-handoff/hardware-inventory.json",
+        "sha256": "f10ecc1296bf9b393f5e9b27fbac52bfde56e8ade7450c122ebbf44da47e0026",
+        "bytes": 3227,
+        "required_for_offline_validation": false
+      },
+      "runtime_dependency": false
+    },
+    {
+      "id": "obs.backup",
+      "path": "research/evidence/summaries/recovery-backup.json",
+      "sha256": "8d7dd5299850580aa8953b0b96ac0970b309ac330f2aac85f06da97527fc9ccf",
+      "bytes": 2020,
+      "content_kind": "derived_summary_not_original",
+      "source_provenance": {
+        "path_relative_to_original_workspace": "migration-audit/recovery-backup-20261017/preparation-result.json",
+        "sha256": "4e2fafb4bf633acaf0d697656d6a49d010fafadadc0cc9480cf733895be1d593",
+        "bytes": 1491,
+        "required_for_offline_validation": false
+      },
+      "runtime_dependency": false
+    },
+    {
+      "id": "dp.panda_header",
+      "path": "research/evidence/public-source/dragonpilot-94ad85cf/selfdrive/pandad_tici/panda.h",
+      "sha256": "fdf47483dbe7fac3b17f5871b589da0c8c3f9e0fe8431e5a6a786e889208ace9",
+      "bytes": 2958,
+      "content_kind": "public_source_snapshot",
+      "source_provenance": {
+        "path_relative_to_original_workspace": "songplus-port-lab/hardware/evidence/dragonpilot-94ad85cf/selfdrive/pandad_tici/panda.h",
+        "sha256": "fdf47483dbe7fac3b17f5871b589da0c8c3f9e0fe8431e5a6a786e889208ace9",
+        "bytes": 2958,
+        "required_for_offline_validation": false
+      },
+      "runtime_dependency": false
+    },
+    {
+      "id": "dp.model_build",
+      "path": "research/evidence/public-source/dragonpilot-94ad85cf/selfdrive/modeld/SConscript",
+      "sha256": "ab872f6167fbdfa99c76ca0f0523f02c84061d02093b32e698bec012a9321662",
+      "bytes": 6179,
+      "content_kind": "public_source_snapshot",
+      "source_provenance": {
+        "path_relative_to_original_workspace": "songplus-port-lab/hardware/evidence/dragonpilot-94ad85cf/selfdrive/modeld/SConscript",
+        "sha256": "ab872f6167fbdfa99c76ca0f0523f02c84061d02093b32e698bec012a9321662",
+        "bytes": 6179,
+        "required_for_offline_validation": false
+      },
+      "runtime_dependency": false
+    },
+    {
+      "id": "dp.model_runner",
+      "path": "research/evidence/public-source/dragonpilot-94ad85cf/selfdrive/modeld/modeld.py",
+      "sha256": "1774d11a09f086cd7fd5b0dc0e32859d7d1d34e9dc6832e058f361e6277a91e6",
+      "bytes": 17010,
+      "content_kind": "public_source_snapshot",
+      "source_provenance": {
+        "path_relative_to_original_workspace": "songplus-port-lab/hardware/evidence/dragonpilot-94ad85cf/selfdrive/modeld/modeld.py",
+        "sha256": "1774d11a09f086cd7fd5b0dc0e32859d7d1d34e9dc6832e058f361e6277a91e6",
+        "bytes": 17010,
+        "required_for_offline_validation": false
+      },
+      "runtime_dependency": false
+    },
+    {
+      "id": "dp.panda_build",
+      "path": "research/evidence/public-source/dragonpilot-94ad85cf/panda_tici/board/SConscript",
+      "sha256": "5f09764e1a72c17f9dc7f95f0a5f17a4faca601cacd886f3fc4c3fdfc10111d3",
+      "bytes": 390,
+      "content_kind": "public_source_snapshot",
+      "source_provenance": {
+        "path_relative_to_original_workspace": "songplus-port-lab/hardware/evidence/dragonpilot-94ad85cf/panda_tici/board/SConscript",
+        "sha256": "5f09764e1a72c17f9dc7f95f0a5f17a4faca601cacd886f3fc4c3fdfc10111d3",
+        "bytes": 390,
+        "required_for_offline_validation": false
+      },
+      "runtime_dependency": false
+    },
+    {
+      "id": "od.byd_safety",
+      "path": "research/evidence/public-source/opendbc-06ade56b/opendbc/safety/modes/byd.h",
+      "sha256": "db860808da7e9923e982d69f2a7d7950c8a2a384d2fee33e9e302733d3897199",
+      "bytes": 4179,
+      "content_kind": "public_source_snapshot",
+      "source_provenance": {
+        "path_relative_to_original_workspace": "songplus-port-lab/hardware/evidence/opendbc-06ade56b/opendbc/safety/modes/byd.h",
+        "sha256": "db860808da7e9923e982d69f2a7d7950c8a2a384d2fee33e9e302733d3897199",
+        "bytes": 4179,
+        "required_for_offline_validation": false
+      },
+      "runtime_dependency": false
+    },
+    {
+      "id": "od.declarations",
+      "path": "research/evidence/public-source/opendbc-06ade56b/opendbc/safety/declarations.h",
+      "sha256": "2aa8e441c5fade1965911e5c34e2cf05fee47edf3a4a28926ea4ad8a184adb59",
+      "bytes": 14321,
+      "content_kind": "public_source_snapshot",
+      "source_provenance": {
+        "path_relative_to_original_workspace": "songplus-port-lab/hardware/evidence/opendbc-06ade56b/opendbc/safety/declarations.h",
+        "sha256": "2aa8e441c5fade1965911e5c34e2cf05fee47edf3a4a28926ea4ad8a184adb59",
+        "bytes": 14321,
+        "required_for_offline_validation": false
+      },
+      "runtime_dependency": false
+    },
+    {
+      "id": "od.registry",
+      "path": "research/evidence/public-source/opendbc-06ade56b/opendbc/safety/safety.h",
+      "sha256": "9a5e1b8dd8bd55cee24a7bb8c971fb4b7f3cbfe1462bd612c827810ba43ff902",
+      "bytes": 17085,
+      "content_kind": "public_source_snapshot",
+      "source_provenance": {
+        "path_relative_to_original_workspace": "songplus-port-lab/hardware/evidence/opendbc-06ade56b/opendbc/safety/safety.h",
+        "sha256": "9a5e1b8dd8bd55cee24a7bb8c971fb4b7f3cbfe1462bd612c827810ba43ff902",
+        "bytes": 17085,
+        "required_for_offline_validation": false
+      },
+      "runtime_dependency": false
+    },
+    {
+      "id": "od.schema",
+      "path": "research/evidence/public-source/opendbc-06ade56b/opendbc/car/car.capnp",
+      "sha256": "ef3454f5add03a98f31b08c2c89473e28ddaf1bfd4d787f1c71cfbe4093abdac",
+      "bytes": 21267,
+      "content_kind": "public_source_snapshot",
+      "source_provenance": {
+        "path_relative_to_original_workspace": "songplus-port-lab/hardware/evidence/opendbc-06ade56b/opendbc/car/car.capnp",
+        "sha256": "ef3454f5add03a98f31b08c2c89473e28ddaf1bfd4d787f1c71cfbe4093abdac",
+        "bytes": 21267,
+        "required_for_offline_validation": false
+      },
+      "runtime_dependency": false
+    },
+    {
+      "id": "obs.old_panda_api",
+      "path": "research/evidence/summaries/legacy-panda-api.json",
+      "sha256": "40ba5153b88eafd8f346f0147ec5ede9577ca8826161ab9e794deb9f213ebad7",
+      "bytes": 988,
+      "content_kind": "derived_summary_not_original",
+      "source_provenance": {
+        "path_relative_to_original_workspace": "op_rootdir/data/openpilot/panda/python/__init__.py",
+        "sha256": "c2df6b142adb4ae1a4163128760a8e03a4659eae349b3f7b062231cec7a762c7",
+        "bytes": 30385,
+        "required_for_offline_validation": false
+      },
+      "runtime_dependency": false
+    },
+    {
+      "id": "license.opendbc-06ade56b",
+      "path": "research/evidence/licenses/opendbc-06ade56b-LICENSE",
+      "sha256": "6543c4a66b46affddae1b9ae1e1992687f0b7191e74ba3a7235388b9f42a6d13",
+      "bytes": 1059,
+      "content_kind": "public_license_text",
+      "source_provenance": {
+        "repository": "commaai/opendbc",
+        "commit": "06ade56b49162e3f35e354df115e97b02de81d7a",
+        "path": "LICENSE",
+        "url": "https://github.com/commaai/opendbc/blob/06ade56b49162e3f35e354df115e97b02de81d7a/LICENSE"
+      },
+      "runtime_dependency": false
+    },
+    {
+      "id": "license.dragonpilot-94ad85cf-LICENSE",
+      "path": "research/evidence/licenses/dragonpilot-94ad85cf-LICENSE",
+      "sha256": "716ce815a0467219c59ec2433e6bce7f32efc45240725c6d3141a52b111d2558",
+      "bytes": 1059,
+      "content_kind": "public_license_text",
+      "source_provenance": {
+        "repository": "dragonpilot/dragonpilot",
+        "commit": "94ad85cfda64773a960d048dc11cac02d4aa86a5",
+        "url": "https://raw.githubusercontent.com/dragonpilot/dragonpilot/94ad85cfda64773a960d048dc11cac02d4aa86a5/LICENSE"
+      },
+      "runtime_dependency": false
+    },
+    {
+      "id": "license.dragonpilot-94ad85cf-panda_tici-LICENSE",
+      "path": "research/evidence/licenses/dragonpilot-94ad85cf-panda_tici-LICENSE",
+      "sha256": "0f8f541ee42cf97353a043105a3108c2d599fe381d4b90ff0e82e328ffc5d8f5",
+      "bytes": 1059,
+      "content_kind": "public_license_text",
+      "source_provenance": {
+        "repository": "dragonpilot/dragonpilot",
+        "commit": "94ad85cfda64773a960d048dc11cac02d4aa86a5",
+        "url": "https://raw.githubusercontent.com/dragonpilot/dragonpilot/94ad85cfda64773a960d048dc11cac02d4aa86a5/panda_tici/LICENSE"
+      },
+      "runtime_dependency": false
+    },
+    {
+      "id": "summary.byd-checksum",
+      "path": "research/evidence/summaries/byd-checksum.json",
+      "sha256": "0206e40d4a70eb70005f880bc1295176ca0915686e21e9579c713be5a1616129",
+      "bytes": 1369,
+      "content_kind": "derived_summary_not_original",
+      "source_provenance": [
+        {
+          "path_relative_to_original_workspace": "migration-lab/byd-recovery/checksum-lab/RECOVERY-REVIEW.txt",
+          "sha256": "380e5c7145941a39e76d6b65f4e95d7727f7b33eba3a364b30af6fa5fd193891",
+          "bytes": 10458,
+          "required_for_offline_validation": false
+        },
+        {
+          "path_relative_to_original_workspace": "migration-lab/byd-recovery/checksum-lab/recovery-result.json",
+          "sha256": "d303f4759bdddee8d819b6248e7d677d40777512dc7f23bb63c2580dd368a6c4",
+          "bytes": 3742,
+          "required_for_offline_validation": false
+        }
+      ],
+      "runtime_dependency": false
+    },
+    {
+      "id": "summary.byd-controller-recovery",
+      "path": "research/evidence/summaries/byd-controller-recovery.json",
+      "sha256": "a7bfc35b905d6336b6ccab9bfb27577d9d2f31862dff34a295b165f4fc2a6173",
+      "bytes": 1860,
+      "content_kind": "derived_summary_not_original",
+      "source_provenance": [
+        {
+          "path_relative_to_original_workspace": "migration-lab/byd-recovery/controller-lab/capture/CORE-INDEPENDENT-REVIEW.txt",
+          "sha256": "c25ec98952be27ed3a8ce07a6e53dec00b00890144f328fac88625d8b6dc07ef",
+          "bytes": 5114,
+          "required_for_offline_validation": false
+        },
+        {
+          "path_relative_to_original_workspace": "migration-lab/byd-recovery/controller-lab/helpers/RECOVERY-RESULT.txt",
+          "sha256": "8854290a909e7c23d61bd720dd74d71374820542862af655b9e0b0fa18b50727",
+          "bytes": 3773,
+          "required_for_offline_validation": false
+        },
+        {
+          "path_relative_to_original_workspace": "migration-lab/byd-recovery/controller-lab/dependencies/DEPENDENCY-RESULT.txt",
+          "sha256": "4d7eb68eab260170f90552abc7d0e612efeccebed161cd7e2d551d40f25cbb53",
+          "bytes": 6009,
+          "required_for_offline_validation": false
+        }
+      ],
+      "runtime_dependency": false
+    },
+    {
+      "id": "summary.byd-message-builders",
+      "path": "research/evidence/summaries/byd-message-builders.json",
+      "sha256": "3603256512931b3525b319ae138364d3b61b9fbe366d0be4a081b552ae7ebb77",
+      "bytes": 1900,
+      "content_kind": "derived_summary_not_original",
+      "source_provenance": [
+        {
+          "path_relative_to_original_workspace": "migration-lab/byd-recovery/helpers-can-lab/message/RECOVERY-RESULT.txt",
+          "sha256": "0dfa7d543d20d281c35f848644df6c94b4b3cfa014b15fc232b80a8685f9d913",
+          "bytes": 5735,
+          "required_for_offline_validation": false
+        },
+        {
+          "path_relative_to_original_workspace": "migration-lab/byd-recovery/messages-state-lab/FINAL-REVIEW.txt",
+          "sha256": "7bd38966c44ce2576019bd2c5c7109a2e2175e9e3f42ea9f9a20c9f82406ff67",
+          "bytes": 4194,
+          "required_for_offline_validation": false
+        }
+      ],
+      "runtime_dependency": false
+    },
+    {
+      "id": "summary.byd-pure-helpers",
+      "path": "research/evidence/summaries/byd-pure-helpers.json",
+      "sha256": "5ad4b20d12a948f71c752c71dc985027253fef60e1ea8f7b4b7d7c90cb6ab41d",
+      "bytes": 1489,
+      "content_kind": "derived_summary_not_original",
+      "source_provenance": [
+        {
+          "path_relative_to_original_workspace": "migration-lab/byd-recovery/helpers-can-lab/helpers/INDEPENDENT-REVIEW.txt",
+          "sha256": "72e3632fc79981d786755d960b8e02ac5bf9dafe2d1241502f0e2426769dd158",
+          "bytes": 8080,
+          "required_for_offline_validation": false
+        },
+        {
+          "path_relative_to_original_workspace": "migration-lab/byd-recovery/helpers-can-lab/helpers/RECOVERY-RESULT.txt",
+          "sha256": "51992ef9b0fdfc59093a6c3e7ab071597e90d08c2d147f6821405848a7e33a4a",
+          "bytes": 6659,
+          "required_for_offline_validation": false
+        }
+      ],
+      "runtime_dependency": false
+    },
+    {
+      "id": "summary.byd-static-tables",
+      "path": "research/evidence/summaries/byd-static-tables.json",
+      "sha256": "0af204f75bee07082c9938ba94feb2b9912b37d8c357e4d3d68e2a69fffe03b6",
+      "bytes": 1028,
+      "content_kind": "derived_summary_not_original",
+      "source_provenance": [
+        {
+          "path_relative_to_original_workspace": "migration-lab/byd-recovery/runtime-lab/static-data/result.json",
+          "sha256": "ade5fea0c50a98d1c86f025ccfddb521a6b66108232d1ff9869c01843824db09",
+          "bytes": 3647,
+          "required_for_offline_validation": false
+        }
+      ],
+      "runtime_dependency": false
+    },
+    {
+      "id": "summary.model-bridge-prototype",
+      "path": "research/evidence/summaries/model-bridge-prototype.json",
+      "sha256": "487e7ba872d75cd4459dffe891960bcd92e5a03ea0427f04734f3a8a648ea70d",
+      "bytes": 1784,
+      "content_kind": "derived_summary_not_original",
+      "source_provenance": [
+        {
+          "path_relative_to_original_workspace": "migration-lab/VALIDATION-RESULT.txt",
+          "sha256": "bcc76e7652dcf75cf964acae73a85018c0d07dc5b597151b241ac2041f7eb584",
+          "bytes": 5471,
+          "required_for_offline_validation": false
+        },
+        {
+          "path_relative_to_original_workspace": "migration-lab/validation-result.json",
+          "sha256": "6bb3dd01f70703d5500f41d4930c678e5e44af6e60e1f1eb263a7585c902b460",
+          "bytes": 104966,
+          "required_for_offline_validation": false
+        },
+        {
+          "path_relative_to_original_workspace": "migration-lab/synthetic-sequence-result.json",
+          "sha256": "0af958bc572e707f6531b7a923bb3849ccea4f7596800c04ac7d5358526c154a",
+          "bytes": 6116,
+          "required_for_offline_validation": false
+        }
+      ],
+      "runtime_dependency": false
+    },
+    {
+      "id": "license.download-provenance",
+      "path": "research/evidence/licenses/download-provenance.json",
+      "sha256": "98b0bb5bfec9208e0ef7d5a5fad84a8cd011d519b96adc29ec5fbbc25463f174",
+      "bytes": 629,
+      "content_kind": "acquisition_metadata",
+      "source_provenance": {
+        "method": "HTTPS raw GitHub file download by coordinating agent",
+        "date": "2026-10-18"
+      },
+      "runtime_dependency": false
+    }
+  ]
+}

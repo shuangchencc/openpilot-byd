@@ -1,0 +1,36 @@
+{
+  "schema": "songplus-independent-project/v1",
+  "created_date": "2026-10-18",
+  "timezone": "Asia/Shanghai",
+  "vehicle": {
+    "make": "BYD",
+    "model": "Song PLUS DM-i",
+    "year": 2023,
+    "edition": "Champion Edition 110 km Flagship PLUS"
+  },
+  "hardware_policy": "Retain the user's existing C3XL and Panda hardware; exact board and sensor compatibility remains unverified.",
+  "architecture": "Official matched perception, planning and control stack with separately maintained hardware support, vehicle interface and Panda safety changes.",
+  "stage": "0_local_engineering_baseline",
+  "official_baseline": "upstream-lock.json",
+  "historical_research_baseline": "baseline-lock.json",
+  "runtime_depends_on_mr_one_encrypted_vehicle_code": false,
+  "vehicle_port_implemented": false,
+  "hardware_compatibility_confirmed": false,
+  "deployment_ready": false,
+  "execution": {
+    "device_connection": false,
+    "can_transmit": false,
+    "os_update": false,
+    "panda_flash": false,
+    "target_process_launch": false
+  },
+  "milestones": [
+    "Pinned complete upstream and reproducible host validation",
+    "Verified hardware identity and recovery capability",
+    "Vehicle-confirmed protocol and read-only CarState",
+    "Independent lateral controller and matching safety",
+    "No-actuation target runtime and hardware-in-loop validation",
+    "Controlled lateral validation with preserved stock ACC/AEB paths",
+    "Separately validated openpilot longitudinal control"
+  ]
+}

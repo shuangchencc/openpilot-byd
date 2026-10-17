@@ -1,0 +1,31 @@
+{
+  "status": "PASS",
+  "meaning": "Verifier rejection tests only; NOT DEPLOYMENT READINESS.",
+  "candidate_code_imported_or_executed": false,
+  "device_access_performed": false,
+  "network_used": false,
+  "verifier_standard_library_imports": [
+    "argparse",
+    "hashlib",
+    "json",
+    "pathlib"
+  ],
+  "cases": [
+    {
+      "name": "changed_source_hash",
+      "expected_rejection_observed": true,
+      "return_code": 1,
+      "errors": [
+        "SHA-256 mismatch: dp.extra00"
+      ]
+    },
+    {
+      "name": "changed_critical_anchor",
+      "expected_rejection_observed": true,
+      "return_code": 1,
+      "errors": [
+        "critical code changed or anchor moved: a.dos_selection"
+      ]
+    }
+  ]
+}

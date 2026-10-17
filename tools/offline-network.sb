@@ -1,0 +1,5 @@
+(version 1)
+(allow default)
+; The validation process may use local IPC, but cannot reach the car or Internet.
+(deny network-outbound)
+(allow network-outbound (remote ip "localhost:*") (remote unix-socket))

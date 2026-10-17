@@ -1,0 +1,473 @@
+{
+  "schema_version": 1,
+  "scope": "offline_research",
+  "target_vehicle": {
+    "id": "byd_song_plus_dmi_2023_champion_110km_flagship_plus",
+    "make": "BYD",
+    "model": "Song Plus DM-i",
+    "model_year": 2023,
+    "edition": "Champion",
+    "electric_range_km": 110,
+    "trim": "Flagship PLUS"
+  },
+  "identity_basis": "User identified 2023 Champion edition, 110km Flagship PLUS; no matching vehicle CAN recording has been validated.",
+  "requested_stage": "protocol_research",
+  "execution": {
+    "actuation_enabled": false,
+    "can_transmit": false,
+    "firmware_generation": false
+  },
+  "safety_parameters": {
+    "inherits_existing_parameters": false,
+    "proposed_safety_param": null,
+    "legacy_observation": {
+      "value": 33,
+      "meaning": "unresolved_fork_specific",
+      "may_reuse": false
+    },
+    "reason": "33 is a cached old-fork value. In huheas bit 0x20 selects Seal; current family meaning is not portable."
+  },
+  "target_hypothesis": {
+    "selected_family": null,
+    "compatibility": "unknown",
+    "basis": "Exact vehicle variant naming is not protocol compatibility evidence."
+  },
+  "vehicle_confirmed_claim_count": 0,
+  "sources": [
+    {
+      "id": "officialAtto3",
+      "family": "officialAtto3",
+      "repository": "commaai/opendbc",
+      "commit": "06ade56b49162e3f35e354df115e97b02de81d7a",
+      "license": "MIT",
+      "target_vehicle_compatibility": "unverified",
+      "documents": [
+        "https://github.com/commaai/opendbc/blob/06ade56b49162e3f35e354df115e97b02de81d7a/opendbc/safety/modes/byd.h#L5-L53",
+        "https://github.com/commaai/opendbc/blob/06ade56b49162e3f35e354df115e97b02de81d7a/opendbc/safety/modes/byd.h#L55-L119"
+      ],
+      "notes": "Official Atto3 angle reference; dashcam-only interface; no openpilot longitudinal TX"
+    },
+    {
+      "id": "huheasHanTorque",
+      "family": "huheasHanTorque",
+      "repository": "huheas/carrotpilot",
+      "commit": "43a030a5fe76c44697431bd75b20e82792ec611e",
+      "license": "MIT",
+      "target_vehicle_compatibility": "unverified",
+      "documents": [
+        "https://github.com/huheas/carrotpilot/blob/43a030a5fe76c44697431bd75b20e82792ec611e/opendbc_repo/opendbc/safety/safety/safety_byd.h#L38-L84",
+        "https://github.com/huheas/carrotpilot/blob/43a030a5fe76c44697431bd75b20e82792ec611e/opendbc_repo/opendbc/safety/safety/safety_byd.h#L87-L142",
+        "https://github.com/huheas/carrotpilot/blob/43a030a5fe76c44697431bd75b20e82792ec611e/opendbc_repo/opendbc/safety/safety/safety_byd.h#L145-L230"
+      ],
+      "notes": "Han torque family with Song 23 enum elsewhere; safety rejection disabled; unusable safety baseline"
+    },
+    {
+      "id": "qzwfAtto3",
+      "family": "qzwfAtto3",
+      "repository": "qzwf/opendbc",
+      "commit": "591705c9dd1c527d9e732d41bc2c80e468654cbb",
+      "license": "MIT",
+      "target_vehicle_compatibility": "unverified",
+      "documents": [
+        "https://github.com/qzwf/opendbc/blob/591705c9dd1c527d9e732d41bc2c80e468654cbb/opendbc/safety/modes/byd.h#L20-L86",
+        "https://github.com/qzwf/opendbc/blob/591705c9dd1c527d9e732d41bc2c80e468654cbb/opendbc/safety/modes/byd.h#L89-L163",
+        "https://github.com/qzwf/opendbc/blob/591705c9dd1c527d9e732d41bc2c80e468654cbb/opendbc/safety/modes/byd.h#L165-L249"
+      ],
+      "notes": "Atto3 angle reference with stock-only ACC; differs from official pedal/speed/engagement decoding"
+    }
+  ],
+  "claims": [
+    {
+      "id": "officialAtto3.steering_command",
+      "family": "officialAtto3",
+      "role": "steering_command",
+      "status": "candidate",
+      "vehicle_compatibility": "unverified",
+      "candidate_can": {
+        "address": "0x1E2",
+        "bus": 0,
+        "dlc": 8
+      },
+      "source_interpretation": "Source uses signed bytes 3-4 steering angle and request bit 21; target encoding unverified.",
+      "target_vehicle_interpretation": null,
+      "source_urls": [
+        "https://github.com/commaai/opendbc/blob/06ade56b49162e3f35e354df115e97b02de81d7a/opendbc/safety/modes/byd.h#L55-L119"
+      ],
+      "recording_refs": [],
+      "trace_refs": []
+    },
+    {
+      "id": "officialAtto3.steering_feedback",
+      "family": "officialAtto3",
+      "role": "steering_feedback",
+      "status": "candidate",
+      "vehicle_compatibility": "unverified",
+      "candidate_can": {
+        "address": "0x11F",
+        "bus": 0,
+        "dlc": 5
+      },
+      "source_interpretation": "Source uses signed bytes 0-1 angle; target scale and sign unverified.",
+      "target_vehicle_interpretation": null,
+      "source_urls": [
+        "https://github.com/commaai/opendbc/blob/06ade56b49162e3f35e354df115e97b02de81d7a/opendbc/safety/modes/byd.h#L5-L53"
+      ],
+      "recording_refs": [],
+      "trace_refs": []
+    },
+    {
+      "id": "officialAtto3.vehicle_speed",
+      "family": "officialAtto3",
+      "role": "vehicle_speed",
+      "status": "candidate",
+      "vehicle_compatibility": "unverified",
+      "candidate_can": {
+        "address": "0x1F0",
+        "bus": 0,
+        "dlc": 8
+      },
+      "source_interpretation": "Source speed and counter/checksum; target wheel-speed scale unverified.",
+      "target_vehicle_interpretation": null,
+      "source_urls": [
+        "https://github.com/commaai/opendbc/blob/06ade56b49162e3f35e354df115e97b02de81d7a/opendbc/safety/modes/byd.h#L5-L53"
+      ],
+      "recording_refs": [],
+      "trace_refs": []
+    },
+    {
+      "id": "officialAtto3.driver_pedals",
+      "family": "officialAtto3",
+      "role": "driver_pedals",
+      "status": "candidate",
+      "vehicle_compatibility": "unverified",
+      "candidate_can": {
+        "address": "0x242",
+        "bus": 0,
+        "dlc": 8
+      },
+      "source_interpretation": "Source brake byte4 bit5 and throttle byte3; target driver versus ACC brake discrimination unknown.",
+      "target_vehicle_interpretation": null,
+      "source_urls": [
+        "https://github.com/commaai/opendbc/blob/06ade56b49162e3f35e354df115e97b02de81d7a/opendbc/safety/modes/byd.h#L5-L53"
+      ],
+      "recording_refs": [],
+      "trace_refs": []
+    },
+    {
+      "id": "officialAtto3.cruise_state",
+      "family": "officialAtto3",
+      "role": "cruise_state",
+      "status": "candidate",
+      "vehicle_compatibility": "unverified",
+      "candidate_can": {
+        "address": "0x32D",
+        "bus": 2,
+        "dlc": 8
+      },
+      "source_interpretation": "Source ACC status states 3/5; target enable/cancel semantics unverified.",
+      "target_vehicle_interpretation": null,
+      "source_urls": [
+        "https://github.com/commaai/opendbc/blob/06ade56b49162e3f35e354df115e97b02de81d7a/opendbc/safety/modes/byd.h#L5-L53"
+      ],
+      "recording_refs": [],
+      "trace_refs": []
+    },
+    {
+      "id": "officialAtto3.cruise_cancel",
+      "family": "officialAtto3",
+      "role": "cruise_cancel",
+      "status": "candidate",
+      "vehicle_compatibility": "unverified",
+      "candidate_can": {
+        "address": "0x3B0",
+        "bus": 0,
+        "dlc": 8
+      },
+      "source_interpretation": "Source permits cancel/button release; target cancel signal unverified.",
+      "target_vehicle_interpretation": null,
+      "source_urls": [
+        "https://github.com/commaai/opendbc/blob/06ade56b49162e3f35e354df115e97b02de81d7a/opendbc/safety/modes/byd.h#L55-L119"
+      ],
+      "recording_refs": [],
+      "trace_refs": []
+    },
+    {
+      "id": "officialAtto3.lkas_hud",
+      "family": "officialAtto3",
+      "role": "lkas_hud",
+      "status": "candidate",
+      "vehicle_compatibility": "unverified",
+      "candidate_can": {
+        "address": "0x316",
+        "bus": 0,
+        "dlc": 8
+      },
+      "source_interpretation": "Source considers message HUD; huheas interprets this address as torque control. Do not merge.",
+      "target_vehicle_interpretation": null,
+      "source_urls": [
+        "https://github.com/commaai/opendbc/blob/06ade56b49162e3f35e354df115e97b02de81d7a/opendbc/safety/modes/byd.h#L55-L119"
+      ],
+      "recording_refs": [],
+      "trace_refs": []
+    },
+    {
+      "id": "huheasHanTorque.steering_command",
+      "family": "huheasHanTorque",
+      "role": "steering_command",
+      "status": "candidate",
+      "vehicle_compatibility": "unverified",
+      "candidate_can": {
+        "address": "0x316",
+        "bus": 0,
+        "dlc": 8
+      },
+      "source_interpretation": "Source non-Seal path extracts 11-bit torque; rejection disabled. Target cache says angle: contradiction unresolved.",
+      "target_vehicle_interpretation": null,
+      "source_urls": [
+        "https://github.com/huheas/carrotpilot/blob/43a030a5fe76c44697431bd75b20e82792ec611e/opendbc_repo/opendbc/safety/safety/safety_byd.h#L87-L142"
+      ],
+      "recording_refs": [],
+      "trace_refs": []
+    },
+    {
+      "id": "huheasHanTorque.eps_feedback",
+      "family": "huheasHanTorque",
+      "role": "eps_feedback",
+      "status": "candidate",
+      "vehicle_compatibility": "unverified",
+      "candidate_can": {
+        "address": "0x318",
+        "bus": 0,
+        "dlc": 8
+      },
+      "source_interpretation": "Source non-Seal branch updates angle measurements, while TX checks torque. Internal mismatch unresolved.",
+      "target_vehicle_interpretation": null,
+      "source_urls": [
+        "https://github.com/huheas/carrotpilot/blob/43a030a5fe76c44697431bd75b20e82792ec611e/opendbc_repo/opendbc/safety/safety/safety_byd.h#L38-L84"
+      ],
+      "recording_refs": [],
+      "trace_refs": []
+    },
+    {
+      "id": "huheasHanTorque.driver_pedals",
+      "family": "huheasHanTorque",
+      "role": "driver_pedals",
+      "status": "candidate",
+      "vehicle_compatibility": "unverified",
+      "candidate_can": {
+        "address": "0x342",
+        "bus": 0,
+        "dlc": 8
+      },
+      "source_interpretation": "Source uses raw byte0 gas/byte1 brake; target thresholds and brake origin unknown.",
+      "target_vehicle_interpretation": null,
+      "source_urls": [
+        "https://github.com/huheas/carrotpilot/blob/43a030a5fe76c44697431bd75b20e82792ec611e/opendbc_repo/opendbc/safety/safety/safety_byd.h#L38-L84"
+      ],
+      "recording_refs": [],
+      "trace_refs": []
+    },
+    {
+      "id": "huheasHanTorque.vehicle_moving",
+      "family": "huheasHanTorque",
+      "role": "vehicle_moving",
+      "status": "candidate",
+      "vehicle_compatibility": "unverified",
+      "candidate_can": {
+        "address": "0x121",
+        "bus": 0,
+        "dlc": 8
+      },
+      "source_interpretation": "Source combines low byte and low nibble of second byte; target unknown.",
+      "target_vehicle_interpretation": null,
+      "source_urls": [
+        "https://github.com/huheas/carrotpilot/blob/43a030a5fe76c44697431bd75b20e82792ec611e/opendbc_repo/opendbc/safety/safety/safety_byd.h#L38-L84"
+      ],
+      "recording_refs": [],
+      "trace_refs": []
+    },
+    {
+      "id": "huheasHanTorque.cruise_state",
+      "family": "huheasHanTorque",
+      "role": "cruise_state",
+      "status": "candidate",
+      "vehicle_compatibility": "unverified",
+      "candidate_can": {
+        "address": "0x32D",
+        "bus": 2,
+        "dlc": 8
+      },
+      "source_interpretation": "Source non-Seal ACC states 3/5; target unknown.",
+      "target_vehicle_interpretation": null,
+      "source_urls": [
+        "https://github.com/huheas/carrotpilot/blob/43a030a5fe76c44697431bd75b20e82792ec611e/opendbc_repo/opendbc/safety/safety/safety_byd.h#L38-L84"
+      ],
+      "recording_refs": [],
+      "trace_refs": []
+    },
+    {
+      "id": "huheasHanTorque.longitudinal_command",
+      "family": "huheasHanTorque",
+      "role": "longitudinal_command",
+      "status": "candidate",
+      "vehicle_compatibility": "unverified",
+      "candidate_can": {
+        "address": "0x32E",
+        "bus": 0,
+        "dlc": 8
+      },
+      "source_interpretation": "Source whitelists and blocks camera copy without longitudinal payload limits. Not an enabled capability.",
+      "target_vehicle_interpretation": null,
+      "source_urls": [
+        "https://github.com/huheas/carrotpilot/blob/43a030a5fe76c44697431bd75b20e82792ec611e/opendbc_repo/opendbc/safety/safety/safety_byd.h#L145-L230"
+      ],
+      "recording_refs": [],
+      "trace_refs": []
+    },
+    {
+      "id": "qzwfAtto3.steering_command",
+      "family": "qzwfAtto3",
+      "role": "steering_command",
+      "status": "candidate",
+      "vehicle_compatibility": "unverified",
+      "candidate_can": {
+        "address": "0x1E2",
+        "bus": 0,
+        "dlc": 8
+      },
+      "source_interpretation": "Source angle and request control; target relation to exact EPS unknown.",
+      "target_vehicle_interpretation": null,
+      "source_urls": [
+        "https://github.com/qzwf/opendbc/blob/591705c9dd1c527d9e732d41bc2c80e468654cbb/opendbc/safety/modes/byd.h#L165-L249"
+      ],
+      "recording_refs": [],
+      "trace_refs": []
+    },
+    {
+      "id": "qzwfAtto3.steering_feedback",
+      "family": "qzwfAtto3",
+      "role": "steering_feedback",
+      "status": "candidate",
+      "vehicle_compatibility": "unverified",
+      "candidate_can": {
+        "address": "0x11F",
+        "bus": 0,
+        "dlc": 5
+      },
+      "source_interpretation": "Source angle plus driver column torque; target unknown.",
+      "target_vehicle_interpretation": null,
+      "source_urls": [
+        "https://github.com/qzwf/opendbc/blob/591705c9dd1c527d9e732d41bc2c80e468654cbb/opendbc/safety/modes/byd.h#L89-L163"
+      ],
+      "recording_refs": [],
+      "trace_refs": []
+    },
+    {
+      "id": "qzwfAtto3.motor_torque",
+      "family": "qzwfAtto3",
+      "role": "motor_torque",
+      "status": "candidate",
+      "vehicle_compatibility": "unverified",
+      "candidate_can": {
+        "address": "0x1FC",
+        "bus": 0,
+        "dlc": 8
+      },
+      "source_interpretation": "Source EPS motor torque; not interchangeable with driver torque.",
+      "target_vehicle_interpretation": null,
+      "source_urls": [
+        "https://github.com/qzwf/opendbc/blob/591705c9dd1c527d9e732d41bc2c80e468654cbb/opendbc/safety/modes/byd.h#L20-L86"
+      ],
+      "recording_refs": [],
+      "trace_refs": []
+    },
+    {
+      "id": "qzwfAtto3.wheel_speed",
+      "family": "qzwfAtto3",
+      "role": "wheel_speed",
+      "status": "candidate",
+      "vehicle_compatibility": "unverified",
+      "candidate_can": {
+        "address": "0x122",
+        "bus": 0,
+        "dlc": 8
+      },
+      "source_interpretation": "Source uses three wheels with platform correction; target scale unverified.",
+      "target_vehicle_interpretation": null,
+      "source_urls": [
+        "https://github.com/qzwf/opendbc/blob/591705c9dd1c527d9e732d41bc2c80e468654cbb/opendbc/safety/modes/byd.h#L89-L163"
+      ],
+      "recording_refs": [],
+      "trace_refs": []
+    },
+    {
+      "id": "qzwfAtto3.driver_pedals",
+      "family": "qzwfAtto3",
+      "role": "driver_pedals",
+      "status": "candidate",
+      "vehicle_compatibility": "unverified",
+      "candidate_can": {
+        "address": "0x342",
+        "bus": 0,
+        "dlc": 8
+      },
+      "source_interpretation": "Source raw pedals; comments say 0x242 BRAKE_PRESSED dead on its platform. Conflicts with official family.",
+      "target_vehicle_interpretation": null,
+      "source_urls": [
+        "https://github.com/qzwf/opendbc/blob/591705c9dd1c527d9e732d41bc2c80e468654cbb/opendbc/safety/modes/byd.h#L89-L163"
+      ],
+      "recording_refs": [],
+      "trace_refs": []
+    },
+    {
+      "id": "qzwfAtto3.cruise_state",
+      "family": "qzwfAtto3",
+      "role": "cruise_state",
+      "status": "candidate",
+      "vehicle_compatibility": "unverified",
+      "candidate_can": {
+        "address": "0x32E",
+        "bus": 2,
+        "dlc": 8
+      },
+      "source_interpretation": "Source uses command active bits for engage; must not replace official 0x32D interpretation without evidence.",
+      "target_vehicle_interpretation": null,
+      "source_urls": [
+        "https://github.com/qzwf/opendbc/blob/591705c9dd1c527d9e732d41bc2c80e468654cbb/opendbc/safety/modes/byd.h#L89-L163"
+      ],
+      "recording_refs": [],
+      "trace_refs": []
+    },
+    {
+      "id": "qzwfAtto3.lkas_hud",
+      "family": "qzwfAtto3",
+      "role": "lkas_hud",
+      "status": "candidate",
+      "vehicle_compatibility": "unverified",
+      "candidate_can": {
+        "address": "0x316",
+        "bus": 0,
+        "dlc": 8
+      },
+      "source_interpretation": "Source HUD ownership separate from steering ownership.",
+      "target_vehicle_interpretation": null,
+      "source_urls": [
+        "https://github.com/qzwf/opendbc/blob/591705c9dd1c527d9e732d41bc2c80e468654cbb/opendbc/safety/modes/byd.h#L165-L249"
+      ],
+      "recording_refs": [],
+      "trace_refs": []
+    }
+  ],
+  "evidence": {
+    "recordings": [],
+    "traces": [],
+    "artifacts": []
+  },
+  "unresolved_conflicts": [
+    "0x316 is torque command in huheas but HUD in both Atto3 references.",
+    "0x242 brake in official versus 0x342 raw brake in qzwf; actual driver override signal unknown.",
+    "Speed source and scale differ across all three families.",
+    "Cruise active source differs between official 0x32D and qzwf 0x32E.",
+    "User cache angle steering and longitudinal enabled do not identify a compatible public safety implementation."
+  ]
+}

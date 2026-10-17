@@ -1,0 +1,27 @@
+{
+  "status": "PASS",
+  "meaning": "Local source integrity and exact text anchors only; NOT DEPLOYMENT READINESS.",
+  "deployment_ready": false,
+  "hardware_compatibility_confirmed": false,
+  "device_access_performed": false,
+  "candidate_code_imported_or_executed": false,
+  "network_used": false,
+  "profile": "/Users/shuang/Code/openpilot/songplus-port-lab/hardware/hardware-profile.json",
+  "source_files_checked": 55,
+  "critical_code_anchors_checked": 44,
+  "patches_checked": 9,
+  "errors": [],
+  "remaining_requirements": [
+    "Exact PCB/product revision and SoC identification independent of device-tree model",
+    "Physical connector to USB-controller mapping and power/data capability",
+    "Harness wiring/pinout, external box MCU and provisioning",
+    "BYD encrypted implementation and reproducible source",
+    "Device-specific USB recovery loader and working recovery entry",
+    "Camera hardware patch provenance and target OS driver compatibility",
+    "Three camera identities/optics/ports and kernel/ISP ABI",
+    "Actual dual-Panda bus mapping and protocol versions",
+    "QCOM model throughput, memory headroom and sustained thermals",
+    "Working driver-monitoring and audible alerts on target stack",
+    "Target F4/H7 safety framework build/size/behavior validation"
+  ]
+}

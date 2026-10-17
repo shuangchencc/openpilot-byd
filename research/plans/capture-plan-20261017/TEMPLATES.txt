@@ -1,0 +1,30 @@
+标注模板使用说明
+
+FIELD-CARD.txt 可以打印或在停车时照着填写；它已经足够完成第一批人工标注。
+session.template.json 和 events.template.jsonl 用于以后在电脑结构化保存同样的信息。
+它们属于采集方案，不能直接当作 replay/canlog.py 所需的录制 manifest 或 CAN 帧。
+
+每次会话复制一份 session.template.json，填 session_id，保留车型及 unknown 字段。
+实际发生录制后才在自己的副本中将 template_only 改为 false、collection_state 改为
+recorded_pending_review；这些标记不代表车辆协议得到验证。本轮模板始终未采集。
+
+每个事件复制 events.template.jsonl 的一行并填写；一个文件可以有多行独立 JSON。
+event_id 在本次会话内唯一，scenario_id 对应 PLAN.txt 中 A0/A1/A2/B1/C1。
+实际观察的副本才将 template_only 改为 false；未知值保持 null 或 unknown。
+时间使用带时区 ISO 8601，例如 YYYY-MM-DDTHH:MM:SS+08:00，不填写该格式占位文字。
+observation.source 可用 passenger_video、fixed_video、passenger_note、driver_recollection；
+回忆记录需要更宽的误差范围，不能冒充实时精确标注。
+
+observation：只写人看到的动作、仪表和手机/视频时间。
+log_alignment：只在电脑核对日志后填写，不把手机epoch纳秒放进log_mono字段。
+interpretation：填写日志来源索引和旧实现的active状态，不把这些值当独立实车真值。
+control_source：unknown、oem、existing_system 或 mixed，归属需有依据；默认unknown。
+uncertainty_ms：估计误差的±半宽；未知填null，不能用0代替“不知道”。
+
+session.files：后续记录原文件相对路径、route/segment、字节数、SHA256及复制状态。
+session.alignment.anchors：后续记录手机/视频时间与日志单调时钟的对应证据及误差。
+session.quality.health_deltas：按板身份、启动区间和相关总线分别记起止计数，不清零；
+计数器回绕/重启时不能直接相减。缺字段和异常保留在warnings。
+
+规范化 CAN 数据另建 replay 要求的 manifest + JSONL；原文件和上述标注作为 sidecar。
+本轮没有实现 rlog 转换器、设备连接或自动采集程序。

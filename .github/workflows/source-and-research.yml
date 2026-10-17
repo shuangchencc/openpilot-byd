@@ -1,0 +1,46 @@
+name: Pinned sources and research regression
+
+on:
+  workflow_dispatch:
+  pull_request:
+  push:
+    branches: [songplus-offline-research]
+
+permissions:
+  contents: read
+
+jobs:
+  research:
+    runs-on: macos-15
+    timeout-minutes: 30
+    env:
+      GIT_LFS_SKIP_SMUDGE: '1'
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          submodules: recursive
+          lfs: false
+          persist-credentials: false
+      - name: Explicit dependency preparation (network)
+        run: bash tools/bootstrap_host.sh --reference-only
+      - name: Offline source and portable evidence verification
+        env:
+          UV_OFFLINE: '1'
+          PIP_NO_INDEX: '1'
+        run: |
+          python3 tools/lock_upstream.py --verify --allow-lfs-pointers
+          python3 research/verify.py
+          python3 hardware/verify_source_evidence.py
+      - name: Research tools and historical upstream host tests
+        env:
+          UV_OFFLINE: '1'
+          PIP_NO_INDEX: '1'
+        run: /usr/bin/sandbox-exec -f tools/offline-network.sb upstream-opendbc/.venv/bin/python tools/validate_reference.py --with-upstream
+      - name: Save scoped validation logs
+        if: always()
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6
+        with:
+          name: research-host-validation
+          path: results/
+          if-no-files-found: ignore
+          retention-days: 14

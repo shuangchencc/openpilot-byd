@@ -1,0 +1,1121 @@
+{
+  "schema": "songplus-step0-acceptance/v1",
+  "recorded_at_utc": "2026-10-17T17:00:24.046661+00:00",
+  "status": "PASS",
+  "scope": "Pinned official sources and matched assets, portable research, prepared macOS host build and selected offline regression",
+  "official_selection": {
+    "policy": "official_master_pinned_at_query_time_not_automatic_latest",
+    "checked_at": "2026-10-18T00:54:34+08:00",
+    "remote": "https://github.com/commaai/openpilot.git",
+    "ref": "refs/heads/master",
+    "commit": "35e78a9d9518855ec0dacec919e719624a28131f",
+    "master_query": "git ls-remote https://github.com/commaai/openpilot.git refs/heads/master",
+    "release_query": "https://api.github.com/repos/commaai/openpilot/releases/latest",
+    "latest_release_observed": {
+      "tag": "v0.11.1",
+      "commit": "4df40d2c1946a57242230186edd073c4073060a6",
+      "published_at": "2026-06-05T16:15:25Z",
+      "url": "https://github.com/commaai/openpilot/releases/tag/v0.11.1"
+    }
+  },
+  "files": [
+    {
+      "path": "upstream-lock.json",
+      "sha256": "8ddb483e54d83a80490671cbcf4cd92a6af93a36e8c7f4b27d053e32eb012947"
+    },
+    {
+      "path": "baseline-lock.json",
+      "sha256": "3d7ea61d9ce118957189ae232afc0a0caab482a42395e861c60a83b344416c76"
+    },
+    {
+      "path": "host-toolchain-lock.json",
+      "sha256": "c1dd7cb35883a4abe98077f8b0748cab98cbab184dc281f0d8ffb3f4a9a7cf88"
+    },
+    {
+      "path": "requirements-bootstrap.txt",
+      "sha256": "eaaf846c20a416841ea05593a9d1965d53a36d21a2a5663de65683cceabd7a47"
+    },
+    {
+      "path": "tools/bootstrap-lock.json",
+      "sha256": "e2475f8405cd02e1d3f5c00dddc12a7f61334721ce56737c1a4521883d026ea7"
+    },
+    {
+      "path": "tools/validate_project.py",
+      "sha256": "e04111af61cbd5c26f4753e17bafd7df051ef0449a6123e6211c93283e784df2"
+    },
+    {
+      "path": "tools/validate_reference.py",
+      "sha256": "19b2f226aeb466cbc6ccbcdd1e9ca02862f57797ea42ea79d50d40fed48c67a5"
+    },
+    {
+      "path": "tools/validate_upstream.py",
+      "sha256": "9462ab53a94db2574c9ff9f3131958e1590b74465e13a09ffe9c88d542391c7c"
+    },
+    {
+      "path": "tools/lock_upstream.py",
+      "sha256": "734c752890b5e9f9241afd03bdaabb1610d4f7faa69aec084583b27f74ef0cec"
+    },
+    {
+      "path": "tools/offline-network.sb",
+      "sha256": "87d04db0895bba3831708edbdb13a348d6503969dab615fb09ddc4f705890962"
+    },
+    {
+      "path": "tools/scons_site/site_init.py",
+      "sha256": "b511454be0beaa7b505a480aa150127e7a7029fc916097b0a0d2def047466204"
+    },
+    {
+      "path": "research/index.json",
+      "sha256": "ae4cff3a12bfd729f813a6ed0bafd6ff115cee1b5b455faca49051760dd13c44"
+    },
+    {
+      "path": "research/evidence-manifest.json",
+      "sha256": "03c6a1f919fac1d0257ded120f7c2c612b1a180d2264ed758ccc6458272713ac"
+    },
+    {
+      "path": "research/plan-manifest.json",
+      "sha256": "06b0697f5d189775c3ee78a5c08f5ae9b475ac01b439081c352923bee2a86e4b"
+    },
+    {
+      "path": "hardware/hardware-profile.json",
+      "sha256": "b045c2f98979bd96b11075e18845a3a8b9785b05ff283b987f088cc299b32d40"
+    },
+    {
+      "path": "tools/bootstrap_host.sh",
+      "sha256": "10e0dfcdede0b1cd8f891bd1fb00a8a3d0855185dacdb318b34e6d5c2518e680"
+    },
+    {
+      "path": "tools/bootstrap_llvm.py",
+      "sha256": "8c1b946bbc4588765a4bded3e4397ef759f28db5128cec0fad711b4b0eb109b6"
+    },
+    {
+      "path": ".github/workflows/source-and-research.yml",
+      "sha256": "295ea7d5ebead2d930c37d3329a9b5b14228b522877d38698bf4baf354ccf98b"
+    }
+  ],
+  "source_check": {
+    "status": "verified",
+    "mode": "strict",
+    "network_used": false,
+    "target_code_executed": false,
+    "repositories": 7,
+    "lfs_objects_sha256_verified": 253,
+    "lfs_pointer_only": 0,
+    "agnos": "declarations_verified_only; partition_images_not_downloaded; device_compatibility_not_validated"
+  },
+  "evidence_check": {
+    "status": "PASS",
+    "meaning": "Portable local packaging integrity only; historical experiments are not rerun and vehicle readiness is not established.",
+    "evidence_files_checked": 41,
+    "plan_snapshot_files_checked": 6,
+    "research_items_checked": 10,
+    "external_files_required": false,
+    "device_access_performed": false,
+    "target_code_executed": false,
+    "actuation_allowed": false,
+    "errors": []
+  },
+  "hardware_check": {
+    "status": "PASS",
+    "meaning": "Local source integrity and exact text anchors only; NOT DEPLOYMENT READINESS.",
+    "deployment_ready": false,
+    "hardware_compatibility_confirmed": false,
+    "device_access_performed": false,
+    "candidate_code_imported_or_executed": false,
+    "network_used": false,
+    "external_files_required": false,
+    "profile": "<project>/hardware/hardware-profile.json",
+    "source_files_checked": 31,
+    "critical_code_anchors_checked": 44,
+    "patches_checked": 9,
+    "errors": [],
+    "remaining_requirements": [
+      "Exact PCB/product revision and SoC identification independent of device-tree model",
+      "Physical connector to USB-controller mapping and power/data capability",
+      "Harness wiring/pinout, external box MCU and provisioning",
+      "BYD encrypted implementation and reproducible source",
+      "Device-specific USB recovery loader and working recovery entry",
+      "Camera hardware patch provenance and target OS driver compatibility",
+      "Three camera identities/optics/ports and kernel/ISP ABI",
+      "Actual dual-Panda bus mapping and protocol versions",
+      "QCOM model throughput, memory headroom and sustained thermals",
+      "Working driver-monitoring and audible alerts on target stack",
+      "Target F4/H7 safety framework build/size/behavior validation"
+    ]
+  },
+  "host_python_environment": {
+    "python": "3.12.13 (main, Aug  7 2026, 02:15:23) [Clang 22.1.3 ]",
+    "executable": "<project>/upstream-openpilot/.venv/bin/python",
+    "packages": [
+      {
+        "name": "certifi",
+        "version": "2026.7.22"
+      },
+      {
+        "name": "cffi",
+        "version": "2.1.1"
+      },
+      {
+        "name": "charset-normalizer",
+        "version": "3.5.1"
+      },
+      {
+        "name": "codespell",
+        "version": "2.4.3"
+      },
+      {
+        "name": "comma-deps-acados",
+        "version": "0.2.2.post103"
+      },
+      {
+        "name": "comma-deps-bootstrap-icons",
+        "version": "1.10.5.0.post103"
+      },
+      {
+        "name": "comma-deps-capnproto",
+        "version": "1.0.1.post103"
+      },
+      {
+        "name": "comma-deps-eigen",
+        "version": "3.4.0.post103"
+      },
+      {
+        "name": "comma-deps-ffmpeg",
+        "version": "7.1.0.post103"
+      },
+      {
+        "name": "comma-deps-gcc-arm-none-eabi",
+        "version": "13.2.1.post103"
+      },
+      {
+        "name": "comma-deps-git-lfs",
+        "version": "3.6.1.post103"
+      },
+      {
+        "name": "comma-deps-imgui",
+        "version": "1.92.7.post103"
+      },
+      {
+        "name": "comma-deps-json11",
+        "version": "20170411.0.post103"
+      },
+      {
+        "name": "comma-deps-libusb",
+        "version": "1.0.29.post103"
+      },
+      {
+        "name": "comma-deps-ncurses",
+        "version": "6.5.post103"
+      },
+      {
+        "name": "comma-deps-raylib",
+        "version": "6.0.0.1.post103"
+      },
+      {
+        "name": "comma-deps-zeromq",
+        "version": "4.3.5.post103"
+      },
+      {
+        "name": "comma-deps-zstd",
+        "version": "1.5.6.post103"
+      },
+      {
+        "name": "contourpy",
+        "version": "1.4.0"
+      },
+      {
+        "name": "coverage",
+        "version": "7.16.0"
+      },
+      {
+        "name": "cryptography",
+        "version": "50.0.1"
+      },
+      {
+        "name": "cycler",
+        "version": "0.12.1"
+      },
+      {
+        "name": "Cython",
+        "version": "3.3.0"
+      },
+      {
+        "name": "fonttools",
+        "version": "4.65.0"
+      },
+      {
+        "name": "idna",
+        "version": "3.19"
+      },
+      {
+        "name": "importlib_resources",
+        "version": "7.1.0"
+      },
+      {
+        "name": "inputs",
+        "version": "0.5"
+      },
+      {
+        "name": "jeepney",
+        "version": "0.9.0"
+      },
+      {
+        "name": "kiwisolver",
+        "version": "1.5.1"
+      },
+      {
+        "name": "libdatachannel-py",
+        "version": "2026.1.0.dev2"
+      },
+      {
+        "name": "libusb-package",
+        "version": "1.0.30.0"
+      },
+      {
+        "name": "libusb1",
+        "version": "3.4.0"
+      },
+      {
+        "name": "matplotlib",
+        "version": "3.11.2"
+      },
+      {
+        "name": "mpmath",
+        "version": "1.3.0"
+      },
+      {
+        "name": "msgq",
+        "version": "0.0.1"
+      },
+      {
+        "name": "numpy",
+        "version": "2.5.3"
+      },
+      {
+        "name": "opendbc",
+        "version": "0.3.1"
+      },
+      {
+        "name": "openpilot",
+        "version": "0.1.0"
+      },
+      {
+        "name": "packaging",
+        "version": "26.3"
+      },
+      {
+        "name": "pandacan",
+        "version": "0.0.10"
+      },
+      {
+        "name": "pillow",
+        "version": "12.3.0"
+      },
+      {
+        "name": "pycapnp",
+        "version": "2.1.0"
+      },
+      {
+        "name": "pycparser",
+        "version": "3.0"
+      },
+      {
+        "name": "pycryptodome",
+        "version": "3.23.0"
+      },
+      {
+        "name": "PyJWT",
+        "version": "2.14.0"
+      },
+      {
+        "name": "pyparsing",
+        "version": "3.3.2"
+      },
+      {
+        "name": "python-dateutil",
+        "version": "2.9.0.post0"
+      },
+      {
+        "name": "pyzmq",
+        "version": "27.2.0"
+      },
+      {
+        "name": "rednose",
+        "version": "0.0.1"
+      },
+      {
+        "name": "requests",
+        "version": "2.34.2"
+      },
+      {
+        "name": "ruff",
+        "version": "0.16.7"
+      },
+      {
+        "name": "SCons",
+        "version": "4.11.1"
+      },
+      {
+        "name": "setproctitle",
+        "version": "1.3.7"
+      },
+      {
+        "name": "setuptools",
+        "version": "84.0.0"
+      },
+      {
+        "name": "six",
+        "version": "1.17.0"
+      },
+      {
+        "name": "sounddevice",
+        "version": "0.5.6"
+      },
+      {
+        "name": "sympy",
+        "version": "1.14.0"
+      },
+      {
+        "name": "teleoprtc",
+        "version": "1.0.1"
+      },
+      {
+        "name": "tinygrad",
+        "version": "0.14.0"
+      },
+      {
+        "name": "tqdm",
+        "version": "4.70.1"
+      },
+      {
+        "name": "ty",
+        "version": "0.0.80"
+      },
+      {
+        "name": "urllib3",
+        "version": "2.7.0"
+      },
+      {
+        "name": "websocket-client",
+        "version": "1.9.2"
+      },
+      {
+        "name": "zstandard",
+        "version": "0.25.0"
+      }
+    ]
+  },
+  "host_compilers": [
+    {
+      "command": [
+        "clang",
+        "--version"
+      ],
+      "output": "Apple clang version 21.0.0 (clang-2100.1.1.101)\nTarget: arm64-apple-darwin25.5.0\nThread model: posix\nInstalledDir: /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin"
+    },
+    {
+      "command": [
+        "xcodebuild",
+        "-version"
+      ],
+      "output": "Xcode 26.6\nBuild version 17F113"
+    },
+    {
+      "command": [
+        "xcrun",
+        "--show-sdk-path"
+      ],
+      "output": "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk"
+    },
+    {
+      "command": [
+        "arm-none-eabi-gcc",
+        "--version"
+      ],
+      "output": "arm-none-eabi-gcc (Arm GNU Toolchain 13.2.rel1 (Build arm-13.7)) 13.2.1 20231009\nCopyright (C) 2023 Free Software Foundation, Inc.\nThis is free software; see the source for copying conditions.  There is NO\nwarranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE."
+    }
+  ],
+  "panda_elf_size": "   text\t   data\t    bss\t    dec\t    hex\tfilename\n  55120\t  23908\t 432637\t 511665\t  7ceb1\tpanda/board/obj/panda_h7/main.elf\n  17372\t   1420\t  45021\t  63813\t   f945\tpanda/board/obj/panda_h7/bootstub.elf\n  54536\t  23900\t 419165\t 497601\t  797c1\tpanda/board/obj/body_h7/main.elf\n  10888\t   1124\t  30789\t  42801\t   a731\tpanda/board/obj/body_h7/bootstub.elf\n",
+  "reports": [
+    {
+      "path": "results/project/validation-result.json",
+      "original_report_sha256": "ec7031204e0c36312b43f5cefee210917d537cf184de4d104a4637b43cabfa6e",
+      "report": {
+        "schema": "songplus-project-validation/v1",
+        "created_at_utc": "2026-10-17T16:59:21.168791+00:00",
+        "scope": "prepared_local_host_build_and_tests",
+        "status": "PASS",
+        "checks": [
+          {
+            "name": "official_source_lock",
+            "command": [
+              "/opt/homebrew/opt/python@3.14/bin/python3.14",
+              "tools/lock_upstream.py",
+              "--verify"
+            ],
+            "log": "results/project/official_source_lock.log",
+            "started_at_utc": "2026-10-17T16:58:53.738261+00:00",
+            "exit_code": 0,
+            "status": "PASS"
+          },
+          {
+            "name": "hardware_evidence",
+            "command": [
+              "/opt/homebrew/opt/python@3.14/bin/python3.14",
+              "hardware/verify_source_evidence.py"
+            ],
+            "log": "results/project/hardware_evidence.log",
+            "started_at_utc": "2026-10-17T16:58:55.978837+00:00",
+            "exit_code": 0,
+            "status": "PASS"
+          },
+          {
+            "name": "research_index",
+            "command": [
+              "/opt/homebrew/opt/python@3.14/bin/python3.14",
+              "research/verify.py"
+            ],
+            "log": "results/project/research_index.log",
+            "started_at_utc": "2026-10-17T16:58:56.067379+00:00",
+            "exit_code": 0,
+            "status": "PASS"
+          },
+          {
+            "name": "research_lab",
+            "command": [
+              "/usr/bin/sandbox-exec",
+              "-f",
+              "tools/offline-network.sb",
+              "<project>/upstream-opendbc/.venv/bin/python",
+              "tools/validate_reference.py",
+              "--with-upstream"
+            ],
+            "log": "results/project/research_lab.log",
+            "started_at_utc": "2026-10-17T16:58:56.150087+00:00",
+            "exit_code": 0,
+            "status": "PASS"
+          },
+          {
+            "name": "official_host",
+            "command": [
+              "/opt/homebrew/opt/python@3.14/bin/python3.14",
+              "tools/validate_upstream.py"
+            ],
+            "log": "results/project/official_host.log",
+            "started_at_utc": "2026-10-17T16:59:00.813668+00:00",
+            "exit_code": 0,
+            "status": "PASS"
+          }
+        ],
+        "device_access_performed": false,
+        "can_transmit": false,
+        "firmware_flash": false,
+        "os_update": false,
+        "deployment_ready": false,
+        "limitations": [
+          "A source-only run does not perform any build or runtime validation.",
+          "Selected official host checks and research-tool tests do not validate Song PLUS control.",
+          "C3XL Linux/QCOM, camera, actual Panda boards, recovery and vehicle behavior remain unverified.",
+          "Dependencies must be prepared separately; this command does not fetch or install them."
+        ]
+      }
+    },
+    {
+      "path": "results/reference/validation-result.json",
+      "original_report_sha256": "b950d3a343dd037b04884668cc117b314262f21e1ac431a8c72b92456cd0cba1",
+      "report": {
+        "schema": "historical-reference-validation/v1",
+        "created_at_utc": "2026-10-17T16:59:00.795352+00:00",
+        "python": "3.12.7 | packaged by Anaconda, Inc. | (main, Oct  4 2024, 08:22:19) [Clang 14.0.6 ]",
+        "python_executable": "<project>/upstream-opendbc/.venv/bin/python",
+        "status": "PASS",
+        "checks": [
+          {
+            "name": "dependency_lock",
+            "passed": true,
+            "sha256": "8f130e47c924211a80f4115a07e0eef97f46f3ed1b922d0c9f46f7b19ff6cb05"
+          },
+          {
+            "name": "uv_version",
+            "command": [
+              "<project>/upstream-opendbc/.venv/bin/python",
+              "-c",
+              "import subprocess; v=subprocess.check_output(['.bootstrap/bin/uv', '--version'], text=True); print(v,end=''); assert v.split()[1]=='0.13.1'"
+            ],
+            "exit_code": 0,
+            "passed": true,
+            "stdout": "results/reference/uv_version.stdout.log",
+            "stderr": "results/reference/uv_version.stderr.log"
+          },
+          {
+            "name": "installed_dependency_lock",
+            "command": [
+              "<project>/.bootstrap/bin/uv",
+              "sync",
+              "--project",
+              "upstream-opendbc",
+              "--frozen",
+              "--extra",
+              "testing",
+              "--no-default-groups",
+              "--check",
+              "--offline",
+              "--python",
+              "3.12.7"
+            ],
+            "exit_code": 0,
+            "passed": true,
+            "stdout": "results/reference/installed_dependency_lock.stdout.log",
+            "stderr": "results/reference/installed_dependency_lock.stderr.log"
+          },
+          {
+            "name": "pinned_reference",
+            "command": [
+              "<project>/upstream-opendbc/.venv/bin/python",
+              "-c",
+              "from decoding.decoder import load_reference; load_reference('official_atto3_reference')"
+            ],
+            "exit_code": 0,
+            "passed": true,
+            "stdout": "results/reference/pinned_reference.stdout.log",
+            "stderr": "results/reference/pinned_reference.stderr.log"
+          },
+          {
+            "name": "lab_tests",
+            "command": [
+              "<project>/upstream-opendbc/.venv/bin/python",
+              "-m",
+              "unittest",
+              "discover",
+              "-s",
+              "tests",
+              "-v"
+            ],
+            "exit_code": 0,
+            "passed": true,
+            "stdout": "results/reference/lab_tests.stdout.log",
+            "stderr": "results/reference/lab_tests.stderr.log",
+            "tests_run": 56,
+            "skipped": 0
+          },
+          {
+            "name": "replay_tests",
+            "command": [
+              "<project>/upstream-opendbc/.venv/bin/python",
+              "-m",
+              "unittest",
+              "discover",
+              "-s",
+              "replay/tests",
+              "-v"
+            ],
+            "exit_code": 0,
+            "passed": true,
+            "stdout": "results/reference/replay_tests.stdout.log",
+            "stderr": "results/reference/replay_tests.stderr.log",
+            "tests_run": 26,
+            "skipped": 0
+          },
+          {
+            "name": "protocol_evidence",
+            "command": [
+              "<project>/upstream-opendbc/.venv/bin/python",
+              "spec/evidence_gate.py"
+            ],
+            "exit_code": 0,
+            "passed": true,
+            "stdout": "results/reference/protocol_evidence.stdout.log",
+            "stderr": "results/reference/protocol_evidence.stderr.log"
+          },
+          {
+            "name": "hardware_evidence",
+            "command": [
+              "<project>/upstream-opendbc/.venv/bin/python",
+              "hardware/verify_source_evidence.py"
+            ],
+            "exit_code": 0,
+            "passed": true,
+            "stdout": "results/reference/hardware_evidence.stdout.log",
+            "stderr": "results/reference/hardware_evidence.stderr.log"
+          },
+          {
+            "name": "synthetic_summary",
+            "command": [
+              "<project>/upstream-opendbc/.venv/bin/python",
+              "replay/canlog.py",
+              "summarize",
+              "--manifest",
+              "replay/fixtures/synthetic-can-data.manifest.json"
+            ],
+            "exit_code": 0,
+            "passed": true,
+            "stdout": "results/reference/synthetic_summary.stdout.log",
+            "stderr": "results/reference/synthetic_summary.stderr.log"
+          },
+          {
+            "name": "synthetic_decode",
+            "command": [
+              "<project>/upstream-opendbc/.venv/bin/python",
+              "-m",
+              "decoding.decoder",
+              "decoding/fixtures/synthetic-measurements.manifest.json",
+              "--profile",
+              "official_atto3_reference",
+              "--bus",
+              "0"
+            ],
+            "exit_code": 0,
+            "passed": true,
+            "stdout": "results/reference/synthetic_decode.stdout.log",
+            "stderr": "results/reference/synthetic_decode.stderr.log"
+          },
+          {
+            "name": "upstream_tests",
+            "command": [
+              "<project>/upstream-opendbc/.venv/bin/python",
+              "-m",
+              "unittest",
+              "opendbc.safety.tests.test_byd",
+              "opendbc.can.tests.test_packer_parser",
+              "opendbc.can.tests.test_dbc_parser"
+            ],
+            "exit_code": 0,
+            "passed": true,
+            "stdout": "results/reference/upstream_tests.stdout.log",
+            "stderr": "results/reference/upstream_tests.stderr.log",
+            "tests_run": 51,
+            "skipped": 4
+          }
+        ],
+        "tests_run_this_invocation": 133,
+        "tests_skipped_this_invocation": 4,
+        "upstream_tests_requested_this_invocation": true,
+        "initial_upstream_baseline": {
+          "tests_run": 51,
+          "skipped": 4,
+          "passed_excluding_skips": 47,
+          "exit_code": 0,
+          "log": "results/upstream-tests.log",
+          "log_sha256": "4f79a72febe8b5706001bcbdd5c4dc5941bbe820249abcf4efd7d72dfe66e531",
+          "modules": [
+            "opendbc.safety.tests.test_byd",
+            "opendbc.can.tests.test_packer_parser",
+            "opendbc.can.tests.test_dbc_parser"
+          ],
+          "scope": "Pinned official Atto3 safety and generic parser tests only; not Song vehicle or complete upstream suite"
+        },
+        "actuation_allowed": false,
+        "vehicle_compatibility": "unverified",
+        "hardware_compatibility": "unverified",
+        "meaning": "Host-side tests and evidence consistency only. Synthetic inputs do not confirm vehicle protocols."
+      }
+    },
+    {
+      "path": "results/upstream-current/validation-result.json",
+      "original_report_sha256": "e4eca4b2cbca03f8afd58ad400dc104807f0639311d7dae341484a680ceba0e2",
+      "report": {
+        "schema": "songplus-upstream-host-validation/v1",
+        "created_at_utc": "2026-10-17T16:59:21.121486+00:00",
+        "status": "PASS",
+        "scope": "official_minimal_macos_build_and_selected_official_tests",
+        "host": {
+          "system": "Darwin",
+          "machine": "arm64",
+          "platform": "macOS-26.5.2-arm64-arm-64bit-Mach-O"
+        },
+        "upstream_lock_sha256": "8ddb483e54d83a80490671cbcf4cd92a6af93a36e8c7f4b27d053e32eb012947",
+        "checks": [
+          {
+            "name": "source_lock_before",
+            "command": [
+              "<project>/upstream-openpilot/.venv/bin/python",
+              "<project>/tools/lock_upstream.py",
+              "--verify"
+            ],
+            "cwd": ".",
+            "remote_network_denied": true,
+            "exit_code": 0,
+            "status": "PASS",
+            "stdout_log": "results/upstream-current/source_lock_before.stdout.log",
+            "stdout_sha256": "6dfeda6c4ed95c0bbf318a8f498ac15e2c5c60d6e94a57d31f9afb84c833cc81",
+            "stderr_log": "results/upstream-current/source_lock_before.stderr.log",
+            "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "elapsed_seconds": 2.158
+          },
+          {
+            "name": "uv_version",
+            "command": [
+              "<project>/upstream-openpilot/.venv/bin/python",
+              "-c",
+              "import subprocess; v=subprocess.check_output(['<project>/.bootstrap/bin/uv', '--version'],text=True); print(v,end=''); assert v.split()[1]=='0.13.1', v"
+            ],
+            "cwd": "upstream-openpilot",
+            "remote_network_denied": true,
+            "exit_code": 0,
+            "status": "PASS",
+            "stdout_log": "results/upstream-current/uv_version.stdout.log",
+            "stdout_sha256": "6658beff8db55187a462eaf7bb608b2854822442671f7f6c33b0318c6eb521f6",
+            "stderr_log": "results/upstream-current/uv_version.stderr.log",
+            "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "elapsed_seconds": 0.054
+          },
+          {
+            "name": "frozen_environment_check",
+            "command": [
+              "<project>/.bootstrap/bin/uv",
+              "sync",
+              "--project",
+              "<project>/upstream-openpilot",
+              "--frozen",
+              "--all-extras",
+              "--check",
+              "--offline",
+              "--python",
+              "3.12.13"
+            ],
+            "cwd": "upstream-openpilot",
+            "remote_network_denied": true,
+            "exit_code": 0,
+            "status": "PASS",
+            "stdout_log": "results/upstream-current/frozen_environment_check.stdout.log",
+            "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "stderr_log": "results/upstream-current/frozen_environment_check.stderr.log",
+            "stderr_sha256": "1a13f489351987e3f05e1e5ad897a065e0997fe9bc282eb0953bb2b88fa70b19",
+            "elapsed_seconds": 0.026
+          },
+          {
+            "name": "python_environment",
+            "command": [
+              "<project>/upstream-openpilot/.venv/bin/python",
+              "-c",
+              "import importlib.metadata as m, json, pathlib, platform, sys\nassert platform.python_version() == pathlib.Path('.python-version').read_text().strip()\nprint(json.dumps({\"python\": sys.version, \"executable\": sys.executable,\n \"packages\": sorted([{\"name\": d.metadata[\"Name\"], \"version\": d.version} for d in m.distributions()], key=lambda d:d[\"name\"].lower())}, indent=2))"
+            ],
+            "cwd": "upstream-openpilot",
+            "remote_network_denied": true,
+            "exit_code": 0,
+            "status": "PASS",
+            "stdout_log": "results/upstream-current/python_environment.stdout.log",
+            "stdout_sha256": "0baddfb25e1f6fd67c1da86eaa0247bb1046cf64a5f0b99d57aebc089adec035",
+            "stderr_log": "results/upstream-current/python_environment.stderr.log",
+            "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "elapsed_seconds": 0.103
+          },
+          {
+            "name": "host_compilers",
+            "command": [
+              "<project>/upstream-openpilot/.venv/bin/python",
+              "-c",
+              "import json, subprocess\ncommands = [['clang', '--version'], ['xcodebuild', '-version'], ['xcrun', '--show-sdk-path'], ['arm-none-eabi-gcc', '--version']]\nprint(json.dumps([{ \"command\": c, \"output\": subprocess.check_output(c, text=True).strip() } for c in commands], indent=2))"
+            ],
+            "cwd": "upstream-openpilot",
+            "remote_network_denied": true,
+            "exit_code": 0,
+            "status": "PASS",
+            "stdout_log": "results/upstream-current/host_compilers.stdout.log",
+            "stdout_sha256": "6132382262326441f8078b26ca3acdddd8be842208dd744d12993629002c9dba",
+            "stderr_log": "results/upstream-current/host_compilers.stderr.log",
+            "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "elapsed_seconds": 0.213
+          },
+          {
+            "name": "offline_network_guard",
+            "command": [
+              "<project>/upstream-openpilot/.venv/bin/python",
+              "-c",
+              "import errno,socket; s=socket.socket(); s.settimeout(1); code=s.connect_ex(('203.0.113.1',443)); s.close(); assert code==errno.EPERM, code; print('remote network denied')"
+            ],
+            "cwd": "upstream-openpilot",
+            "remote_network_denied": true,
+            "exit_code": 0,
+            "status": "PASS",
+            "stdout_log": "results/upstream-current/offline_network_guard.stdout.log",
+            "stdout_sha256": "468ac6faeca0207970b454f1e362b621d5741b04c89c2a81e0e3b49f8ab370fc",
+            "stderr_log": "results/upstream-current/offline_network_guard.stderr.log",
+            "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "elapsed_seconds": 0.044
+          },
+          {
+            "name": "host_toolchain",
+            "status": "PASS",
+            "manifest_sha256": "c1dd7cb35883a4abe98077f8b0748cab98cbab184dc281f0d8ffb3f4a9a7cf88"
+          },
+          {
+            "name": "host_build",
+            "command": [
+              "<project>/upstream-openpilot/.venv/bin/scons",
+              "-j4",
+              "--minimal",
+              "--site-dir=<project>/tools/scons_site"
+            ],
+            "cwd": "upstream-openpilot",
+            "remote_network_denied": true,
+            "exit_code": 0,
+            "status": "PASS",
+            "stdout_log": "results/upstream-current/host_build.stdout.log",
+            "stdout_sha256": "9bc1fa7efd9dd38b0fe5d1ef7639d4ca1ddf5b4da599d1146ee315a0157291f8",
+            "stderr_log": "results/upstream-current/host_build.stderr.log",
+            "stderr_sha256": "e4184e1bac25994622d279f225d0bc460267f5503d587b7a5e1e077f91622af5",
+            "elapsed_seconds": 2.008
+          },
+          {
+            "name": "panda_h7_elf_size",
+            "command": [
+              "<project>/upstream-openpilot/.venv/bin/arm-none-eabi-size",
+              "panda/board/obj/panda_h7/main.elf",
+              "panda/board/obj/panda_h7/bootstub.elf",
+              "panda/board/obj/body_h7/main.elf",
+              "panda/board/obj/body_h7/bootstub.elf"
+            ],
+            "cwd": "upstream-openpilot",
+            "remote_network_denied": true,
+            "exit_code": 0,
+            "status": "PASS",
+            "stdout_log": "results/upstream-current/panda_h7_elf_size.stdout.log",
+            "stdout_sha256": "4a1ca48f86b4eb3475ec494fec757210c215b5fa55a31a013a2b80ef01dedc7f",
+            "stderr_log": "results/upstream-current/panda_h7_elf_size.stderr.log",
+            "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "elapsed_seconds": 0.046
+          },
+          {
+            "name": "local_build_outputs",
+            "status": "PASS",
+            "meaning": "Local development artifacts only; never installation or device-compatibility evidence",
+            "files": [
+              {
+                "path": "upstream-openpilot/panda/board/obj/panda_h7/main.elf",
+                "size": 417272,
+                "sha256": "0c8fc13aef4bc6b1528f29436b0e66f3144b5d777a17b5111627a0455eaeadb1"
+              },
+              {
+                "path": "upstream-openpilot/panda/board/obj/panda_h7/bootstub.elf",
+                "size": 153984,
+                "sha256": "558336414e2dac8f2744646ead65e766ecb640f92e055a347ab9a79f08c397d5"
+              },
+              {
+                "path": "upstream-openpilot/panda/board/obj/body_h7/main.elf",
+                "size": 423040,
+                "sha256": "950f2f7aa4072e5d3f55247fb89539792685b8197ade982482bf534ff8cdaad4"
+              },
+              {
+                "path": "upstream-openpilot/panda/board/obj/body_h7/bootstub.elf",
+                "size": 109528,
+                "sha256": "1aa8d7d94588a0e6f581703bb47ac0a15f5fc14fba97184d93bbd2e74e0a5e92"
+              },
+              {
+                "path": "upstream-openpilot/panda/board/obj/panda_h7.bin.signed",
+                "size": 79184,
+                "sha256": "6d1ab7b388087822aed81dcb924815fdd4bac6b05b3eb38c449f88abdfbdb1fc"
+              },
+              {
+                "path": "upstream-openpilot/panda/board/obj/body_h7.bin.signed",
+                "size": 78592,
+                "sha256": "11d6021e87555c1f184e1d1a797f7bd5bb1f2d9ce75c66277cf32f126d68894e"
+              },
+              {
+                "path": "upstream-openpilot/openpilot/selfdrive/modeld/models/dm_warp_1344x760_tinygrad.pkl",
+                "size": 1415770,
+                "sha256": "2a3cead3ed0a72df00ea9941ec37d257ec170948108e63818c3a12574186a719"
+              },
+              {
+                "path": "upstream-openpilot/openpilot/selfdrive/modeld/models/dm_warp_1928x1208_tinygrad.pkl",
+                "size": 1415770,
+                "sha256": "5b61c284da3244863ef80419ab5eae294de6bb53e708882a1c10305bb9416c65"
+              },
+              {
+                "path": "upstream-openpilot/openpilot/selfdrive/modeld/models/dmonitoring_model_tinygrad.pkl",
+                "size": 9433277,
+                "sha256": "f526a063cfcf2f2756f5922e9ac3646dd3824bc1b77def597ca9207b1801bf6a"
+              },
+              {
+                "path": "upstream-openpilot/openpilot/selfdrive/modeld/models/driving_tinygrad.pkl",
+                "size": 63358185,
+                "sha256": "ba9ba6e4ee4d3fae99a919aa289f6d5f3f9cd15d3eb9be570c9920891c4a64d1"
+              },
+              {
+                "path": "upstream-openpilot/openpilot/selfdrive/modeld/models/driving_warp_1344x760_tinygrad.pkl",
+                "size": 882559,
+                "sha256": "48a325d138acde8a8d531d003c355c37cbc4e342126798e431f09bacc897bc9d"
+              },
+              {
+                "path": "upstream-openpilot/openpilot/selfdrive/modeld/models/driving_warp_1928x1208_tinygrad.pkl",
+                "size": 882511,
+                "sha256": "a464a360ec206a747165128d13d4554d112c213a80e86f94d10ccfc193f9b5a0"
+              }
+            ]
+          },
+          {
+            "name": "opendbc_tests",
+            "command": [
+              "<project>/upstream-openpilot/.venv/bin/python",
+              "-m",
+              "unittest",
+              "-v",
+              "opendbc.safety.tests.test_byd",
+              "opendbc.can.tests.test_packer_parser",
+              "opendbc.can.tests.test_dbc_parser"
+            ],
+            "cwd": "upstream-openpilot",
+            "remote_network_denied": true,
+            "exit_code": 0,
+            "status": "PASS",
+            "tests_run": 51,
+            "tests_skipped": 4,
+            "tests_passed": 47,
+            "skip_details": [
+              "test_allow_user_regen_at_zero_speed (opendbc.safety.tests.test_byd.TestBydSafety.test_allow_user_regen_at_zero_speed) ... skipped 'Safety mode implements no _user_regen_msg'",
+              "test_not_allow_user_regen_when_moving (opendbc.safety.tests.test_byd.TestBydSafety.test_not_allow_user_regen_when_moving) ... skipped 'Safety mode implements no _user_regen_msg'",
+              "test_prev_user_regen (opendbc.safety.tests.test_byd.TestBydSafety.test_prev_user_regen) ... skipped 'Safety mode implements no _user_regen_msg'",
+              "test_rx_hook_speed_mismatch (opendbc.safety.tests.test_byd.TestBydSafety.test_rx_hook_speed_mismatch) ... skipped 'No second speed message for this safety mode'"
+            ],
+            "stdout_log": "results/upstream-current/opendbc_tests.stdout.log",
+            "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "stderr_log": "results/upstream-current/opendbc_tests.stderr.log",
+            "stderr_sha256": "5d258d9ae1d5760b194769f86f1ea97266a6720ef34d437f8d0a9f055018df52",
+            "elapsed_seconds": 1.578
+          },
+          {
+            "name": "openpilot_tests",
+            "command": [
+              "<project>/upstream-openpilot/.venv/bin/python",
+              "-m",
+              "unittest",
+              "-v",
+              "openpilot.common.tests.test_file_helpers",
+              "openpilot.common.tests.test_markdown",
+              "openpilot.common.tests.test_params",
+              "openpilot.common.tests.test_qrcode",
+              "openpilot.common.tests.test_simple_kalman",
+              "openpilot.selfdrive.controls.tests.test_longcontrol",
+              "openpilot.selfdrive.controls.tests.test_latcontrol",
+              "openpilot.selfdrive.controls.tests.test_latcontrol_torque_buffer",
+              "openpilot.selfdrive.controls.tests.test_torqued_lat_accel_offset",
+              "openpilot.selfdrive.car.tests.test_cruise_speed",
+              "openpilot.selfdrive.selfdrived.tests.test_state_machine",
+              "openpilot.selfdrive.selfdrived.tests.test_alertmanager",
+              "openpilot.selfdrive.selfdrived.tests.test_alerts"
+            ],
+            "cwd": "upstream-openpilot",
+            "remote_network_denied": true,
+            "exit_code": 0,
+            "status": "PASS",
+            "tests_run": 69,
+            "tests_skipped": 6,
+            "tests_passed": 63,
+            "skip_details": [
+              "test_cruise_speed (openpilot.selfdrive.car.tests.test_cruise_speed.TestCruiseSpeed.test_cruise_speed) ... skipped 'parameterized base class'",
+              "Asserts speed changes on falling edges of buttons. ... skipped 'parameterized base class'",
+              "Asserts allowed cruise speeds on enabling with SET. ... skipped 'parameterized base class'",
+              "Asserts we don't increment set speed if user presses resume/accel to exit cruise standstill. ... skipped 'parameterized base class'",
+              "Some car interfaces may enable on rising edge of a button, ... skipped 'parameterized base class'",
+              "Asserts pressing set while enabled with gas pressed sets ... skipped 'parameterized base class'"
+            ],
+            "stdout_log": "results/upstream-current/openpilot_tests.stdout.log",
+            "stdout_sha256": "24cce1fe2c13816b66d1abe78da35b40552f4d0b41401bb83fefa730739fa92a",
+            "stderr_log": "results/upstream-current/openpilot_tests.stderr.log",
+            "stderr_sha256": "3669847b76c9dea28af7e456d0cbca1b1a9e4ebac15c5b431907760d2bd053ac",
+            "elapsed_seconds": 4.611
+          },
+          {
+            "name": "mpc_tests",
+            "command": [
+              "<project>/upstream-openpilot/.venv/bin/python",
+              "-m",
+              "unittest",
+              "-v",
+              "openpilot.selfdrive.controls.tests.test_following_distance"
+            ],
+            "cwd": "upstream-openpilot",
+            "remote_network_denied": true,
+            "exit_code": 0,
+            "status": "PASS",
+            "tests_run": 10,
+            "tests_skipped": 1,
+            "tests_passed": 9,
+            "skip_details": [
+              "test_following_distance (openpilot.selfdrive.controls.tests.test_following_distance.TestFollowingDistance.test_following_distance) ... skipped 'parameterized base class'"
+            ],
+            "stdout_log": "results/upstream-current/mpc_tests.stdout.log",
+            "stdout_sha256": "b88800333cfa1dc59b32c71d458d48e90c10426f6c53d595b665a92e192cbf04",
+            "stderr_log": "results/upstream-current/mpc_tests.stderr.log",
+            "stderr_sha256": "8d13b3dccfd3d32f7df1c391b58cdb79acb51e6804cad66dc2848e3a79dc2309",
+            "elapsed_seconds": 6.994
+          },
+          {
+            "name": "source_lock_after",
+            "command": [
+              "<project>/upstream-openpilot/.venv/bin/python",
+              "<project>/tools/lock_upstream.py",
+              "--verify"
+            ],
+            "cwd": ".",
+            "remote_network_denied": true,
+            "exit_code": 0,
+            "status": "PASS",
+            "stdout_log": "results/upstream-current/source_lock_after.stdout.log",
+            "stdout_sha256": "6dfeda6c4ed95c0bbf318a8f498ac15e2c5c60d6e94a57d31f9afb84c833cc81",
+            "stderr_log": "results/upstream-current/source_lock_after.stderr.log",
+            "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "elapsed_seconds": 2.259
+          }
+        ],
+        "tests_run": 130,
+        "tests_skipped": 11,
+        "tests_passed": 119,
+        "network": "Remote outbound network denied by macOS sandbox; local IPC/localhost allowed. Bootstrap is a separate online action.",
+        "panda_build_configuration": "Official default development build: debug signature and ALLOW_DEBUG; no production/release or installed-board compatibility claim",
+        "not_validated": [
+          "C3XL/AGNOS kernel, camera, ISP, QCOM GPU and realtime performance",
+          "Linux/AGNOS camerad and pandad binaries (excluded by official Darwin build), desktop extras omitted by --minimal",
+          "Song PLUS protocol, actuation, vehicle controller or vehicle-specific safety",
+          "Installed Panda MCU/board identity and firmware compatibility (upstream builds H7 only)",
+          "Firmware flashing, bootstub replacement, system installation or device recovery",
+          "Complete upstream test suite, hardware-in-loop tests or on-road validation"
+        ],
+        "actuation_allowed": false,
+        "device_accessed": false,
+        "services_started": false
+      }
+    }
+  ],
+  "test_totals": {
+    "research_tools": {
+      "run": 82,
+      "passed": 82,
+      "skipped": 0
+    },
+    "historical_official_reference": {
+      "run": 51,
+      "passed": 47,
+      "skipped": 4
+    },
+    "current_official_target": {
+      "run": 130,
+      "passed": 119,
+      "skipped": 11
+    },
+    "note": "Separate executions on two pinned baselines; historical research experiments were not rerun."
+  },
+  "validation_environment": "Remote outbound network denied for build and test subprocesses; local IPC allowed. Preparation downloaded dependencies before offline validation.",
+  "additional_checks": {
+    "bootstrap_shell_syntax": "PASS",
+    "github_workflow_yaml_syntax": "PASS",
+    "llvm_cached_rebuild": "PASS; independently verified by build worker",
+    "bootstrap_end_to_end": "PASS; bash tools/bootstrap_host.sh after local LFS filter/no-bin fix",
+    "isolated_staged_snapshot": "PASS; research/hardware verifiers, 10 portability tests and 9 source-lock tests; no legacy README/validate/capture-plan or neighboring archives",
+    "staged_content_review": "PASS; no device address, private key, device configuration, binary or large archive found in staged files"
+  },
+  "unvalidated": [
+    "C3XL runtime and Linux/AGNOS camera/pandad",
+    "Actual Panda/DOS MCU board compatibility, including F4",
+    "Song PLUS vehicle protocol, control and safety",
+    "AGNOS partition images, installation and recovery",
+    "Entire upstream test suite",
+    "Fresh full build on a second machine",
+    "GitHub Actions execution"
+  ],
+  "device_connection": false,
+  "can_transmit": false,
+  "firmware_flashed": false,
+  "deployment_ready": false,
+  "artifact_note": "Raw logs, local compiled models and development MCU binaries are ignored. Their hashes are recorded here; firmware is not a release artifact. Absolute project paths are normalized to <project> in this portable report.",
+  "device_system_modified": false
+}
