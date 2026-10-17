@@ -22,8 +22,10 @@ Flagship PLUS, with the user's existing Mr One C3XL and Panda hardware.
 ## Current execution boundary
 
 - The current user request authorizes local implementation and offline acceptance
-  of P0/P1 from the frozen DOS/USB design: unbound profile, identity/roles, mock
-  transport, version/health/CAN codecs. Maintain an explicit downstream branch
+  of P2 on the completed P0/P1 patches: USB/SPI abstraction, explicit USB
+  backend, preserved original SPI path and offline transport/regression tests.
+  Local Linux build preparation is separate from network-denied validation.
+  Maintain an explicit downstream branch
   and independent patches against the locked baseline; keep the official
   checkout unchanged. No device access, Panda constructors, firmware/OS changes,
   slot switching, reset, flashing, real CAN TX or active pandad integration.

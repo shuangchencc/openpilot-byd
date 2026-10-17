@@ -1,0 +1,55 @@
+{
+  "schema": "songplus-p2-host-dependencies/v1",
+  "preparation_separate_from_offline_validation": true,
+  "macos": {
+    "libusb_version": "1.0.30",
+    "origin": "pre-existing Homebrew installation",
+    "usb_include": "/opt/homebrew/Cellar/libusb/1.0.30/include/libusb-1.0",
+    "usb_library": "/opt/homebrew/Cellar/libusb/1.0.30/lib/libusb-1.0.0.dylib",
+    "files": [
+      {
+        "path": "/opt/homebrew/Cellar/libusb/1.0.30/include/libusb-1.0/libusb.h",
+        "sha256": "a61260ab145b051b86df2b0575956f01810190abe2c7df6aca831c33bdc8082c"
+      },
+      {
+        "path": "/opt/homebrew/Cellar/libusb/1.0.30/lib/libusb-1.0.0.dylib",
+        "sha256": "c083aa7f842e0fc061c9306b5b65ec036ae5f95a8dd29cf70e8faace3f06775f"
+      }
+    ]
+  },
+  "linux": {
+    "distribution": "Debian 12 bookworm arm64",
+    "libusb_version": "2:1.0.26-1",
+    "origin": "Debian official package archive, apt-get download into task-local prefix; no system installation",
+    "packages": [
+      {
+        "name": "libusb-1.0-0-dev",
+        "sha256": "74a2ebfb4796323ea710e47c1f25fe09d05d6e3bfb1dd71007776a80f18441ec"
+      },
+      {
+        "name": "libusb-1.0-0",
+        "sha256": "e0648086b231c9204514d31480d517cb1b51e301ac39e69335a67d01ec785608"
+      }
+    ],
+    "files": [
+      {
+        "path": "usr/include/libusb-1.0/libusb.h",
+        "sha256": "ca94b99bf4ca9c588804eb0b2187f237a165d80b22054a27608abee3280b8eb0"
+      },
+      {
+        "path": "usr/lib/aarch64-linux-gnu/libusb-1.0.so.0.3.0",
+        "sha256": "68e5f56b93ee03b203fa59eb9785075b11703b38b27a273a27bc73da7ffc5847"
+      }
+    ],
+    "build_environment": {
+      "kind": "local Lima VZ aarch64 VM; no USB passthrough",
+      "compiler_observed": "g++ (Debian 12.2.0-14+deb12u1) 12.2.0",
+      "zlib_dev_observed": "1:1.2.13.dfsg-1",
+      "libudev_observed": "252.39-1~deb12u2",
+      "base_image": "https://cloud.debian.org/images/cloud/bookworm/20260923-2610/debian-12-genericcloud-arm64-20260923-2610.qcow2",
+      "base_image_sha512": "89a752d5c7d8e88bee39a57d88d496cca574f7d1e8df5df7a169825435f99feb11ed13ab27ec7bee96fe1584be4ff9479358fbca6cc859efa109f4aba18724c8"
+    }
+  },
+  "target_runtime_dependency_locked": false,
+  "note": "These pin offline build dependencies only. Device libusb packaging/AGNOS integration remains later work."
+}

@@ -1,0 +1,85 @@
+{
+  "schema": "songplus-panda-p2-acceptance-map/v1",
+  "cases": [
+    {
+      "id": "A20",
+      "required_groups": {
+        "transport": [
+          "exact_read_and_zero_payload_control_write",
+          "short_read_and_fragment_boundaries_are_preserved",
+          "failed_and_uncertain_writes_are_never_replayed_and_poison_session",
+          "confirmed_prefix_survives_unknown_later_chunk_delivery"
+        ],
+        "usb_backend": [
+          "bulk_short_read_and_write",
+          "partial_timeout_preserves_data",
+          "control_read_write_and_unknown_count",
+          "error_classes_and_no_replay",
+          "stream_fragments_at_usb_packet_boundary",
+          "impossible_actual_poisoned"
+        ]
+      },
+      "scope": "Exact results, no write replay, USB-to-P1 parser fragments with fake IO."
+    },
+    {
+      "id": "A21",
+      "required_groups": {
+        "transport": [
+          "blocked_board_does_not_block_other_board_or_mix_bytes",
+          "same_board_contender_wait_is_bounded_without_queueing_io",
+          "disconnect_stall_and_poison_are_session_local"
+        ],
+        "usb_backend": [
+          "separate_handles_progress_during_blocked_peer",
+          "two_session_parsers_do_not_mix_and_peer_survives_disconnect"
+        ]
+      },
+      "scope": "Per-handle progress/isolation; group validity/routing is P3/P4."
+    },
+    {
+      "id": "A22",
+      "required_groups": {
+        "spi_backend": [
+          "successful_wire_and_short_read",
+          "fragmented_bulk_write",
+          "fragmented_large_read",
+          "nack_no_replay",
+          "wrapper_does_not_retry_consuming_read"
+        ]
+      },
+      "scope": "5 independent pinned-header/zlib goldens; original SPI sources unchanged; intentional bounded error semantics."
+    },
+    {
+      "id": "A23",
+      "required_groups": {
+        "native_link": []
+      },
+      "scope": "macOS portable/native USB link and Linux full USB/SPI transport link, ASan/UBSan. Not full active pandad build or target-device ABI."
+    },
+    {
+      "id": "A24",
+      "required_groups": {
+        "transport": [
+          "deadline_minus_one_exact_and_plus_one_preserve_late_counts",
+          "submillisecond_remaining_budget_does_not_round_up",
+          "cancellation_before_during_after_and_between_retries_is_permanent",
+          "backward_or_wrapped_clock_fails_closed_without_losing_actual",
+          "nonadvancing_clock_does_not_create_unbounded_retry_loop",
+          "lock_release_deadline_minus_one_exact_plus_one"
+        ],
+        "timing_budget": [
+          "health_age_boundaries_wrap",
+          "heartbeat_boundaries_wrap",
+          "future_missing_rejected",
+          "queue_capacity_boundaries"
+        ],
+        "spi_backend": [
+          "bounded_poll_timeout_and_wrap",
+          "cancel_boundaries",
+          "deadline_before_next_request"
+        ]
+      },
+      "scope": "Frozen transport budgets tested with fake clock. Health/heartbeat/queue pure policy tested only; live scheduling/group barrier P3/P4. No hard kernel timing claim."
+    }
+  ]
+}

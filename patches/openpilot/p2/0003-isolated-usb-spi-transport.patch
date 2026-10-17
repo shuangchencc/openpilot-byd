@@ -1,0 +1,2616 @@
+From 40d436c8e781b1c2779dd945b73f77225216512e Mon Sep 17 00:00:00 2001
+From: scarvito <7883167+scarvito@user.noreply.gitee.com>
+Date: Sun, 18 Oct 2026 02:25:46 +0800
+Subject: [PATCH] pandad: add isolated USB/SPI transport backends and offline
+ fault tests
+
+---
+ .../selfdrive/pandad/compatibility/README.md  |  50 +-
+ .../pandad/compatibility/TIMING-BUDGET.md     |  38 ++
+ .../pandad/compatibility/libusb_api.cc        | 128 ++++++
+ .../pandad/compatibility/libusb_api.h         |  69 +++
+ .../pandad/compatibility/linux_spi_io.cc      |  95 ++++
+ .../pandad/compatibility/linux_spi_io.h       |  31 ++
+ .../pandad/compatibility/spi_backend.cc       | 163 +++++++
+ .../pandad/compatibility/spi_backend.h        |  55 +++
+ .../tests/spi_reference_probe.cc              |  61 +++
+ .../compatibility/tests/test_native_link.cc   |  20 +
+ .../compatibility/tests/test_spi_backend.cc   | 429 ++++++++++++++++++
+ .../compatibility/tests/test_timing_budget.cc |  33 ++
+ .../compatibility/tests/test_transport.cc     | 407 +++++++++++++++++
+ .../compatibility/tests/test_usb_backend.cc   | 334 ++++++++++++++
+ .../pandad/compatibility/timing_budget.h      |  36 ++
+ .../pandad/compatibility/transport.cc         | 200 ++++++++
+ .../pandad/compatibility/transport.h          | 103 +++++
+ .../pandad/compatibility/usb_backend.cc       | 143 ++++++
+ .../pandad/compatibility/usb_backend.h        |  49 ++
+ 19 files changed, 2441 insertions(+), 3 deletions(-)
+ create mode 100644 openpilot/selfdrive/pandad/compatibility/TIMING-BUDGET.md
+ create mode 100644 openpilot/selfdrive/pandad/compatibility/libusb_api.cc
+ create mode 100644 openpilot/selfdrive/pandad/compatibility/libusb_api.h
+ create mode 100644 openpilot/selfdrive/pandad/compatibility/linux_spi_io.cc
+ create mode 100644 openpilot/selfdrive/pandad/compatibility/linux_spi_io.h
+ create mode 100644 openpilot/selfdrive/pandad/compatibility/spi_backend.cc
+ create mode 100644 openpilot/selfdrive/pandad/compatibility/spi_backend.h
+ create mode 100644 openpilot/selfdrive/pandad/compatibility/tests/spi_reference_probe.cc
+ create mode 100644 openpilot/selfdrive/pandad/compatibility/tests/test_native_link.cc
+ create mode 100644 openpilot/selfdrive/pandad/compatibility/tests/test_spi_backend.cc
+ create mode 100644 openpilot/selfdrive/pandad/compatibility/tests/test_timing_budget.cc
+ create mode 100644 openpilot/selfdrive/pandad/compatibility/tests/test_transport.cc
+ create mode 100644 openpilot/selfdrive/pandad/compatibility/tests/test_usb_backend.cc
+ create mode 100644 openpilot/selfdrive/pandad/compatibility/timing_budget.h
+ create mode 100644 openpilot/selfdrive/pandad/compatibility/transport.cc
+ create mode 100644 openpilot/selfdrive/pandad/compatibility/transport.h
+ create mode 100644 openpilot/selfdrive/pandad/compatibility/usb_backend.cc
+ create mode 100644 openpilot/selfdrive/pandad/compatibility/usb_backend.h
+
+diff --git a/openpilot/selfdrive/pandad/compatibility/README.md b/openpilot/selfdrive/pandad/compatibility/README.md
+index 5f3b096..0a943d9 100644
+--- a/openpilot/selfdrive/pandad/compatibility/README.md
++++ b/openpilot/selfdrive/pandad/compatibility/README.md
+@@ -1,8 +1,8 @@
+-# Offline dual-Panda contracts and codecs (P0/P1)
++# Offline dual-Panda contracts and codecs (P0/P1/P2)
+ 
+ Standalone Python standard-library contracts and C++17 CAN codecs against
+ openpilot `35e78a9d`, panda `a5919516`, opendbc `b3bd79a6`. This package is not
+-imported by the active pandad and contains no device backend or installer.
++imported by the active pandad. P2 adds explicit native backends, without a runtime factory or installer.
+ 
+ `profiles/unbound.json` loads with every identity/role unset and every permission
+ false. Registry fixtures must explicitly use synthetic identities and supported
+@@ -39,7 +39,51 @@ missing fixtures fail, never skip. The probe includes the pinned Panda `board/`
+ and opendbc repository headers and reports host ABI only. Tests never import
+ Panda, discover devices, compile MCU firmware or start the original pandad.
+ 
+-P2–P7 still own real USB/SPI backends, runtime integration, connection epochs,
++P3–P7 still own runtime integration, connection epochs,
+ whole-group freshness/safety barriers, F4 firmware, system-level fault handling
+ and deployment packaging. Existing pandad startup/flash behavior is unchanged
+ because this isolated package is not connected to that entry point.
++
++## P2 transport contract
++
++`transport.h/.cc` wraps a caller-owned backend and clock with a per-session lock,
++finite deadline and permanent cooperative cancellation. Results preserve actual
++bytes, confirmed prefixes, unknown remaining progress and the adapter's original
++status. Short reads return immediately; only known-zero-byte read timeouts can
++retry. Writes never replay, including after short completion, timeout or cancel.
++Uncertain/error writes poison that session; another board is never selected as
++fallback. One backend/clock/parser belongs to one session and must outlive callers.
++
++`usb_backend` selects a normal-firmware Panda by exact bound serial and DOS/RED
++software type, rejects ambiguity, and checks active configuration descriptors for
++interface0/alt0 bulk endpoints 0x81/0x03. It excludes bootstub/DFU and never detaches
++a driver, resets, clears halt or changes USB configuration/alternate setting.
++Construction and default `open_bound` are inert. Explicit device permission AND
++`bulk_alt0_verified=true` are required before enumeration. This flag is a future
++caller's evidence requirement, not proof from descriptors: the pinned firmware
++implements SET_INTERFACE but lacks GET_INTERFACE. No P0 profile can currently
++activate this C++ library, and actual alternate state remains unverified.
++
++`libusb_api` is real libusb code behind an injectable API. Every backend owns its
++context/handle. Native opening/claiming is outside the transfer-time contract.
++Tests inject a fake API; the native link smoke test only constructs an unopened
++object and exercises rejected default opening.
++
++`spi_backend` preserves successful current wire requests (4096-byte envelope,
++9-byte header, 7-byte reply header, little-endian ID and CRC32; 4032-byte chunks,
++first read1013). It emits each chunk once and never resends an uncertain request,
++including reads that may already have consumed the MCU queue. NACK returns Busy.
++The old concrete SPI files and active pandad path remain byte-identical. The new
++SPI adapter intentionally replaces old infinite/retry behavior with bounded
++errors; it does not claim error-path equivalence. No USB fallback exists.
++`linux_spi_io` links the real spidev syscalls and nonblocking flock, but has an
++inert constructor. Explicit open configures mode/bits/speed; it is never called
++by acceptance. A synchronous kernel ioctl cannot be forcibly cancelled here.
++
++The frozen budget table is `TIMING-BUDGET.md`. `timing_budget.h` is pure candidate
++health/heartbeat/queue policy; actual scheduler and whole-group barrier wiring
++remain P3/P4. Passing fake-clock tests is not a real-time hardware guarantee.
++The engineering validator `tools/validate_panda_transport.py` cleanly composes
++P0/P1/P2 patches, reruns P0/P1, and builds/tests P2 on macOS and Linux under
++network/device-node isolation. Linux includes real libusb and spidev linkage;
++it is a standalone transport target, not a full active pandad daemon build.
+diff --git a/openpilot/selfdrive/pandad/compatibility/TIMING-BUDGET.md b/openpilot/selfdrive/pandad/compatibility/TIMING-BUDGET.md
+new file mode 100644
+index 0000000..dd0d417
+--- /dev/null
++++ b/openpilot/selfdrive/pandad/compatibility/TIMING-BUDGET.md
+@@ -0,0 +1,38 @@
++# P2 candidate timing and resource budgets
++
++All times below are host monotonic microseconds unless marked ms. Freeze v1,
++2026-10-18, against openpilot35e78a9d/pandaa5919516. Numbers are candidate host
++policy, not measured C3XL/F4 performance. No live scheduler is installed.
++
++| Path | Bound / threshold | Rationale and tested behavior |
++| --- | --- | --- |
++| Request read/write | caller1..100ms | finite replacement for timeout0/infinite; illegal0/101 rejected before backend |
++| Backend slice | at most5ms | pinned `panda.cc` CAN-send uses5ms; leaves scheduling opportunities within100Hz loop |
++| Lock wait | min(request budget,10ms) | one pinned pandad100Hz period; bounded Busy instead of shared-board blocking |
++| Wait quantum | at most1ms | cancellation and immediate-zero-timeout retry pacing; no busy loop |
++| Cancellation | next boundary; cooperative≤5ms while in backend,≤1ms waiting | permanent local atomic cancellation; no handle close/reset to interrupt IO; fake-clock bound only |
++| In-flight / pending queue | 1 / 0 | no accumulated commands or automatic replay; contenders only wait within lock budget; no FIFO fairness claim |
++| Control / bulk allocation | 4096 /16384 bytes | explicit bounded caller input; SPI control maximum4032 |
++| SPI envelope / chunk / first RX | 4096 /4032 /1013 bytes | locked original `panda_comms.h` and `spi.cc`, not historical2048-byte format |
++| SPI poll | ≤32 polls, waits≤100us, shared≤5ms deadline | finite even when fake time stops; polling reply does not resend request |
++| Health polling / maximum age | 100000 /250000 | `pandad.cc`100Hz with health every10frames; candidate allows two periods plus50ms margin; missing/future/age≥250000 invalid |
++| Heartbeat due / overdue | 100000 /250000 | same original10Hz scheduling; candidate host overdue threshold; NOT the MCU SILENT timeout |
++
++Request/backend/lock/deadline/cancel tests cover threshold−1, threshold,
++threshold+1 and exhausted/sub-millisecond remainder. Core clock wrap or backwards
++motion fails closed; SPI elapsed subtraction tolerates uint64 wrap, and outer
++Transport still rejects a backwards observation. Frozen pure age policy tolerates
++one uint64 wrap with elapsed<2^63 and rejects future/ambiguous samples. These are
++explicit contracts, not an assumption that all clocks have identical wrap policy.
++
++Health and heartbeat tests exercise pure policy only. P3/P4 must actually apply
++the thresholds to collected samples, scheduling, Event validity and group TX
++barriers; they do not authorize heartbeats or safety-mode commands in P2. No
++buffer from one handle is used by its sibling, but a failed required handle must
++still invalidate the whole control group during later integration.
++
++Native libusb open/claim and Linux spidev ioctl may exceed caller expectations
++inside OS/driver code. The wrapper detects late completion and preserves counts;
++it cannot preempt a stuck syscall. Offline evidence proves bounded algorithmic
++attempts and cooperative cancellation with compliant fake IO. Hardware timing,
++shutdown under a stuck driver, power loss and MCU heartbeat/SILENT remain untested.
+diff --git a/openpilot/selfdrive/pandad/compatibility/libusb_api.cc b/openpilot/selfdrive/pandad/compatibility/libusb_api.cc
+new file mode 100644
+index 0000000..9db86bb
+--- /dev/null
++++ b/openpilot/selfdrive/pandad/compatibility/libusb_api.cc
+@@ -0,0 +1,128 @@
++#include "libusb_api.h"
++
++#include <array>
++#include <utility>
++
++#include <libusb.h>
++
++namespace openpilot::pandad::compatibility {
++namespace {
++static_assert(LIBUSB_ERROR_TIMEOUT == kUsbTimeout && LIBUSB_ERROR_PIPE == kUsbPipe);
++static_assert(LIBUSB_ERROR_NO_DEVICE == kUsbNoDevice && LIBUSB_ERROR_INTERRUPTED == kUsbInterrupted);
++
++class NativeLibusbApi final : public LibusbApi {
++public:
++  ~NativeLibusbApi() override { shutdown(); }
++  int initialize() override {
++    if (context_) return kUsbBusy;
++    return libusb_init(&context_);
++  }
++  int enumerate(std::vector<UsbDeviceInfo> &devices) override {
++    if (!context_) return kUsbInvalid;
++    devices.clear();
++    libusb_device **list = nullptr;
++    const auto count = libusb_get_device_list(context_, &list);
++    if (count < 0) return static_cast<int>(count);
++    int result = kUsbSuccess;
++    for (decltype(count + 0) i = 0; i < count; ++i) {
++      libusb_device_descriptor desc{};
++      const int read_result = libusb_get_device_descriptor(list[i], &desc);
++      if (read_result != 0) { result = read_result; break; }
++      // Retain only normal-firmware Panda candidates. Bootstub and DFU are not
++      // opened, and unconfigured devices are reported without usable endpoints.
++      if ((desc.idVendor != 0xbbaa && desc.idVendor != 0x3801) || desc.idProduct != 0xddcc) continue;
++      UsbDeviceInfo info;
++      info.id = reinterpret_cast<UsbDeviceId>(libusb_ref_device(list[i]));
++      retained_.push_back(reinterpret_cast<libusb_device *>(info.id));
++      info.vendor = desc.idVendor;
++      info.product = desc.idProduct;
++      info.bcd_device = desc.bcdDevice;
++      info.serial_index = desc.iSerialNumber;
++      libusb_config_descriptor *config = nullptr;
++      if (libusb_get_active_config_descriptor(list[i], &config) == 0) {
++        info.active_configuration_known = true;
++        for (int n = 0; n < config->bNumInterfaces; ++n) {
++          const auto &interface = config->interface[n];
++          for (int a = 0; a < interface.num_altsetting; ++a) {
++            const auto &alt = interface.altsetting[a];
++            UsbAlternate item{alt.bInterfaceNumber, alt.bAlternateSetting, {}};
++            for (int e = 0; e < alt.bNumEndpoints; ++e) {
++              const auto &endpoint = alt.endpoint[e];
++              item.endpoints.push_back({endpoint.bEndpointAddress, endpoint.bmAttributes, endpoint.wMaxPacketSize});
++            }
++            info.alternates.push_back(std::move(item));
++          }
++        }
++        libusb_free_config_descriptor(config);
++      }
++      devices.push_back(std::move(info));
++    }
++    libusb_free_device_list(list, 1);
++    return result;
++  }
++  int open(UsbDeviceId device, UsbHandle &handle) override {
++    handle = 0;
++    libusb_device_handle *opened = nullptr;
++    const int result = libusb_open(reinterpret_cast<libusb_device *>(device), &opened);
++    if (result == 0) handle = reinterpret_cast<UsbHandle>(opened);
++    return result;
++  }
++  int serial(UsbHandle handle, std::uint8_t index, std::string &value,
++             std::uint32_t timeout_ms) override {
++    value.clear();
++    if (index == 0) return kUsbInvalid;
++    // libusb_get_string_descriptor_ascii uses an internal 1000ms timeout.
++    // Read LANGID and UTF-16LE descriptors explicitly with the requested slice.
++    std::array<unsigned char, 255> buffer{};
++    auto *native = reinterpret_cast<libusb_device_handle *>(handle);
++    int count = libusb_control_transfer(native, 0x80, LIBUSB_REQUEST_GET_DESCRIPTOR,
++                                       LIBUSB_DT_STRING << 8, 0, buffer.data(), buffer.size(), timeout_ms);
++    if (count < 0) return count;
++    if (count < 4 || buffer[1] != LIBUSB_DT_STRING || buffer[0] < 4 || buffer[0] != count || (buffer[0] & 1)) return kUsbIo;
++    const auto language = static_cast<std::uint16_t>(buffer[2] | (buffer[3] << 8));
++    count = libusb_control_transfer(native, 0x80, LIBUSB_REQUEST_GET_DESCRIPTOR,
++                                   static_cast<std::uint16_t>((LIBUSB_DT_STRING << 8) | index),
++                                   language, buffer.data(), buffer.size(), timeout_ms);
++    if (count < 0) return count;
++    if (count < 2 || buffer[1] != LIBUSB_DT_STRING || buffer[0] < 2 || buffer[0] != count || (buffer[0] & 1)) return kUsbIo;
++    for (int n = 2; n < buffer[0]; n += 2) {
++      if (buffer[n + 1] != 0 || buffer[n] < 33 || buffer[n] > 126) return kUsbIo;
++      value.push_back(static_cast<char>(buffer[n]));
++    }
++    return value.empty() ? kUsbIo : kUsbSuccess;
++  }
++  int claim(UsbHandle handle, int interface_number) override {
++    return libusb_claim_interface(reinterpret_cast<libusb_device_handle *>(handle), interface_number);
++  }
++  int control(UsbHandle handle, std::uint8_t type, std::uint8_t request,
++              std::uint16_t value, std::uint16_t index, std::uint8_t *data,
++              std::uint16_t length, std::uint32_t timeout_ms) override {
++    return libusb_control_transfer(reinterpret_cast<libusb_device_handle *>(handle), type,
++                                    request, value, index, data, length, timeout_ms);
++  }
++  int bulk(UsbHandle handle, std::uint8_t endpoint, std::uint8_t *data,
++           int length, int &actual, std::uint32_t timeout_ms) override {
++    actual = 0;
++    return libusb_bulk_transfer(reinterpret_cast<libusb_device_handle *>(handle), endpoint,
++                                 data, length, &actual, timeout_ms);
++  }
++  void release(UsbHandle handle, int interface_number) override {
++    libusb_release_interface(reinterpret_cast<libusb_device_handle *>(handle), interface_number);
++  }
++  void close(UsbHandle handle) override {
++    libusb_close(reinterpret_cast<libusb_device_handle *>(handle));
++  }
++  void shutdown() override {
++    for (auto *device : retained_) libusb_unref_device(device);
++    retained_.clear();
++    if (context_) libusb_exit(std::exchange(context_, nullptr));
++  }
++private:
++  libusb_context *context_ = nullptr;
++  std::vector<libusb_device *> retained_;
++};
++}  // namespace
++std::unique_ptr<LibusbApi> make_native_libusb_api() {
++  return std::make_unique<NativeLibusbApi>();
++}
++}  // namespace openpilot::pandad::compatibility
+diff --git a/openpilot/selfdrive/pandad/compatibility/libusb_api.h b/openpilot/selfdrive/pandad/compatibility/libusb_api.h
+new file mode 100644
+index 0000000..375f8f5
+--- /dev/null
++++ b/openpilot/selfdrive/pandad/compatibility/libusb_api.h
+@@ -0,0 +1,69 @@
++#pragma once
++
++#include <cstdint>
++#include <memory>
++#include <string>
++#include <vector>
++
++namespace openpilot::pandad::compatibility {
++
++// Thin injectable seam. All return codes follow libusb's documented values;
++// constructing the native implementation does not create a context or list USB.
++inline constexpr int kUsbSuccess = 0;
++inline constexpr int kUsbIo = -1;
++inline constexpr int kUsbInvalid = -2;
++inline constexpr int kUsbAccess = -3;
++inline constexpr int kUsbNoDevice = -4;
++inline constexpr int kUsbNotFound = -5;
++inline constexpr int kUsbBusy = -6;
++inline constexpr int kUsbTimeout = -7;
++inline constexpr int kUsbOverflow = -8;
++inline constexpr int kUsbPipe = -9;
++inline constexpr int kUsbInterrupted = -10;
++
++using UsbDeviceId = std::uintptr_t;
++using UsbHandle = std::uintptr_t;
++struct UsbEndpoint {
++  std::uint8_t address = 0;
++  std::uint8_t attributes = 0;
++  std::uint16_t max_packet_size = 0;
++};
++struct UsbAlternate {
++  std::uint8_t interface_number = 0;
++  std::uint8_t alternate_setting = 0;
++  std::vector<UsbEndpoint> endpoints;
++};
++struct UsbDeviceInfo {
++  UsbDeviceId id = 0;
++  std::uint16_t vendor = 0;
++  std::uint16_t product = 0;
++  std::uint16_t bcd_device = 0;
++  std::uint8_t serial_index = 0;
++  bool active_configuration_known = false;
++  std::vector<UsbAlternate> alternates;
++};
++
++// One API instance belongs to one backend. Device IDs live until shutdown().
++// No detach/reset/clear-halt/configuration/alternate-setting mutation is exposed.
++class LibusbApi {
++public:
++  virtual ~LibusbApi() = default;
++  virtual int initialize() = 0;
++  virtual int enumerate(std::vector<UsbDeviceInfo> &devices) = 0;
++  virtual int open(UsbDeviceId device, UsbHandle &handle) = 0;
++  virtual int serial(UsbHandle handle, std::uint8_t index, std::string &value,
++                     std::uint32_t timeout_ms) = 0;
++  virtual int claim(UsbHandle handle, int interface_number) = 0;
++  virtual int control(UsbHandle handle, std::uint8_t type, std::uint8_t request,
++                      std::uint16_t value, std::uint16_t index, std::uint8_t *data,
++                      std::uint16_t length, std::uint32_t timeout_ms) = 0;
++  virtual int bulk(UsbHandle handle, std::uint8_t endpoint, std::uint8_t *data,
++                   int length, int &actual, std::uint32_t timeout_ms) = 0;
++  virtual void release(UsbHandle handle, int interface_number) = 0;
++  virtual void close(UsbHandle handle) = 0;
++  virtual void shutdown() = 0;
++};
++
++std::unique_ptr<LibusbApi> make_native_libusb_api();
++
++}  // namespace openpilot::pandad::compatibility
+diff --git a/openpilot/selfdrive/pandad/compatibility/linux_spi_io.cc b/openpilot/selfdrive/pandad/compatibility/linux_spi_io.cc
+new file mode 100644
+index 0000000..8b6afd1
+--- /dev/null
++++ b/openpilot/selfdrive/pandad/compatibility/linux_spi_io.cc
+@@ -0,0 +1,95 @@
++#include "linux_spi_io.h"
++
++#ifdef __linux__
++#include <cerrno>
++#include <fcntl.h>
++#include <linux/spi/spidev.h>
++#include <sys/file.h>
++#include <sys/ioctl.h>
++#include <unistd.h>
++
++namespace openpilot::pandad::compatibility {
++namespace {
++Status error_status(int error) {
++  switch (error) {
++    case ENODEV: case ENXIO: case ESHUTDOWN: return Status::Disconnected;
++    case ETIMEDOUT: return Status::Timeout;
++    case EBUSY: case EAGAIN: return Status::Busy;
++    case ECANCELED: return Status::Cancelled;
++    default: return Status::IoError;
++  }
++}
++}  // namespace
++
++LinuxSpiIo::~LinuxSpiIo() { close_device(); }
++
++Status LinuxSpiIo::open_device(const std::string &path, std::uint32_t speed_hz) {
++  if (fd_ >= 0 || path.empty() || speed_hz == 0 || speed_hz > 50000000) return Status::Invalid;
++  fd_ = ::open(path.c_str(), O_RDWR | O_CLOEXEC);
++  if (fd_ < 0) return error_status(errno);
++  // Configuration is an explicit hardware action too. Respect an existing
++  // user's bus lease before issuing any configuration ioctl.
++  const auto lock_status = begin(kBackendSliceMs);
++  if (lock_status != Status::Ok) {
++    close_device();
++    return lock_status;
++  }
++  std::uint32_t mode = SPI_MODE_0;
++  std::uint8_t bits = 8;
++  if (::ioctl(fd_, SPI_IOC_WR_MODE32, &mode) < 0 ||
++      ::ioctl(fd_, SPI_IOC_WR_MAX_SPEED_HZ, &speed_hz) < 0 ||
++      ::ioctl(fd_, SPI_IOC_WR_BITS_PER_WORD, &bits) < 0) {
++    const auto result = error_status(errno);
++    close_device();
++    return result;
++  }
++  end();
++  return Status::Ok;
++}
++
++void LinuxSpiIo::close_device() noexcept {
++  if (fd_ >= 0) {
++    end();
++    ::close(fd_);
++    fd_ = -1;
++  }
++}
++
++Status LinuxSpiIo::begin(std::uint32_t timeout_ms) {
++  if (fd_ < 0) return Status::Disconnected;
++  if (leased_ || timeout_ms == 0 || timeout_ms > kBackendSliceMs) return Status::Invalid;
++  // One nonblocking attempt. No flock wait can hold up another board.
++  if (::flock(fd_, LOCK_EX | LOCK_NB) < 0) return error_status(errno);
++  leased_ = true;
++  return Status::Ok;
++}
++
++void LinuxSpiIo::end() noexcept {
++  if (leased_) {
++    (void)::flock(fd_, LOCK_UN);
++    leased_ = false;
++  }
++}
++
++Result LinuxSpiIo::exchange(const std::vector<std::uint8_t> &tx, std::uint32_t timeout_ms) {
++  if (fd_ < 0) return {Status::Disconnected, 0, {}, true, false};
++  if (!leased_ || tx.empty() || tx.size() > kSpiBufferBytes || timeout_ms == 0 || timeout_ms > kBackendSliceMs) {
++    return {Status::Invalid, 0, {}, true, false};
++  }
++  std::vector<std::uint8_t> rx(tx.size(), 0);
++  spi_ioc_transfer transfer{};
++  transfer.tx_buf = reinterpret_cast<std::uintptr_t>(tx.data());
++  transfer.rx_buf = reinterpret_cast<std::uintptr_t>(rx.data());
++  transfer.len = static_cast<std::uint32_t>(tx.size());
++  // Never retry EINTR or timeout: the device may have handled the request.
++  const int count = ::ioctl(fd_, SPI_IOC_MESSAGE(1), &transfer);
++  if (count < 0) return {error_status(errno), 0, {}, false, true};
++  if (static_cast<std::size_t>(count) > tx.size()) return {Status::IoError, 0, {}, false, true};
++  rx.resize(static_cast<std::size_t>(count));
++  return {rx.size() == tx.size() ? Status::Ok : Status::Short, rx.size(), std::move(rx), true, false};
++}
++
++}  // namespace openpilot::pandad::compatibility
++#else
++#error "linux_spi_io.cc must only be compiled for Linux; pure SPI tests use SpiIo fakes"
++#endif
+diff --git a/openpilot/selfdrive/pandad/compatibility/linux_spi_io.h b/openpilot/selfdrive/pandad/compatibility/linux_spi_io.h
+new file mode 100644
+index 0000000..df6168c
+--- /dev/null
++++ b/openpilot/selfdrive/pandad/compatibility/linux_spi_io.h
+@@ -0,0 +1,31 @@
++#pragma once
++
++#include <string>
++
++#include "spi_backend.h"
++
++namespace openpilot::pandad::compatibility {
++
++// Linux-only explicit device entry point. Creating this object never opens or
++// configures hardware. P2 offline validation only links it, never calls open.
++// spidev's synchronous ioctl has no portable kernel deadline/cancel primitive:
++// the caller budget is cooperative between syscalls, not a hard realtime bound.
++class LinuxSpiIo final : public SpiIo {
++public:
++  LinuxSpiIo() = default;
++  ~LinuxSpiIo() override;
++  LinuxSpiIo(const LinuxSpiIo &) = delete;
++  LinuxSpiIo &operator=(const LinuxSpiIo &) = delete;
++  Status open_device(const std::string &path, std::uint32_t speed_hz = 50000000);
++  void close_device() noexcept;
++  bool is_open() const { return fd_ >= 0; }
++  Status begin(std::uint32_t timeout_ms) override;
++  void end() noexcept override;
++  Result exchange(const std::vector<std::uint8_t> &tx, std::uint32_t timeout_ms) override;
++
++private:
++  int fd_ = -1;
++  bool leased_ = false;
++};
++
++}  // namespace openpilot::pandad::compatibility
+diff --git a/openpilot/selfdrive/pandad/compatibility/spi_backend.cc b/openpilot/selfdrive/pandad/compatibility/spi_backend.cc
+new file mode 100644
+index 0000000..97d672b
+--- /dev/null
++++ b/openpilot/selfdrive/pandad/compatibility/spi_backend.cc
+@@ -0,0 +1,163 @@
++#include "spi_backend.h"
++
++#include <algorithm>
++#include <limits>
++
++namespace openpilot::pandad::compatibility {
++namespace {
++constexpr std::uint8_t kReady = 0x3c, kAck = 0xc3, kNack = 0x5a, kPoll = 0xff;
++using Bytes = std::vector<std::uint8_t>;
++
++void put_le(Bytes &bytes, std::uint32_t value, unsigned count) {
++  for (unsigned i = 0; i < count; ++i) bytes.push_back(static_cast<std::uint8_t>(value >> (i * 8)));
++}
++std::uint32_t get_le(const Bytes &bytes, std::size_t offset, unsigned count) {
++  std::uint32_t value = 0;
++  for (unsigned i = 0; i < count; ++i) value |= static_cast<std::uint32_t>(bytes[offset + i]) << (i * 8);
++  return value;
++}
++std::uint32_t crc32(const Bytes &bytes, std::size_t count) {
++  std::uint32_t crc = 0xffffffffU;
++  for (std::size_t i = 0; i < count; ++i) {
++    crc ^= bytes[i];
++    for (unsigned bit = 0; bit < 8; ++bit) crc = (crc >> 1) ^ ((crc & 1U) ? 0xedb88320U : 0U);
++  }
++  return crc ^ 0xffffffffU;
++}
++Result failure(Status status, bool sent, bool write) {
++  return {status, 0, {}, !sent, sent && write};
++}
++struct BusLease {
++  SpiIo &io;
++  ~BusLease() { io.end(); }
++};
++}  // namespace
++
++Status SpiBackend::boundary(std::uint64_t start_us, std::uint64_t budget_us) {
++  if (cancelled_.load()) return Status::Cancelled;
++  // Unsigned elapsed subtraction also covers the clock wrapping at UINT64_MAX.
++  return clock_.now_us() - start_us >= budget_us ? Status::Timeout : Status::Ok;
++}
++
++std::uint32_t SpiBackend::remaining_ms(std::uint64_t start_us, std::uint64_t budget_us) {
++  const auto elapsed = clock_.now_us() - start_us;
++  if (elapsed >= budget_us) return 0;
++  return static_cast<std::uint32_t>((budget_us - elapsed) / 1000);
++}
++
++Result SpiBackend::transfer(std::uint8_t endpoint, const Bytes &tx, std::size_t max_rx,
++                            bool write, std::uint64_t start_us, std::uint64_t budget_us) {
++  auto status = boundary(start_us, budget_us);
++  if (status != Status::Ok) return failure(status, false, write);
++  if (remaining_ms(start_us, budget_us) == 0) return failure(Status::Timeout, false, write);
++  if (next_id_ > std::numeric_limits<std::uint32_t>::max()) return failure(Status::Poisoned, false, write);
++  const auto id = static_cast<std::uint32_t>(next_id_++);
++  const auto response_size = kSpiResponseHeaderBytes + max_rx + 4;
++  Bytes wire{endpoint};
++  put_le(wire, id, 4);
++  put_le(wire, static_cast<std::uint32_t>(tx.size()), 2);
++  put_le(wire, static_cast<std::uint32_t>(response_size), 2);
++  wire.insert(wire.end(), tx.begin(), tx.end());
++  put_le(wire, crc32(wire, wire.size()), 4);
++
++  // This request is emitted once, including when the kernel reports a timeout.
++  // Reads can consume the MCU CAN queue too; uncertain reads are NOT retryable.
++  status = boundary(start_us, budget_us);
++  if (status != Status::Ok) return failure(status, false, write);
++  const auto request_timeout = remaining_ms(start_us, budget_us);
++  if (request_timeout == 0) return failure(Status::Timeout, false, write);
++  auto reply = io_.exchange(wire, request_timeout);
++  if (reply.status != Status::Ok) return failure(reply.status == Status::Short ? Status::IoError : reply.status, true, write);
++  if (!reply.actual_known || reply.actual != wire.size() || reply.data.size() != wire.size()) {
++    return failure(Status::IoError, true, write);
++  }
++  if (reply.data[0] != kReady) return failure(Status::IoError, true, write);
++
++  const Bytes poll(response_size, kPoll);
++  for (std::uint32_t attempt = 0; attempt < kSpiMaxPolls; ++attempt) {
++    status = boundary(start_us, budget_us);
++    if (status != Status::Ok) return failure(status, true, write);
++    const auto poll_timeout = remaining_ms(start_us, budget_us);
++    if (poll_timeout == 0) return failure(Status::Timeout, true, write);
++    reply = io_.exchange(poll, poll_timeout);
++    if (reply.status != Status::Ok) return failure(reply.status == Status::Short ? Status::IoError : reply.status, true, write);
++    if (!reply.actual_known || reply.actual != poll.size() || reply.data.size() != poll.size()) {
++      return failure(Status::IoError, true, write);
++    }
++    const auto &response = reply.data;
++    if (response[0] == kReady) return failure(Status::IoError, true, write);
++    if (response[0] == kAck || response[0] == kNack) {
++      const auto length = get_le(response, 5, 2);
++      if (length > max_rx || get_le(response, 1, 4) != id ||
++          get_le(response, kSpiResponseHeaderBytes + length, 4) != crc32(response, kSpiResponseHeaderBytes + length)) {
++        return failure(Status::IoError, true, write);
++      }
++      // NACK explicitly refuses the entire request in the locked firmware.
++      // Never issue a new ID or retry it automatically under backpressure.
++      if (response[0] == kNack) {
++        if (length != 0) return failure(Status::IoError, true, write);
++        return {Status::Busy, 0, {}, true, false};
++      }
++      if (write && length != 0) return failure(Status::IoError, true, true);
++      Bytes data(response.begin() + kSpiResponseHeaderBytes, response.begin() + kSpiResponseHeaderBytes + length);
++      // Preserve completion after a late syscall as known progress; the outer
++      // wrapper reports deadline/cancel status without hiding the actual count.
++      return {length < max_rx ? Status::Short : Status::Ok, length, std::move(data), true, false};
++    }
++    const auto elapsed = clock_.now_us() - start_us;
++    if (elapsed >= budget_us) return failure(Status::Timeout, true, write);
++    clock_.wait_us(static_cast<std::uint32_t>(std::min<std::uint64_t>(kSpiPollWaitUs, budget_us - elapsed)));
++  }
++  return failure(Status::Timeout, true, write);
++}
++
++Result SpiBackend::transact(const Request &request, std::uint32_t timeout_ms) {
++  if (!valid_request(request) || timeout_ms == 0 || timeout_ms > kBackendSliceMs ||
++      (request.kind == Kind::BulkRead && request.endpoint != 0x81) ||
++      (request.kind == Kind::BulkWrite && request.endpoint != 0x03) ||
++      ((request.kind == Kind::ControlRead || request.kind == Kind::ControlWrite) &&
++       (request.read_length > kSpiPayloadBytes || !request.payload.empty()))) {
++    return failure(Status::Invalid, false, false);
++  }
++  const auto start_us = clock_.now_us();
++  const auto budget_us = static_cast<std::uint64_t>(timeout_ms) * 1000;
++  auto status = boundary(start_us, budget_us);
++  if (status != Status::Ok) return failure(status, false, !is_read(request.kind));
++  if ((request.kind == Kind::BulkRead && request.read_length == 0) ||
++      (request.kind == Kind::BulkWrite && request.payload.empty())) return {Status::Ok, 0, {}, true, false};
++  status = io_.begin(timeout_ms);
++  if (status != Status::Ok) return failure(status, false, !is_read(request.kind));
++  const BusLease lease{io_};
++
++  if (request.kind == Kind::ControlRead || request.kind == Kind::ControlWrite) {
++    Bytes packet{static_cast<std::uint8_t>(request.request)};
++    put_le(packet, request.value, 2);
++    put_le(packet, request.index, 2);
++    put_le(packet, static_cast<std::uint32_t>(request.read_length), 2);
++    return transfer(0, packet, request.read_length, request.kind == Kind::ControlWrite, start_us, budget_us);
++  }
++
++  Result total{Status::Ok, 0, {}, true, false};
++  const bool read = request.kind == Kind::BulkRead;
++  const auto requested = read ? request.read_length : request.payload.size();
++  while (total.actual < requested) {
++    const auto chunk_size = std::min(requested - total.actual, read && total.actual == 0 ? kSpiFirstReadBytes : kSpiPayloadBytes);
++    Bytes payload;
++    if (!read) payload.assign(request.payload.begin() + total.actual, request.payload.begin() + total.actual + chunk_size);
++    auto part = transfer(static_cast<std::uint8_t>(request.endpoint), payload, read ? chunk_size : 0,
++                         !read, start_us, budget_us);
++    total.status = part.status;
++    total.actual_known = part.actual_known;
++    total.delivery_uncertain = part.delivery_uncertain;
++    if (read) {
++      total.actual += part.actual;
++      total.data.insert(total.data.end(), part.data.begin(), part.data.end());
++    } else if (part.status == Status::Ok) {
++      total.actual += chunk_size;
++    }
++    if (part.status != Status::Ok) return total;
++  }
++  return total;
++}
++
++}  // namespace openpilot::pandad::compatibility
+diff --git a/openpilot/selfdrive/pandad/compatibility/spi_backend.h b/openpilot/selfdrive/pandad/compatibility/spi_backend.h
+new file mode 100644
+index 0000000..f363d07
+--- /dev/null
++++ b/openpilot/selfdrive/pandad/compatibility/spi_backend.h
+@@ -0,0 +1,55 @@
++#pragma once
++
++#include <atomic>
++#include <cstdint>
++#include <vector>
++
++#include "transport.h"
++
++namespace openpilot::pandad::compatibility {
++
++inline constexpr std::size_t kSpiBufferBytes = 4096;
++inline constexpr std::size_t kSpiPayloadBytes = 4032;
++inline constexpr std::size_t kSpiFirstReadBytes = 1013;
++inline constexpr std::size_t kSpiRequestHeaderBytes = 9;
++inline constexpr std::size_t kSpiResponseHeaderBytes = 7;
++inline constexpr std::uint32_t kSpiPollWaitUs = 100;
++inline constexpr std::uint32_t kSpiMaxPolls = 32;
++
++// Full-duplex, one CS assertion per exchange. The response data and actual count
++// refer to wire bytes, not application bytes. Implementations must not retry.
++// begin/end protect a complete request/response from another process on the same
++// physical bus. They do not serialize unrelated boards or USB handles.
++class SpiIo {
++public:
++  virtual ~SpiIo() = default;
++  virtual Status begin(std::uint32_t timeout_ms) { (void)timeout_ms; return Status::Ok; }
++  virtual void end() noexcept {}
++  virtual Result exchange(const std::vector<std::uint8_t> &tx, std::uint32_t timeout_ms) = 0;
++};
++
++// Inert until transact(). first_request_id is an explicit session nonce supplied
++// by the future opener (randomized between sessions), not a hard-coded runtime
++// default. IDs only advance for new requests; exhaustion fails before wrapping.
++// Neither this adapter nor its owner may replay an uncertain request.
++class SpiBackend final : public Backend {
++public:
++  SpiBackend(SpiIo &io, Clock &clock, std::uint32_t first_request_id)
++      : io_(io), clock_(clock), next_id_(first_request_id) {}
++  Result transact(const Request &request, std::uint32_t timeout_ms) override;
++  void cancel() noexcept override { cancelled_.store(true); }
++
++private:
++  Result transfer(std::uint8_t endpoint, const std::vector<std::uint8_t> &tx,
++                  std::size_t max_rx, bool write, std::uint64_t start_us,
++                  std::uint64_t budget_us);
++  Status boundary(std::uint64_t start_us, std::uint64_t budget_us);
++  std::uint32_t remaining_ms(std::uint64_t start_us, std::uint64_t budget_us);
++
++  SpiIo &io_;
++  Clock &clock_;
++  std::uint64_t next_id_;
++  std::atomic<bool> cancelled_{false};
++};
++
++}  // namespace openpilot::pandad::compatibility
+diff --git a/openpilot/selfdrive/pandad/compatibility/tests/spi_reference_probe.cc b/openpilot/selfdrive/pandad/compatibility/tests/spi_reference_probe.cc
+new file mode 100644
+index 0000000..cd6c1ac
+--- /dev/null
++++ b/openpilot/selfdrive/pandad/compatibility/tests/spi_reference_probe.cc
+@@ -0,0 +1,61 @@
++// Independent outbound wire oracle. Use the actual pinned original host header
++// and Panda control packet, with zlib rather than the candidate CRC routine.
++// This file never constructs PandaSpiHandle and cannot access any device.
++#include <atomic>
++#include <cstdint>
++#include <cstring>
++#include <iomanip>
++#include <iostream>
++#include <mutex>
++#include <sstream>
++#include <string>
++#include <vector>
++#include <zlib.h>
++
++#define private public
++#include "selfdrive/pandad/panda_comms.h"
++#undef private
++#include "panda/board/comms_definitions.h"
++
++using Bytes = std::vector<std::uint8_t>;
++static_assert(sizeof(PandaSpiHandle::spi_header) == 9);
++static_assert(sizeof(PandaSpiHandle::spi_resp_header) == 7);
++static_assert(sizeof(ControlPacket_t) == 7);
++static_assert(SPI_BUF_SIZE == 4096);
++
++namespace {
++Bytes make(std::uint8_t endpoint, const Bytes &payload, std::uint16_t receive) {
++  PandaSpiHandle::spi_header header{endpoint, 0x12345678, static_cast<std::uint16_t>(payload.size()),
++                                    static_cast<std::uint16_t>(receive + sizeof(PandaSpiHandle::spi_resp_header) + 4)};
++  Bytes bytes(sizeof(header));
++  std::memcpy(bytes.data(), &header, sizeof(header));
++  bytes.insert(bytes.end(), payload.begin(), payload.end());
++  const auto checksum = static_cast<std::uint32_t>(::crc32(0, bytes.data(), static_cast<unsigned>(bytes.size())));
++  const auto length = bytes.size();
++  bytes.resize(length + sizeof(checksum));
++  std::memcpy(bytes.data() + length, &checksum, sizeof(checksum));
++  return bytes;
++}
++Bytes control(bool reading) {
++  ControlPacket_t packet{static_cast<std::uint8_t>(reading ? 0xdd : 0xdc), 0x1234, 0xabce,
++                         static_cast<std::uint16_t>(reading ? 8 : 0)};
++  Bytes data(sizeof(packet));
++  std::memcpy(data.data(), &packet, sizeof(packet));
++  return data;
++}
++void print(const char *name, const Bytes &bytes) {
++  std::cout << name << ':' << std::hex << std::setfill('0');
++  for (const auto byte : bytes) std::cout << std::setw(2) << static_cast<unsigned>(byte);
++  std::cout << '\n';
++}
++}  // namespace
++
++int main() {
++  const std::uint32_t endian = 1;
++  if (*reinterpret_cast<const std::uint8_t *>(&endian) != 1) return 2;
++  print("control_read", make(0, control(true), 8));
++  print("control_write", make(0, control(false), 0));
++  print("bulk_write", make(3, {1, 2, 3}, 0));
++  print("bulk_read", make(0x81, {}, 16));
++  print("first_large_read", make(0x81, {}, 1024 - sizeof(PandaSpiHandle::spi_resp_header) - 4));
++}
+diff --git a/openpilot/selfdrive/pandad/compatibility/tests/test_native_link.cc b/openpilot/selfdrive/pandad/compatibility/tests/test_native_link.cc
+new file mode 100644
+index 0000000..6fb8369
+--- /dev/null
++++ b/openpilot/selfdrive/pandad/compatibility/tests/test_native_link.cc
+@@ -0,0 +1,20 @@
++#include "usb_backend.h"
++#ifdef __linux__
++#include "linux_spi_io.h"
++#endif
++#include <iostream>
++#include <stdexcept>
++using namespace openpilot::pandad::compatibility;
++int main() {
++  // Construction/destruction and rejected default opening must not initialize
++  // libusb, enumerate, claim or access a device. Tests run with /dev denied.
++  UsbBackend usb;
++  if (usb.is_open() || usb.open_bound({}) != Status::Invalid) {
++    throw std::runtime_error("native USB default must remain inert");
++  }
++#ifdef __linux__
++  LinuxSpiIo spi;
++  if (spi.is_open()) throw std::runtime_error("native SPI constructor opened hardware");
++#endif
++  std::cout << "{\"suite\":\"native_link\",\"passed\":1,\"failed\":0,\"device_open\":false}\n";
++}
+diff --git a/openpilot/selfdrive/pandad/compatibility/tests/test_spi_backend.cc b/openpilot/selfdrive/pandad/compatibility/tests/test_spi_backend.cc
+new file mode 100644
+index 0000000..468b595
+--- /dev/null
++++ b/openpilot/selfdrive/pandad/compatibility/tests/test_spi_backend.cc
+@@ -0,0 +1,429 @@
++#include "../spi_backend.h"
++
++#include <algorithm>
++#include <functional>
++#include <iomanip>
++#include <iostream>
++#include <limits>
++#include <sstream>
++#include <stdexcept>
++#include <string>
++#include <utility>
++
++using namespace openpilot::pandad::compatibility;
++using Bytes = std::vector<std::uint8_t>;
++
++namespace {
++std::size_t assertions = 0;
++void check(bool condition, int line) {
++  ++assertions;
++  if (!condition) throw std::runtime_error("SPI assertion at line " + std::to_string(line));
++}
++#define CHECK(x) check(static_cast<bool>(x), __LINE__)
++
++std::uint32_t le(const Bytes &bytes, std::size_t offset, unsigned count) {
++  std::uint32_t value = 0;
++  for (unsigned i = 0; i < count; ++i) value |= static_cast<std::uint32_t>(bytes.at(offset + i)) << (i * 8);
++  return value;
++}
++void append(Bytes &bytes, std::uint32_t value, unsigned count) {
++  for (unsigned i = 0; i < count; ++i) bytes.push_back(static_cast<std::uint8_t>(value >> (i * 8)));
++}
++std::uint32_t crc(const Bytes &bytes) {
++  // Test response generation; outbound golden CRC is independently checked by
++  // spi_reference_probe using zlib and the pinned original packed structures.
++  std::uint32_t value = 0xffffffffU;
++  for (auto byte : bytes) {
++    value ^= byte;
++    for (unsigned bit = 0; bit < 8; ++bit) value = (value >> 1) ^ ((value & 1U) ? 0xedb88320U : 0U);
++  }
++  return value ^ 0xffffffffU;
++}
++Bytes response(std::uint32_t id, const Bytes &data, std::size_t wire_size, std::uint8_t status = 0xc3) {
++  Bytes bytes{status};
++  append(bytes, id, 4);
++  append(bytes, static_cast<std::uint32_t>(data.size()), 2);
++  bytes.insert(bytes.end(), data.begin(), data.end());
++  append(bytes, crc(bytes), 4);
++  CHECK(bytes.size() <= wire_size);
++  bytes.resize(wire_size);
++  return bytes;
++}
++Result wire_result(Bytes bytes) { return {Status::Ok, bytes.size(), std::move(bytes), true, false}; }
++std::string hex(const Bytes &bytes) {
++  std::ostringstream output;
++  output << std::hex << std::setfill('0');
++  for (auto byte : bytes) output << std::setw(2) << static_cast<unsigned>(byte);
++  return output.str();
++}
++
++class FakeClock final : public Clock {
++public:
++  std::uint64_t time = 0;
++  bool freeze_wait = false;
++  std::uint64_t now_us() override { return time; }
++  void wait_us(std::uint32_t duration) override { if (!freeze_wait) time += duration; }
++};
++
++class FakeSpi final : public SpiIo {
++public:
++  std::vector<Bytes> requests;
++  std::vector<std::uint32_t> timeouts;
++  std::function<Result(const Bytes &)> action;
++  std::uint32_t id = 0;
++  std::size_t exchange_count = 0;
++  std::size_t begin_count = 0, end_count = 0;
++  Status begin_status = Status::Ok;
++  bool lease = false;
++  Status begin(std::uint32_t timeout) override {
++    ++begin_count;
++    CHECK(timeout >= 1 && timeout <= 5);
++    lease = begin_status == Status::Ok;
++    return begin_status;
++  }
++  void end() noexcept override { ++end_count; lease = false; }
++  Result exchange(const Bytes &tx, std::uint32_t timeout) override {
++    ++exchange_count;
++    CHECK(lease);
++    CHECK(timeout >= 1 && timeout <= 5);
++    CHECK(tx.size() <= 4096);
++    timeouts.push_back(timeout);
++    if (tx[0] != 0xff) {
++      requests.push_back(tx);
++      id = le(tx, 1, 4);
++    }
++    if (action) return action(tx);
++    if (tx[0] != 0xff) {
++      Bytes result(tx.size(), 0);
++      result[0] = 0x3c;
++      return wire_result(std::move(result));
++    }
++    return wire_result(response(id, {}, tx.size()));
++  }
++};
++Request read(std::size_t count) {
++  Request request;
++  request.kind = Kind::BulkRead;
++  request.endpoint = 0x81;
++  request.read_length = count;
++  return request;
++}
++Request write(std::size_t count) {
++  Request request;
++  request.kind = Kind::BulkWrite;
++  request.endpoint = 3;
++  request.payload.resize(count);
++  for (std::size_t i = 0; i < count; ++i) request.payload[i] = static_cast<std::uint8_t>(i + 1);
++  return request;
++}
++Request control(bool reading) {
++  Request request;
++  request.kind = reading ? Kind::ControlRead : Kind::ControlWrite;
++  request.request = reading ? 0xdd : 0xdc;
++  request.value = 0x1234;
++  request.index = 0xabce;
++  request.read_length = reading ? 8 : 0;
++  return request;
++}
++void ready_or(FakeSpi &io, std::function<Result(const Bytes &)> poll_action) {
++  io.action = [poll_action = std::move(poll_action)](const Bytes &tx) {
++    if (tx[0] != 0xff) {
++      Bytes data(tx.size(), 0);
++      data[0] = 0x3c;
++      return wire_result(std::move(data));
++    }
++    return poll_action(tx);
++  };
++}
++
++void golden_output() {
++  const std::vector<std::pair<std::string, Request>> requests{
++    {"control_read", control(true)}, {"control_write", control(false)},
++    {"bulk_write", write(3)}, {"bulk_read", read(16)}, {"first_large_read", read(2000)},
++  };
++  for (const auto &[name, request] : requests) {
++    FakeClock clock;
++    FakeSpi io;
++    SpiBackend backend(io, clock, 0x12345678);
++    (void)backend.transact(request, 5);
++    CHECK(io.requests.size() == 1);
++    std::cout << name << ':' << hex(io.requests.front()) << '\n';
++  }
++}
++
++void inert_and_validation() {
++  FakeClock clock;
++  FakeSpi io;
++  SpiBackend backend(io, clock, 1);
++  CHECK(io.begin_count == 0 && io.exchange_count == 0);
++  CHECK(backend.transact(read(16), 0).status == Status::Invalid);
++  CHECK(backend.transact(read(16), 6).status == Status::Invalid);
++  auto invalid = read(16);
++  invalid.endpoint = 1;
++  CHECK(backend.transact(invalid, 5).status == Status::Invalid);
++  invalid.endpoint = 0x82;
++  CHECK(backend.transact(invalid, 5).status == Status::Invalid);
++  invalid = write(3);
++  invalid.endpoint = 2;
++  CHECK(backend.transact(invalid, 5).status == Status::Invalid);
++  invalid = control(true);
++  invalid.read_length = 4033;
++  CHECK(backend.transact(invalid, 5).status == Status::Invalid);
++  invalid = control(false);
++  invalid.payload = {1};
++  CHECK(backend.transact(invalid, 5).status == Status::Invalid);
++  CHECK(io.exchange_count == 0);
++}
++
++void successful_wire_and_short_read() {
++  FakeClock clock;
++  FakeSpi io;
++  SpiBackend backend(io, clock, 0x12345678);
++  ready_or(io, [&](const Bytes &tx) { return wire_result(response(io.id, {1, 2, 3}, tx.size())); });
++  auto result = backend.transact(read(16), 5);
++  CHECK(result.status == Status::Short && result.actual == 3 && result.data == Bytes({1, 2, 3}));
++  CHECK(result.actual_known && !result.delivery_uncertain);
++  CHECK(io.requests.size() == 1 && io.requests[0][0] == 0x81);
++  CHECK(le(io.requests[0], 7, 2) == 27);
++  CHECK(io.begin_count == 1 && io.end_count == 1);
++}
++
++void fragmented_bulk_write() {
++  FakeClock clock;
++  FakeSpi io;
++  SpiBackend backend(io, clock, 100);
++  auto result = backend.transact(write(9000), 5);
++  CHECK(result.status == Status::Ok && result.actual == 9000);
++  CHECK(io.requests.size() == 3 && io.exchange_count == 6);
++  CHECK(le(io.requests[0], 5, 2) == 4032 && le(io.requests[1], 5, 2) == 4032 && le(io.requests[2], 5, 2) == 936);
++  for (std::size_t i = 0; i < io.requests.size(); ++i) {
++    CHECK(le(io.requests[i], 1, 4) == 100 + i);
++    CHECK(le(io.requests[i], 7, 2) == 11);
++  }
++  CHECK(io.requests[1][9] == static_cast<std::uint8_t>(4033));
++}
++
++void fragmented_large_read() {
++  FakeClock clock;
++  FakeSpi io;
++  SpiBackend backend(io, clock, 200);
++  ready_or(io, [&](const Bytes &tx) { return wire_result(response(io.id, Bytes(tx.size() - 11, static_cast<std::uint8_t>(io.id)), tx.size())); });
++  auto result = backend.transact(read(10000), 5);
++  CHECK(result.status == Status::Ok && result.actual == 10000 && result.data.size() == 10000);
++  CHECK(io.requests.size() == 4);
++  CHECK(le(io.requests[0], 7, 2) == 1024);
++  CHECK(le(io.requests[1], 7, 2) == 4043 && le(io.requests[2], 7, 2) == 4043);
++  CHECK(result.data[1012] == 200 && result.data[1013] == 201 && result.data[5045] == 202);
++}
++
++void nack_no_replay() {
++  FakeClock clock;
++  FakeSpi io;
++  SpiBackend backend(io, clock, 300);
++  ready_or(io, [&](const Bytes &tx) { return wire_result(response(io.id, {}, tx.size(), 0x5a)); });
++  auto result = backend.transact(write(9000), 5);
++  CHECK(result.status == Status::Busy && result.actual == 0 && result.actual_known && !result.delivery_uncertain);
++  CHECK(io.requests.size() == 1 && io.exchange_count == 2);
++}
++
++void corrupt_stale_length_no_replay() {
++  for (unsigned mode = 0; mode < 4; ++mode) {
++    FakeClock clock;
++    FakeSpi io;
++    SpiBackend backend(io, clock, 400);
++    ready_or(io, [&](const Bytes &tx) {
++      auto bytes = response(io.id, {}, tx.size());
++      if (mode == 0) bytes[7] ^= 1;             // CRC
++      if (mode == 1) bytes = response(io.id - 1, {}, tx.size());
++      if (mode == 2) { bytes[5] = 1; }         // beyond write max_rx=0
++      if (mode == 3) bytes[0] = 0x3c;          // ready again; no implicit retry
++      return wire_result(std::move(bytes));
++    });
++    auto result = backend.transact(write(3), 5);
++    CHECK(result.status == Status::IoError && !result.actual_known && result.delivery_uncertain);
++    CHECK(io.requests.size() == 1 && io.exchange_count == 2);
++  }
++}
++
++void low_level_partial_and_disconnect() {
++  for (unsigned mode = 0; mode < 3; ++mode) {
++    FakeClock clock;
++    FakeSpi io;
++    SpiBackend backend(io, clock, 500);
++    ready_or(io, [&](const Bytes &tx) {
++      if (mode == 0) return Result{Status::Short, 3, Bytes(3), true, false};
++      if (mode == 1) return Result{Status::Disconnected, 0, {}, false, false};
++      return Result{Status::Ok, tx.size() - 1, Bytes(tx.size() - 1), true, false};
++    });
++    auto result = backend.transact(read(10), 5);
++    CHECK(result.status == (mode == 1 ? Status::Disconnected : Status::IoError));
++    CHECK(result.actual == 0 && !result.actual_known && result.data.empty());
++    CHECK(io.requests.size() == 1);
++  }
++}
++
++void partial_write_progress_preserved() {
++  FakeClock clock;
++  FakeSpi io;
++  SpiBackend backend(io, clock, 600);
++  ready_or(io, [&](const Bytes &tx) {
++    if (io.id == 601) return Result{Status::Timeout, 0, {}, false, false};
++    return wire_result(response(io.id, {}, tx.size()));
++  });
++  const auto result = backend.transact(write(9000), 5);
++  CHECK(result.status == Status::Timeout && result.actual == 4032);
++  CHECK(!result.actual_known && result.delivery_uncertain && io.requests.size() == 2);
++}
++
++void partial_read_progress_preserved() {
++  FakeClock clock;
++  FakeSpi io;
++  SpiBackend backend(io, clock, 650);
++  ready_or(io, [&](const Bytes &tx) {
++    if (io.id == 651) return Result{Status::Disconnected, 0, {}, false, false};
++    return wire_result(response(io.id, Bytes(tx.size() - 11, 42), tx.size()));
++  });
++  const auto result = backend.transact(read(9000), 5);
++  CHECK(result.status == Status::Disconnected && result.actual == 1013 && result.data == Bytes(1013, 42));
++  CHECK(!result.actual_known && io.requests.size() == 2);
++}
++
++void bounded_poll_timeout_and_wrap() {
++  for (auto start : {std::uint64_t{0}, std::numeric_limits<std::uint64_t>::max() - 500}) {
++    FakeClock clock;
++    clock.time = start;
++    FakeSpi io;
++    SpiBackend backend(io, clock, 700);
++    ready_or(io, [](const Bytes &tx) { return wire_result(Bytes(tx.size(), 0)); });
++    auto result = backend.transact(read(10), 1);
++    CHECK(result.status == Status::Timeout && !result.actual_known);
++    // A <1ms remainder cannot be rounded up into another 1ms kernel call.
++    CHECK(clock.time - start == 100 && io.exchange_count == 2 && io.requests.size() == 1);
++    CHECK(io.end_count == 1);
++  }
++  FakeClock frozen;
++  frozen.freeze_wait = true;
++  FakeSpi io;
++  SpiBackend backend(io, frozen, 750);
++  ready_or(io, [](const Bytes &tx) { return wire_result(Bytes(tx.size(), 0)); });
++  CHECK(backend.transact(read(10), 5).status == Status::Timeout);
++  CHECK(io.exchange_count == kSpiMaxPolls + 1 && io.requests.size() == 1);
++}
++
++void cancel_boundaries() {
++  FakeClock clock;
++  FakeSpi io;
++  SpiBackend backend(io, clock, 800);
++  io.action = [&](const Bytes &tx) {
++    Bytes bytes(tx.size()); bytes[0] = 0x3c;
++    backend.cancel();
++    return wire_result(std::move(bytes));
++  };
++  auto result = backend.transact(write(3), 5);
++  CHECK(result.status == Status::Cancelled && result.delivery_uncertain && !result.actual_known);
++  CHECK(io.exchange_count == 1 && io.end_count == 1);
++  result = backend.transact(read(10), 5);
++  CHECK(result.status == Status::Cancelled && result.actual_known && io.exchange_count == 1);
++}
++
++void deadline_before_next_request() {
++  for (auto tick : {999U, 1000U, 1001U}) {
++    FakeClock clock;
++    FakeSpi io;
++    SpiBackend backend(io, clock, 850);
++    ready_or(io, [&](const Bytes &tx) {
++      clock.time = tick;
++      return wire_result(response(io.id, {}, tx.size()));
++    });
++    const auto result = backend.transact(write(5000), 1);
++    CHECK(result.actual == 4032);
++    CHECK(result.status == Status::Timeout);
++    CHECK(result.actual_known && !result.delivery_uncertain);
++    CHECK(io.requests.size() == 1);
++  }
++}
++
++void isolated_backends_and_bus_busy() {
++  FakeClock clock_a, clock_b;
++  FakeSpi io_a, io_b;
++  SpiBackend a(io_a, clock_a, 900), b(io_b, clock_b, 1000);
++  ready_or(io_a, [&](const Bytes &tx) {
++    const auto result = b.transact(write(3), 5);
++    CHECK(result.status == Status::Ok && result.actual == 3);
++    a.cancel();
++    return wire_result(Bytes(tx.size(), 0));
++  });
++  const auto result = a.transact(read(10), 5);
++  CHECK(result.status == Status::Cancelled);
++  CHECK(io_a.requests.size() == 1 && io_b.requests.size() == 1);
++  CHECK(le(io_a.requests[0], 1, 4) == 900 && le(io_b.requests[0], 1, 4) == 1000);
++  CHECK(io_a.end_count == 1 && io_b.end_count == 1);
++  io_b.begin_status = Status::Busy;
++  const auto busy = b.transact(write(3), 5);
++  CHECK(busy.status == Status::Busy && busy.actual_known && !busy.delivery_uncertain);
++  CHECK(io_b.exchange_count == 2);
++}
++
++void id_exhaustion() {
++  FakeClock clock;
++  FakeSpi io;
++  SpiBackend backend(io, clock, std::numeric_limits<std::uint32_t>::max());
++  CHECK(backend.transact(write(3), 5).status == Status::Ok);
++  auto result = backend.transact(write(3), 5);
++  CHECK(result.status == Status::Poisoned && result.actual_known && !result.delivery_uncertain);
++  CHECK(io.requests.size() == 1 && io.exchange_count == 2);
++}
++
++void wrapper_does_not_retry_consuming_read() {
++  FakeClock clock;
++  FakeSpi io;
++  SpiBackend backend(io, clock, 1100);
++  ready_or(io, [](const Bytes &) { return Result{Status::Timeout, 0, {}, false, false}; });
++  Transport transport(backend, clock);
++  const auto result = transport.perform(read(10), 100);
++  CHECK(result.status == Status::Timeout && !result.actual_known && io.requests.size() == 1);
++  CHECK(io.exchange_count == 2);
++}
++
++void wrapper_preserves_partial_prefix() {
++  for (bool reading : {false, true}) {
++    FakeClock clock;
++    FakeSpi io;
++    SpiBackend backend(io, clock, 1200);
++    ready_or(io, [&](const Bytes &tx) {
++      if (io.id == 1201) return Result{Status::Timeout, 0, {}, false, false};
++      return wire_result(response(io.id, reading ? Bytes(tx.size() - 11, 7) : Bytes{}, tx.size()));
++    });
++    Transport transport(backend, clock);
++    const auto result = transport.perform(reading ? read(9000) : write(9000), 100);
++    CHECK(result.status == Status::Timeout && !result.actual_known);
++    CHECK(result.actual == (reading ? 1013 : 4032));
++    CHECK(result.data.size() == (reading ? 1013 : 0));
++    CHECK(io.requests.size() == 2 && io.exchange_count == 4);
++  }
++}
++}  // namespace
++
++int main(int argc, char **argv) {
++  try {
++    if (argc == 2 && std::string(argv[1]) == "--golden") { golden_output(); return 0; }
++    const std::vector<std::pair<const char *, std::function<void()>>> groups{
++      {"inert_and_validation", inert_and_validation}, {"successful_wire_and_short_read", successful_wire_and_short_read},
++      {"fragmented_bulk_write", fragmented_bulk_write}, {"fragmented_large_read", fragmented_large_read},
++      {"nack_no_replay", nack_no_replay}, {"corrupt_stale_length_no_replay", corrupt_stale_length_no_replay},
++      {"low_level_partial_and_disconnect", low_level_partial_and_disconnect}, {"partial_write_progress_preserved", partial_write_progress_preserved},
++      {"partial_read_progress_preserved", partial_read_progress_preserved}, {"bounded_poll_timeout_and_wrap", bounded_poll_timeout_and_wrap},
++      {"cancel_boundaries", cancel_boundaries}, {"deadline_before_next_request", deadline_before_next_request},
++      {"isolated_backends_and_bus_busy", isolated_backends_and_bus_busy}, {"id_exhaustion", id_exhaustion},
++      {"wrapper_does_not_retry_consuming_read", wrapper_does_not_retry_consuming_read},
++      {"wrapper_preserves_partial_prefix", wrapper_preserves_partial_prefix},
++    };
++    for (const auto &[name, test] : groups) { test(); std::cout << "PASS " << name << '\n'; }
++    std::cout << "{\"suite\":\"spi_backend\",\"groups_passed\":" << groups.size()
++              << ",\"assertions\":" << assertions << ",\"failures\":0,\"skipped\":0,\"hardware_access\":false}\n";
++    return 0;
++  } catch (const std::exception &error) {
++    std::cerr << error.what() << '\n';
++    return 1;
++  }
++}
+diff --git a/openpilot/selfdrive/pandad/compatibility/tests/test_timing_budget.cc b/openpilot/selfdrive/pandad/compatibility/tests/test_timing_budget.cc
+new file mode 100644
+index 0000000..a72aa76
+--- /dev/null
++++ b/openpilot/selfdrive/pandad/compatibility/tests/test_timing_budget.cc
+@@ -0,0 +1,33 @@
++#include "timing_budget.h"
++#include <cstdint>
++#include <iostream>
++#include <limits>
++#include <stdexcept>
++using namespace openpilot::pandad::compatibility;
++int main() {
++  unsigned checks = 0;
++  auto check = [&](bool ok) { ++checks; if (!ok) throw std::runtime_error("timing policy failure"); };
++  for (std::uint64_t start : {std::uint64_t{0}, std::numeric_limits<std::uint64_t>::max() - 3}) {
++    for (auto age : {kHealthMaxAgeUs - 1, kHealthMaxAgeUs, kHealthMaxAgeUs + 1}) {
++      check(health_fresh(true, start + age, start) == (age < kHealthMaxAgeUs));
++      check(!health_fresh(false, start + age, start));
++      check(heartbeat_overdue(true, start + age, start) == (age >= kHeartbeatMaxAgeUs));
++    }
++    for (auto age : {kHeartbeatPeriodUs - 1, kHeartbeatPeriodUs, kHeartbeatPeriodUs + 1}) {
++      check(heartbeat_due(true, start + age, start) == (age >= kHeartbeatPeriodUs));
++    }
++    check(!health_fresh(true, start, start + 1));
++    check(heartbeat_due(true, start, start + 1));
++    check(heartbeat_overdue(true, start, start + 1));
++  }
++  check(heartbeat_due(false, 0, 0));
++  check(heartbeat_overdue(false, 0, 0));
++  check(!valid_elapsed(std::uint64_t{1} << 63, 0));
++  for (std::size_t inflight = 0; inflight <= 2; ++inflight) {
++    for (std::size_t pending = 0; pending <= 1; ++pending) {
++      check(queue_admissible(inflight, pending) == (inflight == 0 && pending == 0));
++    }
++  }
++  std::cout << "{\"suite\":\"timing_policy\",\"passed\":4,\"failed\":0,\"assertions\":" << checks
++            << ",\"cases\":[\"health_age_boundaries_wrap\",\"heartbeat_boundaries_wrap\",\"future_missing_rejected\",\"queue_capacity_boundaries\"]}\n";
++}
+diff --git a/openpilot/selfdrive/pandad/compatibility/tests/test_transport.cc b/openpilot/selfdrive/pandad/compatibility/tests/test_transport.cc
+new file mode 100644
+index 0000000..c821df9
+--- /dev/null
++++ b/openpilot/selfdrive/pandad/compatibility/tests/test_transport.cc
+@@ -0,0 +1,407 @@
++#include "../transport.h"
++
++#include <algorithm>
++#include <atomic>
++#include <chrono>
++#include <condition_variable>
++#include <deque>
++#include <functional>
++#include <future>
++#include <iostream>
++#include <limits>
++#include <stdexcept>
++#include <string>
++#include <utility>
++
++using namespace openpilot::pandad::compatibility;
++using Bytes = std::vector<std::uint8_t>;
++
++namespace {
++
++std::size_t assertions = 0;
++void check(bool value, int line) {
++  ++assertions;
++  if (!value) throw std::runtime_error("assertion at line " + std::to_string(line));
++}
++#define CHECK(value) check(static_cast<bool>(value), __LINE__)
++
++class FakeClock final : public Clock {
++public:
++  std::atomic<std::uint64_t> time{0};
++  std::function<void()> on_now;
++  std::function<void()> on_wait;
++  bool advance_on_wait = true;
++  std::uint64_t now_us() override {
++    if (on_now) on_now();
++    return time.load();
++  }
++  void wait_us(std::uint32_t duration) override {
++    if (duration == 0 || duration > kWaitQuantumUs) throw std::runtime_error("invalid wait quantum");
++    if (advance_on_wait) time.fetch_add(duration);
++    if (on_wait) on_wait();
++  }
++};
++
++struct Step {
++  Result result;
++  std::uint64_t duration = 0;
++  std::function<void()> action{};
++};
++
++class FakeBackend final : public Backend {
++public:
++  explicit FakeBackend(FakeClock &clock) : clock(clock) {}
++  FakeClock &clock;
++  std::deque<Step> script;
++  std::vector<Request> calls;
++  std::vector<std::uint32_t> budgets;
++  std::atomic<std::size_t> cancellations{0};
++  Result transact(const Request &request, std::uint32_t timeout_ms) override {
++    calls.push_back(request);
++    budgets.push_back(timeout_ms);
++    if (script.empty()) throw std::runtime_error("unscripted backend call");
++    auto step = std::move(script.front()); script.pop_front();
++    clock.time.fetch_add(step.duration);
++    if (step.action) step.action();
++    return step.result;
++  }
++  void cancel() noexcept override { cancellations.fetch_add(1); }
++};
++
++Request bulk_read(std::size_t size = 4) { return {Kind::BulkRead, 0x81, 0, 0, 0, size, {}}; }
++Request bulk_write() { return {Kind::BulkWrite, 3, 0, 0, 0, 0, {1, 2, 3, 4}}; }
++Result read_result(Bytes bytes, Status status = Status::Ok) {
++  return {status, bytes.size(), std::move(bytes), true, false};
++}
++
++// The condition variable is a deterministic barrier, not a timing assertion.
++// Its bounded real-time wait is only a fail-fast safeguard for a broken test.
++class BlockingBackend final : public Backend {
++public:
++  std::mutex mutex;
++  std::condition_variable condition;
++  bool entered = false;
++  bool release = false;
++  std::size_t calls = 0;
++  Result transact(const Request &, std::uint32_t) override {
++    std::unique_lock<std::mutex> lock(mutex);
++    ++calls; entered = true; condition.notify_all();
++    if (!condition.wait_for(lock, std::chrono::seconds(2), [&] { return release; })) {
++      throw std::runtime_error("test barrier release missing");
++    }
++    return read_result({1, 2, 3, 4});
++  }
++  bool wait_entered() {
++    std::unique_lock<std::mutex> lock(mutex);
++    return condition.wait_for(lock, std::chrono::seconds(2), [&] { return entered; });
++  }
++  void unblock() {
++    std::lock_guard<std::mutex> lock(mutex);
++    release = true; condition.notify_all();
++  }
++};
++
++}  // namespace
++
++int main() {
++  std::size_t groups = 0;
++  std::vector<std::string> names;
++  const auto test = [&](const char *name, const std::function<void()> &run) {
++    run(); ++groups; names.emplace_back(name); std::cout << "PASS " << name << '\n';
++  };
++  try {
++    test("constructor_and_wide_ingress_validation_have_no_io", [] {
++      FakeClock clock; FakeBackend backend(clock); Transport transport(backend, clock);
++      CHECK(backend.calls.empty()); CHECK(transport.healthy());
++      auto request = bulk_read();
++      for (const auto endpoint : {0U, 1U, 0x80U, 0x90U, 0x181U, 0xffffffffU}) {
++        request.endpoint = endpoint;
++        CHECK(transport.perform(request).status == Status::Invalid);
++      }
++      request = bulk_write(); request.endpoint = 0x83;
++      CHECK(transport.perform(request).status == Status::Invalid);
++      request = bulk_read(); request.read_length = kMaxBulkBytes + 1;
++      CHECK(transport.perform(request).status == Status::Invalid);
++      request.read_length = 0; CHECK(!valid_request(request));
++      request = bulk_read(); request.payload = {1}; CHECK(!valid_request(request));
++      request = bulk_write(); request.read_length = 1; CHECK(!valid_request(request));
++      request = bulk_write(); request.payload.clear(); CHECK(!valid_request(request));
++      request = bulk_read(); request.request = 1; CHECK(!valid_request(request));
++      request = {Kind::ControlRead, 0, 0xdd, 0xffff, 0xffff, 8, {}};
++      CHECK(valid_request(request));
++      request.request = 0x100; CHECK(!valid_request(request));
++      request.request = 0xdd; request.value = 0x10000; CHECK(!valid_request(request));
++      request.value = 0; request.index = 0x10000; CHECK(!valid_request(request));
++      request.index = 0; request.endpoint = 1; CHECK(!valid_request(request));
++      request.endpoint = 0; request.read_length = kMaxControlBytes + 1; CHECK(!valid_request(request));
++      request.kind = static_cast<Kind>(999); CHECK(!valid_request(request));
++      CHECK(transport.perform(bulk_read(), 0).status == Status::Invalid);
++      CHECK(transport.perform(bulk_read(), 101).status == Status::Invalid);
++      CHECK(backend.calls.empty()); CHECK(clock.time == 0);
++    });
++    test("exact_read_and_zero_payload_control_write", [] {
++      FakeClock clock; FakeBackend backend(clock); Transport transport(backend, clock);
++      backend.script.push_back({read_result({9, 8, 7, 6})});
++      auto result = transport.perform(bulk_read());
++      CHECK(result.status == Status::Ok); CHECK(result.actual == 4); CHECK(result.data == Bytes({9, 8, 7, 6}));
++      CHECK(result.backend_attempted); CHECK(result.backend_status == Status::Ok);
++      backend.script.push_back({{Status::Ok, 0, {}, true, false}});
++      result = transport.perform({Kind::ControlWrite, 0, 0xf1, 0, 0, 0, {}});
++      CHECK(result.status == Status::Ok); CHECK(result.actual == 0); CHECK(transport.healthy());
++      CHECK(backend.calls.size() == 2); CHECK(backend.budgets == std::vector<std::uint32_t>({5, 5}));
++    });
++    test("short_read_and_fragment_boundaries_are_preserved", [] {
++      FakeClock clock; FakeBackend backend(clock); Transport transport(backend, clock);
++      backend.script.push_back({read_result({1, 2, 3})});
++      backend.script.push_back({read_result({4, 5})});
++      const auto first = transport.perform(bulk_read(8));
++      CHECK(first.status == Status::Short); CHECK(first.actual == 3); CHECK(backend.calls.size() == 1);
++      const auto second = transport.perform(bulk_read(8));
++      CHECK(second.status == Status::Short); CHECK(second.actual == 2); CHECK(backend.calls.size() == 2);
++      Bytes combined = first.data; combined.insert(combined.end(), second.data.begin(), second.data.end());
++      CHECK(combined == Bytes({1, 2, 3, 4, 5})); CHECK(transport.healthy());
++      backend.script.push_back({read_result({}, Status::Short)});
++      CHECK(transport.perform(bulk_read()).status == Status::Short); CHECK(backend.calls.size() == 3);
++    });
++    test("read_retries_only_known_empty_timeout_and_is_paced", [] {
++      FakeClock clock; FakeBackend backend(clock); Transport transport(backend, clock);
++      backend.script.push_back({{Status::Timeout}});
++      backend.script.push_back({{Status::Timeout}});
++      backend.script.push_back({read_result({1, 2, 3, 4})});
++      auto result = transport.perform(bulk_read(), 10);
++      CHECK(result.status == Status::Ok); CHECK(backend.calls.size() == 3); CHECK(clock.time == 2000);
++      CHECK(backend.budgets == std::vector<std::uint32_t>({5, 5, 5}));
++      FakeClock immediate_clock; FakeBackend immediate(immediate_clock); Transport bounded(immediate, immediate_clock);
++      for (int i = 0; i < 3; ++i) immediate.script.push_back({{Status::Timeout}});
++      result = bounded.perform(bulk_read(), 3);
++      CHECK(result.status == Status::Timeout); CHECK(result.backend_attempted); CHECK(result.backend_status == Status::Timeout);
++      CHECK(immediate.calls.size() == 3); CHECK(immediate_clock.time == 3000);
++      CHECK(immediate.budgets == std::vector<std::uint32_t>({3, 2, 1}));
++    });
++    test("partial_unknown_or_non_timeout_reads_never_retry", [] {
++      for (const auto status : {Status::Timeout, Status::Cancelled, Status::Disconnected, Status::Stall, Status::Busy, Status::IoError}) {
++        FakeClock clock; FakeBackend backend(clock); Transport transport(backend, clock);
++        backend.script.push_back({read_result({1, 2}, status)});
++        const auto result = transport.perform(bulk_read());
++        CHECK(result.status == status); CHECK(result.actual == 2); CHECK(result.data == Bytes({1, 2})); CHECK(backend.calls.size() == 1);
++        if (status == Status::Cancelled) {
++          CHECK(!transport.healthy()); CHECK(transport.perform(bulk_read()).status == Status::Cancelled); CHECK(backend.calls.size() == 1);
++        }
++      }
++      FakeClock clock; FakeBackend backend(clock); Transport transport(backend, clock);
++      backend.script.push_back({{Status::Timeout, 0, {}, false, false}});
++      const auto result = transport.perform(bulk_read());
++      CHECK(result.status == Status::Timeout); CHECK(!result.actual_known); CHECK(backend.calls.size() == 1);
++      CHECK(!transport.healthy()); CHECK(transport.perform(bulk_read()).status == Status::Poisoned); CHECK(backend.calls.size() == 1);
++    });
++    test("confirmed_prefix_survives_unknown_later_chunk_delivery", [] {
++      for (const bool write : {false, true}) {
++        FakeClock clock; FakeBackend backend(clock); Transport transport(backend, clock);
++        backend.script.push_back({{Status::Timeout, 2, write ? Bytes{} : Bytes{1, 2}, false, write}});
++        const auto result = transport.perform(write ? bulk_write() : bulk_read());
++        CHECK(result.status == Status::Timeout); CHECK(result.actual == 2); CHECK(!result.actual_known);
++        CHECK(result.data == (write ? Bytes{} : Bytes{1, 2})); CHECK(result.delivery_uncertain == write);
++        CHECK(backend.calls.size() == 1); CHECK(!transport.healthy());
++        CHECK(transport.perform(bulk_read()).status == Status::Poisoned); CHECK(backend.calls.size() == 1);
++      }
++    });
++    test("late_fatal_backend_status_is_latched_before_deadline_override", [] {
++      for (const auto status : {Status::Disconnected, Status::Stall, Status::IoError, Status::Poisoned, Status::Cancelled}) {
++        FakeClock clock; FakeBackend backend(clock); Transport transport(backend, clock);
++        backend.script.push_back({{status}, 5000});
++        const auto result = transport.perform(bulk_read(), 100);
++        CHECK(result.status == (status == Status::Cancelled ? Status::Cancelled : Status::Timeout));
++        CHECK(result.backend_status == status); CHECK(result.backend_attempted); CHECK(result.actual == 0);
++        CHECK(backend.calls.size() == 1); CHECK(!transport.healthy());
++        CHECK(transport.perform(bulk_read()).status == (status == Status::Cancelled ? Status::Cancelled : Status::Poisoned));
++        CHECK(backend.calls.size() == 1);
++      }
++      for (const auto status : {Status::Ok, Status::Short, Status::Busy, Status::Invalid}) {
++        FakeClock clock; FakeBackend backend(clock); Transport transport(backend, clock);
++        backend.script.push_back({{status}, 5000});
++        const auto result = transport.perform(bulk_read(), 100);
++        CHECK(result.status == Status::Timeout); CHECK(result.backend_status == status); CHECK(backend.calls.size() == 1);
++      }
++    });
++    test("failed_and_uncertain_writes_are_never_replayed_and_poison_session", [] {
++      for (const auto status : {Status::Short, Status::Timeout, Status::Cancelled, Status::Disconnected, Status::Stall, Status::Busy, Status::IoError}) {
++        FakeClock clock; FakeBackend backend(clock); Transport transport(backend, clock);
++        backend.script.push_back({{status, 2, {}, true, false}});
++        const auto result = transport.perform(bulk_write());
++        CHECK(result.status == status); CHECK(result.actual == 2); CHECK(result.actual_known); CHECK(result.delivery_uncertain);
++        CHECK(result.backend_status == status); CHECK(backend.calls.size() == 1); CHECK(!transport.healthy());
++        CHECK(transport.perform(bulk_read()).status == (status == Status::Cancelled ? Status::Cancelled : Status::Poisoned)); CHECK(backend.calls.size() == 1);
++      }
++      FakeClock clock; FakeBackend backend(clock); Transport transport(backend, clock);
++      backend.script.push_back({{Status::Ok, 4, {}, true, true}});
++      const auto result = transport.perform(bulk_write());
++      CHECK(result.status == Status::IoError); CHECK(result.actual == 4); CHECK(result.backend_status == Status::Ok);
++      CHECK(result.delivery_uncertain); CHECK(!transport.healthy()); CHECK(backend.calls.size() == 1);
++    });
++    test("deadline_minus_one_exact_and_plus_one_preserve_late_counts", [] {
++      for (const bool write : {false, true}) for (const auto duration : {4999U, 5000U, 5001U}) {
++        FakeClock clock; FakeBackend backend(clock); Transport transport(backend, clock);
++        backend.script.push_back({write ? Result{Status::Ok, 4, {}, true, false} : read_result({1, 2, 3, 4}), duration});
++        const auto result = transport.perform(write ? bulk_write() : bulk_read(), 5);
++        CHECK(result.status == (duration < 5000 ? Status::Ok : Status::Timeout));
++        CHECK(result.actual == 4); CHECK(result.data == (write ? Bytes{} : Bytes({1, 2, 3, 4}))); CHECK(result.backend_status == Status::Ok);
++        CHECK(result.delivery_uncertain == (write && duration >= 5000));
++        CHECK(backend.calls.size() == 1); CHECK(backend.budgets[0] == 5);
++      }
++      FakeClock clock; FakeBackend backend(clock); Transport transport(backend, clock);
++      backend.script.push_back({{Status::Ok, 4, {}, true, false}, 5000});
++      const auto result = transport.perform(bulk_write(), 100);
++      CHECK(result.status == Status::Timeout); CHECK(result.actual == 4); CHECK(result.delivery_uncertain);
++      CHECK(!transport.healthy()); CHECK(backend.calls.size() == 1);
++    });
++    test("submillisecond_remaining_budget_does_not_round_up", [] {
++      FakeClock clock; FakeBackend backend(clock); Transport transport(backend, clock);
++      backend.script.push_back({{Status::Timeout}, 4999});
++      backend.script.push_back({{Status::Timeout}, 3002});
++      const auto result = transport.perform(bulk_read(), 10);
++      CHECK(result.status == Status::Timeout); CHECK(result.backend_attempted); CHECK(backend.calls.size() == 2);
++      CHECK(backend.budgets == std::vector<std::uint32_t>({5, 4})); CHECK(clock.time == 10000);
++    });
++    test("cancellation_before_during_after_and_between_retries_is_permanent", [] {
++      {
++        FakeClock clock; FakeBackend backend(clock); Transport transport(backend, clock);
++        transport.cancel(); CHECK(!transport.healthy()); CHECK(backend.cancellations == 1);
++        const auto result = transport.perform(bulk_read());
++        CHECK(result.status == Status::Cancelled); CHECK(!result.backend_attempted); CHECK(backend.calls.empty());
++      }
++      for (const bool write : {false, true}) for (const auto duration : {4999U, 5000U, 5001U}) {
++        FakeClock clock; FakeBackend backend(clock); Transport transport(backend, clock);
++        const Result success = write ? Result{Status::Ok, 4, {}, true, false} : read_result({1, 2, 3, 4});
++        backend.script.push_back({success, duration, [&] { transport.cancel(); }});
++        const auto result = transport.perform(write ? bulk_write() : bulk_read());
++        CHECK(result.status == Status::Cancelled); CHECK(result.actual == 4); CHECK(result.backend_status == Status::Ok);
++        CHECK(result.delivery_uncertain == write); CHECK(backend.calls.size() == 1); CHECK(!transport.healthy());
++      }
++      {
++        FakeClock clock; FakeBackend backend(clock); Transport transport(backend, clock);
++        std::size_t now_calls = 0;
++        clock.on_now = [&] { if (++now_calls == 4) transport.cancel(); };
++        backend.script.push_back({read_result({1, 2, 3, 4})});
++        const auto result = transport.perform(bulk_read());
++        CHECK(result.status == Status::Cancelled); CHECK(result.actual == 4); CHECK(result.backend_status == Status::Ok);
++      }
++      {
++        FakeClock clock; FakeBackend backend(clock); Transport transport(backend, clock);
++        backend.script.push_back({{Status::Timeout}});
++        clock.on_wait = [&] { transport.cancel(); };
++        const auto result = transport.perform(bulk_read());
++        CHECK(result.status == Status::Cancelled); CHECK(result.backend_attempted); CHECK(result.backend_status == Status::Timeout);
++        CHECK(backend.calls.size() == 1);
++      }
++    });
++    test("backward_or_wrapped_clock_fails_closed_without_losing_actual", [] {
++      for (const bool wrap : {false, true}) {
++        FakeClock clock; clock.time = wrap ? std::numeric_limits<std::uint64_t>::max() - 5U : 100;
++        FakeBackend backend(clock); Transport transport(backend, clock);
++        backend.script.push_back({read_result({1, 2, 3, 4}), wrap ? 10U : 0U,
++                                  wrap ? std::function<void()>{} : std::function<void()>{[&] { clock.time = 99; }}});
++        const auto result = transport.perform(bulk_read());
++        CHECK(result.status == Status::IoError); CHECK(result.actual == 4); CHECK(result.backend_status == Status::Ok);
++        CHECK(!transport.healthy()); CHECK(backend.calls.size() == 1);
++      }
++      FakeClock clock; clock.time = std::numeric_limits<std::uint64_t>::max() - 2000U;
++      FakeBackend backend(clock); Transport transport(backend, clock);
++      backend.script.push_back({read_result({1, 2, 3, 4}), 999});
++      CHECK(transport.perform(bulk_read(), 1).status == Status::Ok);
++    });
++    test("nonadvancing_clock_does_not_create_unbounded_retry_loop", [] {
++      FakeClock clock; clock.advance_on_wait = false; FakeBackend backend(clock); Transport transport(backend, clock);
++      backend.script.push_back({{Status::Timeout}});
++      const auto result = transport.perform(bulk_read());
++      CHECK(result.status == Status::IoError); CHECK(!transport.healthy()); CHECK(result.backend_attempted);
++      CHECK(result.backend_status == Status::Timeout); CHECK(backend.calls.size() == 1);
++    });
++    test("malformed_backend_results_never_become_success", [] {
++      const std::vector<Result> malformed = {
++        {Status::Ok, 5, {1, 2, 3, 4, 5}, true, false},
++        {Status::Ok, 4, {1, 2}, true, false},
++        {Status::Ok, 0, {}, false, false},
++        {Status::Timeout, 2, {1}, false, false},
++        {Status::Short, 4, {1, 2, 3, 4}, true, false},
++        {static_cast<Status>(999), 0, {}, true, false},
++        {Status::Timeout, 0, {}, false, true},
++      };
++      for (const auto &bad : malformed) {
++        FakeClock clock; FakeBackend backend(clock); Transport transport(backend, clock);
++        backend.script.push_back({bad});
++        const auto result = transport.perform(bulk_read());
++        CHECK(result.status == Status::IoError); CHECK(!result.actual_known); CHECK(result.actual == 0); CHECK(result.data.empty());
++        CHECK(!transport.healthy()); CHECK(backend.calls.size() == 1);
++      }
++    });
++    test("backend_exceptions_preserve_unknown_delivery_and_never_retry", [] {
++      for (const bool write : {false, true}) {
++        FakeClock clock; FakeBackend backend(clock); Transport transport(backend, clock);
++        const auto result = transport.perform(write ? bulk_write() : bulk_read());
++        CHECK(result.status == Status::IoError); CHECK(!result.actual_known); CHECK(result.delivery_uncertain == write);
++        CHECK(result.backend_attempted); CHECK(!transport.healthy()); CHECK(backend.calls.size() == 1);
++      }
++    });
++    test("blocked_board_does_not_block_other_board_or_mix_bytes", [] {
++      FakeClock clock_a, clock_b; BlockingBackend backend_a; FakeBackend backend_b(clock_b);
++      Transport board_a(backend_a, clock_a), board_b(backend_b, clock_b);
++      auto pending = std::async(std::launch::async, [&] { return board_a.perform(bulk_read()); });
++      const bool entered = backend_a.wait_entered();
++      backend_b.script.push_back({read_result({9, 8, 7, 6})});
++      const auto independent = board_b.perform(bulk_read());
++      board_a.cancel();
++      backend_a.unblock();
++      const auto cancelled = pending.get();
++      CHECK(entered); CHECK(independent.status == Status::Ok); CHECK(independent.data == Bytes({9, 8, 7, 6}));
++      CHECK(cancelled.status == Status::Cancelled); CHECK(cancelled.data == Bytes({1, 2, 3, 4}));
++      CHECK(board_b.healthy()); CHECK(!board_a.healthy()); CHECK(backend_a.calls == 1); CHECK(backend_b.calls.size() == 1);
++    });
++    test("same_board_contender_wait_is_bounded_without_queueing_io", [] {
++      for (const auto budget : {1U, 10U, 100U}) {
++        FakeClock clock; BlockingBackend backend; Transport transport(backend, clock);
++        auto pending = std::async(std::launch::async, [&] { return transport.perform(bulk_read(), 100); });
++        const bool entered = backend.wait_entered();
++        const auto contender = transport.perform(bulk_read(), budget);
++        transport.cancel(); backend.unblock(); const auto first = pending.get();
++        CHECK(entered); CHECK(contender.status == Status::Busy); CHECK(!contender.backend_attempted);
++        CHECK(clock.time == static_cast<std::uint64_t>(std::min(budget, 10U)) * 1000U);
++        CHECK(first.status == Status::Cancelled); CHECK(backend.calls == 1);
++      }
++    });
++    test("lock_release_deadline_minus_one_exact_plus_one", [] {
++      for (const auto release_us : {9999U, 10000U, 10001U}) {
++        FakeClock clock; BlockingBackend backend; Transport transport(backend, clock);
++        auto pending = std::async(std::launch::async, [&] { return transport.perform(bulk_read(), 100); });
++        const bool entered = backend.wait_entered();
++        bool released = false;
++        clock.on_wait = [&] {
++          if (!released && clock.time >= 9000) {
++            released = true; clock.time = release_us; backend.unblock(); pending.wait();
++          }
++        };
++        const auto contender = transport.perform(bulk_read(), 100);
++        backend.unblock(); (void)pending.get();
++        CHECK(entered); CHECK(released);
++        CHECK(contender.status == (release_us < 10000 ? Status::Ok : Status::Busy));
++        CHECK(backend.calls == (release_us < 10000 ? 2U : 1U));
++      }
++    });
++    test("disconnect_stall_and_poison_are_session_local", [] {
++      FakeClock first_clock, second_clock; FakeBackend first(first_clock), second(second_clock);
++      Transport first_transport(first, first_clock), second_transport(second, second_clock);
++      first.script.push_back({{Status::Disconnected}}); second.script.push_back({read_result({5, 6, 7, 8})});
++      CHECK(first_transport.perform(bulk_read()).status == Status::Disconnected);
++      CHECK(first_transport.perform(bulk_read()).status == Status::Poisoned); CHECK(first.calls.size() == 1);
++      const auto result = second_transport.perform(bulk_read());
++      CHECK(result.status == Status::Ok); CHECK(result.data == Bytes({5, 6, 7, 8})); CHECK(second_transport.healthy());
++    });
++    std::cout << "{\"passed\":" << groups << ",\"failed\":0,\"assertions\":" << assertions
++              << ",\"device_access\":false,\"clock\":\"deterministic_fake\",\"hardware_timing_validated\":false,\"cases\":[";
++    for (std::size_t i = 0; i < names.size(); ++i) std::cout << (i == 0 ? "\"" : ",\"") << names[i] << '"';
++    std::cout << "]}\n";
++    return 0;
++  } catch (const std::exception &error) {
++    std::cerr << "FAIL after " << groups << " groups: " << error.what() << '\n';
++    return 1;
++  }
++}
+diff --git a/openpilot/selfdrive/pandad/compatibility/tests/test_usb_backend.cc b/openpilot/selfdrive/pandad/compatibility/tests/test_usb_backend.cc
+new file mode 100644
+index 0000000..218ce9f
+--- /dev/null
++++ b/openpilot/selfdrive/pandad/compatibility/tests/test_usb_backend.cc
+@@ -0,0 +1,334 @@
++#include "../usb_backend.h"
++#include "../can_codec.h"
++
++#include <algorithm>
++#include <atomic>
++#include <cassert>
++#include <condition_variable>
++#include <deque>
++#include <functional>
++#include <iostream>
++#include <map>
++#include <memory>
++#include <mutex>
++#include <stdexcept>
++#include <string>
++#include <thread>
++
++using namespace openpilot::pandad::compatibility;
++namespace {
++#define CHECK(x) do { if (!(x)) throw std::runtime_error(std::string(__func__) + ": " + #x); } while (false)
++struct Transfer {
++  bool control = false;
++  int result = 0;
++  int actual = 0;
++  std::vector<std::uint8_t> bytes;
++};
++struct State {
++  int initializes = 0, enumerations = 0, opens = 0, serials = 0, claims = 0;
++  int releases = 0, closes = 0, shutdowns = 0, transfers = 0;
++  int initialize_error = 0, enumerate_error = 0, open_error = 0;
++  int serial_error = 0, claim_error = 0;
++  std::vector<UsbDeviceInfo> devices;
++  std::map<UsbDeviceId, std::string> serial_by_id;
++  std::deque<Transfer> replies;
++  std::vector<unsigned int> endpoints, request_types, requests, values, indices, timeouts;
++  std::vector<std::vector<std::uint8_t>> output;
++  std::function<void()> in_transfer;
++};
++class FakeApi final : public LibusbApi {
++public:
++  explicit FakeApi(std::shared_ptr<State> state) : state_(std::move(state)) {}
++  int initialize() override { ++state_->initializes; return state_->initialize_error; }
++  int enumerate(std::vector<UsbDeviceInfo> &devices) override {
++    ++state_->enumerations; devices = state_->devices; return state_->enumerate_error;
++  }
++  int open(UsbDeviceId device, UsbHandle &handle) override {
++    ++state_->opens; handle = state_->open_error == 0 ? device : 0; return state_->open_error;
++  }
++  int serial(UsbHandle handle, std::uint8_t, std::string &value, std::uint32_t timeout) override {
++    CHECK(timeout > 0 && timeout <= 5);
++    ++state_->serials; value = state_->serial_by_id[handle]; return state_->serial_error;
++  }
++  int claim(UsbHandle, int interface_number) override {
++    CHECK(interface_number == 0); ++state_->claims; return state_->claim_error;
++  }
++  int control(UsbHandle, std::uint8_t type, std::uint8_t request, std::uint16_t value, std::uint16_t index,
++              std::uint8_t *data, std::uint16_t length, std::uint32_t timeout) override {
++    state_->request_types.push_back(type); state_->requests.push_back(request);
++    state_->values.push_back(value); state_->indices.push_back(index);
++    auto reply = transfer(true, (type & 0x80) != 0, 0, data, length, timeout);
++    return reply.result;
++  }
++  int bulk(UsbHandle, std::uint8_t endpoint, std::uint8_t *data, int length,
++           int &actual, std::uint32_t timeout) override {
++    auto reply = transfer(false, (endpoint & 0x80) != 0, endpoint, data, length, timeout);
++    actual = reply.actual; return reply.result;
++  }
++  void release(UsbHandle, int interface_number) override { CHECK(interface_number == 0); ++state_->releases; }
++  void close(UsbHandle) override { ++state_->closes; }
++  void shutdown() override { ++state_->shutdowns; }
++private:
++  Transfer transfer(bool control, bool read, unsigned int endpoint, std::uint8_t *data,
++                    int length, std::uint32_t timeout) {
++    CHECK(timeout > 0 && timeout <= 5 && !state_->replies.empty());
++    ++state_->transfers; state_->endpoints.push_back(endpoint); state_->timeouts.push_back(timeout);
++    if (!read) {
++      if (length == 0) state_->output.emplace_back();
++      else state_->output.emplace_back(data, data + length);
++    }
++    auto reply = state_->replies.front(); state_->replies.pop_front();
++    CHECK(reply.control == control);
++    if (read && !reply.bytes.empty()) {
++      CHECK(reply.bytes.size() <= static_cast<std::size_t>(length));
++      std::copy(reply.bytes.begin(), reply.bytes.end(), data);
++    }
++    if (state_->in_transfer) state_->in_transfer();
++    return reply;
++  }
++  std::shared_ptr<State> state_;
++};
++UsbDeviceInfo device(UsbDeviceId id = 1, std::uint16_t board_type = 6) {
++  return {id, 0xbbaa, 0xddcc, static_cast<std::uint16_t>(board_type << 8), 3, true,
++          {{0, 0, {{0x81, 2, 64}, {0x02, 2, 64}, {0x03, 2, 64}}},
++           {0, 1, {{0x81, 3, 64}, {0x02, 2, 64}, {0x03, 2, 64}}}}};
++}
++std::shared_ptr<State> state() {
++  auto result = std::make_shared<State>();
++  result->devices = {device()}; result->serial_by_id[1] = "fixture:DOS-A"; return result;
++}
++UsbBackend backend(const std::shared_ptr<State> &state) { return UsbBackend(std::make_unique<FakeApi>(state)); }
++void open(UsbBackend &usb) { CHECK(usb.open_bound({"fixture:DOS-A", 6, true}, true) == Status::Ok); }
++Request read(std::size_t count = 8) { Request r; r.kind = Kind::BulkRead; r.endpoint = 0x81; r.read_length = count; return r; }
++Request write() { Request r; r.kind = Kind::BulkWrite; r.endpoint = 0x03; r.payload = {1, 2, 3, 4}; return r; }
++class FakeClock final : public Clock {
++public:
++  std::uint64_t now_us() override { return now; }
++  void wait_us(std::uint32_t duration) override { now += duration; }
++  std::uint64_t now = 0;
++};
++void inert_construction_and_permission() {
++  auto s = state();
++  { auto usb = backend(s); CHECK(!usb.is_open()); CHECK(usb.open_bound({"fixture:DOS-A", 6, true}) == Status::Invalid);
++    CHECK(usb.open_bound({}, true) == Status::Invalid); CHECK(usb.open_bound({"fixture:DOS-A", 0}, true) == Status::Invalid);
++    CHECK(usb.open_bound({" fixture:DOS-A", 6}, true) == Status::Invalid);
++    CHECK(usb.transact(read(), 5).status == Status::Disconnected); }
++  CHECK(s->initializes == 0 && s->opens == 0 && s->shutdowns == 0 && s->transfers == 0);
++  // Links the production implementation but executes no initialize/list/open.
++  { UsbBackend production; CHECK(!production.is_open()); CHECK(production.open_bound({}) == Status::Invalid); }
++}
++void selection_and_cleanup() {
++  auto s = state(); s->devices.insert(s->devices.begin(), device(2, 7)); s->serial_by_id[2] = "fixture:RED-B";
++  s->devices[1].vendor = 0x3801;
++  { auto usb = backend(s); open(usb); CHECK(usb.is_open()); CHECK(s->opens == 2 && s->closes == 1 && s->claims == 1);
++    CHECK(usb.open_bound({"fixture:DOS-A", 6, true}, true) == Status::Busy); }
++  CHECK(s->releases == 1 && s->closes == 2 && s->shutdowns == 1);
++}
++void reversed_selection() {
++  for (bool reverse : {false, true}) {
++    auto s = state(); s->devices.push_back(device(2, 7)); s->serial_by_id[2] = "fixture:RED-B";
++    if (reverse) std::reverse(s->devices.begin(), s->devices.end());
++    auto usb = backend(s); open(usb); CHECK(usb.is_open() && s->claims == 1);
++  }
++}
++void reject_bootstub_and_dfu() {
++  auto s = state(); s->devices[0].product = 0xddee;
++  auto dfu = device(2); dfu.vendor = 0x0483; dfu.product = 0xdf11; s->devices.push_back(dfu);
++  auto usb = backend(s); CHECK(usb.open_bound({"fixture:DOS-A", 6, true}, true) == Status::Disconnected);
++  CHECK(s->opens == 0 && s->claims == 0 && s->shutdowns == 1);
++}
++void reject_duplicate_and_replacement() {
++  for (bool duplicate : {true, false}) {
++    auto s = state();
++    if (duplicate) { s->devices.push_back(device(2)); s->serial_by_id[2] = "fixture:DOS-A"; }
++    else s->devices[0].bcd_device = 0x700;
++    auto usb = backend(s); CHECK(usb.open_bound({"fixture:DOS-A", 6, true}, true) == Status::Poisoned);
++    CHECK(!usb.is_open() && s->claims == 0 && s->closes == s->opens && s->shutdowns == 1);
++  }
++}
++void malformed_descriptors() {
++  for (int variant = 0; variant < 9; ++variant) {
++    auto s = state(); auto &d = s->devices[0];
++    switch (variant) {
++      case 0: d.active_configuration_known = false; break;
++      case 1: d.serial_index = 0; break;
++      case 2: d.alternates[0].interface_number = 1; break;
++      case 3: d.alternates[0].endpoints[0].attributes = 3; break;
++      case 4: d.alternates[0].endpoints[0].max_packet_size = 512; break;
++      case 5: d.alternates[0].endpoints.pop_back(); break;
++      case 6: d.alternates[0].endpoints.push_back(d.alternates[0].endpoints[0]); break;
++      case 7: d.alternates.push_back(d.alternates[0]); break;
++      case 8: d.bcd_device = 0x601; break;
++    }
++    auto usb = backend(s); CHECK(usb.open_bound({"fixture:DOS-A", 6, true}, true) == Status::Poisoned);
++    CHECK(s->claims == 0 && s->closes == 1 && s->shutdowns == 1);
++  }
++}
++void active_alternate_needs_explicit_external_verification() {
++  auto s = state(); auto usb = backend(s);
++  CHECK(usb.open_bound({"fixture:DOS-A", 6}, true) == Status::Invalid);
++  CHECK(s->initializes == 0 && s->opens == 0 && s->claims == 0);
++}
++void open_failures_cleanup() {
++  for (int phase = 0; phase < 5; ++phase) {
++    auto s = state();
++    switch (phase) {
++      case 0: s->initialize_error = kUsbIo; break;
++      case 1: s->enumerate_error = kUsbIo; break;
++      case 2: s->open_error = kUsbAccess; break;
++      case 3: s->serial_error = kUsbTimeout; break;
++      case 4: s->claim_error = kUsbBusy; break;
++    }
++    { auto usb = backend(s); CHECK(usb.open_bound({"fixture:DOS-A", 6, true}, true) != Status::Ok); CHECK(!usb.is_open()); }
++    CHECK(s->shutdowns == (phase == 0 ? 0 : 1));
++    CHECK(s->closes == (phase >= 3 ? 1 : 0));
++    CHECK(s->releases == 0);
++  }
++}
++void bulk_short_read_and_write() {
++  auto s = state(); auto usb = backend(s); open(usb);
++  s->replies.push_back({false, 0, 3, {9, 8, 7}}); auto r = usb.transact(read(), 5);
++  CHECK(r.status == Status::Short && r.actual == 3 && r.data == std::vector<std::uint8_t>({9, 8, 7}) && r.actual_known);
++  s->replies.push_back({false, 0, 2, {}}); r = usb.transact(write(), 5);
++  CHECK(r.status == Status::Short && r.actual == 2 && r.delivery_uncertain && r.data.empty());
++  CHECK(s->transfers == 2 && s->output == std::vector<std::vector<std::uint8_t>>({{1, 2, 3, 4}}));
++}
++void partial_timeout_preserves_data() {
++  auto s = state(); auto usb = backend(s); open(usb);
++  s->replies.push_back({false, kUsbTimeout, 2, {7, 8}}); auto r = usb.transact(read(), 2);
++  CHECK(r.status == Status::Timeout && r.actual == 2 && r.actual_known && r.data == std::vector<std::uint8_t>({7, 8}));
++  CHECK(!r.delivery_uncertain && s->timeouts == std::vector<unsigned int>({2}));
++}
++void control_read_write_and_unknown_count() {
++  auto s = state(); auto usb = backend(s); open(usb);
++  Request r; r.kind = Kind::ControlRead; r.request = 0xdd; r.value = 0xabcd; r.index = 0x4321; r.read_length = 8;
++  s->replies.push_back({true, 3, 0, {1, 2, 3}}); auto result = usb.transact(r, 5);
++  CHECK(result.status == Status::Short && result.actual == 3 && result.data == std::vector<std::uint8_t>({1, 2, 3}));
++  r.kind = Kind::ControlWrite; r.read_length = 0; r.payload = {1, 2};
++  s->replies.push_back({true, kUsbTimeout, 0, {}}); result = usb.transact(r, 5);
++  CHECK(result.status == Status::Timeout && !result.actual_known && result.delivery_uncertain && result.actual == 0);
++  s->replies.push_back({true, 2, 0, {}}); result = usb.transact(r, 5);
++  CHECK(result.status == Status::Ok && result.actual == 2 && !result.delivery_uncertain);
++  r.payload.clear(); s->replies.push_back({true, 0, 0, {}}); result = usb.transact(r, 5);
++  CHECK(result.status == Status::Ok && result.actual == 0 && result.actual_known && !result.delivery_uncertain);
++  r.kind = Kind::ControlRead; r.read_length = 8; s->replies.push_back({true, kUsbTimeout, 0, {}});
++  result = usb.transact(r, 5);
++  CHECK(result.status == Status::Timeout && result.actual == 0 && !result.actual_known && !result.delivery_uncertain);
++  CHECK(s->request_types == std::vector<unsigned int>({0xc0, 0x40, 0x40, 0x40, 0xc0}));
++  CHECK(s->requests == std::vector<unsigned int>(5, 0xdd));
++  CHECK(s->values == std::vector<unsigned int>(5, 0xabcd) && s->indices == std::vector<unsigned int>(5, 0x4321));
++}
++void error_classes_and_no_replay() {
++  const std::pair<int, Status> errors[] = {{kUsbTimeout, Status::Timeout}, {kUsbNoDevice, Status::Disconnected},
++    {kUsbPipe, Status::Stall}, {kUsbInterrupted, Status::Cancelled}, {kUsbBusy, Status::Busy},
++    {kUsbOverflow, Status::Poisoned}, {kUsbIo, Status::IoError}};
++  for (const auto &[code, expected] : errors) {
++    auto s = state(); auto usb = backend(s); open(usb); FakeClock clock; Transport transport(usb, clock);
++    s->replies.push_back({false, code, 2, {}}); auto result = transport.perform(write());
++    CHECK(result.status == expected && result.delivery_uncertain);
++    if (code == kUsbOverflow) CHECK(result.actual == 0 && !result.actual_known && result.data.empty());
++    else CHECK(result.actual == 2 && result.actual_known);
++    CHECK(s->transfers == 1);
++  }
++}
++void invalid_requests_never_touch_api() {
++  auto s = state(); auto usb = backend(s); open(usb);
++  auto r = read(); r.endpoint = 0x82; CHECK(usb.transact(r, 5).status == Status::Invalid);
++  r = write(); r.endpoint = 0x02; CHECK(usb.transact(r, 5).status == Status::Invalid);
++  CHECK(usb.transact(read(), 0).status == Status::Invalid); CHECK(usb.transact(read(), 6).status == Status::Invalid);
++  r = read(kMaxBulkBytes + 1); CHECK(usb.transact(r, 5).status == Status::Invalid);
++  CHECK(s->transfers == 0);
++}
++void impossible_actual_poisoned() {
++  {
++    auto s = state(); auto usb = backend(s); open(usb);
++    s->replies.push_back({false, kUsbOverflow, 2, {1, 2}});
++    auto result = usb.transact(read(), 5);
++    CHECK(result.status == Status::Poisoned && !result.actual_known && result.actual == 0 && result.data.empty());
++  }
++  for (int actual : {-1, 9}) {
++    auto s = state(); auto usb = backend(s); open(usb); s->replies.push_back({false, 0, actual, {}});
++    auto result = usb.transact(read(), 5); CHECK(result.status == Status::Poisoned && !result.actual_known && result.data.empty());
++  }
++}
++void stream_fragments_at_usb_packet_boundary() {
++  auto s = state(); auto usb = backend(s); open(usb); CanStreamParser parser(CanCapability::CanFd);
++  CanFrame frame; frame.address = 0x123; frame.fd = true; frame.payload.resize(64, 0xaa);
++  auto encoded = encode_can_frame(frame, CanCapability::CanFd, FrameDirection::Rx); CHECK(encoded && encoded.value.size() == 70);
++  s->replies.push_back({false, 0, 64, {encoded.value.begin(), encoded.value.begin() + 64}});
++  s->replies.push_back({false, kUsbTimeout, 6, {encoded.value.begin() + 64, encoded.value.end()}});
++  auto a = usb.transact(read(128), 5); auto first = parser.feed(a.data.data(), a.data.size()); CHECK(first && first.value.empty());
++  auto b = usb.transact(read(128), 5); auto second = parser.feed(b.data.data(), b.data.size());
++  CHECK(b.status == Status::Timeout && second && second.value.size() == 1 && second.value[0].payload == frame.payload);
++  CHECK(s->transfers == 2 && parser.buffered_size() == 0);
++}
++void two_session_parsers_do_not_mix_and_peer_survives_disconnect() {
++  auto a = state(), b = state(); auto usb_a = backend(a), usb_b = backend(b); open(usb_a); open(usb_b);
++  FakeClock clock_a, clock_b; Transport session_a(usb_a, clock_a), session_b(usb_b, clock_b);
++  CanStreamParser parser_a(CanCapability::ClassicOnly), parser_b(CanCapability::ClassicOnly);
++  CanFrame first; first.address = 0x123; first.payload = {1, 2, 3, 4};
++  CanFrame second; second.address = 0x456; second.payload = {5, 6, 7, 8};
++  auto encoded_a = encode_can_frame(first, CanCapability::ClassicOnly, FrameDirection::Rx);
++  auto encoded_b = encode_can_frame(second, CanCapability::ClassicOnly, FrameDirection::Rx);
++  CHECK(encoded_a && encoded_b);
++  a->replies.push_back({false, 0, 4, {encoded_a.value.begin(), encoded_a.value.begin() + 4}});
++  b->replies.push_back({false, 0, 6, {encoded_b.value.begin(), encoded_b.value.begin() + 6}});
++  b->replies.push_back({false, 0, 4, {encoded_b.value.begin() + 6, encoded_b.value.end()}});
++  a->replies.push_back({false, kUsbNoDevice, 0, {}});
++  auto first_a = session_a.perform(read()); auto a_prefix = parser_a.feed(first_a.data.data(), first_a.data.size());
++  auto first_b = session_b.perform(read()); auto b_prefix = parser_b.feed(first_b.data.data(), first_b.data.size());
++  CHECK(a_prefix && a_prefix.value.empty() && b_prefix && b_prefix.value.empty());
++  CHECK(session_a.perform(read()).status == Status::Disconnected);
++  auto last_b = session_b.perform(read()); auto complete_b = parser_b.feed(last_b.data.data(), last_b.data.size());
++  CHECK(complete_b && complete_b.value.size() == 1 && complete_b.value[0].address == second.address);
++  CHECK(complete_b.value[0].payload == second.payload && parser_a.buffered_size() == 4 && parser_b.buffered_size() == 0);
++  CHECK(session_b.healthy() && !session_a.healthy());
++  CHECK(session_a.perform(read()).status == Status::Poisoned && a->transfers == 2 && b->transfers == 2);
++}
++void cancelled_read_does_not_retry() {
++  auto s = state(); auto usb = backend(s); open(usb); FakeClock clock; Transport transport(usb, clock);
++  s->replies.push_back({false, kUsbTimeout, 2, {9, 8}});
++  s->in_transfer = [&] { transport.cancel(); };
++  auto result = transport.perform(read());
++  CHECK(result.status == Status::Cancelled && result.actual == 2 && result.data == std::vector<std::uint8_t>({9, 8}));
++  CHECK(s->transfers == 1); CHECK(transport.perform(read()).status == Status::Cancelled && s->transfers == 1);
++}
++void separate_handles_progress_during_blocked_peer() {
++  auto a = state(), b = state(); auto usb_a = backend(a), usb_b = backend(b); open(usb_a); open(usb_b);
++  a->replies.push_back({false, kUsbTimeout, 0, {}}); b->replies.push_back({false, 0, 1, {42}});
++  std::mutex mutex; std::condition_variable cv; bool entered = false, finish = false;
++  a->in_transfer = [&] { std::unique_lock<std::mutex> lock(mutex); entered = true; cv.notify_all(); cv.wait(lock, [&] { return finish; }); };
++  Result first; std::thread thread([&] { first = usb_a.transact(read(1), 5); });
++  { std::unique_lock<std::mutex> lock(mutex); cv.wait(lock, [&] { return entered; }); }
++  auto second = usb_b.transact(read(1), 5);
++  CHECK(second.status == Status::Ok && second.data == std::vector<std::uint8_t>({42}));
++  CHECK(usb_a.transact(read(), 5).status == Status::Busy);
++  { std::lock_guard<std::mutex> lock(mutex); finish = true; } cv.notify_all(); thread.join();
++  CHECK(first.status == Status::Timeout && a->transfers == 1 && b->transfers == 1);
++}
++void close_does_not_reuse_session() {
++  auto s = state(); auto usb = backend(s); open(usb); usb.close(); usb.close();
++  CHECK(usb.transact(read(), 5).status == Status::Disconnected);
++  CHECK(s->releases == 1 && s->closes == 1 && s->shutdowns == 1 && s->transfers == 0);
++}
++}  // namespace
++int main() {
++  const std::pair<const char *, void(*)()> tests[] = {
++    {"inert_construction_and_permission", inert_construction_and_permission},
++    {"selection_and_cleanup", selection_and_cleanup}, {"reversed_selection", reversed_selection},
++    {"reject_bootstub_and_dfu", reject_bootstub_and_dfu}, {"reject_duplicate_and_replacement", reject_duplicate_and_replacement},
++    {"malformed_descriptors", malformed_descriptors}, {"active_alternate_needs_explicit_external_verification", active_alternate_needs_explicit_external_verification},
++    {"open_failures_cleanup", open_failures_cleanup}, {"bulk_short_read_and_write", bulk_short_read_and_write},
++    {"partial_timeout_preserves_data", partial_timeout_preserves_data},
++    {"control_read_write_and_unknown_count", control_read_write_and_unknown_count},
++    {"error_classes_and_no_replay", error_classes_and_no_replay}, {"invalid_requests_never_touch_api", invalid_requests_never_touch_api},
++    {"impossible_actual_poisoned", impossible_actual_poisoned},
++    {"stream_fragments_at_usb_packet_boundary", stream_fragments_at_usb_packet_boundary},
++    {"two_session_parsers_do_not_mix_and_peer_survives_disconnect", two_session_parsers_do_not_mix_and_peer_survives_disconnect},
++    {"cancelled_read_does_not_retry", cancelled_read_does_not_retry},
++    {"separate_handles_progress_during_blocked_peer", separate_handles_progress_during_blocked_peer},
++    {"close_does_not_reuse_session", close_does_not_reuse_session},
++  };
++  for (const auto &[name, test] : tests) { test(); std::cout << "PASS " << name << '\n'; }
++  std::cout << "{\"suite\":\"usb_backend\",\"groups\":" << std::size(tests) << ",\"failed\":0,\"device_io\":false}\n";
++}
+diff --git a/openpilot/selfdrive/pandad/compatibility/timing_budget.h b/openpilot/selfdrive/pandad/compatibility/timing_budget.h
+new file mode 100644
+index 0000000..1b8ca10
+--- /dev/null
++++ b/openpilot/selfdrive/pandad/compatibility/timing_budget.h
+@@ -0,0 +1,36 @@
++#pragma once
++
++#include <cstddef>
++#include <cstdint>
++
++namespace openpilot::pandad::compatibility {
++
++// Candidate scheduler contract, pure policy only. P3/P4 must connect this to
++// actual health collection, heartbeat scheduling and the group TX barrier.
++// These constants neither authorize a command nor implement MCU liveness.
++inline constexpr std::size_t kInflightCapacity = 1;
++inline constexpr std::size_t kPendingQueueCapacity = 0;
++inline constexpr std::uint64_t kHealthPeriodUs = 100000;
++inline constexpr std::uint64_t kHealthMaxAgeUs = 250000;
++inline constexpr std::uint64_t kHeartbeatPeriodUs = 100000;
++inline constexpr std::uint64_t kHeartbeatMaxAgeUs = 250000;
++
++// Unsigned subtraction tolerates a single wrapping clock. Intervals >=2^63
++// (including future samples) are invalid, never made fresh by signed casts.
++inline bool valid_elapsed(std::uint64_t now, std::uint64_t then) {
++  return now - then < (std::uint64_t{1} << 63);
++}
++inline bool health_fresh(bool observed, std::uint64_t now, std::uint64_t received) {
++  return observed && valid_elapsed(now, received) && now - received < kHealthMaxAgeUs;
++}
++inline bool heartbeat_due(bool sent, std::uint64_t now, std::uint64_t last_sent) {
++  return !sent || !valid_elapsed(now, last_sent) || now - last_sent >= kHeartbeatPeriodUs;
++}
++inline bool heartbeat_overdue(bool sent, std::uint64_t now, std::uint64_t last_sent) {
++  return !sent || !valid_elapsed(now, last_sent) || now - last_sent >= kHeartbeatMaxAgeUs;
++}
++inline bool queue_admissible(std::size_t inflight, std::size_t pending) {
++  return inflight < kInflightCapacity && pending == kPendingQueueCapacity;
++}
++
++}  // namespace openpilot::pandad::compatibility
+diff --git a/openpilot/selfdrive/pandad/compatibility/transport.cc b/openpilot/selfdrive/pandad/compatibility/transport.cc
+new file mode 100644
+index 0000000..0c47ea7
+--- /dev/null
++++ b/openpilot/selfdrive/pandad/compatibility/transport.cc
+@@ -0,0 +1,200 @@
++#include "transport.h"
++
++#include <algorithm>
++
++namespace openpilot::pandad::compatibility {
++
++const char *status_name(Status status) {
++  switch (status) {
++    case Status::Ok: return "ok";
++    case Status::Short: return "short";
++    case Status::Timeout: return "timeout";
++    case Status::Cancelled: return "cancelled";
++    case Status::Disconnected: return "disconnected";
++    case Status::Stall: return "stall";
++    case Status::Busy: return "busy";
++    case Status::Invalid: return "invalid";
++    case Status::IoError: return "io_error";
++    case Status::Poisoned: return "poisoned";
++  }
++  return "unknown";
++}
++
++bool is_read(Kind kind) {
++  return kind == Kind::ControlRead || kind == Kind::BulkRead;
++}
++
++bool valid_request(const Request &request) {
++  const bool control = request.kind == Kind::ControlRead || request.kind == Kind::ControlWrite;
++  const bool bulk = request.kind == Kind::BulkRead || request.kind == Kind::BulkWrite;
++  if (!control && !bulk) return false;
++  if (request.endpoint > 0xffU || request.request > 0xffU ||
++      request.value > 0xffffU || request.index > 0xffffU) return false;
++  if (control) {
++    if (request.endpoint != 0) return false;
++  } else {
++    const auto endpoint_number = request.endpoint & 0x7fU;
++    if (endpoint_number == 0 || endpoint_number > 15 ||
++        ((request.endpoint & 0x80U) != 0) != is_read(request.kind) ||
++        request.request != 0 || request.value != 0 || request.index != 0) return false;
++  }
++  const auto maximum = control ? kMaxControlBytes : kMaxBulkBytes;
++  if (is_read(request.kind)) {
++    return request.payload.empty() && request.read_length > 0 && request.read_length <= maximum;
++  }
++  return request.read_length == 0 && request.payload.size() <= maximum &&
++         (control || !request.payload.empty());
++}
++
++namespace {
++
++bool known_status(Status status) {
++  switch (status) {
++    case Status::Ok: case Status::Short: case Status::Timeout:
++    case Status::Cancelled: case Status::Disconnected: case Status::Stall:
++    case Status::Busy: case Status::Invalid: case Status::IoError: case Status::Poisoned:
++      return true;
++  }
++  return false;
++}
++
++// A backend cannot turn a malformed byte count into a successful transfer.
++bool valid_result(const Result &result, const Request &request) {
++  const auto expected = is_read(request.kind) ? request.read_length : request.payload.size();
++  if (!known_status(result.status)) return false;
++  if (is_read(request.kind) && result.delivery_uncertain) return false;
++  if (result.actual > expected) return false;
++  if (is_read(request.kind)) {
++    if (result.data.size() != result.actual) return false;
++  } else if (!result.data.empty()) {
++    return false;
++  }
++  if (!result.actual_known) return result.status != Status::Ok && result.status != Status::Short;
++  return result.status != Status::Short || result.actual < expected;
++}
++
++}  // namespace
++
++Result Transport::perform(const Request &request, std::uint32_t timeout_ms) {
++  if (!valid_request(request) || timeout_ms == 0 || timeout_ms > kMaxTransportTimeoutMs) {
++    return {Status::Invalid};
++  }
++  if (cancelled_.load()) return {Status::Cancelled};
++  if (poisoned_.load()) return {Status::Poisoned};
++  const auto started = clock_.now_us();
++  auto previous_time = started;
++  const std::uint64_t budget_us = static_cast<std::uint64_t>(timeout_ms) * 1000U;
++  const std::uint64_t lock_budget_us = std::min(budget_us, static_cast<std::uint64_t>(kLockWaitMs) * 1000U);
++  // Subtraction only follows monotonicity checks; wrap/backward clocks never
++  // turn expired work into a fresh deadline. We never add to the clock value.
++  const auto elapsed = [&](std::uint64_t &value) {
++    const auto now = clock_.now_us();
++    if (now < previous_time) return false;
++    previous_time = now;
++    value = now - started;
++    return true;
++  };
++  const auto clock_failure = [&]() {
++    poisoned_.store(true);
++    return Result{Status::IoError};
++  };
++
++  std::unique_lock<std::mutex> lock(mutex_, std::defer_lock);
++  // Even a broken clock/adapter cannot cause an unbounded number of attempts.
++  // A non-advancing clock is detected after the first paced wait below.
++  while (true) {
++    if (cancelled_.load()) return {Status::Cancelled};
++    if (poisoned_.load()) return {Status::Poisoned};
++    std::uint64_t spent = 0;
++    if (!elapsed(spent)) return clock_failure();
++    if (spent >= lock_budget_us) return {Status::Busy};
++    if (lock.try_lock()) break;
++    const auto before_wait = previous_time;
++    clock_.wait_us(static_cast<std::uint32_t>(std::min<std::uint64_t>(kWaitQuantumUs, lock_budget_us - spent)));
++    if (!elapsed(spent) || (previous_time == before_wait && !cancelled_.load())) return clock_failure();
++  }
++
++  Result previous_result;
++  const auto finish = [&](Status status) {
++    auto result = previous_result;
++    result.status = status;
++    return result;
++  };
++  while (true) {
++    if (cancelled_.load()) return finish(Status::Cancelled);
++    if (poisoned_.load()) return finish(Status::Poisoned);
++    std::uint64_t spent = 0;
++    if (!elapsed(spent)) {
++      poisoned_.store(true);
++      return finish(Status::IoError);
++    }
++    // libusb and adapter budgets have millisecond resolution. Do not round up
++    // a sub-millisecond remainder and thereby schedule beyond the deadline.
++    if (spent >= budget_us || budget_us - spent < 1000U) return finish(Status::Timeout);
++    const auto slice = static_cast<std::uint32_t>(std::min<std::uint64_t>(kBackendSliceMs, (budget_us - spent) / 1000U));
++    Result result;
++    try {
++      result = backend_.transact(request, slice);
++    } catch (...) {
++      result = {Status::IoError, 0, {}, false, !is_read(request.kind)};
++    }
++    result.backend_status = result.status;
++    result.backend_attempted = true;
++    if (!valid_result(result, request)) {
++      // Contradictory adapter output cannot be used as a trustworthy count.
++      result.status = Status::IoError;
++      result.actual = 0;
++      result.data.clear();
++      result.actual_known = false;
++      result.delivery_uncertain = !is_read(request.kind);
++      poisoned_.store(true);
++    } else if (result.status == Status::Ok && result.actual < (is_read(request.kind) ? request.read_length : request.payload.size())) {
++      result.status = Status::Short;
++    }
++
++    // Latch terminal adapter failures before a later deadline/cancel changes
++    // the outward status. A timeout label must not revive a disconnected board
++    // or replay a request whose consumed stream extent is unknown.
++    if (result.status == Status::Cancelled) cancelled_.store(true);
++    if (result.status == Status::Disconnected || result.status == Status::Stall ||
++        result.status == Status::IoError || result.status == Status::Poisoned ||
++        (is_read(request.kind) && !result.actual_known)) poisoned_.store(true);
++
++    std::uint64_t completed = 0;
++    const bool clock_ok = elapsed(completed);
++    if (!clock_ok) {
++      result.status = Status::IoError;
++      poisoned_.store(true);
++    } else if (cancelled_.load()) {
++      result.status = Status::Cancelled;
++    } else if (completed >= budget_us || completed - spent >= static_cast<std::uint64_t>(slice) * 1000U) {
++      result.status = Status::Timeout;
++    }
++    if (result.status == Status::Cancelled) cancelled_.store(true);
++    if (!is_read(request.kind)) {
++      if (result.status == Status::Ok && result.delivery_uncertain) result.status = Status::IoError;
++      if (result.status != Status::Ok || result.delivery_uncertain) {
++        result.delivery_uncertain = true;
++        poisoned_.store(true);
++      }
++      return result;
++    }
++    if (result.status == Status::Disconnected || result.status == Status::Stall ||
++        result.status == Status::IoError || result.status == Status::Poisoned) poisoned_.store(true);
++    if (result.status != Status::Timeout || result.backend_status != Status::Timeout ||
++        !result.actual_known || result.actual != 0 ||
++        !clock_ok || completed >= budget_us || cancelled_.load() || poisoned_.load()) return result;
++    // A backend can return an immediate timeout. Pace retries so even a virtual
++    // clock makes forward progress and the loop cannot spin indefinitely.
++    const auto remaining = budget_us - completed;
++    previous_result = result;
++    const auto before_wait = previous_time;
++    clock_.wait_us(static_cast<std::uint32_t>(std::min<std::uint64_t>(kWaitQuantumUs, remaining)));
++    if (!elapsed(completed) || (previous_time == before_wait && !cancelled_.load())) {
++      poisoned_.store(true);
++      return finish(Status::IoError);
++    }
++  }
++}
++
++}  // namespace openpilot::pandad::compatibility
+diff --git a/openpilot/selfdrive/pandad/compatibility/transport.h b/openpilot/selfdrive/pandad/compatibility/transport.h
+new file mode 100644
+index 0000000..8edd87c
+--- /dev/null
++++ b/openpilot/selfdrive/pandad/compatibility/transport.h
+@@ -0,0 +1,103 @@
++#pragma once
++
++#include <atomic>
++#include <cstddef>
++#include <cstdint>
++#include <mutex>
++#include <vector>
++
++namespace openpilot::pandad::compatibility {
++
++enum class Kind { ControlRead, ControlWrite, BulkRead, BulkWrite };
++enum class Status {
++  Ok, Short, Timeout, Cancelled, Disconnected, Stall, Busy, Invalid, IoError, Poisoned,
++};
++const char *status_name(Status status);
++
++// Ingress fields stay wide until validation. Bulk endpoints include the USB
++// direction bit (e.g. RX 0x81, TX 0x03); control endpoint is always zero.
++struct Request {
++  Kind kind = Kind::ControlRead;
++  std::uint32_t endpoint = 0;
++  std::uint32_t request = 0;
++  std::uint32_t value = 0;
++  std::uint32_t index = 0;
++  std::size_t read_length = 0;
++  std::vector<std::uint8_t> payload{};
++};
++
++struct Result {
++  Status status = Status::Invalid;
++  // Confirmed application bytes. If actual_known is false this is only a lower
++  // bound: a later staged chunk may also have transferred an unknown amount.
++  std::size_t actual = 0;
++  std::vector<std::uint8_t> data{};
++  bool actual_known = true;
++  // A failed write may have changed the device even when its actual byte count
++  // is zero/unknown. Callers must never interpret an error as proof of no TX.
++  bool delivery_uncertain = false;
++  // Filled by Transport, preserving the adapter status when a later deadline
++  // or cancellation changes status. Direct backend callers leave these unset.
++  Status backend_status = Status::Invalid;
++  bool backend_attempted = false;
++};
++
++inline constexpr std::size_t kMaxControlBytes = 4096;
++inline constexpr std::size_t kMaxBulkBytes = 16384;
++inline constexpr std::uint32_t kMaxTransportTimeoutMs = 100;
++inline constexpr std::uint32_t kBackendSliceMs = 5;
++inline constexpr std::uint32_t kLockWaitMs = 10;
++inline constexpr std::uint32_t kWaitQuantumUs = 1000;
++
++bool is_read(Kind kind);
++bool valid_request(const Request &request);
++
++class Backend {
++public:
++  virtual ~Backend() = default;
++  // Exactly one bounded transfer attempt. No internal replay/reset/recovery.
++  // The owner guarantees exclusive use of this backend/handle. An adapter must
++  // honor timeout_ms (1..5), retain partial counts, and never perform I/O in its
++  // constructor. Transport cannot preempt an adapter that breaks this contract.
++  virtual Result transact(const Request &request, std::uint32_t timeout_ms) = 0;
++  // Permanent cooperative cancellation; must only set local atomic state.
++  // No device calls, blocking work or handle destruction are allowed here.
++  virtual void cancel() noexcept {}
++};
++
++class Clock {
++public:
++  virtual ~Clock() = default;
++  virtual std::uint64_t now_us() = 0;
++  virtual void wait_us(std::uint32_t duration_us) = 0;
++};
++
++// One session/handle, one in-flight call. Objects and their backend/clock must
++// outlive all callers; neither a backend nor mutable parser may be shared with
++// another Transport. This class does not enumerate/open/close physical devices.
++class Transport {
++public:
++  Transport(Backend &backend, Clock &clock) : backend_(backend), clock_(clock) {}
++  Transport(const Transport &) = delete;
++  Transport &operator=(const Transport &) = delete;
++
++  // Total candidate budget: 1..100ms, each backend attempt <=5ms, lock wait
++  // <=10ms. Reads retry ONLY a known zero-byte timeout; a partial read returns
++  // immediately. Writes always have exactly one attempt and are never replayed.
++  // Unknown read consumption poisons the session: confirmed prefix bytes remain
++  // available for diagnosis, but the stream cannot safely resume after a gap.
++  Result perform(const Request &request, std::uint32_t timeout_ms = 100);
++  // Permanent, session-local cancellation. A new instance is required to resume.
++  // An already running bounded backend call is allowed to finish before return.
++  void cancel() noexcept { cancelled_.store(true); backend_.cancel(); }
++  bool healthy() const { return !cancelled_.load() && !poisoned_.load(); }
++
++private:
++  Backend &backend_;
++  Clock &clock_;
++  std::mutex mutex_;
++  std::atomic<bool> cancelled_{false};
++  std::atomic<bool> poisoned_{false};
++};
++
++}  // namespace openpilot::pandad::compatibility
+diff --git a/openpilot/selfdrive/pandad/compatibility/usb_backend.cc b/openpilot/selfdrive/pandad/compatibility/usb_backend.cc
+new file mode 100644
+index 0000000..2349d2f
+--- /dev/null
++++ b/openpilot/selfdrive/pandad/compatibility/usb_backend.cc
+@@ -0,0 +1,143 @@
++#include "usb_backend.h"
++
++#include <algorithm>
++#include <set>
++#include <utility>
++
++namespace openpilot::pandad::compatibility {
++namespace {
++Status map_error(int error) {
++  switch (error) {
++    case kUsbTimeout: return Status::Timeout;
++    case kUsbNoDevice: return Status::Disconnected;
++    case kUsbPipe: return Status::Stall;
++    case kUsbBusy: return Status::Busy;
++    case kUsbInterrupted: return Status::Cancelled;
++    case kUsbInvalid: return Status::Invalid;
++    default: return Status::IoError;
++  }
++}
++bool valid_binding(const UsbBinding &binding) {
++  return binding.bulk_alt0_verified && !binding.serial.empty() && binding.serial.size() <= 128 &&
++    std::all_of(binding.serial.begin(), binding.serial.end(), [](unsigned char c) { return c > 32 && c < 127; }) &&
++    (binding.board_type == 6 || binding.board_type == 7);
++}
++bool normal_panda(const UsbDeviceInfo &device) {
++  return (device.vendor == 0xbbaa || device.vendor == 0x3801) && device.product == 0xddcc;
++}
++bool valid_descriptor(const UsbDeviceInfo &device, const UsbBinding &binding) {
++  if (!device.active_configuration_known || device.serial_index == 0 ||
++      device.bcd_device != (binding.board_type << 8)) return false;
++  int matches = 0;
++  for (const auto &alt : device.alternates) {
++    if (alt.interface_number != 0 || alt.alternate_setting != 0) continue;
++    ++matches;
++    std::set<unsigned int> seen;
++    bool rx = false, tx = false;
++    for (const auto &ep : alt.endpoints) {
++      if (!seen.insert(ep.address).second) return false;
++      if (ep.address == 0x81 || ep.address == 0x03) {
++        if ((ep.attributes & 3) != 2 || ep.max_packet_size != 64) return false;
++        if (ep.address == 0x81) rx = true;
++        else tx = true;
++      }
++    }
++    if (!rx || !tx) return false;
++  }
++  return matches == 1;
++}
++}  // namespace
++
++UsbBackend::UsbBackend(std::unique_ptr<LibusbApi> api) : api_(std::move(api)) {}
++UsbBackend::~UsbBackend() { close(); }
++void UsbBackend::cleanup_locked() {
++  if (handle_) {
++    if (claimed_) api_->release(handle_, 0);
++    api_->close(handle_);
++  }
++  handle_ = 0;
++  claimed_ = false;
++  if (initialized_) api_->shutdown();
++  initialized_ = false;
++}
++void UsbBackend::close() {
++  std::lock_guard<std::mutex> lock(mutex_);
++  cleanup_locked();
++}
++bool UsbBackend::is_open() const {
++  std::lock_guard<std::mutex> lock(mutex_);
++  return handle_ != 0 && claimed_;
++}
++Status UsbBackend::open_bound(const UsbBinding &binding, bool allow_device_io) {
++  std::unique_lock<std::mutex> lock(mutex_, std::try_to_lock);
++  if (!lock.owns_lock()) return Status::Busy;
++  if (!allow_device_io || !api_ || !valid_binding(binding)) return Status::Invalid;
++  if (initialized_ || handle_) return Status::Busy;
++  int result = api_->initialize();
++  if (result != 0) return map_error(result);
++  initialized_ = true;
++  auto fail = [&](Status status) { cleanup_locked(); return status; };
++  std::vector<UsbDeviceInfo> devices;
++  result = api_->enumerate(devices);
++  if (result != 0) return fail(map_error(result));
++  for (const auto &device : devices) {
++    if (!normal_panda(device)) continue;
++    UsbHandle candidate = 0;
++    result = api_->open(device.id, candidate);
++    if (result != 0 || candidate == 0) {
++      if (candidate) api_->close(candidate);
++      return fail(result == 0 ? Status::IoError : map_error(result));
++    }
++    std::string serial;
++    result = api_->serial(candidate, device.serial_index, serial, kBackendSliceMs);
++    if (result != 0) {
++      api_->close(candidate);
++      return fail(map_error(result));  // cannot exclude an inaccessible duplicate
++    }
++    if (serial != binding.serial) { api_->close(candidate); continue; }
++    if (handle_ || !valid_descriptor(device, binding)) {
++      api_->close(candidate);
++      return fail(Status::Poisoned);  // duplicate or replacement identity
++    }
++    handle_ = candidate;
++  }
++  if (!handle_) return fail(Status::Disconnected);
++  result = api_->claim(handle_, 0);
++  if (result != 0) return fail(map_error(result));
++  claimed_ = true;
++  return Status::Ok;
++}
++Result UsbBackend::transact(const Request &request, std::uint32_t timeout_ms) {
++  std::unique_lock<std::mutex> lock(mutex_, std::try_to_lock);
++  if (!lock.owns_lock()) return {Status::Busy, 0, {}};
++  if (!valid_request(request) || timeout_ms == 0 || timeout_ms > kBackendSliceMs) return {Status::Invalid, 0, {}};
++  if ((request.kind == Kind::BulkRead && request.endpoint != 0x81) ||
++      (request.kind == Kind::BulkWrite && request.endpoint != 0x03)) return {Status::Invalid, 0, {}};
++  if (!handle_ || !claimed_) return {Status::Disconnected, 0, {}};
++  const bool read = is_read(request.kind);
++  const std::size_t length = read ? request.read_length : request.payload.size();
++  std::vector<std::uint8_t> bytes = read ? std::vector<std::uint8_t>(length) : request.payload;
++  int actual = 0;
++  int result = 0;
++  if (request.kind == Kind::ControlRead || request.kind == Kind::ControlWrite) {
++    result = api_->control(handle_, read ? 0xc0 : 0x40, static_cast<std::uint8_t>(request.request),
++      static_cast<std::uint16_t>(request.value), static_cast<std::uint16_t>(request.index),
++      bytes.data(), static_cast<std::uint16_t>(length), timeout_ms);
++    if (result < 0) return {map_error(result), 0, {}, false, !read};
++    actual = result;
++    result = kUsbSuccess;
++  } else {
++    result = api_->bulk(handle_, static_cast<std::uint8_t>(request.endpoint), bytes.data(),
++                        static_cast<int>(length), actual, timeout_ms);
++  }
++  // libusb OVERFLOW does not guarantee actual_length or buffer contents,
++  // including when the reported count happens to be within the requested size.
++  if (result == kUsbOverflow) return {Status::Poisoned, 0, {}, false, !read};
++  if (actual < 0 || static_cast<std::size_t>(actual) > length) return {Status::Poisoned, 0, {}, false, !read};
++  const auto size = static_cast<std::size_t>(actual);
++  Status status = result == 0 ? (size == length ? Status::Ok : Status::Short) : map_error(result);
++  if (read) bytes.resize(size);
++  else bytes.clear();
++  return {status, size, std::move(bytes), true, !read && status != Status::Ok};
++}
++}  // namespace openpilot::pandad::compatibility
+diff --git a/openpilot/selfdrive/pandad/compatibility/usb_backend.h b/openpilot/selfdrive/pandad/compatibility/usb_backend.h
+new file mode 100644
+index 0000000..8544e2c
+--- /dev/null
++++ b/openpilot/selfdrive/pandad/compatibility/usb_backend.h
+@@ -0,0 +1,49 @@
++#pragma once
++
++#include <memory>
++#include <mutex>
++#include <string>
++
++#include "libusb_api.h"
++#include "transport.h"
++
++namespace openpilot::pandad::compatibility {
++
++struct UsbBinding {
++  std::string serial;
++  // Descriptor bcdDevice high byte: DOS=6, RED_PANDA=7. This software identity
++  // is not proof of the physical MCU, firmware ABI, or permission to send CAN.
++  std::uint16_t board_type = 0;
++  // Separate caller-supplied activation evidence/assumption, not a fact inferred
++  // from alt0 descriptors. The locked firmware lacks GET_INTERFACE. No fallback
++  // SET_INTERFACE is allowed: an unverified real session must remain unopened.
++  bool bulk_alt0_verified = false;
++};
++
++class UsbBackend final : public Backend {
++public:
++  explicit UsbBackend(std::unique_ptr<LibusbApi> api = make_native_libusb_api());
++  ~UsbBackend() override;
++  UsbBackend(const UsbBackend &) = delete;
++  UsbBackend &operator=(const UsbBackend &) = delete;
++
++  // Deliberate future activation boundary, not used by offline acceptance.
++  // Empty/unbound identities and the default false permission do no USB I/O.
++  // Opening enumerates/read-descriptors/claims only, never resets or configures.
++  // OS open/claim latency is outside the bounded transfer contract. The caller
++  // must serialize lifecycle operations and keep this object alive during use.
++  Status open_bound(const UsbBinding &binding, bool allow_device_io = false);
++  void close();
++  bool is_open() const;
++  Result transact(const Request &request, std::uint32_t timeout_ms) override;
++
++private:
++  void cleanup_locked();
++  std::unique_ptr<LibusbApi> api_;
++  mutable std::mutex mutex_;
++  UsbHandle handle_ = 0;
++  bool initialized_ = false;
++  bool claimed_ = false;
++};
++
++}  // namespace openpilot::pandad::compatibility

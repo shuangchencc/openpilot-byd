@@ -1,0 +1,1523 @@
+{
+  "schema": "songplus-panda-p2-validation/v1",
+  "status": "PASS_OFFLINE_HOST_ONLY",
+  "tested_at_utc": "2026-10-17T18:28:43.095747+00:00",
+  "baselines": {
+    "upstream-openpilot": "35e78a9d9518855ec0dacec919e719624a28131f",
+    "upstream-openpilot/opendbc_repo": "b3bd79a659dae961af169a3baac723961f720133",
+    "upstream-openpilot/panda": "a59195163c32a3a375ea6c86715dc08fd0984c1b"
+  },
+  "patch_commits": [
+    "b01f37b2fa470b62568e1e67455ba645a71e5c36",
+    "3ab5233f9de0e1c0e65bfb2ca8339077da83c939",
+    "40d436c8e781b1c2779dd945b73f77225216512e"
+  ],
+  "manifest_sha256": "94989f39077287f0b3a319d5d4dad2030320f77495779d2b8b7843dc604bc1bb",
+  "validator_sha256": "fcf6d54d5e89002a5f4dedd88069da3cdc65a7915c02b752e04e99c74bad3561",
+  "sandbox_sha256": "8cf4f44421e5ef6b64425e398b14444d2e099e7ae2d2b23770b009b754370fda",
+  "platform": "macOS-26.5.2-arm64-arm-64bit",
+  "python": "Python 3.12.13",
+  "compiler": "/usr/bin/clang++",
+  "compiler_version": "Apple clang version 21.0.0 (clang-2100.1.1.101)\nTarget: arm64-apple-darwin25.5.0\nThread model: posix\nInstalledDir: /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin\n",
+  "macos_network_and_device_node_sandbox": true,
+  "sanitizers": [
+    "address",
+    "undefined"
+  ],
+  "python_tests": {
+    "tests_run": 70,
+    "passed": 70,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "passed_ids": [
+      "test_health.TestCanHealth.test_all_widths_and_types",
+      "test_health.TestCanHealth.test_classic_unknown_and_inconsistent_fd_capabilities",
+      "test_health.TestCanHealth.test_exact_size_and_version_guard",
+      "test_health.TestCanHealth.test_golden_encode_decode_and_kbit_units",
+      "test_health.TestCanHealth.test_invalid_booleans_errors_and_counters",
+      "test_health.TestCanHealth.test_upstream_transient_brs_without_fd_preserved_and_marked",
+      "test_health.TestHeaderABI.test_compiled_health_and_can_goldens",
+      "test_health.TestHeaderABI.test_compiled_sizes_and_every_nonbitfield_offset",
+      "test_health.TestHeaderABI.test_current_source_masks_and_byd_identity",
+      "test_health.TestHeaderABI.test_float32_quantization_matches_host_c_expression",
+      "test_health.TestHealth.test_absent_and_unknown_capabilities_never_fabricate_sensor_readings",
+      "test_health.TestHealth.test_all_known_flags_and_unknown_flag_bits",
+      "test_health.TestHealth.test_current_golden_encode_and_decode",
+      "test_health.TestHealth.test_current_unknown_fault_bits_rejected",
+      "test_health.TestHealth.test_decode_validates_semantics_not_only_encode",
+      "test_health.TestHealth.test_exact_length_for_both_layouts",
+      "test_health.TestHealth.test_legacy_boolean_and_nonfinite_load_rejected",
+      "test_health.TestHealth.test_legacy_golden_no_safety_enum_remapping",
+      "test_health.TestHealth.test_normalized_units_and_distinct_counter_semantics",
+      "test_health.TestHealth.test_quantization_rejects_nonfinite_types_and_unsafe_widths",
+      "test_health.TestHealth.test_saturation_and_rounding_are_explicit_not_raw_wrap",
+      "test_health.TestHealth.test_snapshots_are_immutable",
+      "test_health.TestHealth.test_strict_widths_types_and_exact_fields",
+      "test_health.TestHealth.test_unknown_enums_and_current_legacy_safety_id",
+      "test_health.TestVersions.test_all_short_overlong_and_wrong_hashes_rejected",
+      "test_health.TestVersions.test_control_protocol_property_rejects_coerced_or_wrong_types",
+      "test_health.TestVersions.test_current_exact_pair",
+      "test_health.TestVersions.test_legacy_must_be_explicit_and_offline",
+      "test_health.TestVersions.test_types_and_forged_versions_rejected",
+      "test_mock_transport.TestMockTransport.test_argument_boundaries_and_types",
+      "test_mock_transport.TestMockTransport.test_exhaustion_is_explicit",
+      "test_mock_transport.TestMockTransport.test_instances_are_independent_and_close_is_local",
+      "test_mock_transport.TestMockTransport.test_mock_write_error_records_only_intent",
+      "test_mock_transport.TestMockTransport.test_script_resources_are_bounded",
+      "test_mock_transport.TestMockTransport.test_scripted_errors_are_explicit_and_do_not_retry",
+      "test_mock_transport.TestMockTransport.test_short_reads_and_writes_are_returned_without_retry",
+      "test_mock_transport.TestMockTransport.test_step_contract_validation",
+      "test_mock_transport.TestMockTransport.test_strict_script_mismatch_does_not_consume",
+      "test_mock_transport.TestMockTransport.test_trace_is_immutable_and_export_is_detached",
+      "test_offline_integration.OfflineIntegration.test_bad_or_legacy_version_never_consumes_reset_or_fallback",
+      "test_offline_integration.OfflineIntegration.test_legacy_offline_decode_cannot_be_registered",
+      "test_offline_integration.OfflineIntegration.test_profile_and_version_identity_agree",
+      "test_offline_integration.OfflineIntegration.test_valid_mock_protocol_read_never_enables_control",
+      "test_profile.TestProfile.test_duplicate_json_keys_rejected_at_every_depth",
+      "test_profile.TestProfile.test_f4_fd_and_illegal_can_buses_rejected",
+      "test_profile.TestProfile.test_fixed_slots_and_duplicate_binding",
+      "test_profile.TestProfile.test_ignition_requires_owner_capability",
+      "test_profile.TestProfile.test_integer_fields_reject_boolean_and_coercion",
+      "test_profile.TestProfile.test_known_board_type_requires_its_mcu_family",
+      "test_profile.TestProfile.test_missing_wrong_or_ambiguous_roles_rejected",
+      "test_profile.TestProfile.test_non_fixture_identities_and_legacy_abi_rejected",
+      "test_profile.TestProfile.test_nonfinite_invalid_encoding_oversize_and_deep_input",
+      "test_profile.TestProfile.test_permission_flags_cannot_be_enabled_or_coerced",
+      "test_profile.TestProfile.test_profile_is_deeply_immutable",
+      "test_profile.TestProfile.test_unbound_loads_with_permissions_denied",
+      "test_profile.TestProfile.test_unbound_partial_or_role_assignment_rejected",
+      "test_profile.TestProfile.test_unknown_and_missing_fields_rejected",
+      "test_profile.TestProfile.test_unknown_board_type_cannot_self_authorize",
+      "test_profile.TestProfile.test_unsupported_peripheral_is_explicit_and_cannot_hide_capability",
+      "test_profile.TestRegistry.test_both_role_arrangements_and_reverse_enumeration",
+      "test_profile.TestRegistry.test_construction_registration_and_listing_have_no_hardware_calls",
+      "test_profile.TestRegistry.test_direct_registry_construction_cannot_bypass_checks",
+      "test_profile.TestRegistry.test_duplicate_and_dual_transport_identity_quarantined",
+      "test_profile.TestRegistry.test_empty_missing_and_extra_inventory_fail_entire_group",
+      "test_profile.TestRegistry.test_imports_have_no_hardware_or_runtime_dependency",
+      "test_profile.TestRegistry.test_invalid_observation_and_profile_types_fail_closed",
+      "test_profile.TestRegistry.test_observation_mismatches_rejected",
+      "test_profile.TestRegistry.test_same_type_boards_are_bound_by_identity_only",
+      "test_profile.TestRegistry.test_unknown_identity_and_replacement_rejected",
+      "test_profile.TestRegistry.test_unsupported_role_name_rejected"
+    ],
+    "failed_ids": []
+  },
+  "native_can_tests": "PASS fixed_independent_golden_vectors\nPASS all_16_dlc_and_classic_lengths\nPASS address_boundaries\nPASS flags_buses_checksum_and_exact_size\nPASS every_short_header_prefix\nPASS every_frame_and_payload_split\nPASS stream_64_byte_boundaries_and_multiple_frames\nPASS atomic_error_poison_and_explicit_memory_clear\nPASS bounded_inputs_and_maximum_residue\nPASS independent_parser_state\nPASS host_routing_all_slots_flags_and_forbidden_sources\nPASS deterministic_malformed_fuzz_seed_c0ffee11\nPASS invalid_policy_enum_rejected\n{\"passed\":13,\"failed\":0,\"assertions\":47031,\"fuzz_seed\":\"c0ffee11\",\"fuzz_iterations\":4096,\"device_access\":false}\n",
+  "native_summary": {
+    "passed": 13,
+    "failed": 0,
+    "assertions": 47031,
+    "fuzz_seed": "c0ffee11",
+    "fuzz_iterations": 4096,
+    "device_access": false
+  },
+  "independent_oracle": {
+    "status": "PASS",
+    "oracle": "independent Python bit formula and fixed classic vector",
+    "seed": "0x501C0DEC",
+    "valid_vectors": 64,
+    "cross_language_checks": 220,
+    "native_invocations": 1,
+    "baseline_c_layout_vector_checked": true,
+    "assertions_enabled": true,
+    "device_access": false,
+    "scope": "host C++ wire codec only"
+  },
+  "health_host_abi": {
+    "host_abi_only": true,
+    "sizes": {
+      "health": 48,
+      "can_health": 64,
+      "can_packet": 72,
+      "can_alignment": 4
+    },
+    "offsets": {
+      "health": {
+        "uptime": 0,
+        "voltage": 4,
+        "current": 6,
+        "safety_tx_blocked": 8,
+        "safety_rx_invalid": 12,
+        "tx_buffer_overflow": 16,
+        "rx_buffer_overflow": 20,
+        "faults": 24,
+        "flags": 28,
+        "car_harness_status": 30,
+        "safety_mode": 31,
+        "safety_param": 32,
+        "fault_status": 34,
+        "alternative_experience": 35,
+        "interrupt_load": 37,
+        "fan_power": 38,
+        "spi_error_count": 39,
+        "sbu1_voltage_mV": 41,
+        "sbu2_voltage_mV": 43,
+        "sound_output_level": 45,
+        "temperature": 47
+      },
+      "can_health": {
+        "bus_off": 0,
+        "bus_off_cnt": 1,
+        "error_warning": 5,
+        "error_passive": 6,
+        "last_error": 7,
+        "last_stored_error": 8,
+        "last_data_error": 9,
+        "last_data_stored_error": 10,
+        "receive_error_cnt": 11,
+        "transmit_error_cnt": 12,
+        "total_error_cnt": 13,
+        "total_tx_lost_cnt": 17,
+        "total_rx_lost_cnt": 21,
+        "total_tx_cnt": 25,
+        "total_rx_cnt": 29,
+        "total_fwd_cnt": 33,
+        "total_tx_checksum_error_cnt": 37,
+        "can_speed": 41,
+        "can_data_speed": 43,
+        "canfd_enabled": 45,
+        "brs_enabled": 46,
+        "canfd_non_iso": 47,
+        "irq0_call_rate": 48,
+        "irq1_call_rate": 52,
+        "irq2_call_rate": 56,
+        "can_core_reset_cnt": 60
+      },
+      "checksum": 5,
+      "data": 6
+    },
+    "current_health_hex": "040302013930a6021413121124232221343332314443424101800000110102135251010800804b6261e40cb004727141",
+    "can_health_hex": "01040302010100030702067fff14131211242322213433323144434241545352516463626174737271f401d0070101008483828194939291a4a3a2a1b4b3b2b1",
+    "can_frame_hex": "321809000023112233",
+    "can_fd_frame_hex": "958e87d0c68a000102030405060708090a0b",
+    "known_fault_mask": 250905023,
+    "known_alternative_experience_mask": 26,
+    "current_byd_safety": 35,
+    "quantization_vectors": [
+      {
+        "load": -1,
+        "temperature": -100,
+        "encoded_load": 0,
+        "encoded_temperature": 0
+      },
+      {
+        "load": 0,
+        "temperature": -40,
+        "encoded_load": 0,
+        "encoded_temperature": 0
+      },
+      {
+        "load": 0.0019607844296842813,
+        "temperature": -39.5,
+        "encoded_load": 1,
+        "encoded_temperature": 1
+      },
+      {
+        "load": 0.5,
+        "temperature": 25.5,
+        "encoded_load": 128,
+        "encoded_temperature": 66
+      },
+      {
+        "load": 1,
+        "temperature": 214.5,
+        "encoded_load": 255,
+        "encoded_temperature": 255
+      },
+      {
+        "load": 2,
+        "temperature": 300,
+        "encoded_load": 255,
+        "encoded_temperature": 255
+      }
+    ]
+  },
+  "commands": [
+    {
+      "name": "compile-can-sanitized",
+      "command": [
+        "/usr/bin/sandbox-exec",
+        "-f",
+        "/Users/shuang/Code/openpilot/songplus-port-lab/tools/panda_compat_offline.sb",
+        "/usr/bin/clang++",
+        "-std=c++17",
+        "-Wall",
+        "-Wextra",
+        "-Werror",
+        "-O1",
+        "-g",
+        "-fno-omit-frame-pointer",
+        "-fsanitize=address,undefined",
+        "-I",
+        "/Users/shuang/Code/openpilot/songplus-port-lab/results/panda-compat-p2/run-a3e8hmkv/source/openpilot/selfdrive/pandad/compatibility",
+        "/Users/shuang/Code/openpilot/songplus-port-lab/results/panda-compat-p2/run-a3e8hmkv/source/openpilot/selfdrive/pandad/compatibility/can_codec.cc",
+        "/Users/shuang/Code/openpilot/songplus-port-lab/results/panda-compat-p2/run-a3e8hmkv/source/openpilot/selfdrive/pandad/compatibility/tests/test_can_codec.cc",
+        "-o",
+        "/Users/shuang/Code/openpilot/songplus-port-lab/results/panda-compat-p2/run-a3e8hmkv/test_can_codec"
+      ],
+      "exit_code": 0
+    },
+    {
+      "name": "native-can-tests",
+      "command": [
+        "/usr/bin/sandbox-exec",
+        "-f",
+        "/Users/shuang/Code/openpilot/songplus-port-lab/tools/panda_compat_offline.sb",
+        "/Users/shuang/Code/openpilot/songplus-port-lab/results/panda-compat-p2/run-a3e8hmkv/test_can_codec"
+      ],
+      "exit_code": 0
+    },
+    {
+      "name": "compile-health-probe-sanitized",
+      "command": [
+        "/usr/bin/sandbox-exec",
+        "-f",
+        "/Users/shuang/Code/openpilot/songplus-port-lab/tools/panda_compat_offline.sb",
+        "/usr/bin/clang++",
+        "-std=c++17",
+        "-Wall",
+        "-Wextra",
+        "-Werror",
+        "-O1",
+        "-g",
+        "-fno-omit-frame-pointer",
+        "-fsanitize=address,undefined",
+        "-I",
+        "/Users/shuang/Code/openpilot/songplus-port-lab/upstream-openpilot/panda/board",
+        "-I",
+        "/Users/shuang/Code/openpilot/songplus-port-lab/upstream-openpilot/opendbc_repo",
+        "/Users/shuang/Code/openpilot/songplus-port-lab/results/panda-compat-p2/run-a3e8hmkv/source/openpilot/selfdrive/pandad/compatibility/tests/health_layout_probe.cc",
+        "-o",
+        "/Users/shuang/Code/openpilot/songplus-port-lab/results/panda-compat-p2/run-a3e8hmkv/health_layout_probe"
+      ],
+      "exit_code": 0
+    },
+    {
+      "name": "health-layout",
+      "command": [
+        "/usr/bin/sandbox-exec",
+        "-f",
+        "/Users/shuang/Code/openpilot/songplus-port-lab/tools/panda_compat_offline.sb",
+        "/Users/shuang/Code/openpilot/songplus-port-lab/results/panda-compat-p2/run-a3e8hmkv/health_layout_probe"
+      ],
+      "exit_code": 0
+    },
+    {
+      "name": "python-tests",
+      "command": [
+        "/usr/bin/sandbox-exec",
+        "-f",
+        "/Users/shuang/Code/openpilot/songplus-port-lab/tools/panda_compat_offline.sb",
+        "/Users/shuang/Code/openpilot/songplus-port-lab/upstream-openpilot/.venv/bin/python",
+        "-S",
+        "/Users/shuang/Code/openpilot/songplus-port-lab/results/panda-compat-p2/run-a3e8hmkv/source/openpilot/selfdrive/pandad/compatibility/tests/run_python_tests.py",
+        "/Users/shuang/Code/openpilot/songplus-port-lab/results/panda-compat-p2/run-a3e8hmkv/python-tests.json"
+      ],
+      "exit_code": 0
+    },
+    {
+      "name": "can-independent-oracle",
+      "command": [
+        "/usr/bin/sandbox-exec",
+        "-f",
+        "/Users/shuang/Code/openpilot/songplus-port-lab/tools/panda_compat_offline.sb",
+        "/Users/shuang/Code/openpilot/songplus-port-lab/upstream-openpilot/.venv/bin/python",
+        "-S",
+        "/Users/shuang/Code/openpilot/songplus-port-lab/results/panda-compat-p2/run-a3e8hmkv/source/openpilot/selfdrive/pandad/compatibility/tests/check_can_oracle.py",
+        "/Users/shuang/Code/openpilot/songplus-port-lab/results/panda-compat-p2/run-a3e8hmkv/test_can_codec",
+        "--health-fixture",
+        "/Users/shuang/Code/openpilot/songplus-port-lab/results/panda-compat-p2/run-a3e8hmkv/health-layout.json"
+      ],
+      "exit_code": 0
+    },
+    {
+      "name": "p2-macos",
+      "command": [
+        "/usr/bin/sandbox-exec",
+        "-f",
+        "/Users/shuang/Code/openpilot/songplus-port-lab/tools/panda_compat_offline.sb",
+        "/Users/shuang/Code/openpilot/songplus-port-lab/upstream-openpilot/.venv/bin/python",
+        "-S",
+        "/Users/shuang/Code/openpilot/songplus-port-lab/tools/run_panda_transport_host.py",
+        "--source",
+        "/Users/shuang/Code/openpilot/songplus-port-lab/results/panda-compat-p2/run-a3e8hmkv/source",
+        "--output",
+        "/Users/shuang/Code/openpilot/songplus-port-lab/results/panda-compat-p2/run-a3e8hmkv/native-macos",
+        "--compiler",
+        "/usr/bin/clang++",
+        "--usb-include",
+        "/opt/homebrew/Cellar/libusb/1.0.30/include/libusb-1.0",
+        "--usb-library",
+        "/opt/homebrew/Cellar/libusb/1.0.30/lib/libusb-1.0.0.dylib"
+      ],
+      "exit_code": 0
+    },
+    {
+      "name": "linux-prepare-directory",
+      "command": [
+        "limactl",
+        "shell",
+        "byd-recovery-311",
+        "--",
+        "mkdir",
+        "-p",
+        "/home/shuang.guest/songplus-p2-build/run-a3e8hmkv"
+      ],
+      "exit_code": 0
+    },
+    {
+      "name": "linux-copy-input",
+      "command": [
+        "limactl",
+        "copy",
+        "/Users/shuang/Code/openpilot/songplus-port-lab/results/panda-compat-p2/run-a3e8hmkv/linux-input.tar",
+        "byd-recovery-311:/home/shuang.guest/songplus-p2-build/run-a3e8hmkv/input.tar"
+      ],
+      "exit_code": 0
+    },
+    {
+      "name": "linux-input-hash",
+      "command": [
+        "limactl",
+        "shell",
+        "byd-recovery-311",
+        "--",
+        "sha256sum",
+        "/home/shuang.guest/songplus-p2-build/run-a3e8hmkv/input.tar"
+      ],
+      "exit_code": 0
+    },
+    {
+      "name": "linux-extract",
+      "command": [
+        "limactl",
+        "shell",
+        "byd-recovery-311",
+        "--",
+        "tar",
+        "-xf",
+        "/home/shuang.guest/songplus-p2-build/run-a3e8hmkv/input.tar",
+        "-C",
+        "/home/shuang.guest/songplus-p2-build/run-a3e8hmkv"
+      ],
+      "exit_code": 0
+    },
+    {
+      "name": "linux-dep-libusb.h",
+      "command": [
+        "limactl",
+        "shell",
+        "byd-recovery-311",
+        "--",
+        "sha256sum",
+        "/home/shuang.guest/songplus-p2-build/deps/prefix/usr/include/libusb-1.0/libusb.h"
+      ],
+      "exit_code": 0
+    },
+    {
+      "name": "linux-dep-libusb-1.0.so.0.3.0",
+      "command": [
+        "limactl",
+        "shell",
+        "byd-recovery-311",
+        "--",
+        "sha256sum",
+        "/home/shuang.guest/songplus-p2-build/deps/prefix/usr/lib/aarch64-linux-gnu/libusb-1.0.so.0.3.0"
+      ],
+      "exit_code": 0
+    },
+    {
+      "name": "p2-linux",
+      "command": [
+        "limactl",
+        "shell",
+        "byd-recovery-311",
+        "--",
+        "sh",
+        "/home/shuang.guest/songplus-p2-build/run-a3e8hmkv/panda_transport_linux_sandbox.sh",
+        "python3",
+        "/home/shuang.guest/songplus-p2-build/run-a3e8hmkv/run_panda_transport_host.py",
+        "--source",
+        "/home/shuang.guest/songplus-p2-build/run-a3e8hmkv/source",
+        "--output",
+        "/home/shuang.guest/songplus-p2-build/run-a3e8hmkv/output",
+        "--compiler",
+        "g++",
+        "--usb-include",
+        "/home/shuang.guest/songplus-p2-build/deps/prefix/usr/include/libusb-1.0",
+        "--usb-library",
+        "/home/shuang.guest/songplus-p2-build/deps/prefix/usr/lib/aarch64-linux-gnu/libusb-1.0.so.0.3.0"
+      ],
+      "exit_code": 0
+    },
+    {
+      "name": "linux-copy-results",
+      "command": [
+        "limactl",
+        "copy",
+        "-r",
+        "byd-recovery-311:/home/shuang.guest/songplus-p2-build/run-a3e8hmkv/output",
+        "/Users/shuang/Code/openpilot/songplus-port-lab/results/panda-compat-p2/run-a3e8hmkv/native-linux"
+      ],
+      "exit_code": 0
+    }
+  ],
+  "acceptance_results": [
+    {
+      "id": "A00",
+      "stage": "P0",
+      "status": "PASS_OFFLINE_HOST_ONLY",
+      "python_evidence": [
+        "test_offline_integration.OfflineIntegration.test_valid_mock_protocol_read_never_enables_control",
+        "test_profile.TestProfile.test_unbound_loads_with_permissions_denied",
+        "test_profile.TestRegistry.test_construction_registration_and_listing_have_no_hardware_calls",
+        "test_profile.TestRegistry.test_imports_have_no_hardware_or_runtime_dependency"
+      ],
+      "native_evidence": [],
+      "independent_oracle": false
+    },
+    {
+      "id": "A01",
+      "stage": "P0",
+      "status": "PASS_OFFLINE_HOST_ONLY",
+      "python_evidence": [
+        "test_profile.TestProfile.test_known_board_type_requires_its_mcu_family",
+        "test_profile.TestProfile.test_unknown_board_type_cannot_self_authorize",
+        "test_profile.TestRegistry.test_both_role_arrangements_and_reverse_enumeration",
+        "test_profile.TestRegistry.test_construction_registration_and_listing_have_no_hardware_calls",
+        "test_profile.TestRegistry.test_direct_registry_construction_cannot_bypass_checks",
+        "test_profile.TestRegistry.test_duplicate_and_dual_transport_identity_quarantined",
+        "test_profile.TestRegistry.test_empty_missing_and_extra_inventory_fail_entire_group",
+        "test_profile.TestRegistry.test_imports_have_no_hardware_or_runtime_dependency",
+        "test_profile.TestRegistry.test_invalid_observation_and_profile_types_fail_closed",
+        "test_profile.TestRegistry.test_observation_mismatches_rejected",
+        "test_profile.TestRegistry.test_same_type_boards_are_bound_by_identity_only",
+        "test_profile.TestRegistry.test_unknown_identity_and_replacement_rejected",
+        "test_profile.TestRegistry.test_unsupported_role_name_rejected"
+      ],
+      "native_evidence": [],
+      "independent_oracle": false
+    },
+    {
+      "id": "A02",
+      "stage": "P0",
+      "status": "PASS_OFFLINE_HOST_ONLY",
+      "python_evidence": [
+        "test_profile.TestProfile.test_f4_fd_and_illegal_can_buses_rejected",
+        "test_profile.TestProfile.test_ignition_requires_owner_capability",
+        "test_profile.TestProfile.test_missing_wrong_or_ambiguous_roles_rejected",
+        "test_profile.TestProfile.test_unsupported_peripheral_is_explicit_and_cannot_hide_capability"
+      ],
+      "native_evidence": [],
+      "independent_oracle": false
+    },
+    {
+      "id": "A10",
+      "stage": "P1",
+      "status": "PASS_OFFLINE_HOST_ONLY",
+      "python_evidence": [
+        "test_health.TestVersions.test_all_short_overlong_and_wrong_hashes_rejected",
+        "test_health.TestVersions.test_control_protocol_property_rejects_coerced_or_wrong_types",
+        "test_health.TestVersions.test_current_exact_pair",
+        "test_health.TestVersions.test_legacy_must_be_explicit_and_offline",
+        "test_health.TestVersions.test_types_and_forged_versions_rejected",
+        "test_offline_integration.OfflineIntegration.test_bad_or_legacy_version_never_consumes_reset_or_fallback"
+      ],
+      "native_evidence": [],
+      "independent_oracle": false
+    },
+    {
+      "id": "A11",
+      "stage": "P1",
+      "status": "PASS_OFFLINE_HOST_ONLY",
+      "python_evidence": [
+        "test_health.TestCanHealth.test_all_widths_and_types",
+        "test_health.TestCanHealth.test_classic_unknown_and_inconsistent_fd_capabilities",
+        "test_health.TestCanHealth.test_exact_size_and_version_guard",
+        "test_health.TestCanHealth.test_golden_encode_decode_and_kbit_units",
+        "test_health.TestCanHealth.test_invalid_booleans_errors_and_counters",
+        "test_health.TestCanHealth.test_upstream_transient_brs_without_fd_preserved_and_marked",
+        "test_health.TestHeaderABI.test_compiled_health_and_can_goldens",
+        "test_health.TestHeaderABI.test_compiled_sizes_and_every_nonbitfield_offset",
+        "test_health.TestHeaderABI.test_current_source_masks_and_byd_identity",
+        "test_health.TestHeaderABI.test_float32_quantization_matches_host_c_expression",
+        "test_health.TestHealth.test_absent_and_unknown_capabilities_never_fabricate_sensor_readings",
+        "test_health.TestHealth.test_all_known_flags_and_unknown_flag_bits",
+        "test_health.TestHealth.test_current_golden_encode_and_decode",
+        "test_health.TestHealth.test_current_unknown_fault_bits_rejected",
+        "test_health.TestHealth.test_decode_validates_semantics_not_only_encode",
+        "test_health.TestHealth.test_exact_length_for_both_layouts",
+        "test_health.TestHealth.test_legacy_boolean_and_nonfinite_load_rejected",
+        "test_health.TestHealth.test_legacy_golden_no_safety_enum_remapping",
+        "test_health.TestHealth.test_normalized_units_and_distinct_counter_semantics",
+        "test_health.TestHealth.test_quantization_rejects_nonfinite_types_and_unsafe_widths",
+        "test_health.TestHealth.test_saturation_and_rounding_are_explicit_not_raw_wrap",
+        "test_health.TestHealth.test_snapshots_are_immutable",
+        "test_health.TestHealth.test_strict_widths_types_and_exact_fields",
+        "test_health.TestHealth.test_unknown_enums_and_current_legacy_safety_id"
+      ],
+      "native_evidence": [],
+      "independent_oracle": false
+    },
+    {
+      "id": "A12",
+      "stage": "P1",
+      "status": "PASS_OFFLINE_HOST_ONLY",
+      "python_evidence": [],
+      "native_evidence": [
+        "fixed_independent_golden_vectors",
+        "all_16_dlc_and_classic_lengths",
+        "address_boundaries",
+        "every_frame_and_payload_split",
+        "stream_64_byte_boundaries_and_multiple_frames",
+        "bounded_inputs_and_maximum_residue"
+      ],
+      "independent_oracle": true
+    },
+    {
+      "id": "A13",
+      "stage": "P1",
+      "status": "PASS_OFFLINE_HOST_ONLY",
+      "python_evidence": [
+        "test_mock_transport.TestMockTransport.test_scripted_errors_are_explicit_and_do_not_retry"
+      ],
+      "native_evidence": [
+        "flags_buses_checksum_and_exact_size",
+        "atomic_error_poison_and_explicit_memory_clear",
+        "invalid_policy_enum_rejected"
+      ],
+      "independent_oracle": true
+    },
+    {
+      "id": "A14",
+      "stage": "P1",
+      "status": "PASS_OFFLINE_HOST_ONLY",
+      "python_evidence": [
+        "test_health.TestHealth.test_legacy_golden_no_safety_enum_remapping",
+        "test_offline_integration.OfflineIntegration.test_legacy_offline_decode_cannot_be_registered"
+      ],
+      "native_evidence": [
+        "host_routing_all_slots_flags_and_forbidden_sources"
+      ],
+      "independent_oracle": true
+    },
+    {
+      "id": "A15",
+      "stage": "P1",
+      "status": "PASS_OFFLINE_HOST_ONLY",
+      "python_evidence": [
+        "test_health.TestHeaderABI.test_compiled_sizes_and_every_nonbitfield_offset",
+        "test_health.TestVersions.test_legacy_must_be_explicit_and_offline"
+      ],
+      "native_evidence": [
+        "every_short_header_prefix",
+        "deterministic_malformed_fuzz_seed_c0ffee11"
+      ],
+      "independent_oracle": true
+    },
+    {
+      "id": "A20",
+      "stage": "P2",
+      "status": "PASS_OFFLINE_DECLARED_SCOPE",
+      "evidence": {
+        "transport": [
+          "exact_read_and_zero_payload_control_write",
+          "short_read_and_fragment_boundaries_are_preserved",
+          "failed_and_uncertain_writes_are_never_replayed_and_poison_session",
+          "confirmed_prefix_survives_unknown_later_chunk_delivery"
+        ],
+        "usb_backend": [
+          "bulk_short_read_and_write",
+          "partial_timeout_preserves_data",
+          "control_read_write_and_unknown_count",
+          "error_classes_and_no_replay",
+          "stream_fragments_at_usb_packet_boundary",
+          "impossible_actual_poisoned"
+        ]
+      },
+      "scope": "Exact results, no write replay, USB-to-P1 parser fragments with fake IO."
+    },
+    {
+      "id": "A21",
+      "stage": "P2",
+      "status": "PASS_OFFLINE_DECLARED_SCOPE",
+      "evidence": {
+        "transport": [
+          "blocked_board_does_not_block_other_board_or_mix_bytes",
+          "same_board_contender_wait_is_bounded_without_queueing_io",
+          "disconnect_stall_and_poison_are_session_local"
+        ],
+        "usb_backend": [
+          "separate_handles_progress_during_blocked_peer",
+          "two_session_parsers_do_not_mix_and_peer_survives_disconnect"
+        ]
+      },
+      "scope": "Per-handle progress/isolation; group validity/routing is P3/P4."
+    },
+    {
+      "id": "A22",
+      "stage": "P2",
+      "status": "PASS_OFFLINE_DECLARED_SCOPE",
+      "evidence": {
+        "spi_backend": [
+          "successful_wire_and_short_read",
+          "fragmented_bulk_write",
+          "fragmented_large_read",
+          "nack_no_replay",
+          "wrapper_does_not_retry_consuming_read"
+        ]
+      },
+      "scope": "5 independent pinned-header/zlib goldens; original SPI sources unchanged; intentional bounded error semantics."
+    },
+    {
+      "id": "A23",
+      "stage": "P2",
+      "status": "PASS_OFFLINE_DECLARED_SCOPE",
+      "evidence": {
+        "native_link": []
+      },
+      "scope": "macOS portable/native USB link and Linux full USB/SPI transport link, ASan/UBSan. Not full active pandad build or target-device ABI."
+    },
+    {
+      "id": "A24",
+      "stage": "P2",
+      "status": "PASS_OFFLINE_DECLARED_SCOPE",
+      "evidence": {
+        "transport": [
+          "deadline_minus_one_exact_and_plus_one_preserve_late_counts",
+          "submillisecond_remaining_budget_does_not_round_up",
+          "cancellation_before_during_after_and_between_retries_is_permanent",
+          "backward_or_wrapped_clock_fails_closed_without_losing_actual",
+          "nonadvancing_clock_does_not_create_unbounded_retry_loop",
+          "lock_release_deadline_minus_one_exact_plus_one"
+        ],
+        "timing_budget": [
+          "health_age_boundaries_wrap",
+          "heartbeat_boundaries_wrap",
+          "future_missing_rejected",
+          "queue_capacity_boundaries"
+        ],
+        "spi_backend": [
+          "bounded_poll_timeout_and_wrap",
+          "cancel_boundaries",
+          "deadline_before_next_request"
+        ]
+      },
+      "scope": "Frozen transport budgets tested with fake clock. Health/heartbeat/queue pure policy tested only; live scheduling/group barrier P3/P4. No hard kernel timing claim."
+    }
+  ],
+  "source_tree_sha256": "b456ec2218d3b6fe1cd8b4713794e70061135c5a26685aa6c719a134c61c9768",
+  "runtime_integrated": false,
+  "real_transport_executed": false,
+  "device_access": false,
+  "native_macos": {
+    "status": "PASS_OFFLINE_HOST_ONLY",
+    "platform": "macOS-26.5.2-arm64-arm-64bit",
+    "compiler_version": "Apple clang version 21.0.0 (clang-2100.1.1.101)\nTarget: arm64-apple-darwin25.5.0\nThread model: posix\nInstalledDir: /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin\n",
+    "sandbox": "macos-seatbelt",
+    "suites": {
+      "transport": {
+        "summary": {
+          "passed": 19,
+          "failed": 0,
+          "assertions": 443,
+          "device_access": false,
+          "clock": "deterministic_fake",
+          "hardware_timing_validated": false,
+          "cases": [
+            "constructor_and_wide_ingress_validation_have_no_io",
+            "exact_read_and_zero_payload_control_write",
+            "short_read_and_fragment_boundaries_are_preserved",
+            "read_retries_only_known_empty_timeout_and_is_paced",
+            "partial_unknown_or_non_timeout_reads_never_retry",
+            "confirmed_prefix_survives_unknown_later_chunk_delivery",
+            "late_fatal_backend_status_is_latched_before_deadline_override",
+            "failed_and_uncertain_writes_are_never_replayed_and_poison_session",
+            "deadline_minus_one_exact_and_plus_one_preserve_late_counts",
+            "submillisecond_remaining_budget_does_not_round_up",
+            "cancellation_before_during_after_and_between_retries_is_permanent",
+            "backward_or_wrapped_clock_fails_closed_without_losing_actual",
+            "nonadvancing_clock_does_not_create_unbounded_retry_loop",
+            "malformed_backend_results_never_become_success",
+            "backend_exceptions_preserve_unknown_delivery_and_never_retry",
+            "blocked_board_does_not_block_other_board_or_mix_bytes",
+            "same_board_contender_wait_is_bounded_without_queueing_io",
+            "lock_release_deadline_minus_one_exact_plus_one",
+            "disconnect_stall_and_poison_are_session_local"
+          ]
+        },
+        "groups": [
+          "constructor_and_wide_ingress_validation_have_no_io",
+          "exact_read_and_zero_payload_control_write",
+          "short_read_and_fragment_boundaries_are_preserved",
+          "read_retries_only_known_empty_timeout_and_is_paced",
+          "partial_unknown_or_non_timeout_reads_never_retry",
+          "confirmed_prefix_survives_unknown_later_chunk_delivery",
+          "late_fatal_backend_status_is_latched_before_deadline_override",
+          "failed_and_uncertain_writes_are_never_replayed_and_poison_session",
+          "deadline_minus_one_exact_and_plus_one_preserve_late_counts",
+          "submillisecond_remaining_budget_does_not_round_up",
+          "cancellation_before_during_after_and_between_retries_is_permanent",
+          "backward_or_wrapped_clock_fails_closed_without_losing_actual",
+          "nonadvancing_clock_does_not_create_unbounded_retry_loop",
+          "malformed_backend_results_never_become_success",
+          "backend_exceptions_preserve_unknown_delivery_and_never_retry",
+          "blocked_board_does_not_block_other_board_or_mix_bytes",
+          "same_board_contender_wait_is_bounded_without_queueing_io",
+          "lock_release_deadline_minus_one_exact_plus_one",
+          "disconnect_stall_and_poison_are_session_local"
+        ]
+      },
+      "usb_backend": {
+        "summary": {
+          "suite": "usb_backend",
+          "groups": 19,
+          "failed": 0,
+          "device_io": false
+        },
+        "groups": [
+          "inert_construction_and_permission",
+          "selection_and_cleanup",
+          "reversed_selection",
+          "reject_bootstub_and_dfu",
+          "reject_duplicate_and_replacement",
+          "malformed_descriptors",
+          "active_alternate_needs_explicit_external_verification",
+          "open_failures_cleanup",
+          "bulk_short_read_and_write",
+          "partial_timeout_preserves_data",
+          "control_read_write_and_unknown_count",
+          "error_classes_and_no_replay",
+          "invalid_requests_never_touch_api",
+          "impossible_actual_poisoned",
+          "stream_fragments_at_usb_packet_boundary",
+          "two_session_parsers_do_not_mix_and_peer_survives_disconnect",
+          "cancelled_read_does_not_retry",
+          "separate_handles_progress_during_blocked_peer",
+          "close_does_not_reuse_session"
+        ]
+      },
+      "spi_backend": {
+        "summary": {
+          "suite": "spi_backend",
+          "groups_passed": 16,
+          "assertions": 446,
+          "failures": 0,
+          "skipped": 0,
+          "hardware_access": false
+        },
+        "groups": [
+          "inert_and_validation",
+          "successful_wire_and_short_read",
+          "fragmented_bulk_write",
+          "fragmented_large_read",
+          "nack_no_replay",
+          "corrupt_stale_length_no_replay",
+          "low_level_partial_and_disconnect",
+          "partial_write_progress_preserved",
+          "partial_read_progress_preserved",
+          "bounded_poll_timeout_and_wrap",
+          "cancel_boundaries",
+          "deadline_before_next_request",
+          "isolated_backends_and_bus_busy",
+          "id_exhaustion",
+          "wrapper_does_not_retry_consuming_read",
+          "wrapper_preserves_partial_prefix"
+        ]
+      },
+      "timing_budget": {
+        "summary": {
+          "suite": "timing_policy",
+          "passed": 4,
+          "failed": 0,
+          "assertions": 39,
+          "cases": [
+            "health_age_boundaries_wrap",
+            "heartbeat_boundaries_wrap",
+            "future_missing_rejected",
+            "queue_capacity_boundaries"
+          ]
+        },
+        "groups": [
+          "health_age_boundaries_wrap",
+          "heartbeat_boundaries_wrap",
+          "future_missing_rejected",
+          "queue_capacity_boundaries"
+        ]
+      },
+      "native_link": {
+        "summary": {
+          "suite": "native_link",
+          "passed": 1,
+          "failed": 0,
+          "device_open": false
+        },
+        "groups": []
+      },
+      "spi_golden": {
+        "matched": 5,
+        "vectors": [
+          "control_read:007856341207001300dd3412ceab0800d8008ba5",
+          "control_write:007856341207000b00dc3412ceab00000d613ddc",
+          "bulk_write:037856341203000b000102032d84265d",
+          "bulk_read:817856341200001b00c91c6a84",
+          "first_large_read:8178563412000000044a13312a"
+        ],
+        "original_handle_constructed": false
+      }
+    },
+    "commands": [
+      {
+        "name": "compile-transport",
+        "command": [
+          "/usr/bin/clang++",
+          "-std=c++17",
+          "-Wall",
+          "-Wextra",
+          "-Werror",
+          "-O1",
+          "-g",
+          "-fno-omit-frame-pointer",
+          "-fsanitize=address,undefined",
+          "-pthread",
+          "-I",
+          "/Users/shuang/Code/openpilot/songplus-port-lab/results/panda-compat-p2/run-a3e8hmkv/source/openpilot/selfdrive/pandad/compatibility",
+          "-I",
+          "/Users/shuang/Code/openpilot/songplus-port-lab/results/panda-compat-p2/run-a3e8hmkv/source/openpilot",
+          "-I",
+          "/Users/shuang/Code/openpilot/songplus-port-lab/results/panda-compat-p2/run-a3e8hmkv/source",
+          "/Users/shuang/Code/openpilot/songplus-port-lab/results/panda-compat-p2/run-a3e8hmkv/source/openpilot/selfdrive/pandad/compatibility/transport.cc",
+          "/Users/shuang/Code/openpilot/songplus-port-lab/results/panda-compat-p2/run-a3e8hmkv/source/openpilot/selfdrive/pandad/compatibility/tests/test_transport.cc",
+          "-o",
+          "/Users/shuang/Code/openpilot/songplus-port-lab/results/panda-compat-p2/run-a3e8hmkv/native-macos/test_transport"
+        ],
+        "exit_code": 0
+      },
+      {
+        "name": "test-transport",
+        "command": [
+          "/Users/shuang/Code/openpilot/songplus-port-lab/results/panda-compat-p2/run-a3e8hmkv/native-macos/test_transport"
+        ],
+        "exit_code": 0
+      },
+      {
+        "name": "compile-usb_backend",
+        "command": [
+          "/usr/bin/clang++",
+          "-std=c++17",
+          "-Wall",
+          "-Wextra",
+          "-Werror",
+          "-O1",
+          "-g",
+          "-fno-omit-frame-pointer",
+          "-fsanitize=address,undefined",
+          "-pthread",
+          "-I",
+          "/Users/shuang/Code/openpilot/songplus-port-lab/results/panda-compat-p2/run-a3e8hmkv/source/openpilot/selfdrive/pandad/compatibility",
+          "-I",
+          "/Users/shuang/Code/openpilot/songplus-port-lab/results/panda-compat-p2/run-a3e8hmkv/source/openpilot",
+          "-I",
+          "/Users/shuang/Code/openpilot/songplus-port-lab/results/panda-compat-p2/run-a3e8hmkv/source",
+          "/Users/shuang/Code/openpilot/songplus-port-lab/results/panda-compat-p2/run-a3e8hmkv/source/openpilot/selfdrive/pandad/compatibility/transport.cc",
+          "/Users/shuang/Code/openpilot/songplus-port-lab/results/panda-compat-p2/run-a3e8hmkv/source/openpilot/selfdrive/pandad/compatibility/usb_backend.cc",
+          "/Users/shuang/Code/openpilot/songplus-port-lab/results/panda-compat-p2/run-a3e8hmkv/source/openpilot/selfdrive/pandad/compatibility/libusb_api.cc",
+          "/Users/shuang/Code/openpilot/songplus-port-lab/results/panda-compat-p2/run-a3e8hmkv/source/openpilot/selfdrive/pandad/compatibility/can_codec.cc",
+          "/Users/shuang/Code/openpilot/songplus-port-lab/results/panda-compat-p2/run-a3e8hmkv/source/openpilot/selfdrive/pandad/compatibility/tests/test_usb_backend.cc",
+          "-I",
+          "/opt/homebrew/Cellar/libusb/1.0.30/include/libusb-1.0",
+          "/opt/homebrew/Cellar/libusb/1.0.30/lib/libusb-1.0.0.dylib",
+          "-Wl,-rpath,/opt/homebrew/Cellar/libusb/1.0.30/lib",
+          "-o",
+          "/Users/shuang/Code/openpilot/songplus-port-lab/results/panda-compat-p2/run-a3e8hmkv/native-macos/test_usb_backend"
+        ],
+        "exit_code": 0
+      },
+      {
+        "name": "test-usb_backend",
+        "command": [
+          "/Users/shuang/Code/openpilot/songplus-port-lab/results/panda-compat-p2/run-a3e8hmkv/native-macos/test_usb_backend"
+        ],
+        "exit_code": 0
+      },
+      {
+        "name": "compile-spi_backend",
+        "command": [
+          "/usr/bin/clang++",
+          "-std=c++17",
+          "-Wall",
+          "-Wextra",
+          "-Werror",
+          "-O1",
+          "-g",
+          "-fno-omit-frame-pointer",
+          "-fsanitize=address,undefined",
+          "-pthread",
+          "-I",
+          "/Users/shuang/Code/openpilot/songplus-port-lab/results/panda-compat-p2/run-a3e8hmkv/source/openpilot/selfdrive/pandad/compatibility",
+          "-I",
+          "/Users/shuang/Code/openpilot/songplus-port-lab/results/panda-compat-p2/run-a3e8hmkv/source/openpilot",
+          "-I",
+          "/Users/shuang/Code/openpilot/songplus-port-lab/results/panda-compat-p2/run-a3e8hmkv/source",
+          "/Users/shuang/Code/openpilot/songplus-port-lab/results/panda-compat-p2/run-a3e8hmkv/source/openpilot/selfdrive/pandad/compatibility/transport.cc",
+          "/Users/shuang/Code/openpilot/songplus-port-lab/results/panda-compat-p2/run-a3e8hmkv/source/openpilot/selfdrive/pandad/compatibility/spi_backend.cc",
+          "/Users/shuang/Code/openpilot/songplus-port-lab/results/panda-compat-p2/run-a3e8hmkv/source/openpilot/selfdrive/pandad/compatibility/tests/test_spi_backend.cc",
+          "-o",
+          "/Users/shuang/Code/openpilot/songplus-port-lab/results/panda-compat-p2/run-a3e8hmkv/native-macos/test_spi_backend"
+        ],
+        "exit_code": 0
+      },
+      {
+        "name": "test-spi_backend",
+        "command": [
+          "/Users/shuang/Code/openpilot/songplus-port-lab/results/panda-compat-p2/run-a3e8hmkv/native-macos/test_spi_backend"
+        ],
+        "exit_code": 0
+      },
+      {
+        "name": "compile-timing_budget",
+        "command": [
+          "/usr/bin/clang++",
+          "-std=c++17",
+          "-Wall",
+          "-Wextra",
+          "-Werror",
+          "-O1",
+          "-g",
+          "-fno-omit-frame-pointer",
+          "-fsanitize=address,undefined",
+          "-pthread",
+          "-I",
+          "/Users/shuang/Code/openpilot/songplus-port-lab/results/panda-compat-p2/run-a3e8hmkv/source/openpilot/selfdrive/pandad/compatibility",
+          "-I",
+          "/Users/shuang/Code/openpilot/songplus-port-lab/results/panda-compat-p2/run-a3e8hmkv/source/openpilot",
+          "-I",
+          "/Users/shuang/Code/openpilot/songplus-port-lab/results/panda-compat-p2/run-a3e8hmkv/source",
+          "/Users/shuang/Code/openpilot/songplus-port-lab/results/panda-compat-p2/run-a3e8hmkv/source/openpilot/selfdrive/pandad/compatibility/tests/test_timing_budget.cc",
+          "-o",
+          "/Users/shuang/Code/openpilot/songplus-port-lab/results/panda-compat-p2/run-a3e8hmkv/native-macos/test_timing_budget"
+        ],
+        "exit_code": 0
+      },
+      {
+        "name": "test-timing_budget",
+        "command": [
+          "/Users/shuang/Code/openpilot/songplus-port-lab/results/panda-compat-p2/run-a3e8hmkv/native-macos/test_timing_budget"
+        ],
+        "exit_code": 0
+      },
+      {
+        "name": "compile-native_link",
+        "command": [
+          "/usr/bin/clang++",
+          "-std=c++17",
+          "-Wall",
+          "-Wextra",
+          "-Werror",
+          "-O1",
+          "-g",
+          "-fno-omit-frame-pointer",
+          "-fsanitize=address,undefined",
+          "-pthread",
+          "-I",
+          "/Users/shuang/Code/openpilot/songplus-port-lab/results/panda-compat-p2/run-a3e8hmkv/source/openpilot/selfdrive/pandad/compatibility",
+          "-I",
+          "/Users/shuang/Code/openpilot/songplus-port-lab/results/panda-compat-p2/run-a3e8hmkv/source/openpilot",
+          "-I",
+          "/Users/shuang/Code/openpilot/songplus-port-lab/results/panda-compat-p2/run-a3e8hmkv/source",
+          "/Users/shuang/Code/openpilot/songplus-port-lab/results/panda-compat-p2/run-a3e8hmkv/source/openpilot/selfdrive/pandad/compatibility/transport.cc",
+          "/Users/shuang/Code/openpilot/songplus-port-lab/results/panda-compat-p2/run-a3e8hmkv/source/openpilot/selfdrive/pandad/compatibility/usb_backend.cc",
+          "/Users/shuang/Code/openpilot/songplus-port-lab/results/panda-compat-p2/run-a3e8hmkv/source/openpilot/selfdrive/pandad/compatibility/libusb_api.cc",
+          "/Users/shuang/Code/openpilot/songplus-port-lab/results/panda-compat-p2/run-a3e8hmkv/source/openpilot/selfdrive/pandad/compatibility/spi_backend.cc",
+          "/Users/shuang/Code/openpilot/songplus-port-lab/results/panda-compat-p2/run-a3e8hmkv/source/openpilot/selfdrive/pandad/compatibility/tests/test_native_link.cc",
+          "-I",
+          "/opt/homebrew/Cellar/libusb/1.0.30/include/libusb-1.0",
+          "/opt/homebrew/Cellar/libusb/1.0.30/lib/libusb-1.0.0.dylib",
+          "-Wl,-rpath,/opt/homebrew/Cellar/libusb/1.0.30/lib",
+          "-o",
+          "/Users/shuang/Code/openpilot/songplus-port-lab/results/panda-compat-p2/run-a3e8hmkv/native-macos/test_native_link"
+        ],
+        "exit_code": 0
+      },
+      {
+        "name": "test-native_link",
+        "command": [
+          "/Users/shuang/Code/openpilot/songplus-port-lab/results/panda-compat-p2/run-a3e8hmkv/native-macos/test_native_link"
+        ],
+        "exit_code": 0
+      },
+      {
+        "name": "compile-spi-reference",
+        "command": [
+          "/usr/bin/clang++",
+          "-std=c++17",
+          "-Wall",
+          "-Wextra",
+          "-Werror",
+          "-O1",
+          "-g",
+          "-fno-omit-frame-pointer",
+          "-fsanitize=address,undefined",
+          "-pthread",
+          "-I",
+          "/Users/shuang/Code/openpilot/songplus-port-lab/results/panda-compat-p2/run-a3e8hmkv/source/openpilot/selfdrive/pandad/compatibility",
+          "-I",
+          "/Users/shuang/Code/openpilot/songplus-port-lab/results/panda-compat-p2/run-a3e8hmkv/source/openpilot",
+          "-I",
+          "/Users/shuang/Code/openpilot/songplus-port-lab/results/panda-compat-p2/run-a3e8hmkv/source",
+          "/Users/shuang/Code/openpilot/songplus-port-lab/results/panda-compat-p2/run-a3e8hmkv/source/openpilot/selfdrive/pandad/compatibility/tests/spi_reference_probe.cc",
+          "-lz",
+          "-o",
+          "/Users/shuang/Code/openpilot/songplus-port-lab/results/panda-compat-p2/run-a3e8hmkv/native-macos/spi_reference_probe"
+        ],
+        "exit_code": 0
+      },
+      {
+        "name": "spi-reference-golden",
+        "command": [
+          "/Users/shuang/Code/openpilot/songplus-port-lab/results/panda-compat-p2/run-a3e8hmkv/native-macos/spi_reference_probe"
+        ],
+        "exit_code": 0
+      },
+      {
+        "name": "spi-candidate-golden",
+        "command": [
+          "/Users/shuang/Code/openpilot/songplus-port-lab/results/panda-compat-p2/run-a3e8hmkv/native-macos/test_spi_backend",
+          "--golden"
+        ],
+        "exit_code": 0
+      },
+      {
+        "name": "compiler-version",
+        "command": [
+          "/usr/bin/clang++",
+          "--version"
+        ],
+        "exit_code": 0
+      }
+    ],
+    "sanitizers": [
+      "address",
+      "undefined"
+    ],
+    "real_libusb_linked": true,
+    "real_linux_spi_linked": false,
+    "active_pandad_built": false,
+    "device_access": false,
+    "hardware_timing_validated": false
+  },
+  "native_linux": {
+    "status": "PASS_OFFLINE_HOST_ONLY",
+    "platform": "Linux-6.1.0-53-cloud-arm64-aarch64-with-glibc2.36",
+    "compiler_version": "g++ (Debian 12.2.0-14+deb12u1) 12.2.0\nCopyright (C) 2022 Free Software Foundation, Inc.\nThis is free software; see the source for copying conditions.  There is NO\nwarranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.\n\n",
+    "sandbox": "linux-user-net-mount",
+    "suites": {
+      "transport": {
+        "summary": {
+          "passed": 19,
+          "failed": 0,
+          "assertions": 443,
+          "device_access": false,
+          "clock": "deterministic_fake",
+          "hardware_timing_validated": false,
+          "cases": [
+            "constructor_and_wide_ingress_validation_have_no_io",
+            "exact_read_and_zero_payload_control_write",
+            "short_read_and_fragment_boundaries_are_preserved",
+            "read_retries_only_known_empty_timeout_and_is_paced",
+            "partial_unknown_or_non_timeout_reads_never_retry",
+            "confirmed_prefix_survives_unknown_later_chunk_delivery",
+            "late_fatal_backend_status_is_latched_before_deadline_override",
+            "failed_and_uncertain_writes_are_never_replayed_and_poison_session",
+            "deadline_minus_one_exact_and_plus_one_preserve_late_counts",
+            "submillisecond_remaining_budget_does_not_round_up",
+            "cancellation_before_during_after_and_between_retries_is_permanent",
+            "backward_or_wrapped_clock_fails_closed_without_losing_actual",
+            "nonadvancing_clock_does_not_create_unbounded_retry_loop",
+            "malformed_backend_results_never_become_success",
+            "backend_exceptions_preserve_unknown_delivery_and_never_retry",
+            "blocked_board_does_not_block_other_board_or_mix_bytes",
+            "same_board_contender_wait_is_bounded_without_queueing_io",
+            "lock_release_deadline_minus_one_exact_plus_one",
+            "disconnect_stall_and_poison_are_session_local"
+          ]
+        },
+        "groups": [
+          "constructor_and_wide_ingress_validation_have_no_io",
+          "exact_read_and_zero_payload_control_write",
+          "short_read_and_fragment_boundaries_are_preserved",
+          "read_retries_only_known_empty_timeout_and_is_paced",
+          "partial_unknown_or_non_timeout_reads_never_retry",
+          "confirmed_prefix_survives_unknown_later_chunk_delivery",
+          "late_fatal_backend_status_is_latched_before_deadline_override",
+          "failed_and_uncertain_writes_are_never_replayed_and_poison_session",
+          "deadline_minus_one_exact_and_plus_one_preserve_late_counts",
+          "submillisecond_remaining_budget_does_not_round_up",
+          "cancellation_before_during_after_and_between_retries_is_permanent",
+          "backward_or_wrapped_clock_fails_closed_without_losing_actual",
+          "nonadvancing_clock_does_not_create_unbounded_retry_loop",
+          "malformed_backend_results_never_become_success",
+          "backend_exceptions_preserve_unknown_delivery_and_never_retry",
+          "blocked_board_does_not_block_other_board_or_mix_bytes",
+          "same_board_contender_wait_is_bounded_without_queueing_io",
+          "lock_release_deadline_minus_one_exact_plus_one",
+          "disconnect_stall_and_poison_are_session_local"
+        ]
+      },
+      "usb_backend": {
+        "summary": {
+          "suite": "usb_backend",
+          "groups": 19,
+          "failed": 0,
+          "device_io": false
+        },
+        "groups": [
+          "inert_construction_and_permission",
+          "selection_and_cleanup",
+          "reversed_selection",
+          "reject_bootstub_and_dfu",
+          "reject_duplicate_and_replacement",
+          "malformed_descriptors",
+          "active_alternate_needs_explicit_external_verification",
+          "open_failures_cleanup",
+          "bulk_short_read_and_write",
+          "partial_timeout_preserves_data",
+          "control_read_write_and_unknown_count",
+          "error_classes_and_no_replay",
+          "invalid_requests_never_touch_api",
+          "impossible_actual_poisoned",
+          "stream_fragments_at_usb_packet_boundary",
+          "two_session_parsers_do_not_mix_and_peer_survives_disconnect",
+          "cancelled_read_does_not_retry",
+          "separate_handles_progress_during_blocked_peer",
+          "close_does_not_reuse_session"
+        ]
+      },
+      "spi_backend": {
+        "summary": {
+          "suite": "spi_backend",
+          "groups_passed": 16,
+          "assertions": 446,
+          "failures": 0,
+          "skipped": 0,
+          "hardware_access": false
+        },
+        "groups": [
+          "inert_and_validation",
+          "successful_wire_and_short_read",
+          "fragmented_bulk_write",
+          "fragmented_large_read",
+          "nack_no_replay",
+          "corrupt_stale_length_no_replay",
+          "low_level_partial_and_disconnect",
+          "partial_write_progress_preserved",
+          "partial_read_progress_preserved",
+          "bounded_poll_timeout_and_wrap",
+          "cancel_boundaries",
+          "deadline_before_next_request",
+          "isolated_backends_and_bus_busy",
+          "id_exhaustion",
+          "wrapper_does_not_retry_consuming_read",
+          "wrapper_preserves_partial_prefix"
+        ]
+      },
+      "timing_budget": {
+        "summary": {
+          "suite": "timing_policy",
+          "passed": 4,
+          "failed": 0,
+          "assertions": 39,
+          "cases": [
+            "health_age_boundaries_wrap",
+            "heartbeat_boundaries_wrap",
+            "future_missing_rejected",
+            "queue_capacity_boundaries"
+          ]
+        },
+        "groups": [
+          "health_age_boundaries_wrap",
+          "heartbeat_boundaries_wrap",
+          "future_missing_rejected",
+          "queue_capacity_boundaries"
+        ]
+      },
+      "native_link": {
+        "summary": {
+          "suite": "native_link",
+          "passed": 1,
+          "failed": 0,
+          "device_open": false
+        },
+        "groups": []
+      },
+      "spi_golden": {
+        "matched": 5,
+        "vectors": [
+          "control_read:007856341207001300dd3412ceab0800d8008ba5",
+          "control_write:007856341207000b00dc3412ceab00000d613ddc",
+          "bulk_write:037856341203000b000102032d84265d",
+          "bulk_read:817856341200001b00c91c6a84",
+          "first_large_read:8178563412000000044a13312a"
+        ],
+        "original_handle_constructed": false
+      }
+    },
+    "commands": [
+      {
+        "name": "compile-transport",
+        "command": [
+          "g++",
+          "-std=c++17",
+          "-Wall",
+          "-Wextra",
+          "-Werror",
+          "-O1",
+          "-g",
+          "-fno-omit-frame-pointer",
+          "-fsanitize=address,undefined",
+          "-pthread",
+          "-I",
+          "/home/shuang.guest/songplus-p2-build/run-a3e8hmkv/source/openpilot/selfdrive/pandad/compatibility",
+          "-I",
+          "/home/shuang.guest/songplus-p2-build/run-a3e8hmkv/source/openpilot",
+          "-I",
+          "/home/shuang.guest/songplus-p2-build/run-a3e8hmkv/source",
+          "/home/shuang.guest/songplus-p2-build/run-a3e8hmkv/source/openpilot/selfdrive/pandad/compatibility/transport.cc",
+          "/home/shuang.guest/songplus-p2-build/run-a3e8hmkv/source/openpilot/selfdrive/pandad/compatibility/tests/test_transport.cc",
+          "-o",
+          "/home/shuang.guest/songplus-p2-build/run-a3e8hmkv/output/test_transport"
+        ],
+        "exit_code": 0
+      },
+      {
+        "name": "test-transport",
+        "command": [
+          "/home/shuang.guest/songplus-p2-build/run-a3e8hmkv/output/test_transport"
+        ],
+        "exit_code": 0
+      },
+      {
+        "name": "compile-usb_backend",
+        "command": [
+          "g++",
+          "-std=c++17",
+          "-Wall",
+          "-Wextra",
+          "-Werror",
+          "-O1",
+          "-g",
+          "-fno-omit-frame-pointer",
+          "-fsanitize=address,undefined",
+          "-pthread",
+          "-I",
+          "/home/shuang.guest/songplus-p2-build/run-a3e8hmkv/source/openpilot/selfdrive/pandad/compatibility",
+          "-I",
+          "/home/shuang.guest/songplus-p2-build/run-a3e8hmkv/source/openpilot",
+          "-I",
+          "/home/shuang.guest/songplus-p2-build/run-a3e8hmkv/source",
+          "/home/shuang.guest/songplus-p2-build/run-a3e8hmkv/source/openpilot/selfdrive/pandad/compatibility/transport.cc",
+          "/home/shuang.guest/songplus-p2-build/run-a3e8hmkv/source/openpilot/selfdrive/pandad/compatibility/usb_backend.cc",
+          "/home/shuang.guest/songplus-p2-build/run-a3e8hmkv/source/openpilot/selfdrive/pandad/compatibility/libusb_api.cc",
+          "/home/shuang.guest/songplus-p2-build/run-a3e8hmkv/source/openpilot/selfdrive/pandad/compatibility/can_codec.cc",
+          "/home/shuang.guest/songplus-p2-build/run-a3e8hmkv/source/openpilot/selfdrive/pandad/compatibility/tests/test_usb_backend.cc",
+          "-I",
+          "/home/shuang.guest/songplus-p2-build/deps/prefix/usr/include/libusb-1.0",
+          "/home/shuang.guest/songplus-p2-build/deps/prefix/usr/lib/aarch64-linux-gnu/libusb-1.0.so.0.3.0",
+          "-Wl,-rpath,/home/shuang.guest/songplus-p2-build/deps/prefix/usr/lib/aarch64-linux-gnu",
+          "-o",
+          "/home/shuang.guest/songplus-p2-build/run-a3e8hmkv/output/test_usb_backend"
+        ],
+        "exit_code": 0
+      },
+      {
+        "name": "test-usb_backend",
+        "command": [
+          "/home/shuang.guest/songplus-p2-build/run-a3e8hmkv/output/test_usb_backend"
+        ],
+        "exit_code": 0
+      },
+      {
+        "name": "compile-spi_backend",
+        "command": [
+          "g++",
+          "-std=c++17",
+          "-Wall",
+          "-Wextra",
+          "-Werror",
+          "-O1",
+          "-g",
+          "-fno-omit-frame-pointer",
+          "-fsanitize=address,undefined",
+          "-pthread",
+          "-I",
+          "/home/shuang.guest/songplus-p2-build/run-a3e8hmkv/source/openpilot/selfdrive/pandad/compatibility",
+          "-I",
+          "/home/shuang.guest/songplus-p2-build/run-a3e8hmkv/source/openpilot",
+          "-I",
+          "/home/shuang.guest/songplus-p2-build/run-a3e8hmkv/source",
+          "/home/shuang.guest/songplus-p2-build/run-a3e8hmkv/source/openpilot/selfdrive/pandad/compatibility/transport.cc",
+          "/home/shuang.guest/songplus-p2-build/run-a3e8hmkv/source/openpilot/selfdrive/pandad/compatibility/spi_backend.cc",
+          "/home/shuang.guest/songplus-p2-build/run-a3e8hmkv/source/openpilot/selfdrive/pandad/compatibility/tests/test_spi_backend.cc",
+          "-o",
+          "/home/shuang.guest/songplus-p2-build/run-a3e8hmkv/output/test_spi_backend"
+        ],
+        "exit_code": 0
+      },
+      {
+        "name": "test-spi_backend",
+        "command": [
+          "/home/shuang.guest/songplus-p2-build/run-a3e8hmkv/output/test_spi_backend"
+        ],
+        "exit_code": 0
+      },
+      {
+        "name": "compile-timing_budget",
+        "command": [
+          "g++",
+          "-std=c++17",
+          "-Wall",
+          "-Wextra",
+          "-Werror",
+          "-O1",
+          "-g",
+          "-fno-omit-frame-pointer",
+          "-fsanitize=address,undefined",
+          "-pthread",
+          "-I",
+          "/home/shuang.guest/songplus-p2-build/run-a3e8hmkv/source/openpilot/selfdrive/pandad/compatibility",
+          "-I",
+          "/home/shuang.guest/songplus-p2-build/run-a3e8hmkv/source/openpilot",
+          "-I",
+          "/home/shuang.guest/songplus-p2-build/run-a3e8hmkv/source",
+          "/home/shuang.guest/songplus-p2-build/run-a3e8hmkv/source/openpilot/selfdrive/pandad/compatibility/tests/test_timing_budget.cc",
+          "-o",
+          "/home/shuang.guest/songplus-p2-build/run-a3e8hmkv/output/test_timing_budget"
+        ],
+        "exit_code": 0
+      },
+      {
+        "name": "test-timing_budget",
+        "command": [
+          "/home/shuang.guest/songplus-p2-build/run-a3e8hmkv/output/test_timing_budget"
+        ],
+        "exit_code": 0
+      },
+      {
+        "name": "compile-native_link",
+        "command": [
+          "g++",
+          "-std=c++17",
+          "-Wall",
+          "-Wextra",
+          "-Werror",
+          "-O1",
+          "-g",
+          "-fno-omit-frame-pointer",
+          "-fsanitize=address,undefined",
+          "-pthread",
+          "-I",
+          "/home/shuang.guest/songplus-p2-build/run-a3e8hmkv/source/openpilot/selfdrive/pandad/compatibility",
+          "-I",
+          "/home/shuang.guest/songplus-p2-build/run-a3e8hmkv/source/openpilot",
+          "-I",
+          "/home/shuang.guest/songplus-p2-build/run-a3e8hmkv/source",
+          "/home/shuang.guest/songplus-p2-build/run-a3e8hmkv/source/openpilot/selfdrive/pandad/compatibility/transport.cc",
+          "/home/shuang.guest/songplus-p2-build/run-a3e8hmkv/source/openpilot/selfdrive/pandad/compatibility/usb_backend.cc",
+          "/home/shuang.guest/songplus-p2-build/run-a3e8hmkv/source/openpilot/selfdrive/pandad/compatibility/libusb_api.cc",
+          "/home/shuang.guest/songplus-p2-build/run-a3e8hmkv/source/openpilot/selfdrive/pandad/compatibility/spi_backend.cc",
+          "/home/shuang.guest/songplus-p2-build/run-a3e8hmkv/source/openpilot/selfdrive/pandad/compatibility/linux_spi_io.cc",
+          "/home/shuang.guest/songplus-p2-build/run-a3e8hmkv/source/openpilot/selfdrive/pandad/compatibility/tests/test_native_link.cc",
+          "-I",
+          "/home/shuang.guest/songplus-p2-build/deps/prefix/usr/include/libusb-1.0",
+          "/home/shuang.guest/songplus-p2-build/deps/prefix/usr/lib/aarch64-linux-gnu/libusb-1.0.so.0.3.0",
+          "-Wl,-rpath,/home/shuang.guest/songplus-p2-build/deps/prefix/usr/lib/aarch64-linux-gnu",
+          "-o",
+          "/home/shuang.guest/songplus-p2-build/run-a3e8hmkv/output/test_native_link"
+        ],
+        "exit_code": 0
+      },
+      {
+        "name": "test-native_link",
+        "command": [
+          "/home/shuang.guest/songplus-p2-build/run-a3e8hmkv/output/test_native_link"
+        ],
+        "exit_code": 0
+      },
+      {
+        "name": "compile-spi-reference",
+        "command": [
+          "g++",
+          "-std=c++17",
+          "-Wall",
+          "-Wextra",
+          "-Werror",
+          "-O1",
+          "-g",
+          "-fno-omit-frame-pointer",
+          "-fsanitize=address,undefined",
+          "-pthread",
+          "-I",
+          "/home/shuang.guest/songplus-p2-build/run-a3e8hmkv/source/openpilot/selfdrive/pandad/compatibility",
+          "-I",
+          "/home/shuang.guest/songplus-p2-build/run-a3e8hmkv/source/openpilot",
+          "-I",
+          "/home/shuang.guest/songplus-p2-build/run-a3e8hmkv/source",
+          "/home/shuang.guest/songplus-p2-build/run-a3e8hmkv/source/openpilot/selfdrive/pandad/compatibility/tests/spi_reference_probe.cc",
+          "-lz",
+          "-o",
+          "/home/shuang.guest/songplus-p2-build/run-a3e8hmkv/output/spi_reference_probe"
+        ],
+        "exit_code": 0
+      },
+      {
+        "name": "spi-reference-golden",
+        "command": [
+          "/home/shuang.guest/songplus-p2-build/run-a3e8hmkv/output/spi_reference_probe"
+        ],
+        "exit_code": 0
+      },
+      {
+        "name": "spi-candidate-golden",
+        "command": [
+          "/home/shuang.guest/songplus-p2-build/run-a3e8hmkv/output/test_spi_backend",
+          "--golden"
+        ],
+        "exit_code": 0
+      },
+      {
+        "name": "compiler-version",
+        "command": [
+          "g++",
+          "--version"
+        ],
+        "exit_code": 0
+      }
+    ],
+    "sanitizers": [
+      "address",
+      "undefined"
+    ],
+    "real_libusb_linked": true,
+    "real_linux_spi_linked": true,
+    "active_pandad_built": false,
+    "device_access": false,
+    "hardware_timing_validated": false
+  },
+  "host_dependencies_sha256": "67f595f1d70c9bc8ff0434b12a4b800186adaf25a6786e486d6b6c9ecdc68fc1",
+  "worker_sha256": "a7b55711c22049d493065ea63f0f91ba53ffb214529e0291c0f2a5c198b15453",
+  "linux_sandbox_sha256": "184f366f864ba6b8fa8e78e77d8fd13abf0da06d321565e138f0847fbe9efeb7",
+  "original_spi_path_unchanged": true,
+  "health_heartbeat_runtime_integrated": false,
+  "MCU_build": false,
+  "MCU_ARM_ABI_validated": false,
+  "deployment_ready": false,
+  "remaining_stages": [
+    "P3",
+    "P4",
+    "P5",
+    "P6",
+    "P7"
+  ]
+}
