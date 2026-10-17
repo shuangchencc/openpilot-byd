@@ -2,13 +2,13 @@
 目标：宋 PLUS DM-i 2023 冠军版 110km 旗舰 PLUS；车型名称已经确认，ECU和物理总线仍待确认。
 
 当前本地实现（2026-10-18）
-P0/P1/P2已实现并通过限定范围的离线主机验收；最新结果：validation/panda-compat-p2/RESULT.md。
-独立补丁：patches/openpilot/p2/（依赖原P0/P1）；复验：tools/validate_panda_transport.py，需显式指定本机Linux构建VM。
-P2在macOS/Linux分别编译、链接并通过59组检查，保留原SPI运行路径。
-health/heartbeat时限仅完成纯策略测试，实际调度与整组屏障尚未接入。
-下一阶段为P3固定槽位、连接epoch、双板路由与完整组可用性；随后P4消息/safety/外围角色。
-P5 F4完整BSP和候选固件工程可独立推进；P3–P7均未实施。
-本轮没有连接C3XL、运行真实USB/SPI传输或执行系统/固件写入、复位。
+P0/P1/P2/P3已实现并通过限定范围的离线主机验收；最新结果：validation/panda-compat-p3/RESULT.md。
+独立补丁：patches/openpilot/p3/（依赖原P0/P1/P2）；复验：tools/validate_panda_sessions.py，需显式指定本机Linux构建VM。
+P3固定槽位、连接epoch、双向路由、队列和结构完整组新增52组/平台；连同P2共111组/平台。
+原SPI运行路径不变，真实device/TX/firmware权限仍为false。
+下一阶段为P4：逐板health/safety屏障、消息有效性消费者、heartbeat和外围角色，明确offroad/配置/重新接合规则。
+P5 F4完整BSP和候选固件工程可独立推进；P4–P7均未实施。
+本轮未连接C3XL、运行真实USB/SPI传输，未执行系统/固件写入或复位。
 
 设计冻结时的本地计划（历史快照，2026-10-18）
 用户无法提供照片/厂家资料；保留实物未知项，不阻断本地兼容层设计。

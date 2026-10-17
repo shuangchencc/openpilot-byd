@@ -1,0 +1,100 @@
+{
+  "schema": "songplus-panda-p3-acceptance-map/v1",
+  "cases": [
+    {
+      "id": "A30",
+      "required_groups": {
+        "session_registry": [
+          "both_dos_red_permutations_and_reversed_discovery",
+          "identical_models_distinct_identity_without_type_sorting",
+          "immutable_profile_and_snapshot_copies",
+          "idempotent_healthy_inventory_does_not_consume_epochs"
+        ],
+        "session_router_integration": [
+          "p0_contract_all_eight_profile_inventory_permutations"
+        ]
+      },
+      "scope": "Fixed canonical synthetic slots and full P0 typed profile; independent Python P0 check for eight profile/inventory permutations on each platform."
+    },
+    {
+      "id": "A31",
+      "required_groups": {
+        "can_router": [
+          "six_tx_routes_use_fixed_slots_and_per_slot_fifo_once",
+          "six_rx_routes_preserve_ordinary_returned_and_rejected_flags",
+          "invalid_event_reserved_flagged_and_wide_tx_routes_are_atomic",
+          "fd_is_bound_capability_in_both_directions"
+        ],
+        "session_router_integration": [
+          "six_routes_reach_only_their_fake_p2_backend_with_mcu_local_buses"
+        ]
+      },
+      "scope": "All six bidirectional routes, flags and capability rejection; wire checked against independent Python formula. Fake P2 transfers only."
+    },
+    {
+      "id": "A32",
+      "required_groups": {
+        "session_registry": [
+          "drop_reconnect_epoch_trace_and_peer_generation",
+          "new_handle_same_identity_address_requires_new_token",
+          "replacement_identity_never_binds_without_new_profile",
+          "zero_older_and_wrap_tokens_cannot_reconnect",
+          "epoch_counter_exhaustion_is_permanent_and_never_wraps",
+          "generation_counter_exhaustion_closes_healthy_peer"
+        ],
+        "can_router": [
+          "drop_and_reconnect_clear_both_queues_fragments_and_old_callbacks",
+          "unobserved_outage_and_reconnection_still_invalidate_queued_generation",
+          "replacement_never_inherits_fixed_slot_or_queued_traffic"
+        ],
+        "session_router_integration": [
+          "disconnect_reconnect_discards_partial_and_both_queued_slots",
+          "extra_inventory_retires_live_tokens_and_clears_both_queues"
+        ]
+      },
+      "scope": "Connection epochs and group generation prevent stale partial data, queues and callback reuse; existing bindings never change implicitly."
+    },
+    {
+      "id": "A33",
+      "required_groups": {
+        "can_router": [
+          "sendcan_and_queue_age_threshold_minus_one_equal_plus_one",
+          "rx_queue_age_threshold_and_publication_never_refresh_age",
+          "expired_partial_prefix_closes_group_without_unsafe_resync",
+          "caller_held_old_batch_cannot_enter_reconnected_generation",
+          "tx_capacity_and_mixed_batch_overflow_reject_atomically",
+          "rx_overflow_retires_group_and_requires_new_session_tokens",
+          "clock_rollback_and_wrap_fail_closed_without_unsigned_age_bypass",
+          "held_intent_is_revalidated_after_drop_expiry_and_mutation",
+          "held_rx_republication_preserves_age_and_rechecks_generation"
+        ],
+        "session_router_integration": [
+          "held_intent_and_ingress_batch_cannot_cross_connection_generation",
+          "held_rx_publication_checks_original_age_and_connection_token",
+          "held_intent_final_dispatch_checks_queue_and_source_age",
+          "original_fragment_receive_age_is_not_renewed_by_transport_or_publication"
+        ]
+      },
+      "scope": "Frozen fake-clock age/queue budgets, per-board FIFO, Event.valid equivalent rejection, overflow counters and final held-object age checks. No live scheduler or synchronized hardware timestamps."
+    },
+    {
+      "id": "A34",
+      "required_groups": {
+        "session_registry": [
+          "unbound_and_permission_contract",
+          "missing_slot_never_promotes_survivor_and_late_discovery",
+          "all_observed_identity_fields_revalidate_every_reconnect",
+          "group_fault_requires_both_fresh_tokens_and_bounds_reason"
+        ],
+        "can_router": [
+          "unbound_and_missing_group_have_no_queues_or_tx_permission"
+        ],
+        "session_router_integration": [
+          "replacement_and_unknown_protocol_never_promote_survivor",
+          "uncertain_p2_write_closes_group_without_replay_or_sibling_fallback"
+        ]
+      },
+      "scope": "Structural complete-group availability only. Missing/invalid required board means zero routed simulated TX; live permissions remain false. P4 health/safety/message barriers not implemented."
+    }
+  ]
+}

@@ -1,0 +1,2305 @@
+From 57cf77ba26c6e0ce8efd4443ba596934cd30706a Mon Sep 17 00:00:00 2001
+From: scarvito <7883167+scarvito@user.noreply.gitee.com>
+Date: Sun, 18 Oct 2026 02:37:31 +0800
+Subject: [PATCH] pandad: add fixed-slot sessions and epoch-aware offline CAN
+ routing
+
+---
+ .../pandad/compatibility/P3-BUDGET.md         |  59 ++
+ .../selfdrive/pandad/compatibility/README.md  |  39 +-
+ .../pandad/compatibility/can_router.cc        | 294 ++++++++++
+ .../pandad/compatibility/can_router.h         | 154 +++++
+ .../pandad/compatibility/session_registry.cc  | 209 +++++++
+ .../pandad/compatibility/session_registry.h   | 141 +++++
+ .../tests/check_session_oracle.py             |  86 +++
+ .../compatibility/tests/test_can_router.cc    | 365 ++++++++++++
+ .../tests/test_session_registry.cc            | 322 +++++++++++
+ .../tests/test_session_router_integration.cc  | 535 ++++++++++++++++++
+ 10 files changed, 2201 insertions(+), 3 deletions(-)
+ create mode 100644 openpilot/selfdrive/pandad/compatibility/P3-BUDGET.md
+ create mode 100644 openpilot/selfdrive/pandad/compatibility/can_router.cc
+ create mode 100644 openpilot/selfdrive/pandad/compatibility/can_router.h
+ create mode 100644 openpilot/selfdrive/pandad/compatibility/session_registry.cc
+ create mode 100644 openpilot/selfdrive/pandad/compatibility/session_registry.h
+ create mode 100644 openpilot/selfdrive/pandad/compatibility/tests/check_session_oracle.py
+ create mode 100644 openpilot/selfdrive/pandad/compatibility/tests/test_can_router.cc
+ create mode 100644 openpilot/selfdrive/pandad/compatibility/tests/test_session_registry.cc
+ create mode 100644 openpilot/selfdrive/pandad/compatibility/tests/test_session_router_integration.cc
+
+diff --git a/openpilot/selfdrive/pandad/compatibility/P3-BUDGET.md b/openpilot/selfdrive/pandad/compatibility/P3-BUDGET.md
+new file mode 100644
+index 0000000..57e5e82
+--- /dev/null
++++ b/openpilot/selfdrive/pandad/compatibility/P3-BUDGET.md
+@@ -0,0 +1,59 @@
++# P3 session and router candidate budgets
++
++Frozen for offline implementation against openpilot35e78a9d / pandaa5919516.
++These are candidate host limits, not measured C3XL/F4 operating guarantees.
++They do not enable vehicle TX, replace MCU safety or define P4 health validity.
++
++| Resource or time | Candidate limit | Rationale / boundary |
++| --- | --- | --- |
++| Required logical slots | exactly2; IDs0,1 | P0 explicit profile; never compress after disconnect |
++| Local CAN / host source | local0,1,2; host0,1,2,4,5,6 | stride4 address space; 3/7 reserved; returned/rejected only RX |
++| Connection token | uint64, positive, strictly increasing per identity for each new handle | USB bus/address reuse is not a new trusted session; no unbounded retired-token set |
++| Slot epoch / group generation | uint64, checked increment | no counter wrap or reuse; exhaustion closes registry permanently |
++| sendcan source age | strictly less than100000us | 10 periods of pinned100Hz pandad; deliberate tightening of upstream's age<1s |
++| TX staging residence | strictly less than20000us | at most two100Hz periods; recheck source age and group/token at dequeue |
++| RX/frame/fragment age | strictly less than100000us | 10 aggregation periods; first fragment's timestamp is not refreshed by later bytes |
++| TX queue | at most64frames per slot | bounded candidate staging, sufficient for one max64-frame input batch; reject overflow atomically |
++| TX input batch | at most64frames total | validate every route before committing any frame; no partial enqueue across boards |
++| RX queue | at most256frames per slot | bounded candidate buffering; overflow visible and invalidates group |
++| CAN bytes per frame / RX feed | at most70 /16384 | reuse P1 exact codec limits; parser residual at most69bytes |
++| Diagnostic history | fixed counters/current reason | no unbounded connection history or in-memory event log |
++
++At exactly the age threshold a frame is expired. Future timestamps are rejected
++before subtraction. Router clock rollback/wrap invalidates its session and
++requires a fresh router; it must never make stale data young. Old callback tokens
++are rejected before applying their timestamps, so a stale callback cannot poison
++a new session. Delayed publication retains original receive time and age.
++
++P2 Transport has no pending IO queue (capacity0, one in-flight operation). P3's
++bounded queues stage offline routing intents and received frames above that
++layer. This does not change P2's no-replay behavior or provide an active scheduler.
++A dequeued simulation intent is not permission to call an actual device.
++TX batches must carry the group generation captured at ingress, including batches
++not yet enqueued. A future message adapter must not relabel an old batch with the
++current generation. Held TX intents and RX frames have explicit final validation
++helpers for generation and age checks; they retain their original timestamps.
++
++Any required-board lifecycle change advances the group generation; the router
++clears both boards' queued TX/RX and residual bytes before its next observable
++operation. Fixed slots remain reserved. Thus reconnect cannot release commands
++queued before the outage, including commands for the surviving board. Reconnect
++is structural revalidation only; P4 must separately apply offroad/configuration,
++health freshness and per-board safety-readback barriers before any real control.
++
++Malformed current-session RX, RX overflow, expired partial framing or backwards
++router time invalidates the group and requires fresh connection tokens. Invalid
++TX input/overflow rejects the complete batch with visible counters; it does not
++consume/replay data or reroute it through the sibling. Completed RX expiration
++is counted; remaining fresh per-board FIFO data may still be published.
++
++All registry/router calls belong to one serialized event loop. P3 owns no IO,
++threads or locks and holds no lock while a P2 transfer is in progress. Offline
++integration tests explicitly feed fake transport results and report a failure
++back to the registry. Production lifecycle notification/scheduling is not wired.
++
++Inventories longer than two entries are rejected before candidate inspection.
++Current live handles are retired; uninspected candidate tokens are not registered.
++For a two-entry duplicate identity, both known-identity candidate tokens are
++consumed. In either case the old live connection and its queued work cannot heal
++by merely deleting an extra inventory entry. No enumeration history is retained.
+diff --git a/openpilot/selfdrive/pandad/compatibility/README.md b/openpilot/selfdrive/pandad/compatibility/README.md
+index 0a943d9..24b15c5 100644
+--- a/openpilot/selfdrive/pandad/compatibility/README.md
++++ b/openpilot/selfdrive/pandad/compatibility/README.md
+@@ -1,4 +1,4 @@
+-# Offline dual-Panda contracts and codecs (P0/P1/P2)
++# Offline dual-Panda contracts and codecs (P0/P1/P2/P3)
+ 
+ Standalone Python standard-library contracts and C++17 CAN codecs against
+ openpilot `35e78a9d`, panda `a5919516`, opendbc `b3bd79a6`. This package is not
+@@ -39,8 +39,8 @@ missing fixtures fail, never skip. The probe includes the pinned Panda `board/`
+ and opendbc repository headers and reports host ABI only. Tests never import
+ Panda, discover devices, compile MCU firmware or start the original pandad.
+ 
+-P3–P7 still own runtime integration, connection epochs,
+-whole-group freshness/safety barriers, F4 firmware, system-level fault handling
++P4–P7 still own active runtime integration, whole-group freshness/safety
++barriers, F4 firmware, system-level fault handling
+ and deployment packaging. Existing pandad startup/flash behavior is unchanged
+ because this isolated package is not connected to that entry point.
+ 
+@@ -87,3 +87,36 @@ The engineering validator `tools/validate_panda_transport.py` cleanly composes
+ P0/P1/P2 patches, reruns P0/P1, and builds/tests P2 on macOS and Linux under
+ network/device-node isolation. Linux includes real libusb and spidev linkage;
+ it is a standalone transport target, not a full active pandad daemon build.
++
++## P3 session and routing layer
++
++`session_registry` validates a typed equivalent of P0's synthetic profile,
++canonical fixed slots and the complete supplied inventory. It never discovers or
++opens devices. Slot epochs and group generation distinguish lifecycle changes;
++positive connection tokens strictly increase for each new handle of an identity.
++A repeated live token is idempotent, while a retired token cannot reconnect.
++Addresses and enumeration order never become identity. Missing/unknown/duplicate
++or replaced boards cannot silently promote a surviving board or change a binding.
++Only a new explicit profile/registry can bind a replacement. Counter exhaustion
++fails closed. Structural group availability is separate from P4 safety readiness;
++real device, CAN TX and firmware permissions always remain false.
++
++`can_router` uses this authoritative registry, P1 codecs and per-slot parsers.
++It maps host buses0/1/2 and4/5/6 to local0/1/2 exactly once, rejects reserved buses
++and TX receipt flags, enforces bound FD capability, and returns offline simulation
++intents. It has no Transport reference, syscall or actual write entry point.
++Connection/group changes invalidate queued TX, RX and partial bytes before their
++next use; stale callbacks cannot populate a new connection. Bounded queues expose
++expiry/overflow/lifecycle loss counters. Original receive times remain attached
++to frames through fragmentation and publication. Per-board FIFO order does not
++claim hardware synchronization between boards.
++
++The integration test connects P3 routing to actual P2 Transport instances whose
++backends are fake-only. Its oracle output is checked independently by locked
++Python using the existing P0 profile/registry and independent CAN bit formulas.
++No second production JSON profile parser or live activation path is added.
++`P3-BUDGET.md` records candidate queue and timestamp bounds; the outer engineering
++runner `tools/validate_panda_sessions.py` replays all four patches and executes
++P0/P1/P2 regressions plus P3 on macOS/Linux. Existing active pandad/SPI sources
++remain unchanged. P4 must integrate health/safety, production lifecycle events,
++configuration/engagement barriers and message consumers before real use.
+diff --git a/openpilot/selfdrive/pandad/compatibility/can_router.cc b/openpilot/selfdrive/pandad/compatibility/can_router.cc
+new file mode 100644
+index 0000000..8f46e2f
+--- /dev/null
++++ b/openpilot/selfdrive/pandad/compatibility/can_router.cc
+@@ -0,0 +1,294 @@
++#include "can_router.h"
++
++#include <algorithm>
++#include <limits>
++#include <utility>
++
++namespace openpilot::pandad::compatibility {
++namespace {
++
++void add(std::uint64_t &counter, std::size_t count = 1) {
++  const auto remaining = std::numeric_limits<std::uint64_t>::max() - counter;
++  counter += std::min<std::uint64_t>(remaining, count);
++}
++
++CanCapability capability(const SessionRegistry &registry, std::size_t slot) {
++  return registry.profile().slots[slot].expected.capabilities.can_fd ? CanCapability::CanFd : CanCapability::ClassicOnly;
++}
++
++bool expired(std::uint64_t now, std::uint64_t timestamp, std::uint64_t budget) {
++  // Never add a duration to a timestamp: that can wrap near UINT64_MAX.
++  return timestamp > now || now - timestamp >= budget;
++}
++
++}  // namespace
++
++const char *router_error_name(RouterError error) {
++  switch (error) {
++    case RouterError::None: return "none";
++    case RouterError::Empty: return "empty";
++    case RouterError::GroupUnavailable: return "group_unavailable";
++    case RouterError::InvalidArgument: return "invalid_argument";
++    case RouterError::InvalidEvent: return "invalid_event";
++    case RouterError::InvalidRoute: return "invalid_route";
++    case RouterError::Malformed: return "malformed";
++    case RouterError::Expired: return "expired";
++    case RouterError::FutureTimestamp: return "future_timestamp";
++    case RouterError::StaleSession: return "stale_session";
++    case RouterError::Overflow: return "overflow";
++    case RouterError::ClockRollback: return "clock_rollback";
++  }
++  return "unknown_error";
++}
++
++CanRouter::CanRouter(SessionRegistry &registry)
++    : registry_(registry), slots_{{SlotState(capability(registry, 0)), SlotState(capability(registry, 1))}} {
++  synchronize();
++}
++
++void CanRouter::clear_all() {
++  for (auto &slot : slots_) {
++    add(counters_.epoch_tx_drops, slot.tx.size());
++    add(counters_.epoch_rx_drops, slot.rx.size());
++    add(counters_.epoch_fragment_bytes, slot.parser.buffered_size());
++    slot.tx.clear(); slot.rx.clear(); slot.parser.clear();
++    slot.fragment_timestamp_us.reset();
++    slot.last_receive_timestamp_us.reset();
++  }
++}
++
++void CanRouter::synchronize() {
++  const auto state = registry_.snapshot();
++  bool changed = !initialized_ || generation_ != state.generation || group_available_ != state.group_available;
++  for (std::size_t i = 0; i < 2; ++i) {
++    changed = changed || epochs_[i] != state.slots[i].epoch || connections_[i] != state.slots[i].connection_token;
++  }
++  if (changed) clear_all();
++  generation_ = state.generation;
++  group_available_ = state.group_available;
++  for (std::size_t i = 0; i < 2; ++i) {
++    epochs_[i] = state.slots[i].epoch;
++    connections_[i] = state.slots[i].connection_token;
++  }
++  initialized_ = true;
++}
++
++RouterError CanRouter::invalidate(RouterError error, const char *reason) {
++  registry_.invalidate_group(reason);
++  synchronize();
++  return error;
++}
++
++void CanRouter::expire_queues(std::uint64_t now_us) {
++  for (auto &slot : slots_) {
++    for (auto it = slot.tx.begin(); it != slot.tx.end();) {
++      if (expired(now_us, it->source_timestamp_us, kSendcanMaxAgeUs) ||
++          expired(now_us, it->enqueue_timestamp_us, kTxQueueMaxAgeUs)) {
++        add(counters_.expired_tx); it = slot.tx.erase(it);
++      } else ++it;
++    }
++    for (auto it = slot.rx.begin(); it != slot.rx.end();) {
++      if (expired(now_us, it->receive_timestamp_us, kRxMaxAgeUs)) {
++        add(counters_.expired_rx); it = slot.rx.erase(it);
++      } else ++it;
++    }
++  }
++}
++
++RouterError CanRouter::prepare(std::uint64_t now_us) {
++  synchronize();
++  if (clock_failed_) return RouterError::ClockRollback;
++  if (last_now_us_ && now_us < *last_now_us_) {
++    clock_failed_ = true; add(counters_.clock_faults);
++    return invalidate(RouterError::ClockRollback, "ROUTER_CLOCK_ROLLBACK");
++  }
++  last_now_us_ = now_us;
++  if (!group_available_) return RouterError::GroupUnavailable;
++  for (const auto &slot : slots_) {
++    if (slot.fragment_timestamp_us && expired(now_us, *slot.fragment_timestamp_us, kRxMaxAgeUs)) {
++      add(counters_.expired_fragments);
++      // Dropping a byte prefix would make its later suffix an unsafe new frame.
++      return invalidate(RouterError::Expired, "ROUTER_EXPIRED_RX_FRAGMENT");
++    }
++  }
++  expire_queues(now_us);
++  return RouterError::None;
++}
++
++RouteToken CanRouter::token_for(std::size_t slot) const {
++  return {static_cast<std::uint32_t>(slot), epochs_[slot], connections_[slot], generation_};
++}
++
++bool CanRouter::current(const RouteToken &token) const {
++  return token.slot < 2 && group_available_ && token.group_generation == generation_ &&
++         token.epoch == epochs_[token.slot] && token.connection_token == connections_[token.slot] &&
++         token.connection_token != 0;
++}
++
++RouterResult<RouteToken> CanRouter::current_token(std::uint32_t slot, std::uint64_t now_us) {
++  if (slot >= 2) return {{}, RouterError::InvalidArgument};
++  const auto error = prepare(now_us);
++  return error == RouterError::None ? RouterResult<RouteToken>{token_for(slot), error} : RouterResult<RouteToken>{{}, error};
++}
++
++RouterResult<std::size_t> CanRouter::enqueue_tx(const TxBatch &batch, std::uint64_t now_us) {
++  synchronize();
++  if (!group_available_) return {{}, RouterError::GroupUnavailable};
++  if (batch.group_generation == 0 || batch.group_generation != generation_) {
++    add(counters_.invalid_batches); return {{}, RouterError::StaleSession};
++  }
++  const auto error = prepare(now_us);
++  if (error != RouterError::None) return {{}, error};
++  const auto reject = [&](RouterError why) -> RouterResult<std::size_t> {
++    add(counters_.invalid_batches); return {{}, why};
++  };
++  if (!batch.valid || batch.frames.empty()) return reject(RouterError::InvalidEvent);
++  if (batch.frames.size() > kMaxTxBatchFrames) {
++    add(counters_.tx_overflows); return reject(RouterError::Overflow);
++  }
++  if (batch.source_timestamp_us > now_us) return reject(RouterError::FutureTimestamp);
++  if (expired(now_us, batch.source_timestamp_us, kSendcanMaxAgeUs)) return reject(RouterError::Expired);
++  std::array<std::vector<SimulatedTxIntent>, 2> staged;
++  for (const auto &frame : batch.frames) {
++    // Bound the copy before constructing a local frame from caller memory.
++    if (frame.payload.size() > kCanMaxFrameSize - kCanHeaderSize) {
++      add(counters_.malformed); return reject(RouterError::Malformed);
++    }
++    const auto route = parse_host_source(frame.source, FrameDirection::Tx);
++    if (!route) return reject(RouterError::InvalidRoute);
++    CanFrame local{frame.address, route.value.local_bus, frame.extended, frame.fd, false, false, frame.payload};
++    auto encoded = encode_can_frame(local, capability(registry_, route.value.slot), FrameDirection::Tx);
++    if (!encoded) { add(counters_.malformed); return reject(RouterError::Malformed); }
++    staged[route.value.slot].push_back({token_for(route.value.slot), std::move(local), std::move(encoded.value),
++                                      batch.source_timestamp_us, now_us, false});
++  }
++  for (std::size_t i = 0; i < 2; ++i) {
++    if (staged[i].size() > kTxFramesPerSlot - slots_[i].tx.size()) {
++      add(counters_.tx_overflows); return reject(RouterError::Overflow);
++    }
++  }
++  for (std::size_t i = 0; i < 2; ++i) {
++    for (auto &intent : staged[i]) slots_[i].tx.push_back(std::move(intent));
++  }
++  return {batch.frames.size(), RouterError::None};
++}
++
++RouterResult<SimulatedTxIntent> CanRouter::take_tx(std::uint32_t slot, std::uint64_t now_us) {
++  if (slot >= 2) return {{}, RouterError::InvalidArgument};
++  const auto error = prepare(now_us);
++  if (error != RouterError::None) return {{}, error};
++  auto &queue = slots_[slot].tx;
++  if (queue.empty()) return {{}, RouterError::Empty};
++  if (!current(queue.front().token)) return {{}, invalidate(RouterError::StaleSession, "ROUTER_STALE_TX_QUEUE")};
++  auto intent = std::move(queue.front()); queue.pop_front();
++  return {std::move(intent), RouterError::None};
++}
++
++RouterResult<bool> CanRouter::validate_intent(const SimulatedTxIntent &intent, std::uint64_t now_us) {
++  synchronize();
++  if (!group_available_) return {false, RouterError::GroupUnavailable};
++  if (!current(intent.token)) return {false, RouterError::StaleSession};
++  const auto error = prepare(now_us);
++  if (error != RouterError::None) return {false, error};
++  if (!current(intent.token)) return {false, RouterError::StaleSession};
++  if (intent.source_timestamp_us > now_us || intent.enqueue_timestamp_us > now_us ||
++      intent.source_timestamp_us > intent.enqueue_timestamp_us) return {false, RouterError::FutureTimestamp};
++  if (expired(now_us, intent.source_timestamp_us, kSendcanMaxAgeUs) ||
++      expired(now_us, intent.enqueue_timestamp_us, kTxQueueMaxAgeUs)) return {false, RouterError::Expired};
++  const auto encoded = encode_can_frame(intent.frame, capability(registry_, intent.token.slot), FrameDirection::Tx);
++  if (intent.real_tx_authorized || !encoded || encoded.value != intent.encoded) return {false, RouterError::Malformed};
++  return {true, RouterError::None};
++}
++
++RouterResult<std::size_t> CanRouter::receive(const RouteToken &token, const std::uint8_t *bytes,
++                                            std::size_t size, std::uint64_t receive_timestamp_us,
++                                            std::uint64_t now_us) {
++  // Obsolete callbacks cannot invalidate a new session, even with corrupt bytes
++  // or obsolete timestamps. Synchronize first, then reject the old token.
++  synchronize();
++  if (!current(token)) { add(counters_.stale_callbacks); return {{}, RouterError::StaleSession}; }
++  const auto error = prepare(now_us);
++  if (error != RouterError::None) return {{}, error};
++  auto &slot = slots_[token.slot];
++  if (receive_timestamp_us > now_us) {
++    add(counters_.malformed);
++    return {{}, invalidate(RouterError::FutureTimestamp, "ROUTER_FUTURE_RX_TIMESTAMP")};
++  }
++  if (slot.last_receive_timestamp_us && receive_timestamp_us < *slot.last_receive_timestamp_us) {
++    add(counters_.clock_faults);
++    return {{}, invalidate(RouterError::ClockRollback, "ROUTER_RX_CALLBACK_REORDER")};
++  }
++  const auto old_fragment = slot.fragment_timestamp_us;
++  auto decoded = slot.parser.feed(bytes, size);
++  if (!decoded) {
++    add(counters_.malformed);
++    return {{}, invalidate(RouterError::Malformed, "ROUTER_MALFORMED_RX_STREAM")};
++  }
++  slot.last_receive_timestamp_us = receive_timestamp_us;
++  if (slot.parser.buffered_size() != 0) {
++    slot.fragment_timestamp_us = old_fragment && decoded.value.empty() ? old_fragment : std::optional<std::uint64_t>(receive_timestamp_us);
++  } else slot.fragment_timestamp_us.reset();
++  if (slot.fragment_timestamp_us && expired(now_us, *slot.fragment_timestamp_us, kRxMaxAgeUs)) {
++    add(counters_.expired_fragments);
++    return {{}, invalidate(RouterError::Expired, "ROUTER_EXPIRED_RX_FRAGMENT")};
++  }
++  std::vector<RoutedRxFrame> staged;
++  staged.reserve(std::min(decoded.value.size(), kRxFramesPerSlot));
++  for (std::size_t i = 0; i < decoded.value.size(); ++i) {
++    const auto timestamp = i == 0 && old_fragment ? *old_fragment : receive_timestamp_us;
++    if (expired(now_us, timestamp, kRxMaxAgeUs)) { add(counters_.expired_rx); continue; }
++    auto &frame = decoded.value[i];
++    const auto source = host_source(token.slot, frame.local_bus, frame.returned, frame.rejected, FrameDirection::Rx);
++    if (!source) {
++      add(counters_.malformed);
++      return {{}, invalidate(RouterError::Malformed, "ROUTER_INVALID_RX_ROUTE")};
++    }
++    if (staged.size() == kRxFramesPerSlot - slot.rx.size()) {
++      add(counters_.rx_overflows);
++      return {{}, invalidate(RouterError::Overflow, "ROUTER_RX_QUEUE_OVERFLOW")};
++    }
++    staged.push_back({token, std::move(frame), source.value, timestamp});
++  }
++  const auto accepted = staged.size();
++  for (auto &frame : staged) slot.rx.push_back(std::move(frame));
++  return {accepted, RouterError::None};
++}
++
++RouterResult<RoutedRxFrame> CanRouter::take_rx(std::uint32_t slot, std::uint64_t now_us) {
++  if (slot >= 2) return {{}, RouterError::InvalidArgument};
++  const auto error = prepare(now_us);
++  if (error != RouterError::None) return {{}, error};
++  auto &queue = slots_[slot].rx;
++  if (queue.empty()) return {{}, RouterError::Empty};
++  if (!current(queue.front().token)) return {{}, invalidate(RouterError::StaleSession, "ROUTER_STALE_RX_QUEUE")};
++  auto frame = std::move(queue.front()); queue.pop_front();
++  return {std::move(frame), RouterError::None};
++}
++
++RouterResult<bool> CanRouter::validate_rx_frame(const RoutedRxFrame &frame, std::uint64_t now_us) {
++  synchronize();
++  if (!group_available_) return {false, RouterError::GroupUnavailable};
++  if (!current(frame.token)) return {false, RouterError::StaleSession};
++  const auto error = prepare(now_us);
++  if (error != RouterError::None) return {false, error};
++  if (!current(frame.token)) return {false, RouterError::StaleSession};
++  if (frame.receive_timestamp_us > now_us) return {false, RouterError::FutureTimestamp};
++  if (expired(now_us, frame.receive_timestamp_us, kRxMaxAgeUs)) return {false, RouterError::Expired};
++  const auto &local = frame.frame;
++  const auto source = host_source(frame.token.slot, local.local_bus, local.returned, local.rejected, FrameDirection::Rx);
++  const auto encoded = encode_can_frame(local, capability(registry_, frame.token.slot), FrameDirection::Rx);
++  if (!source || source.value != frame.source || !encoded) return {false, RouterError::Malformed};
++  return {true, RouterError::None};
++}
++
++RouterResult<RouterDepths> CanRouter::inspect(std::uint64_t now_us) {
++  const auto error = prepare(now_us);
++  RouterDepths depths;
++  for (std::size_t i = 0; i < 2; ++i) {
++    depths.tx[i] = slots_[i].tx.size(); depths.rx[i] = slots_[i].rx.size();
++    depths.fragment_bytes[i] = slots_[i].parser.buffered_size();
++  }
++  return {depths, error};
++}
++
++}  // namespace openpilot::pandad::compatibility
+diff --git a/openpilot/selfdrive/pandad/compatibility/can_router.h b/openpilot/selfdrive/pandad/compatibility/can_router.h
+new file mode 100644
+index 0000000..a268059
+--- /dev/null
++++ b/openpilot/selfdrive/pandad/compatibility/can_router.h
+@@ -0,0 +1,154 @@
++#pragma once
++
++#include <array>
++#include <cstddef>
++#include <cstdint>
++#include <deque>
++#include <optional>
++#include <vector>
++
++#include "can_codec.h"
++#include "session_registry.h"
++
++namespace openpilot::pandad::compatibility {
++
++// Candidate offline budgets, not measured device timing guarantees. The pinned
++// upstream sendcan allowance is 1s; P3 deliberately tightens it to 100ms.
++inline constexpr std::uint64_t kSendcanMaxAgeUs = 100000;
++inline constexpr std::uint64_t kTxQueueMaxAgeUs = 20000;
++inline constexpr std::uint64_t kRxMaxAgeUs = 100000;
++inline constexpr std::size_t kTxFramesPerSlot = 64;
++inline constexpr std::size_t kRxFramesPerSlot = 256;
++inline constexpr std::size_t kMaxTxBatchFrames = 64;
++
++enum class RouterError {
++  None, Empty, GroupUnavailable, InvalidArgument, InvalidEvent, InvalidRoute,
++  Malformed, Expired, FutureTimestamp, StaleSession, Overflow, ClockRollback,
++};
++const char *router_error_name(RouterError error);
++
++template <typename T>
++struct RouterResult {
++  T value{};
++  RouterError error = RouterError::None;
++  explicit operator bool() const { return error == RouterError::None; }
++};
++
++// Capture this before starting a read. Every callback must carry the original
++// token. The router always compares it with its referenced live registry.
++struct RouteToken {
++  std::uint32_t slot = 0;
++  std::uint64_t epoch = 0;
++  std::uint64_t connection_token = 0;
++  std::uint64_t group_generation = 0;
++};
++
++struct HostTxFrame {
++  std::uint64_t address = 0;
++  std::uint32_t source = 0;
++  bool extended = false;
++  bool fd = false;
++  std::vector<std::uint8_t> payload;
++};
++struct TxBatch {
++  bool valid = false;
++  std::uint64_t source_timestamp_us = 0;
++  std::vector<HostTxFrame> frames;
++  // Capture when the event enters this session, before any reconnect. A caller
++  // must not relabel a buffered old event with a newly observed generation.
++  std::uint64_t group_generation = 0;
++};
++
++// A one-shot dequeue result for offline inspection. This is NOT a permission
++// to transmit. There is deliberately no Transport reference or I/O method.
++struct SimulatedTxIntent {
++  RouteToken token;
++  CanFrame frame;
++  std::vector<std::uint8_t> encoded;
++  std::uint64_t source_timestamp_us = 0;
++  std::uint64_t enqueue_timestamp_us = 0;
++  bool real_tx_authorized = false;
++};
++struct RoutedRxFrame {
++  RouteToken token;
++  CanFrame frame;
++  std::uint32_t source = 0;
++  // First fragment receive time, never refreshed at completion/publication.
++  std::uint64_t receive_timestamp_us = 0;
++};
++struct RouterCounters {
++  std::uint64_t invalid_batches = 0;
++  std::uint64_t malformed = 0;
++  std::uint64_t stale_callbacks = 0;
++  std::uint64_t tx_overflows = 0;
++  std::uint64_t rx_overflows = 0;
++  std::uint64_t expired_tx = 0;
++  std::uint64_t expired_rx = 0;
++  std::uint64_t expired_fragments = 0;
++  std::uint64_t epoch_tx_drops = 0;
++  std::uint64_t epoch_rx_drops = 0;
++  std::uint64_t epoch_fragment_bytes = 0;
++  std::uint64_t clock_faults = 0;
++};
++struct RouterDepths {
++  std::array<std::size_t, 2> tx{};
++  std::array<std::size_t, 2> rx{};
++  std::array<std::size_t, 2> fragment_bytes{};
++};
++
++// Single serialized event-loop contract. No internal threads, handles, device
++// discovery, recovery or transmission. Registry mutations and router calls must
++// be serialized by the owner. Only per-slot FIFO is defined, no board-to-board
++// physical ordering. Any epoch/generation change clears ALL queues/fragments.
++class CanRouter {
++public:
++  explicit CanRouter(SessionRegistry &registry);
++  CanRouter(const CanRouter &) = delete;
++  CanRouter &operator=(const CanRouter &) = delete;
++
++  RouterResult<RouteToken> current_token(std::uint32_t slot, std::uint64_t now_us);
++  RouterResult<std::size_t> enqueue_tx(const TxBatch &batch, std::uint64_t now_us);
++  RouterResult<SimulatedTxIntent> take_tx(std::uint32_t slot, std::uint64_t now_us);
++  // Revalidate a caller-held result just before a SIMULATED dispatch. This is
++  // an inspection, not a live capability or a replay/consumption mechanism.
++  RouterResult<bool> validate_intent(const SimulatedTxIntent &intent, std::uint64_t now_us);
++  RouterResult<std::size_t> receive(const RouteToken &token, const std::uint8_t *bytes,
++                                  std::size_t size, std::uint64_t receive_timestamp_us,
++                                  std::uint64_t now_us);
++  RouterResult<RoutedRxFrame> take_rx(std::uint32_t slot, std::uint64_t now_us);
++  // Recheck caller-held data before a later simulated publication; the source
++  // timestamp and original token must be preserved, including on republication.
++  RouterResult<bool> validate_rx_frame(const RoutedRxFrame &frame, std::uint64_t now_us);
++  RouterResult<RouterDepths> inspect(std::uint64_t now_us);
++  const RouterCounters &counters() const { return counters_; }
++
++private:
++  struct SlotState {
++    explicit SlotState(CanCapability capability) : parser(capability) {}
++    CanStreamParser parser;
++    std::deque<SimulatedTxIntent> tx;
++    std::deque<RoutedRxFrame> rx;
++    std::optional<std::uint64_t> fragment_timestamp_us;
++    std::optional<std::uint64_t> last_receive_timestamp_us;
++  };
++  void synchronize();
++  void clear_all();
++  RouterError prepare(std::uint64_t now_us);
++  RouterError invalidate(RouterError error, const char *reason);
++  bool current(const RouteToken &token) const;
++  RouteToken token_for(std::size_t slot) const;
++  void expire_queues(std::uint64_t now_us);
++
++  SessionRegistry &registry_;
++  std::array<SlotState, 2> slots_;
++  std::uint64_t generation_ = 0;
++  std::array<std::uint64_t, 2> epochs_{};
++  std::array<std::uint64_t, 2> connections_{};
++  bool group_available_ = false;
++  bool initialized_ = false;
++  bool clock_failed_ = false;
++  std::optional<std::uint64_t> last_now_us_;
++  RouterCounters counters_;
++};
++
++}  // namespace openpilot::pandad::compatibility
+diff --git a/openpilot/selfdrive/pandad/compatibility/session_registry.cc b/openpilot/selfdrive/pandad/compatibility/session_registry.cc
+new file mode 100644
+index 0000000..95eb181
+--- /dev/null
++++ b/openpilot/selfdrive/pandad/compatibility/session_registry.cc
+@@ -0,0 +1,209 @@
++#include "session_registry.h"
++
++#include <limits>
++#include <stdexcept>
++#include <tuple>
++
++namespace openpilot::pandad::compatibility {
++namespace {
++
++bool text(const std::string &value) {
++  if (value.empty() || value.size() > 128) return false;
++  for (const auto c : value) if (static_cast<unsigned char>(c) <= 32 || static_cast<unsigned char>(c) >= 127) return false;
++  return true;
++}
++bool fixture(const std::string &value) { return text(value) && value.compare(0, 8, "fixture:") == 0; }
++bool slot(std::int32_t value) { return value == 0 || value == 1; }
++
++void require(bool valid, const char *reason) {
++  if (!valid) throw std::invalid_argument(reason);
++}
++
++void validate_identity(const SessionIdentity &value) {
++  require(fixture(value.identity), "identity must be a bounded fixture string");
++  require(fixture(value.exact_mcu), "exact MCU must be explicitly synthetic");
++  require(fixture(value.application_signature), "application signature must be explicitly synthetic");
++  require((value.board_type == "DOS" && value.mcu_family == "F4") ||
++          (value.board_type == "RED_PANDA" && value.mcu_family == "H7"), "unknown board/MCU pair");
++  require(value.transport == "USB" || value.transport == "SPI", "unsupported transport");
++  require(value.protocol_profile == kSessionProtocol, "unsupported protocol");
++  require(value.capabilities.can_buses == std::array<std::uint32_t, 3>{{0, 1, 2}}, "invalid local buses");
++  require(value.mcu_family != "F4" || !value.capabilities.can_fd, "F4 cannot declare CAN FD");
++}
++
++void validate_profile(const SessionProfile &p) {
++  require(p.schema == kSessionProfileSchema && p.purpose == "offline_fixture", "invalid profile schema/purpose");
++  require(p.binding_status == "UNBOUND" || p.binding_status == "SYNTHETIC_BOUND", "invalid binding status");
++  require(!p.device_access_enabled && !p.can_tx_enabled && !p.firmware_install_enabled, "all real permissions must remain false");
++  require(p.expected_board_count == 2 && p.required_slots == std::array<std::uint32_t, 2>{{0, 1}}, "exactly two fixed required slots");
++  require(p.bus_stride == 4 && p.ordinary_local_can_buses == std::array<std::uint32_t, 3>{{0, 1, 2}}, "invalid bus policy");
++  require(p.slots[0].slot == 0 && p.slots[1].slot == 1, "noncanonical slots");
++  const auto &r = p.roles;
++  if (p.binding_status == "UNBOUND") {
++    const SessionIdentity empty{};
++    for (const auto &s : p.slots) require(s.expected == empty && s.safety_config_semantics.empty(), "partial unbound binding");
++    require(r.vehicle_can == kRoleUnassigned && r.diagnostic == kRoleUnassigned && r.harness == kRoleUnassigned &&
++            r.fan_control == kRoleUnassigned && r.power_monitor == kRoleUnassigned && r.ir_control == kRoleUnassigned &&
++            r.ignition_sources.empty(), "unbound roles must remain unassigned");
++    return;
++  }
++  for (const auto &s : p.slots) {
++    validate_identity(s.expected);
++    require(s.safety_config_semantics == "noOutput", "fixture safety must be noOutput");
++  }
++  require(p.slots[0].expected.identity != p.slots[1].expected.identity, "duplicate bound identity");
++  const auto role = [&](std::int32_t owner, bool SessionCapabilities::*cap, bool unsupported) {
++    if (unsupported && owner == kRoleUnsupported) {
++      require(!(p.slots[0].expected.capabilities.*cap) && !(p.slots[1].expected.capabilities.*cap), "unsupported role hides capability");
++    } else {
++      require(slot(owner), "role needs an explicit slot");
++      if (cap != nullptr) require(p.slots[static_cast<std::size_t>(owner)].expected.capabilities.*cap, "role owner lacks capability");
++    }
++  };
++  role(r.vehicle_can, nullptr, false);
++  role(r.diagnostic, &SessionCapabilities::diagnostic, false);
++  role(r.harness, &SessionCapabilities::harness, false);
++  role(r.fan_control, &SessionCapabilities::fan, true);
++  role(r.power_monitor, &SessionCapabilities::power_monitor, true);
++  role(r.ir_control, &SessionCapabilities::ir, true);
++  require(!r.ignition_sources.empty() && r.ignition_sources.size() <= 2, "ignition sources must be explicit");
++  if (r.ignition_sources.size() == 2) require(r.ignition_sources[0] != r.ignition_sources[1], "duplicate ignition source");
++  for (const auto owner : r.ignition_sources) {
++    require(owner < 2 && p.slots[owner].expected.capabilities.ignition, "ignition owner lacks capability");
++  }
++}
++
++std::string mismatch(const SessionIdentity &a, const SessionIdentity &b) {
++  if (a.board_type != b.board_type) return "MISMATCH_BOARD_TYPE";
++  if (a.mcu_family != b.mcu_family) return "MISMATCH_MCU_FAMILY";
++  if (a.exact_mcu != b.exact_mcu) return "MISMATCH_EXACT_MCU";
++  if (a.transport != b.transport) return "MISMATCH_TRANSPORT";
++  if (a.protocol_profile != b.protocol_profile) return "MISMATCH_PROTOCOL_PROFILE";
++  if (!(a.capabilities == b.capabilities)) return "MISMATCH_CAPABILITIES";
++  if (a.application_signature != b.application_signature) return "MISMATCH_APPLICATION_SIGNATURE";
++  return {};
++}
++
++}  // namespace
++
++bool operator==(const SessionCapabilities &a, const SessionCapabilities &b) {
++  return std::tie(a.can_buses, a.can_fd, a.diagnostic, a.harness, a.ignition, a.fan, a.power_monitor, a.ir) ==
++         std::tie(b.can_buses, b.can_fd, b.diagnostic, b.harness, b.ignition, b.fan, b.power_monitor, b.ir);
++}
++bool operator==(const SessionIdentity &a, const SessionIdentity &b) {
++  return std::tie(a.identity, a.board_type, a.mcu_family, a.exact_mcu, a.transport, a.protocol_profile, a.application_signature) ==
++         std::tie(b.identity, b.board_type, b.mcu_family, b.exact_mcu, b.transport, b.protocol_profile, b.application_signature) &&
++         a.capabilities == b.capabilities;
++}
++
++SessionRegistry::SessionRegistry(const SessionProfile &profile, SessionCounterSeed seed) : profile_(profile) {
++  validate_profile(profile_);
++  state_.generation = seed.generation;
++  state_.reason = profile_.binding_status == "UNBOUND" ? "UNBOUND_PROFILE" : "REQUIRED_BOARD_COUNT";
++  for (std::size_t i = 0; i < 2; ++i) state_.slots[i] = {static_cast<std::uint32_t>(i), profile_.slots[i], false, seed.epochs[i], 0};
++}
++
++void SessionRegistry::exhaust() {
++  state_.group_available = false;
++  state_.permanently_closed = true;
++  state_.reason = "COUNTER_EXHAUSTED";
++  // No wrap, increment, or reusable live handle is permitted after exhaustion.
++  for (auto &s : state_.slots) { s.connected = false; s.connection_token = 0; }
++}
++
++bool SessionRegistry::advance(std::uint64_t &counter) {
++  if (counter == std::numeric_limits<std::uint64_t>::max()) { exhaust(); return false; }
++  ++counter;
++  return true;
++}
++
++bool SessionRegistry::close_slot(std::size_t slot_index) {
++  auto &s = state_.slots[slot_index];
++  if (!s.connected) return false;
++  if (!advance(s.epoch)) return true;
++  s.connected = false;
++  s.connection_token = 0;
++  return true;
++}
++
++void SessionRegistry::finalize(bool changed, bool available, const std::string &reason) {
++  if (state_.permanently_closed) return;
++  if (changed || state_.group_available != available) {
++    if (!advance(state_.generation)) return;
++  }
++  state_.group_available = available;
++  state_.reason = available ? "AVAILABLE_OFFLINE_ONLY" : reason;
++}
++
++SessionSnapshot SessionRegistry::reconcile(const std::vector<SessionObservation> &inventory) {
++  if (state_.permanently_closed || profile_.binding_status == "UNBOUND") return state_;
++  // Excess/ambiguous inventory cannot choose a winner. Retire all current
++  // handles so deleting the extra entry cannot silently reauthorize old work.
++  if (inventory.size() > 2) { invalidate_group("REQUIRED_BOARD_COUNT"); return state_; }
++  if (inventory.size() == 2 && inventory[0].identity.identity == inventory[1].identity.identity) {
++    // Two ambiguous observations are bounded work. Consume both known-identity
++    // tokens so selecting one of these duplicate handles later cannot heal it.
++    for (const auto &o : inventory) {
++      for (std::size_t i = 0; i < 2; ++i) {
++        if (o.identity.identity == profile_.slots[i].expected.identity && o.connection_token > token_high_watermark_[i]) {
++          token_high_watermark_[i] = o.connection_token;
++        }
++      }
++    }
++    invalidate_group("DUPLICATE_IDENTITY"); return state_;
++  }
++  std::array<const SessionObservation *, 2> observed{{nullptr, nullptr}};
++  std::string reason;
++  if (inventory.size() != 2) reason = "REQUIRED_BOARD_COUNT";
++  for (const auto &o : inventory) {
++    if (o.identity.identity == profile_.slots[0].expected.identity) observed[0] = &o;
++    else if (o.identity.identity == profile_.slots[1].expected.identity) observed[1] = &o;
++    else reason = "UNEXPECTED_IDENTITY";
++  }
++  bool changed = false;
++  for (std::size_t i = 0; i < 2 && !state_.permanently_closed; ++i) {
++    auto &s = state_.slots[i];
++    const auto *o = observed[i];
++    if (o == nullptr) { changed = close_slot(i) || changed; continue; }
++    auto invalid = mismatch(o->identity, profile_.slots[i].expected);
++    const bool same_live_token = s.connected && o->connection_token == s.connection_token;
++    if (o->connection_token == 0) invalid = "INVALID_CONNECTION_TOKEN";
++    else if (!same_live_token && o->connection_token <= token_high_watermark_[i]) invalid = "RETIRED_CONNECTION_TOKEN";
++    if (o->connection_token > token_high_watermark_[i]) token_high_watermark_[i] = o->connection_token;
++    if (!invalid.empty()) {
++      if (reason.empty()) reason = invalid;
++      changed = close_slot(i) || changed;
++      continue;
++    }
++    if (same_live_token) continue;
++    // One epoch transition for direct replacement by a new handle of the same
++    // validated identity; disconnect followed by reconnect is two transitions.
++    if (!advance(s.epoch)) break;
++    s.connected = true;
++    s.connection_token = o->connection_token;
++    changed = true;
++  }
++  const bool complete = reason.empty() && state_.slots[0].connected && state_.slots[1].connected;
++  if (!complete && reason.empty()) reason = "REQUIRED_BOARD_COUNT";
++  finalize(changed, complete, reason);
++  return state_;
++}
++
++bool SessionRegistry::disconnect(std::uint32_t slot_index, std::uint64_t epoch, std::uint64_t connection_token) {
++  if (slot_index >= 2 || state_.permanently_closed) return false;
++  const auto &s = state_.slots[slot_index];
++  if (!s.connected || s.epoch != epoch || s.connection_token != connection_token) return false;
++  const bool changed = close_slot(slot_index);
++  finalize(changed, false, "DISCONNECTED");
++  return true;
++}
++
++void SessionRegistry::invalidate_group(const std::string &reason) {
++  if (state_.permanently_closed || profile_.binding_status == "UNBOUND") return;
++  bool changed = false;
++  for (std::size_t i = 0; i < 2 && !state_.permanently_closed; ++i) changed = close_slot(i) || changed;
++  // Diagnostic text is bounded and printable even when provided by a caller.
++  finalize(changed, false, text(reason) ? reason : "INVALIDATED");
++}
++
++}  // namespace openpilot::pandad::compatibility
+diff --git a/openpilot/selfdrive/pandad/compatibility/session_registry.h b/openpilot/selfdrive/pandad/compatibility/session_registry.h
+new file mode 100644
+index 0000000..06aa845
+--- /dev/null
++++ b/openpilot/selfdrive/pandad/compatibility/session_registry.h
+@@ -0,0 +1,141 @@
++#pragma once
++
++#include <array>
++#include <cstdint>
++#include <string>
++#include <vector>
++
++namespace openpilot::pandad::compatibility {
++
++inline constexpr const char *kSessionProfileSchema = "songplus-dual-panda-offline-profile/v1";
++inline constexpr const char *kSessionProtocol = "current:f512bcff76f2ab75";
++inline constexpr std::int32_t kRoleUnassigned = -1;
++inline constexpr std::int32_t kRoleUnsupported = -2;
++
++struct SessionCapabilities {
++  std::array<std::uint32_t, 3> can_buses{{0, 1, 2}};
++  bool can_fd = false;
++  bool diagnostic = false;
++  bool harness = false;
++  bool ignition = false;
++  bool fan = false;
++  bool power_monitor = false;
++  bool ir = false;
++};
++bool operator==(const SessionCapabilities &a, const SessionCapabilities &b);
++
++struct SessionIdentity {
++  std::string identity;
++  std::string board_type;
++  std::string mcu_family;
++  std::string exact_mcu;
++  std::string transport;
++  std::string protocol_profile;
++  SessionCapabilities capabilities{};
++  std::string application_signature;
++};
++bool operator==(const SessionIdentity &a, const SessionIdentity &b);
++
++struct SessionBinding {
++  std::uint32_t slot = 0;
++  SessionIdentity expected{};
++  std::string safety_config_semantics;
++};
++
++struct SessionRoles {
++  std::int32_t vehicle_can = kRoleUnassigned;
++  std::int32_t diagnostic = kRoleUnassigned;
++  std::int32_t harness = kRoleUnassigned;
++  std::vector<std::uint32_t> ignition_sources{};
++  std::int32_t fan_control = kRoleUnassigned;
++  std::int32_t power_monitor = kRoleUnassigned;
++  std::int32_t ir_control = kRoleUnassigned;
++};
++
++// Typed equivalent of P0's strict profile. The constructor validates every
++// field and stores its own immutable copy; mutating this input afterwards has
++// no effect. Empty bindings/roles describe UNBOUND and can never activate.
++struct SessionProfile {
++  std::string schema = kSessionProfileSchema;
++  std::string purpose = "offline_fixture";
++  std::string binding_status = "UNBOUND";
++  bool device_access_enabled = false;
++  bool can_tx_enabled = false;
++  bool firmware_install_enabled = false;
++  std::uint32_t expected_board_count = 2;
++  std::array<std::uint32_t, 2> required_slots{{0, 1}};
++  std::uint32_t bus_stride = 4;
++  std::array<std::uint32_t, 3> ordinary_local_can_buses{{0, 1, 2}};
++  std::array<SessionBinding, 2> slots{{SessionBinding{0, {}, {}}, SessionBinding{1, {}, {}}}};
++  SessionRoles roles{};
++};
++
++struct SessionObservation {
++  SessionIdentity identity{};
++  // Supplied by the offline discovery adapter, not a USB address or serial.
++  // Strictly increasing per bound identity for each new handle. Zero is invalid.
++  // Repeating the current live token is idempotent; a retired token or a token
++  // consumed during descriptor validation/duplicate quarantine cannot reconnect.
++  // Oversized inventories are rejected before inspecting individual candidates;
++  // those candidates are not registered. UINT64_MAX cannot wrap back to zero.
++  std::uint64_t connection_token = 0;
++};
++
++struct SlotSnapshot {
++  std::uint32_t slot = 0;
++  SessionBinding binding{};
++  bool connected = false;
++  std::uint64_t epoch = 0;
++  std::uint64_t connection_token = 0;
++};
++
++struct SessionSnapshot {
++  std::array<SlotSnapshot, 2> slots{};
++  std::uint64_t generation = 0;
++  // Structural identity/inventory availability only. P4 health/safety and live
++  // vehicle permission are deliberately absent and always remain denied.
++  bool group_available = false;
++  bool permanently_closed = false;
++  std::string reason = "UNBOUND_PROFILE";
++};
++
++// Only seeds an EMPTY offline registry for deterministic overflow fixtures.
++// Cannot restore connections, create a live snapshot, or grant permission.
++struct SessionCounterSeed {
++  std::array<std::uint64_t, 2> epochs{{0, 0}};
++  std::uint64_t generation = 0;
++};
++
++class SessionRegistry {
++public:
++  explicit SessionRegistry(const SessionProfile &profile, SessionCounterSeed seed = {});
++  SessionRegistry(const SessionRegistry &) = delete;
++  SessionRegistry &operator=(const SessionRegistry &) = delete;
++
++  // Single serialized event-loop ownership is required. There are no worker
++  // threads, locks, discovery calls, I/O, or callbacks. Reconcile the COMPLETE
++  // inventory: no incremental discovery or implicit surviving-board promotion.
++  SessionSnapshot reconcile(const std::vector<SessionObservation> &inventory);
++  // Stale completion/disconnect events do not invalidate a newer connection.
++  bool disconnect(std::uint32_t slot, std::uint64_t epoch, std::uint64_t connection_token);
++  // A malformed stream/overflow/clock failure retires all live tokens. Healing
++  // requires fresh handles and a complete validated inventory, never old tokens.
++  void invalidate_group(const std::string &reason);
++
++  SessionSnapshot snapshot() const { return state_; }
++  SessionProfile profile() const { return profile_; }
++  bool device_access_enabled() const { return false; }
++  bool can_tx_enabled() const { return false; }
++  bool firmware_install_enabled() const { return false; }
++
++private:
++  bool advance(std::uint64_t &counter);
++  void exhaust();
++  bool close_slot(std::size_t slot);
++  void finalize(bool changed, bool available, const std::string &reason);
++  const SessionProfile profile_;
++  SessionSnapshot state_{};
++  std::array<std::uint64_t, 2> token_high_watermark_{{0, 0}};
++};
++
++}  // namespace openpilot::pandad::compatibility
+diff --git a/openpilot/selfdrive/pandad/compatibility/tests/check_session_oracle.py b/openpilot/selfdrive/pandad/compatibility/tests/check_session_oracle.py
+new file mode 100644
+index 0000000..9c75f7b
+--- /dev/null
++++ b/openpilot/selfdrive/pandad/compatibility/tests/check_session_oracle.py
+@@ -0,0 +1,86 @@
++#!/usr/bin/env python3
++"""Compare native P3 results with P0 bindings and an independent wire formula.
++
++The native test binary only uses fake transport backends. This program loads the
++original P0 profile validator/registry and never imports a Panda/device API.
++"""
++import argparse
++from dataclasses import asdict
++import json
++from pathlib import Path
++
++from compatibility.profile import load_profile
++from compatibility.registry import register
++from check_can_oracle import wire
++from test_profile import observations, synthetic_dict
++
++
++def json_value(value):
++  return json.loads(json.dumps(value))
++
++
++def fixture_profile(dos_slot, same_model):
++  data = synthetic_dict(dos_slot)
++  if same_model:
++    for slot in data["slots"]:
++      slot["expected_board_type"] = "RED_PANDA"
++      slot["mcu_family"] = "H7"
++      slot["exact_mcu"] = "fixture:unknown-H7"
++  return load_profile(json.dumps(data))
++
++
++def main():
++  if not __debug__:
++    raise RuntimeError("Oracle assertions must be enabled; do not use Python -O")
++  parser = argparse.ArgumentParser()
++  parser.add_argument("report", type=Path)
++  args = parser.parse_args()
++  report = json.loads(args.report.read_text())
++  assert report["device_access"] is False
++  assert report["real_can_tx"] is False
++  assert report["scope"] == "synthetic_session_routes"
++  assert len(report["fixtures"]) == 8
++  seen = set()
++  checks = 0
++  for actual in report["fixtures"]:
++    key = (actual["dos_slot"], actual["same_model"], actual["reversed_inventory"])
++    assert type(key[0]) is int and key[0] in (0, 1)
++    assert type(key[1]) is bool and type(key[2]) is bool
++    assert key not in seen
++    seen.add(key)
++    profile = fixture_profile(*key[:2])
++    supplied = observations(profile)[::-1] if key[2] else observations(profile)
++    expected = register(profile, supplied)
++    assert actual["profile"] == json_value(asdict(profile)), key
++    assert actual["inventory"] == json_value([asdict(item) for item in supplied]), key
++    assert actual["registered_identities"] == [item.identity for item in expected.boards], key
++    assert actual["available"] is True, key
++    assert actual["permissions"] == {"device_access_enabled": expected.device_access_enabled,
++                                     "can_tx_enabled": expected.can_tx_enabled,
++                                     "firmware_install_enabled": expected.firmware_install_enabled}, key
++    expected_roles = {name: [item.identity for item in expected.for_role(name)]
++                      for name in profile.roles.__dataclass_fields__}
++    assert actual["role_identities"] == expected_roles, key
++    checks += 6
++    assert len(actual["routes"]) == 6
++    for route, source in zip(actual["routes"], (0, 1, 2, 4, 5, 6), strict=True):
++      slot, local_bus = divmod(source, 4)
++      frame = {"address": 0x321 + source, "local_bus": local_bus,
++               "extended": False, "fd": False, "returned": False,
++               "rejected": False, "payload_hex": bytes((source, local_bus, slot)).hex()}
++      expected_route = {"host_source": source, "slot": slot, "local_bus": local_bus,
++                        "identity": expected.boards[slot].identity,
++                        "wire_hex": wire(frame).hex(),
++                        "rx_sources": [source, source + 0x80, source + 0xC0]}
++      assert route == expected_route, (key, route, expected_route)
++      checks += 1
++  assert seen == {(d, s, r) for d in (0, 1) for s in (False, True) for r in (False, True)}
++  print(json.dumps({"status": "PASS", "oracle": "P0 profile/registry plus independent CAN bit formula",
++                    "fixture_count": len(seen), "route_checks": 6 * len(seen),
++                    "cross_language_checks": checks, "checks": checks, "native_invocations": 1,
++                    "assertions_enabled": __debug__, "device_access": False,
++                    "real_can_tx": False, "scope": "synthetic_session_routes"}))
++
++
++if __name__ == "__main__":
++  main()
+diff --git a/openpilot/selfdrive/pandad/compatibility/tests/test_can_router.cc b/openpilot/selfdrive/pandad/compatibility/tests/test_can_router.cc
+new file mode 100644
+index 0000000..ce05177
+--- /dev/null
++++ b/openpilot/selfdrive/pandad/compatibility/tests/test_can_router.cc
+@@ -0,0 +1,365 @@
++#include "../can_router.h"
++
++#include <algorithm>
++#include <functional>
++#include <iostream>
++#include <limits>
++#include <stdexcept>
++#include <string>
++
++using namespace openpilot::pandad::compatibility;
++using Bytes = std::vector<std::uint8_t>;
++namespace {
++std::size_t assertions = 0;
++void check(bool value, int line) {
++  ++assertions;
++  if (!value) throw std::runtime_error("assertion at line " + std::to_string(line));
++}
++#define CHECK(value) check(static_cast<bool>(value), __LINE__)
++constexpr std::uint64_t kNow = 1000000;
++SessionProfile profile() {
++  SessionProfile p; p.binding_status = "SYNTHETIC_BOUND";
++  for (std::size_t i = 0; i < 2; ++i) {
++    const auto suffix = std::to_string(i);
++    auto &binding = p.slots[i]; auto &id = binding.expected;
++    id.identity = "fixture:router-board-" + suffix;
++    id.board_type = i == 0 ? "DOS" : "RED_PANDA";
++    id.mcu_family = i == 0 ? "F4" : "H7";
++    id.exact_mcu = "fixture:router-mcu-" + suffix;
++    id.transport = i == 0 ? "SPI" : "USB";
++    id.protocol_profile = kSessionProtocol;
++    id.application_signature = "fixture:router-signature-" + suffix;
++    id.capabilities = {{{0, 1, 2}}, i == 1, true, true, true, i == 0, i == 0, i == 0};
++    binding.safety_config_semantics = "noOutput";
++  }
++  p.roles = {1, 1, 1, {1}, 0, 0, 0};
++  return p;
++}
++struct Fixture {
++  SessionProfile p = profile();
++  SessionRegistry registry{p};
++  CanRouter router{registry};
++  Fixture() { CHECK(registry.reconcile(inventory()).group_available); }
++  std::vector<SessionObservation> inventory(std::uint64_t first = 1, std::uint64_t second = 1) {
++    return {{p.slots[0].expected, first}, {p.slots[1].expected, second}};
++  }
++  RouteToken token(std::uint32_t slot, std::uint64_t now = kNow) {
++    const auto result = router.current_token(slot, now); CHECK(result); return result.value;
++  }
++};
++HostTxFrame tx(std::uint32_t source = 0, std::uint64_t address = 0x123) {
++  return {address, source, false, false, {static_cast<std::uint8_t>(source)}};
++}
++TxBatch batch(std::vector<HostTxFrame> frames = {tx()}, std::uint64_t timestamp = kNow, std::uint64_t generation = 1) {
++  return {true, timestamp, std::move(frames), generation};
++}
++Bytes wire(std::uint32_t bus = 0, bool returned = false, bool rejected = false,
++           bool fd = false, Bytes payload = {1, 2, 3}, std::uint64_t address = 0x123) {
++  auto result = encode_can_frame({address, bus, false, fd, returned, rejected, std::move(payload)},
++                                CanCapability::CanFd, FrameDirection::Rx);
++  CHECK(result); return result.value;
++}
++void receive(Fixture &f, const RouteToken &token, const Bytes &bytes, std::uint64_t received = kNow, std::uint64_t now = kNow) {
++  CHECK(f.router.receive(token, bytes.data(), bytes.size(), received, now));
++}
++}
++
++int main() {
++  std::size_t groups = 0;
++  std::vector<std::string> names;
++  const auto test = [&](const char *name, const std::function<void()> &run) {
++    run(); ++groups; names.emplace_back(name); std::cout << "PASS " << name << '\n';
++  };
++  try {
++    test("unbound_and_missing_group_have_no_queues_or_tx_permission", [] {
++      SessionRegistry registry{SessionProfile{}}; CanRouter router(registry);
++      CHECK(router.enqueue_tx(batch(), kNow).error == RouterError::GroupUnavailable);
++      CHECK(router.take_tx(0, kNow).error == RouterError::GroupUnavailable);
++      CHECK(router.current_token(0, kNow).error == RouterError::GroupUnavailable);
++      const auto state = router.inspect(kNow); CHECK(!state); CHECK(state.value.tx[0] == 0);
++      CHECK(!registry.can_tx_enabled()); CHECK(!registry.device_access_enabled());
++      CHECK(router.current_token(0x100, kNow).error == RouterError::InvalidArgument);
++      CHECK(router.take_tx(0xffffffffU, kNow).error == RouterError::InvalidArgument);
++      CHECK(router.take_rx(2, kNow).error == RouterError::InvalidArgument);
++    });
++    test("six_tx_routes_use_fixed_slots_and_per_slot_fifo_once", [] {
++      Fixture f; const std::vector<std::uint32_t> order{6, 0, 4, 2, 1, 5};
++      std::vector<HostTxFrame> frames;
++      for (const auto source : order) frames.push_back(tx(source, 0x321 + source));
++      CHECK(f.router.enqueue_tx(batch(frames), kNow).value == 6);
++      const auto depths = f.router.inspect(kNow).value; CHECK(depths.tx[0] == 3); CHECK(depths.tx[1] == 3);
++      for (std::uint32_t slot = 0; slot < 2; ++slot) {
++        for (const auto source : order) {
++          if (source / 4 != slot) continue;
++          const auto result = f.router.take_tx(slot, kNow); CHECK(result);
++          CHECK(result.value.token.slot == slot); CHECK(result.value.frame.local_bus == source % 4);
++          CHECK(result.value.frame.address == 0x321 + source); CHECK(!result.value.real_tx_authorized);
++          CHECK(f.router.validate_intent(result.value, kNow).value);
++          const auto decoded = decode_can_frame(result.value.encoded.data(), result.value.encoded.size(),
++                                                CanCapability::CanFd, FrameDirection::Tx);
++          CHECK(decoded); CHECK(decoded.value.local_bus == source % 4); CHECK(decoded.value.payload == Bytes{static_cast<std::uint8_t>(source)});
++        }
++        CHECK(f.router.take_tx(slot, kNow).error == RouterError::Empty);
++      }
++    });
++    test("six_rx_routes_preserve_ordinary_returned_and_rejected_flags", [] {
++      Fixture f;
++      for (std::uint32_t slot = 0; slot < 2; ++slot) {
++        const auto token = f.token(slot);
++        for (std::uint32_t bus = 0; bus < 3; ++bus) {
++          for (std::uint32_t flag = 0; flag < 3; ++flag) {
++            receive(f, token, wire(bus, flag == 1, flag == 2));
++            const auto got = f.router.take_rx(slot, kNow); CHECK(got);
++            CHECK(got.value.source == slot * 4 + bus + (flag == 1 ? 0x80 : (flag == 2 ? 0xc0 : 0)));
++            CHECK(got.value.frame.local_bus == bus); CHECK(got.value.frame.returned == (flag == 1));
++            CHECK(got.value.frame.rejected == (flag == 2)); CHECK(got.value.receive_timestamp_us == kNow);
++          }
++        }
++      }
++    });
++    test("invalid_event_reserved_flagged_and_wide_tx_routes_are_atomic", [] {
++      Fixture f; auto event = batch({tx(0), tx(4)}); event.valid = false;
++      CHECK(f.router.enqueue_tx(event, kNow).error == RouterError::InvalidEvent);
++      for (const auto source : {3U, 7U, 8U, 0x40U, 0x80U, 0x81U, 0x84U, 0xc0U, 0xc6U, 0x100U, 0x104U, 0xffffffffU}) {
++        CHECK(f.router.enqueue_tx(batch({tx(0), tx(source)}), kNow).error == RouterError::InvalidRoute);
++        CHECK(f.router.inspect(kNow).value.tx == (std::array<std::size_t, 2>{0, 0}));
++      }
++      CHECK(f.router.enqueue_tx(batch({}), kNow).error == RouterError::InvalidEvent);
++      for (const auto address : {0x800ULL, 0x100000000ULL, 0xffffffffffffffffULL}) {
++        CHECK(f.router.enqueue_tx(batch({tx(4), tx(0, address)}), kNow).error == RouterError::Malformed);
++        CHECK(f.router.inspect(kNow).value.tx[1] == 0);
++      }
++      auto extended = tx(4, 0x20000000); extended.extended = true;
++      CHECK(f.router.enqueue_tx(batch({tx(), extended}), kNow).error == RouterError::Malformed);
++      auto oversized = tx(4); oversized.payload.resize(1024 * 1024);
++      CHECK(f.router.enqueue_tx(batch({tx(), oversized}), kNow).error == RouterError::Malformed);
++      CHECK(f.router.inspect(kNow).value.tx == (std::array<std::size_t, 2>{0, 0}));
++      CHECK(f.registry.snapshot().group_available);
++      CHECK(f.router.counters().invalid_batches >= 17);
++    });
++    test("fd_is_bound_capability_in_both_directions", [] {
++      Fixture f; auto fd = tx(0); fd.fd = true;
++      CHECK(f.router.enqueue_tx(batch({fd}), kNow).error == RouterError::Malformed);
++      fd.source = 4; fd.payload.resize(64, 0xa5);
++      CHECK(f.router.enqueue_tx(batch({fd}), kNow)); CHECK(f.router.take_tx(1, kNow).value.frame.fd);
++      const auto token1 = f.token(1); receive(f, token1, wire(2, false, false, true, Bytes(64, 0x5a)));
++      CHECK(f.router.take_rx(1, kNow).value.frame.fd);
++      const auto token0 = f.token(0); const auto bytes = wire(0, false, false, true, {});
++      CHECK(f.router.receive(token0, bytes.data(), bytes.size(), kNow, kNow).error == RouterError::Malformed);
++      CHECK(!f.registry.snapshot().group_available);
++    });
++    test("fragmentation_is_per_slot_and_preserves_first_receive_timestamp", [] {
++      Fixture f; const auto t0 = f.token(0), t1 = f.token(1); const auto bytes0 = wire(2), bytes1 = wire(1);
++      CHECK(f.router.receive(t0, bytes0.data(), 2, kNow, kNow).value == 0);
++      CHECK(f.router.receive(t1, bytes1.data(), 3, kNow + 1, kNow + 1).value == 0);
++      CHECK(f.router.receive(t0, bytes0.data() + 2, bytes0.size() - 2, kNow + 10, kNow + 10).value == 1);
++      const auto got0 = f.router.take_rx(0, kNow + 10); CHECK(got0.value.source == 2); CHECK(got0.value.receive_timestamp_us == kNow);
++      CHECK(f.router.inspect(kNow + 10).value.fragment_bytes[1] == 3);
++      CHECK(f.router.receive(t1, bytes1.data() + 3, bytes1.size() - 3, kNow + 20, kNow + 20).value == 1);
++      const auto got1 = f.router.take_rx(1, kNow + 20); CHECK(got1.value.source == 5); CHECK(got1.value.receive_timestamp_us == kNow + 1);
++      CHECK(f.router.inspect(kNow + 20).value.fragment_bytes == (std::array<std::size_t, 2>{0, 0}));
++    });
++    test("completion_and_next_fragment_use_separate_original_timestamps", [] {
++      Fixture f; const auto token = f.token(0); const auto bytes = wire();
++      CHECK(f.router.receive(token, bytes.data(), 2, kNow, kNow));
++      Bytes next(bytes.begin() + 2, bytes.end()); next.insert(next.end(), bytes.begin(), bytes.begin() + 3);
++      CHECK(f.router.receive(token, next.data(), next.size(), kNow + 10, kNow + 10).value == 1);
++      CHECK(f.router.take_rx(0, kNow + 10).value.receive_timestamp_us == kNow);
++      CHECK(f.router.receive(token, bytes.data() + 3, bytes.size() - 3, kNow + 20, kNow + 20).value == 1);
++      CHECK(f.router.take_rx(0, kNow + 20).value.receive_timestamp_us == kNow + 10);
++    });
++    test("sendcan_and_queue_age_threshold_minus_one_equal_plus_one", [] {
++      for (const auto delta : {99999ULL, 100000ULL, 100001ULL}) {
++        Fixture f; const auto got = f.router.enqueue_tx(batch({tx()}, kNow - delta), kNow);
++        CHECK((got.error == RouterError::None) == (delta < 100000));
++      }
++      for (const auto delta : {19999ULL, 20000ULL, 20001ULL}) {
++        Fixture f; CHECK(f.router.enqueue_tx(batch(), kNow));
++        const auto got = f.router.take_tx(0, kNow + delta);
++        CHECK((got.error == RouterError::None) == (delta < 20000));
++        CHECK(f.router.counters().expired_tx == (delta < 20000 ? 0U : 1U));
++      }
++      Fixture f; CHECK(f.router.enqueue_tx(batch({tx()}, kNow - 99990), kNow));
++      CHECK(f.router.take_tx(0, kNow + 10).error == RouterError::Empty);
++      CHECK(f.router.counters().expired_tx == 1);
++    });
++    test("rx_queue_age_threshold_and_publication_never_refresh_age", [] {
++      for (const auto delta : {99999ULL, 100000ULL, 100001ULL}) {
++        Fixture f; receive(f, f.token(0), wire());
++        const auto got = f.router.take_rx(0, kNow + delta);
++        CHECK((got.error == RouterError::None) == (delta < 100000));
++        if (got) CHECK(got.value.receive_timestamp_us == kNow);
++        CHECK(f.router.counters().expired_rx == (delta < 100000 ? 0U : 1U));
++      }
++      Fixture f; const auto token = f.token(0); const auto bytes = wire();
++      CHECK(f.router.receive(token, bytes.data(), 1, kNow, kNow));
++      CHECK(f.router.receive(token, bytes.data() + 1, bytes.size() - 1, kNow + 99999, kNow + 99999).value == 1);
++      CHECK(f.router.take_rx(0, kNow + 100000).error == RouterError::Empty);
++      CHECK(f.router.counters().expired_rx == 1);
++    });
++    test("expired_partial_prefix_closes_group_without_unsafe_resync", [] {
++      for (const auto delta : {99999ULL, 100000ULL, 100001ULL}) {
++        Fixture f; const auto token = f.token(0); const auto bytes = wire();
++        CHECK(f.router.receive(token, bytes.data(), 1, kNow, kNow));
++        const auto inspected = f.router.inspect(kNow + delta);
++        CHECK(static_cast<bool>(inspected) == (delta < 100000));
++        if (delta >= 100000) {
++          CHECK(!f.registry.snapshot().group_available); CHECK(inspected.value.fragment_bytes[0] == 0);
++          CHECK(f.router.counters().expired_fragments == 1);
++          CHECK(f.router.receive(token, bytes.data() + 1, bytes.size() - 1, kNow + delta, kNow + delta).error == RouterError::StaleSession);
++        }
++      }
++    });
++    test("drop_and_reconnect_clear_both_queues_fragments_and_old_callbacks", [] {
++      Fixture f; const auto old0 = f.token(0), old1 = f.token(1); const auto bytes = wire();
++      CHECK(f.router.enqueue_tx(batch({tx(0), tx(4)}), kNow));
++      receive(f, old1, bytes); CHECK(f.router.receive(old0, bytes.data(), 3, kNow, kNow));
++      CHECK(f.registry.disconnect(0, old0.epoch, old0.connection_token));
++      CHECK(f.router.take_tx(1, kNow).error == RouterError::GroupUnavailable);
++      const auto down = f.router.inspect(kNow); CHECK(down.value.tx == (std::array<std::size_t, 2>{0, 0}));
++      CHECK(down.value.rx[1] == 0); CHECK(down.value.fragment_bytes[0] == 0);
++      CHECK(f.router.counters().epoch_tx_drops == 2); CHECK(f.router.counters().epoch_rx_drops == 1);
++      CHECK(f.router.counters().epoch_fragment_bytes == 3);
++      CHECK(f.registry.reconcile(f.inventory(2, 1)).group_available);
++      const auto fresh0 = f.token(0); CHECK(fresh0.epoch != old0.epoch);
++      CHECK(f.router.receive(old0, nullptr, 1000000, 0, 0).error == RouterError::StaleSession);
++      CHECK(f.router.receive(old1, nullptr, 1000000, 0, 0).error == RouterError::StaleSession);
++      CHECK(f.registry.snapshot().group_available); CHECK(f.router.counters().stale_callbacks == 2);
++      receive(f, fresh0, bytes); CHECK(f.router.take_rx(0, kNow).value.frame.payload == Bytes({1, 2, 3}));
++      CHECK(f.router.take_tx(0, kNow).error == RouterError::Empty); CHECK(f.router.take_tx(1, kNow).error == RouterError::Empty);
++    });
++    test("unobserved_outage_and_reconnection_still_invalidate_queued_generation", [] {
++      Fixture f; const auto old = f.token(0); CHECK(f.router.enqueue_tx(batch({tx(4)}), kNow));
++      CHECK(f.registry.disconnect(0, old.epoch, old.connection_token));
++      CHECK(f.registry.reconcile(f.inventory(2, 1)).group_available);
++      CHECK(f.router.take_tx(1, kNow).error == RouterError::Empty);
++      CHECK(f.router.counters().epoch_tx_drops == 1);
++    });
++    test("caller_held_old_batch_cannot_enter_reconnected_generation", [] {
++      Fixture f; const auto old = f.token(0);
++      auto captured = batch({tx(0), tx(4)}, kNow, old.group_generation);
++      CHECK(f.registry.disconnect(0, old.epoch, old.connection_token));
++      CHECK(f.registry.reconcile(f.inventory(2, 1)).group_available);
++      CHECK(f.router.enqueue_tx(captured, kNow).error == RouterError::StaleSession);
++      CHECK(f.router.enqueue_tx(captured, 0).error == RouterError::StaleSession);
++      CHECK(f.registry.snapshot().group_available);
++      CHECK(f.router.inspect(kNow).value.tx == (std::array<std::size_t, 2>{0, 0}));
++      captured.group_generation = 0;
++      CHECK(f.router.enqueue_tx(captured, kNow).error == RouterError::StaleSession);
++      auto fresh = batch({tx()}, kNow, f.token(0).group_generation);
++      CHECK(f.router.enqueue_tx(fresh, kNow).value == 1);
++    });
++    test("replacement_never_inherits_fixed_slot_or_queued_traffic", [] {
++      Fixture f; CHECK(f.router.enqueue_tx(batch({tx(0), tx(4)}), kNow));
++      auto inventory = f.inventory(2, 1); inventory[0].identity.identity = "fixture:replacement";
++      CHECK(!f.registry.reconcile(inventory).group_available);
++      CHECK(f.router.take_tx(0, kNow).error == RouterError::GroupUnavailable);
++      CHECK(f.router.take_tx(1, kNow).error == RouterError::GroupUnavailable);
++      CHECK(f.router.inspect(kNow).value.tx == (std::array<std::size_t, 2>{0, 0}));
++      CHECK(!f.registry.reconcile(inventory).group_available);
++    });
++    test("tx_capacity_and_mixed_batch_overflow_reject_atomically", [] {
++      Fixture f; CHECK(f.router.enqueue_tx(batch(std::vector<HostTxFrame>(64, tx(0))), kNow).value == 64);
++      CHECK(f.router.enqueue_tx(batch({tx(4), tx(0)}), kNow).error == RouterError::Overflow);
++      CHECK(f.router.inspect(kNow).value.tx == (std::array<std::size_t, 2>{64, 0}));
++      CHECK(f.router.enqueue_tx(batch(std::vector<HostTxFrame>(65, tx(4))), kNow).error == RouterError::Overflow);
++      CHECK(f.router.inspect(kNow).value.tx[1] == 0); CHECK(f.registry.snapshot().group_available);
++      CHECK(f.router.counters().tx_overflows == 2);
++    });
++    test("rx_overflow_retires_group_and_requires_new_session_tokens", [] {
++      Fixture f; const auto token = f.token(0); const auto bytes = wire(); Bytes combined;
++      for (std::size_t i = 0; i < 256; ++i) combined.insert(combined.end(), bytes.begin(), bytes.end());
++      CHECK(f.router.receive(token, combined.data(), combined.size(), kNow, kNow).value == 256);
++      CHECK(f.router.enqueue_tx(batch({tx(4)}), kNow));
++      CHECK(f.router.receive(token, bytes.data(), bytes.size(), kNow, kNow).error == RouterError::Overflow);
++      CHECK(f.router.counters().rx_overflows == 1); CHECK(!f.registry.snapshot().group_available);
++      CHECK(f.router.inspect(kNow).value.rx[0] == 0); CHECK(f.router.inspect(kNow).value.tx[1] == 0);
++      CHECK(!f.registry.reconcile(f.inventory()).group_available);
++      CHECK(f.registry.reconcile(f.inventory(2, 2)).group_available);
++      CHECK(f.router.take_rx(0, kNow).error == RouterError::Empty);
++    });
++    test("rx_malformed_batch_has_no_valid_prefix_publication", [] {
++      for (const auto mode : {0, 1, 2}) {
++        Fixture f; const auto token = f.token(0); const auto bytes = wire(); Bytes data = bytes;
++        if (mode == 0) { auto bad = bytes; bad[5] ^= 1; data.insert(data.end(), bad.begin(), bad.end()); }
++        else if (mode == 1) data.resize(kCanMaxInputSize + 1);
++        const auto got = f.router.receive(token, mode == 2 ? nullptr : data.data(), data.size(), kNow, kNow);
++        CHECK(got.error == RouterError::Malformed); CHECK(!f.registry.snapshot().group_available);
++        CHECK(f.router.inspect(kNow).value.rx[0] == 0); CHECK(f.router.counters().malformed == 1);
++      }
++    });
++    test("future_timestamps_rejected_and_stale_callbacks_cannot_poison_new_group", [] {
++      Fixture f; CHECK(f.router.enqueue_tx(batch({tx()}, kNow + 1), kNow).error == RouterError::FutureTimestamp);
++      CHECK(f.registry.snapshot().group_available);
++      const auto token = f.token(0); const auto bytes = wire();
++      CHECK(f.router.receive(token, bytes.data(), bytes.size(), kNow + 1, kNow).error == RouterError::FutureTimestamp);
++      CHECK(!f.registry.snapshot().group_available);
++      CHECK(f.registry.reconcile(f.inventory(2, 2)).group_available);
++      CHECK(f.router.receive(token, nullptr, 0xffffffffU, UINT64_MAX, 0).error == RouterError::StaleSession);
++      CHECK(f.registry.snapshot().group_available); CHECK(f.router.current_token(0, kNow));
++    });
++    test("clock_rollback_and_wrap_fail_closed_without_unsigned_age_bypass", [] {
++      for (const auto start : {kNow, std::numeric_limits<std::uint64_t>::max() - 1}) {
++        Fixture f; CHECK(f.router.enqueue_tx(batch({tx()}, start), start));
++        CHECK(f.router.take_tx(0, start - 1).error == RouterError::ClockRollback);
++        CHECK(!f.registry.snapshot().group_available); CHECK(f.router.counters().clock_faults == 1);
++        CHECK(f.registry.reconcile(f.inventory(2, 2)).group_available);
++        CHECK(f.router.current_token(0, start).error == RouterError::ClockRollback);
++      }
++      Fixture f; const auto top = std::numeric_limits<std::uint64_t>::max();
++      CHECK(f.router.enqueue_tx(batch({tx()}, top - 19999), top - 19999));
++      CHECK(f.router.take_tx(0, top).error == RouterError::None);
++      CHECK(f.router.inspect(0).error == RouterError::ClockRollback);
++    });
++    test("held_intent_is_revalidated_after_drop_expiry_and_mutation", [] {
++      Fixture f; CHECK(f.router.enqueue_tx(batch(), kNow)); const auto held = f.router.take_tx(0, kNow).value;
++      CHECK(f.router.validate_intent(held, kNow).value);
++      auto changed = held; changed.encoded.back() ^= 1;
++      CHECK(f.router.validate_intent(changed, kNow).error == RouterError::Malformed);
++      changed = held; changed.real_tx_authorized = true;
++      CHECK(f.router.validate_intent(changed, kNow).error == RouterError::Malformed);
++      CHECK(f.router.validate_intent(held, kNow + 19999));
++      CHECK(f.router.validate_intent(held, kNow + 20000).error == RouterError::Expired);
++      CHECK(f.registry.disconnect(held.token.slot, held.token.epoch, held.token.connection_token));
++      CHECK(f.router.validate_intent(held, kNow + 20000).error == RouterError::GroupUnavailable);
++      CHECK(f.router.validate_intent(held, 0).error == RouterError::GroupUnavailable);
++      CHECK(f.registry.reconcile(f.inventory(2, 1)).group_available);
++      CHECK(f.router.validate_intent(held, kNow + 20000).error == RouterError::StaleSession);
++      CHECK(f.router.validate_intent(held, 0).error == RouterError::StaleSession);
++      CHECK(f.registry.snapshot().group_available);
++      CHECK(f.router.take_tx(0, kNow + 20000).error == RouterError::Empty);
++    });
++    test("held_rx_republication_preserves_age_and_rechecks_generation", [] {
++      Fixture f; const auto token = f.token(0); receive(f, token, wire());
++      const auto held = f.router.take_rx(0, kNow).value;
++      CHECK(f.router.validate_rx_frame(held, kNow + 99999).value);
++      CHECK(held.receive_timestamp_us == kNow);
++      CHECK(f.router.validate_rx_frame(held, kNow + 100000).error == RouterError::Expired);
++      CHECK(held.receive_timestamp_us == kNow);
++      CHECK(f.registry.disconnect(0, token.epoch, token.connection_token));
++      CHECK(f.router.validate_rx_frame(held, 0).error == RouterError::GroupUnavailable);
++      CHECK(f.registry.reconcile(f.inventory(2, 1)).group_available);
++      CHECK(f.router.validate_rx_frame(held, 0).error == RouterError::StaleSession);
++      CHECK(f.registry.snapshot().group_available);
++      const auto fresh_token = f.token(0, kNow + 100000);
++      receive(f, fresh_token, wire(), kNow + 100000, kNow + 100000);
++      auto fresh = f.router.take_rx(0, kNow + 100000).value;
++      fresh.source = 4;
++      CHECK(f.router.validate_rx_frame(fresh, kNow + 100000).error == RouterError::Malformed);
++    });
++    test("empty_callbacks_do_not_refresh_partial_timestamp", [] {
++      Fixture f; const auto token = f.token(0); const auto bytes = wire();
++      CHECK(f.router.receive(token, bytes.data(), 2, kNow, kNow));
++      CHECK(f.router.receive(token, nullptr, 0, kNow + 99999, kNow + 99999));
++      CHECK(f.router.inspect(kNow + 100000).error == RouterError::Expired);
++      CHECK(f.router.counters().expired_fragments == 1);
++    });
++    std::cout << "{\"passed\":" << groups << ",\"failed\":0,\"assertions\":" << assertions
++              << ",\"device_access\":false,\"real_can_tx\":false,\"cases\":[";
++    for (std::size_t i = 0; i < names.size(); ++i) std::cout << (i == 0 ? "\"" : ",\"") << names[i] << '"';
++    std::cout << "]}\n";
++    return 0;
++  } catch (const std::exception &error) {
++    std::cerr << "FAIL after " << groups << " groups: " << error.what() << '\n'; return 1;
++  }
++}
+diff --git a/openpilot/selfdrive/pandad/compatibility/tests/test_session_registry.cc b/openpilot/selfdrive/pandad/compatibility/tests/test_session_registry.cc
+new file mode 100644
+index 0000000..493410b
+--- /dev/null
++++ b/openpilot/selfdrive/pandad/compatibility/tests/test_session_registry.cc
+@@ -0,0 +1,322 @@
++#include "../session_registry.h"
++
++#include <algorithm>
++#include <functional>
++#include <iostream>
++#include <limits>
++#include <stdexcept>
++#include <string>
++#include <vector>
++
++using namespace openpilot::pandad::compatibility;
++
++namespace {
++std::size_t assertions = 0;
++void check(bool value, int line) {
++  ++assertions;
++  if (!value) throw std::runtime_error("assertion at line " + std::to_string(line));
++}
++#define CHECK(value) check(static_cast<bool>(value), __LINE__)
++
++SessionProfile fixture(std::uint32_t dos_slot = 0) {
++  SessionProfile p;
++  p.binding_status = "SYNTHETIC_BOUND";
++  SessionIdentity dos{"fixture:dos", "DOS", "F4", "fixture:unknown-F4", "SPI", kSessionProtocol,
++                       {{0, 1, 2}, false, true, false, true, true, true, false}, "fixture:dos-app"};
++  SessionIdentity red{"fixture:external", "RED_PANDA", "H7", "fixture:unknown-H7", "USB", kSessionProtocol,
++                       {{0, 1, 2}, true, true, true, true, false, false, false}, "fixture:red-app"};
++  const auto red_slot = 1U - dos_slot;
++  p.slots[dos_slot] = {dos_slot, dos, "noOutput"};
++  p.slots[red_slot] = {red_slot, red, "noOutput"};
++  p.roles = {static_cast<std::int32_t>(red_slot), static_cast<std::int32_t>(red_slot), static_cast<std::int32_t>(red_slot),
++             {dos_slot, red_slot}, static_cast<std::int32_t>(dos_slot), static_cast<std::int32_t>(dos_slot), kRoleUnsupported};
++  return p;
++}
++
++std::vector<SessionObservation> inventory(const SessionProfile &p, std::uint64_t token0 = 1, std::uint64_t token1 = 1) {
++  return {{p.slots[0].expected, token0}, {p.slots[1].expected, token1}};
++}
++
++bool rejects(const SessionProfile &p) {
++  try { SessionRegistry r(p); return false; } catch (const std::invalid_argument &) { return true; }
++}
++
++void permissions(const SessionRegistry &r) {
++  CHECK(!r.device_access_enabled()); CHECK(!r.can_tx_enabled()); CHECK(!r.firmware_install_enabled());
++}
++}  // namespace
++
++int main() {
++  std::size_t groups = 0;
++  std::vector<std::string> names;
++  const auto test = [&](const char *name, const std::function<void()> &run) {
++    run(); ++groups; names.emplace_back(name); std::cout << "PASS " << name << '\n';
++  };
++  try {
++    test("unbound_and_permission_contract", [] {
++      SessionRegistry r(SessionProfile{});
++      const auto initial = r.snapshot();
++      CHECK(!initial.group_available); CHECK(initial.reason == "UNBOUND_PROFILE");
++      CHECK(initial.slots[0].slot == 0 && initial.slots[1].slot == 1);
++      CHECK(!r.reconcile(inventory(fixture())).group_available);
++      r.invalidate_group("ANY_REASON"); CHECK(r.snapshot().generation == 0);
++      CHECK(!r.disconnect(0, 0, 0)); permissions(r);
++      auto p = fixture();
++      for (auto member : {&SessionProfile::device_access_enabled, &SessionProfile::can_tx_enabled, &SessionProfile::firmware_install_enabled}) {
++        auto changed = p; changed.*member = true; CHECK(rejects(changed));
++      }
++    });
++
++    test("profile_schema_fixed_topology_and_binding_rejections", [] {
++      std::vector<std::function<void(SessionProfile &)>> mutations = {
++        [](auto &p) { p.schema = "other"; }, [](auto &p) { p.purpose = "runtime"; },
++        [](auto &p) { p.binding_status = "BOUND"; }, [](auto &p) { p.expected_board_count = 1; },
++        [](auto &p) { p.required_slots = {1, 0}; }, [](auto &p) { p.bus_stride = 3; },
++        [](auto &p) { p.ordinary_local_can_buses = {0, 1, 3}; }, [](auto &p) { p.slots[0].slot = 1; },
++        [](auto &p) { p.slots[1].slot = std::numeric_limits<std::uint32_t>::max(); },
++        [](auto &p) { p.slots[1].expected.identity = p.slots[0].expected.identity; },
++        [](auto &p) { p.slots[0].safety_config_semantics = "allOutput"; },
++        [](auto &p) { p.slots[0].expected.identity = "real:serial"; },
++        [](auto &p) { p.slots[0].expected.identity = std::string(129, 'x'); },
++        [](auto &p) { p.slots[0].expected.exact_mcu = "STM32F4"; },
++        [](auto &p) { p.slots[0].expected.application_signature = "fixture:bad\n"; },
++        [](auto &p) { p.slots[0].expected.transport = "AUTO"; },
++        [](auto &p) { p.slots[0].expected.protocol_profile = "current:unknown"; },
++        [](auto &p) { p.slots[0].expected.mcu_family = "H7"; },
++        [](auto &p) { p.slots[0].expected.board_type = "UNKNOWN"; },
++        [](auto &p) { p.slots[0].expected.capabilities.can_fd = true; },
++        [](auto &p) { p.slots[0].expected.capabilities.can_buses = {0, 1, 256}; },
++      };
++      for (const auto &mutate : mutations) { auto p = fixture(); mutate(p); CHECK(rejects(p)); }
++      auto unbound = SessionProfile{}; unbound.slots[0].expected.identity = "fixture:dos"; CHECK(rejects(unbound));
++      unbound = SessionProfile{}; unbound.roles.vehicle_can = 0; CHECK(rejects(unbound));
++      unbound = SessionProfile{}; unbound.slots[0].expected.capabilities.can_fd = true; CHECK(rejects(unbound));
++    });
++
++    test("explicit_role_capability_validation", [] {
++      std::vector<std::function<void(SessionProfile &)>> mutations = {
++        [](auto &p) { p.roles.vehicle_can = kRoleUnassigned; },
++        [](auto &p) { p.roles.vehicle_can = kRoleUnsupported; },
++        [](auto &p) { p.roles.diagnostic = 2; },
++        [](auto &p) { p.slots[1].expected.capabilities.diagnostic = false; },
++        [](auto &p) { p.roles.harness = 0; },
++        [](auto &p) { p.roles.fan_control = kRoleUnsupported; },
++        [](auto &p) { p.roles.power_monitor = 1; },
++        [](auto &p) { p.roles.ir_control = 0; },
++        [](auto &p) { p.roles.ignition_sources.clear(); },
++        [](auto &p) { p.roles.ignition_sources = {0, 0}; },
++        [](auto &p) { p.roles.ignition_sources = {0, 1, 0}; },
++        [](auto &p) { p.roles.ignition_sources = {256}; },
++        [](auto &p) { p.slots[0].expected.capabilities.ignition = false; },
++      };
++      for (const auto &mutate : mutations) { auto p = fixture(); mutate(p); CHECK(rejects(p)); }
++      auto p = fixture(); p.roles.vehicle_can = 0; p.roles.diagnostic = 0;
++      SessionRegistry r(p); CHECK(r.reconcile(inventory(p)).group_available);
++      CHECK(r.profile().roles.vehicle_can == 0); CHECK(r.profile().roles.harness == 1);
++    });
++
++    test("both_dos_red_permutations_and_reversed_discovery", [] {
++      for (std::uint32_t dos_slot = 0; dos_slot < 2; ++dos_slot) {
++        const auto p = fixture(dos_slot); SessionRegistry r(p); auto seen = inventory(p, 11, 22);
++        std::reverse(seen.begin(), seen.end());
++        const auto s = r.reconcile(seen);
++        CHECK(s.group_available); CHECK(s.generation == 1);
++        CHECK(s.slots[dos_slot].binding.expected.identity == "fixture:dos");
++        CHECK(s.slots[1 - dos_slot].binding.expected.identity == "fixture:external");
++        CHECK(s.slots[0].connection_token == 11 && s.slots[1].connection_token == 22);
++        CHECK(s.slots[0].epoch == 1 && s.slots[1].epoch == 1); permissions(r);
++      }
++    });
++
++    test("identical_models_distinct_identity_without_type_sorting", [] {
++      for (std::uint32_t dos_slot = 0; dos_slot < 2; ++dos_slot) {
++        auto p = fixture(dos_slot);
++        for (auto &s : p.slots) { s.expected.board_type = "RED_PANDA"; s.expected.mcu_family = "H7"; s.expected.exact_mcu = "fixture:unknown-H7"; s.expected.transport = "USB"; }
++        SessionRegistry r(p); auto seen = inventory(p, 7, 9); std::reverse(seen.begin(), seen.end());
++        const auto s = r.reconcile(seen); CHECK(s.group_available);
++        CHECK(s.slots[0].binding.expected.identity == p.slots[0].expected.identity);
++        CHECK(s.slots[1].binding.expected.identity == p.slots[1].expected.identity);
++        CHECK(s.slots[0].connection_token == 7); CHECK(s.slots[1].connection_token == 9);
++      }
++    });
++
++    test("immutable_profile_and_snapshot_copies", [] {
++      auto p = fixture(); SessionRegistry r(p); const auto observations = inventory(p);
++      p.slots[0].expected.identity = "fixture:replacement"; p.roles.vehicle_can = 0; p.can_tx_enabled = true;
++      CHECK(r.reconcile(observations).group_available);
++      auto s = r.snapshot(); s.slots[0].epoch = 999; s.group_available = false;
++      auto copy = r.profile(); copy.slots[0].expected.identity.clear(); copy.device_access_enabled = true;
++      CHECK(r.snapshot().slots[0].epoch == 1); CHECK(r.snapshot().group_available);
++      CHECK(r.profile().slots[0].expected.identity == "fixture:dos"); CHECK(r.profile().roles.vehicle_can == 1);
++      permissions(r);
++    });
++
++    test("idempotent_healthy_inventory_does_not_consume_epochs", [] {
++      const auto p = fixture(); SessionRegistry r(p); auto observed = inventory(p);
++      r.reconcile(observed);
++      for (int i = 0; i < 100; ++i) {
++        std::reverse(observed.begin(), observed.end()); const auto s = r.reconcile(observed);
++        CHECK(s.group_available && s.generation == 1);
++        CHECK(s.slots[0].epoch == 1 && s.slots[1].epoch == 1);
++      }
++    });
++
++    test("missing_slot_never_promotes_survivor_and_late_discovery", [] {
++      for (std::uint32_t missing = 0; missing < 2; ++missing) {
++        const auto p = fixture(); SessionRegistry r(p); const auto seen = inventory(p);
++        auto s = r.reconcile({seen[1 - missing]});
++        CHECK(!s.group_available); CHECK(!s.slots[missing].connected); CHECK(s.slots[1 - missing].connected);
++        CHECK(s.slots[1 - missing].slot == 1 - missing); CHECK(s.slots[missing].epoch == 0);
++        s = r.reconcile(seen); CHECK(s.group_available); CHECK(s.generation == 2);
++        CHECK(s.slots[0].epoch == 1 && s.slots[1].epoch == 1);
++      }
++    });
++
++    test("drop_reconnect_epoch_trace_and_peer_generation", [] {
++      const auto p = fixture(); SessionRegistry r(p); auto seen = inventory(p, 10, 20);
++      const auto start = r.reconcile(seen); const auto dropped = r.reconcile({seen[1]});
++      CHECK(!dropped.group_available && !dropped.slots[0].connected && dropped.slots[1].connected);
++      CHECK(dropped.slots[0].epoch == 2 && dropped.slots[1].epoch == 1);
++      CHECK(dropped.generation == start.generation + 1);
++      CHECK(!r.reconcile(seen).group_available); CHECK(r.snapshot().reason == "RETIRED_CONNECTION_TOKEN");
++      seen[0].connection_token = 11; const auto restored = r.reconcile(seen);
++      CHECK(restored.group_available); CHECK(restored.slots[0].epoch == 3); CHECK(restored.slots[1].epoch == 1);
++      CHECK(restored.generation == dropped.generation + 1);
++      std::cout << "TRACE drop_reconnect epochs0=1,2,3 epochs1=1,1,1 generations=1,2,3\n";
++    });
++
++    test("new_handle_same_identity_address_requires_new_token", [] {
++      const auto p = fixture(); SessionRegistry r(p); auto seen = inventory(p, 5, 9); r.reconcile(seen);
++      seen[0].connection_token = 6; const auto s = r.reconcile(seen);
++      CHECK(s.group_available); CHECK(s.slots[0].epoch == 2); CHECK(s.slots[1].epoch == 1); CHECK(s.generation == 2);
++      CHECK(!r.disconnect(0, 1, 5)); CHECK(!r.disconnect(0, 2, 5)); CHECK(!r.disconnect(0, 1, 6));
++      CHECK(r.snapshot().group_available && r.snapshot().generation == 2);
++      CHECK(r.disconnect(0, 2, 6)); CHECK(!r.snapshot().group_available);
++      CHECK(!r.disconnect(0, 2, 6)); CHECK(r.snapshot().generation == 3);
++      CHECK(!r.disconnect(256, 0, 0));
++    });
++
++    test("replacement_identity_never_binds_without_new_profile", [] {
++      const auto p = fixture(); SessionRegistry r(p); auto seen = inventory(p); r.reconcile(seen);
++      auto replacement = seen; replacement[0].identity.identity = "fixture:replacement"; replacement[0].connection_token = 2;
++      const auto s = r.reconcile(replacement);
++      CHECK(!s.group_available && !s.slots[0].connected && s.slots[1].connected);
++      CHECK(s.reason == "UNEXPECTED_IDENTITY"); CHECK(s.slots[0].binding.expected.identity == "fixture:dos");
++      CHECK(!r.reconcile(seen).group_available);
++      seen[0].connection_token = 2; CHECK(r.reconcile(seen).group_available);
++      auto rebound = p; rebound.slots[0].expected.identity = "fixture:replacement";
++      SessionRegistry explicit_rebind(rebound); CHECK(explicit_rebind.reconcile(replacement).group_available);
++      permissions(r); permissions(explicit_rebind);
++    });
++
++    test("all_observed_identity_fields_revalidate_every_reconnect", [] {
++      std::vector<std::function<void(SessionIdentity &)>> changes = {
++        [](auto &x) { x.board_type = "RED_PANDA"; }, [](auto &x) { x.mcu_family = "H7"; },
++        [](auto &x) { x.exact_mcu = "fixture:other"; }, [](auto &x) { x.transport = "USB"; },
++        [](auto &x) { x.protocol_profile = "legacy:100405"; }, [](auto &x) { x.application_signature = "fixture:other"; },
++        [](auto &x) { x.capabilities.can_buses = {0, 1, 3}; }, [](auto &x) { x.capabilities.can_fd = true; },
++        [](auto &x) { x.capabilities.diagnostic = false; }, [](auto &x) { x.capabilities.harness = true; },
++        [](auto &x) { x.capabilities.ignition = false; }, [](auto &x) { x.capabilities.fan = false; },
++        [](auto &x) { x.capabilities.power_monitor = false; }, [](auto &x) { x.capabilities.ir = true; },
++      };
++      for (const auto &mutate : changes) {
++        const auto p = fixture(); SessionRegistry r(p); auto seen = inventory(p); r.reconcile(seen);
++        auto wrong = seen; wrong[0].connection_token = 2; mutate(wrong[0].identity);
++        const auto failed = r.reconcile(wrong);
++        CHECK(!failed.group_available); CHECK(!failed.slots[0].connected && failed.slots[1].connected);
++        CHECK(failed.slots[0].epoch == 2); CHECK(failed.slots[1].epoch == 1);
++        seen[0].connection_token = 2; CHECK(!r.reconcile(seen).group_available);
++        seen[0].connection_token = 3; CHECK(r.reconcile(seen).group_available);
++        CHECK(r.snapshot().slots[0].epoch == 3);
++      }
++    });
++
++    test("same_token_descriptor_change_retires_connection", [] {
++      const auto p = fixture(); SessionRegistry r(p); auto seen = inventory(p); r.reconcile(seen);
++      auto changed = seen; changed[1].identity.protocol_profile = "current:unknown";
++      CHECK(!r.reconcile(changed).group_available); CHECK(!r.reconcile(seen).group_available);
++      seen[1].connection_token = 2; CHECK(r.reconcile(seen).group_available);
++      CHECK(r.snapshot().slots[1].epoch == 3);
++    });
++
++    test("extra_and_duplicate_inventory_retire_existing_group", [] {
++      for (const bool extra : {false, true}) {
++        const auto p = fixture(); SessionRegistry r(p); auto seen = inventory(p); r.reconcile(seen);
++        auto wrong = seen;
++        if (extra) wrong.push_back({SessionIdentity{}, 99}); else wrong[1] = wrong[0];
++        const auto s = r.reconcile(wrong); CHECK(!s.group_available);
++        CHECK(!s.slots[0].connected && !s.slots[1].connected); CHECK(s.generation == 2);
++        CHECK(s.slots[0].epoch == 2 && s.slots[1].epoch == 2);
++        CHECK(!r.reconcile(seen).group_available);
++        seen[0].connection_token = 2; seen[1].connection_token = 2;
++        CHECK(r.reconcile(seen).group_available);
++      }
++    });
++
++    test("group_fault_requires_both_fresh_tokens_and_bounds_reason", [] {
++      const auto p = fixture(); SessionRegistry r(p); auto seen = inventory(p); r.reconcile(seen);
++      r.invalidate_group("RX_CHECKSUM"); const auto failed = r.snapshot();
++      CHECK(!failed.group_available); CHECK(failed.reason == "RX_CHECKSUM"); CHECK(failed.generation == 2);
++      CHECK(failed.slots[0].epoch == 2 && failed.slots[1].epoch == 2);
++      r.invalidate_group(std::string(10000, 'x')); CHECK(r.snapshot().reason == "INVALIDATED");
++      CHECK(r.snapshot().generation == failed.generation);
++      CHECK(!r.reconcile(seen).group_available); seen[0].connection_token = 2;
++      CHECK(!r.reconcile(seen).group_available); seen[1].connection_token = 2;
++      CHECK(r.reconcile(seen).group_available); CHECK(r.snapshot().generation == 4);
++    });
++
++    test("duplicate_candidates_consume_both_known_identity_tokens", [] {
++      const auto p = fixture(); SessionRegistry r(p); auto seen = inventory(p); r.reconcile(seen);
++      auto a = seen[0]; auto b = seen[0]; a.connection_token = 2; b.connection_token = 7;
++      CHECK(!r.reconcile({a, b}).group_available);
++      seen[0].connection_token = 2; seen[1].connection_token = 2; CHECK(!r.reconcile(seen).group_available);
++      seen[0].connection_token = 7; CHECK(!r.reconcile(seen).group_available);
++      seen[0].connection_token = 8; CHECK(r.reconcile(seen).group_available);
++      const auto s = r.snapshot(); CHECK(s.slots[0].connection_token == 8); CHECK(s.slots[1].connection_token == 2);
++    });
++
++    test("zero_older_and_wrap_tokens_cannot_reconnect", [] {
++      const auto p = fixture(); SessionRegistry r(p); auto seen = inventory(p, 0, 1);
++      CHECK(!r.reconcile(seen).group_available); CHECK(r.snapshot().reason == "INVALID_CONNECTION_TOKEN");
++      seen[0].connection_token = 5; CHECK(r.reconcile(seen).group_available);
++      seen[0].connection_token = 4; CHECK(!r.reconcile(seen).group_available);
++      seen[0].connection_token = 5; CHECK(!r.reconcile(seen).group_available);
++      seen[0].connection_token = std::numeric_limits<std::uint64_t>::max(); CHECK(r.reconcile(seen).group_available);
++      CHECK(r.disconnect(0, r.snapshot().slots[0].epoch, seen[0].connection_token));
++      seen[0].connection_token = 0; CHECK(!r.reconcile(seen).group_available);
++      seen[0].connection_token = std::numeric_limits<std::uint64_t>::max(); CHECK(!r.reconcile(seen).group_available);
++      CHECK(!r.snapshot().slots[0].connected); CHECK(r.snapshot().slots[1].connected);
++    });
++
++    test("epoch_counter_exhaustion_is_permanent_and_never_wraps", [] {
++      const auto p = fixture(); const auto max = std::numeric_limits<std::uint64_t>::max();
++      SessionRegistry r(p, {{max - 1, 0}, 0}); auto seen = inventory(p); CHECK(r.reconcile(seen).group_available);
++      CHECK(r.snapshot().slots[0].epoch == max); CHECK(r.disconnect(0, max, 1));
++      const auto failed = r.snapshot(); CHECK(failed.permanently_closed && !failed.group_available);
++      CHECK(failed.reason == "COUNTER_EXHAUSTED"); CHECK(failed.slots[0].epoch == max);
++      CHECK(!failed.slots[0].connected && !failed.slots[1].connected);
++      seen[0].connection_token = 2; seen[1].connection_token = 2;
++      CHECK(!r.reconcile(seen).group_available); r.invalidate_group("ANY_REASON");
++      CHECK(r.snapshot().reason == "COUNTER_EXHAUSTED"); permissions(r);
++    });
++
++    test("generation_counter_exhaustion_closes_healthy_peer", [] {
++      const auto p = fixture(); const auto max = std::numeric_limits<std::uint64_t>::max();
++      SessionRegistry r(p, {{0, 0}, max - 1}); auto seen = inventory(p);
++      CHECK(r.reconcile(seen).group_available); CHECK(r.snapshot().generation == max);
++      CHECK(r.reconcile(seen).group_available); // Idempotent observation does not consume a counter.
++      seen[0].connection_token = 2; const auto failed = r.reconcile(seen);
++      CHECK(failed.permanently_closed && !failed.group_available); CHECK(failed.generation == max);
++      CHECK(!failed.slots[0].connected && !failed.slots[1].connected);
++      CHECK(!r.reconcile(seen).group_available); permissions(r);
++      SessionRegistry immediately_exhausted(p, {{0, 0}, max}); CHECK(!immediately_exhausted.reconcile(inventory(p)).group_available);
++      CHECK(immediately_exhausted.snapshot().permanently_closed);
++    });
++
++    std::cout << "{\"suite\":\"session_registry\",\"groups\":" << groups << ",\"cases\":[";
++    for (std::size_t i = 0; i < names.size(); ++i) std::cout << (i ? "," : "") << '"' << names[i] << '"';
++    std::cout << "],\"assertions\":" << assertions << ",\"failures\":0,\"skips\":0}\n";
++  } catch (const std::exception &error) {
++    std::cerr << "FAIL session_registry: " << error.what() << '\n'; return 1;
++  }
++}
+diff --git a/openpilot/selfdrive/pandad/compatibility/tests/test_session_router_integration.cc b/openpilot/selfdrive/pandad/compatibility/tests/test_session_router_integration.cc
+new file mode 100644
+index 0000000..f725c39
+--- /dev/null
++++ b/openpilot/selfdrive/pandad/compatibility/tests/test_session_router_integration.cc
+@@ -0,0 +1,535 @@
++#include "../can_router.h"
++#include "../transport.h"
++
++#include <algorithm>
++#include <array>
++#include <deque>
++#include <functional>
++#include <iomanip>
++#include <iostream>
++#include <sstream>
++#include <stdexcept>
++#include <string>
++#include <utility>
++
++using namespace openpilot::pandad::compatibility;
++using Bytes = std::vector<std::uint8_t>;
++
++namespace {
++std::size_t assertions = 0;
++void check(bool condition, int line) {
++  ++assertions;
++  if (!condition) throw std::runtime_error("assertion at line " + std::to_string(line));
++}
++#define CHECK(expression) check(static_cast<bool>(expression), __LINE__)
++
++SessionProfile profile_for(unsigned dos_slot = 0, bool same_model = false) {
++  SessionProfile profile;
++  profile.binding_status = "SYNTHETIC_BOUND";
++  for (unsigned slot = 0; slot < 2; ++slot) {
++    const bool dos = slot == dos_slot;
++    auto &binding = profile.slots[slot];
++    auto &id = binding.expected;
++    id.identity = dos ? "fixture:dos" : "fixture:external";
++    id.board_type = dos && !same_model ? "DOS" : "RED_PANDA";
++    id.mcu_family = dos && !same_model ? "F4" : "H7";
++    id.exact_mcu = dos && !same_model ? "fixture:unknown-F4" : "fixture:unknown-H7";
++    id.transport = "USB";
++    id.protocol_profile = kSessionProtocol;
++    id.capabilities = {{0, 1, 2}, !dos, !dos, !dos, true, dos, dos, false};
++    id.application_signature = dos ? "fixture:dos-app" : "fixture:red-app";
++    binding.safety_config_semantics = "noOutput";
++  }
++  profile.roles = {static_cast<std::int32_t>(1U - dos_slot), static_cast<std::int32_t>(1U - dos_slot),
++                   static_cast<std::int32_t>(1U - dos_slot), {0, 1}, static_cast<std::int32_t>(dos_slot),
++                   static_cast<std::int32_t>(dos_slot), kRoleUnsupported};
++  return profile;
++}
++
++std::vector<SessionObservation> inventory_for(const SessionProfile &profile,
++                                            std::uint64_t token0 = 1, std::uint64_t token1 = 1) {
++  return {{profile.slots[0].expected, token0}, {profile.slots[1].expected, token1}};
++}
++CanCapability capability(const SessionProfile &profile, unsigned slot) {
++  return profile.slots[slot].expected.capabilities.can_fd ? CanCapability::CanFd : CanCapability::ClassicOnly;
++}
++HostTxFrame host_frame(unsigned source) {
++  return {0x321U + source, source, false, false,
++          {static_cast<std::uint8_t>(source), static_cast<std::uint8_t>(source % 4), static_cast<std::uint8_t>(source / 4)}};
++}
++TxBatch six_routes(const SessionRegistry &registry, std::uint64_t timestamp) {
++  TxBatch batch;
++  batch.valid = true;
++  batch.source_timestamp_us = timestamp;
++  batch.group_generation = registry.snapshot().generation;
++  for (const unsigned source : {0U, 1U, 2U, 4U, 5U, 6U}) batch.frames.push_back(host_frame(source));
++  return batch;
++}
++CanFrame wire_frame(unsigned slot, unsigned local, bool returned = false, bool rejected = false) {
++  const auto host = host_frame(slot * 4U + local);
++  return {host.address, local, host.extended, host.fd, returned, rejected, host.payload};
++}
++Bytes encoded(unsigned slot, unsigned local, bool returned = false, bool rejected = false) {
++  const auto result = encode_can_frame(wire_frame(slot, local, returned, rejected), CanCapability::CanFd, FrameDirection::Rx);
++  CHECK(result);
++  return result.value;
++}
++
++class FakeClock final : public Clock {
++public:
++  std::uint64_t time = 1000000;
++  std::uint64_t now_us() override { return time; }
++  void wait_us(std::uint32_t duration) override { time += duration; }
++};
++class FakeBackend final : public Backend {
++public:
++  std::deque<Result> script;
++  std::vector<Request> calls;
++  std::vector<std::uint32_t> timeouts;
++  Result transact(const Request &request, std::uint32_t timeout_ms) override {
++    calls.push_back(request);
++    timeouts.push_back(timeout_ms);
++    CHECK(timeout_ms > 0 && timeout_ms <= kBackendSliceMs);
++    if (!script.empty()) {
++      Result result = std::move(script.front());
++      script.pop_front();
++      return result;
++    }
++    if (request.kind == Kind::BulkWrite) return {Status::Ok, request.payload.size(), {}, true, false};
++    throw std::runtime_error("unscripted fake read");
++  }
++};
++
++RouterResult<std::size_t> fake_receive(CanRouter &router, Transport &transport, FakeBackend &backend,
++                                     const RouteToken &token, const Bytes &data,
++                                     std::uint64_t received, std::uint64_t now) {
++  backend.script.push_back({Status::Short, data.size(), data, true, false});
++  Request request;
++  request.kind = Kind::BulkRead;
++  request.endpoint = 0x81;
++  request.read_length = data.size() + 1;
++  const auto result = transport.perform(request);
++  CHECK(result.status == Status::Short);
++  CHECK(result.actual_known && !result.delivery_uncertain && result.actual == data.size());
++  return router.receive(token, result.data.data(), result.data.size(), received, now);
++}
++
++// Test-only glue: production CanRouter has no I/O capability. A real adapter
++// would need a separately reviewed P4 authorization/health/safety boundary.
++Result fake_send(SessionRegistry &registry, CanRouter &router, const SimulatedTxIntent &intent, Transport &transport, std::uint64_t now) {
++  CHECK(!intent.real_tx_authorized);
++  if (!router.validate_intent(intent, now)) return {Status::Invalid};
++  const auto current = registry.snapshot();
++  const auto &slot = current.slots.at(intent.token.slot);
++  CHECK(current.group_available && current.generation == intent.token.group_generation);
++  CHECK(slot.epoch == intent.token.epoch && slot.connection_token == intent.token.connection_token);
++  Request request;
++  request.kind = Kind::BulkWrite;
++  request.endpoint = 3;
++  request.payload = intent.encoded;
++  const auto result = transport.perform(request);
++  if (result.status != Status::Ok || !result.actual_known || result.delivery_uncertain) {
++    CHECK(registry.disconnect(intent.token.slot, intent.token.epoch, intent.token.connection_token));
++  }
++  return result;
++}
++
++std::string hex(const Bytes &data) {
++  std::ostringstream output;
++  output << std::hex << std::setfill('0');
++  for (const auto byte : data) output << std::setw(2) << static_cast<unsigned>(byte);
++  return output.str();
++}
++void json_string(const std::string &value) { std::cout << std::quoted(value); }
++void bool_json(bool value) { std::cout << (value ? "true" : "false"); }
++void capabilities_json(const SessionCapabilities &caps) {
++  std::cout << "{\"can_buses\":[" << caps.can_buses[0] << ',' << caps.can_buses[1] << ',' << caps.can_buses[2]
++            << "],\"can_fd\":"; bool_json(caps.can_fd);
++  std::cout << ",\"diagnostic\":"; bool_json(caps.diagnostic);
++  std::cout << ",\"harness\":"; bool_json(caps.harness);
++  std::cout << ",\"ignition\":"; bool_json(caps.ignition);
++  std::cout << ",\"fan\":"; bool_json(caps.fan);
++  std::cout << ",\"power_monitor\":"; bool_json(caps.power_monitor);
++  std::cout << ",\"ir\":"; bool_json(caps.ir); std::cout << '}';
++}
++void identity_json(const SessionIdentity &id, bool binding) {
++  std::cout << (binding ? "\"identity_binding\":" : "\"identity\":"); json_string(id.identity);
++  std::cout << (binding ? ",\"expected_board_type\":" : ",\"board_type\":"); json_string(id.board_type);
++  std::cout << ",\"mcu_family\":"; json_string(id.mcu_family);
++  std::cout << ",\"exact_mcu\":"; json_string(id.exact_mcu);
++  std::cout << ",\"transport\":"; json_string(id.transport);
++  std::cout << ",\"protocol_profile\":"; json_string(id.protocol_profile);
++  std::cout << ",\"capabilities\":"; capabilities_json(id.capabilities);
++  std::cout << ",\"application_signature\":"; json_string(id.application_signature);
++}
++void role_json(std::int32_t role) {
++  if (role == kRoleUnsupported) json_string("UNSUPPORTED");
++  else if (role == kRoleUnassigned) std::cout << "null";
++  else std::cout << role;
++}
++void roles_json(const SessionRoles &roles) {
++  std::cout << "{\"vehicle_can\":"; role_json(roles.vehicle_can);
++  std::cout << ",\"diagnostic\":"; role_json(roles.diagnostic);
++  std::cout << ",\"harness\":"; role_json(roles.harness);
++  std::cout << ",\"ignition_sources\":[";
++  for (std::size_t i = 0; i < roles.ignition_sources.size(); ++i) {
++    if (i) std::cout << ',';
++    std::cout << roles.ignition_sources[i];
++  }
++  std::cout << "],\"fan_control\":"; role_json(roles.fan_control);
++  std::cout << ",\"power_monitor\":"; role_json(roles.power_monitor);
++  std::cout << ",\"ir_control\":"; role_json(roles.ir_control); std::cout << '}';
++}
++void profile_json(const SessionProfile &profile) {
++  std::cout << "{\"schema\":"; json_string(profile.schema);
++  std::cout << ",\"purpose\":"; json_string(profile.purpose);
++  std::cout << ",\"binding_status\":"; json_string(profile.binding_status);
++  std::cout << ",\"device_access_enabled\":"; bool_json(profile.device_access_enabled);
++  std::cout << ",\"can_tx_enabled\":"; bool_json(profile.can_tx_enabled);
++  std::cout << ",\"firmware_install_enabled\":"; bool_json(profile.firmware_install_enabled);
++  std::cout << ",\"expected_board_count\":" << profile.expected_board_count << ",\"required_slots\":["
++            << profile.required_slots[0] << ',' << profile.required_slots[1] << "],\"bus_stride\":" << profile.bus_stride
++            << ",\"ordinary_local_can_buses\":[" << profile.ordinary_local_can_buses[0] << ','
++            << profile.ordinary_local_can_buses[1] << ',' << profile.ordinary_local_can_buses[2] << "],\"slots\":[";
++  for (unsigned slot = 0; slot < 2; ++slot) {
++    if (slot) std::cout << ',';
++    const auto &binding = profile.slots[slot];
++    std::cout << "{\"slot\":" << binding.slot << ','; identity_json(binding.expected, true);
++    std::cout << ",\"safety_config_semantics\":"; json_string(binding.safety_config_semantics); std::cout << '}';
++  }
++  std::cout << "],\"roles\":"; roles_json(profile.roles); std::cout << '}';
++}
++void role_identities_json(const SessionProfile &profile) {
++  const auto &roles = profile.roles;
++  const std::vector<std::pair<std::string, std::vector<std::int32_t>>> bindings = {
++    {"vehicle_can", {roles.vehicle_can}}, {"diagnostic", {roles.diagnostic}}, {"harness", {roles.harness}},
++    {"ignition_sources", std::vector<std::int32_t>(roles.ignition_sources.begin(), roles.ignition_sources.end())},
++    {"fan_control", {roles.fan_control}}, {"power_monitor", {roles.power_monitor}}, {"ir_control", {roles.ir_control}}};
++  std::cout << '{';
++  for (std::size_t i = 0; i < bindings.size(); ++i) {
++    if (i) std::cout << ',';
++    json_string(bindings[i].first); std::cout << ":[";
++    bool first = true;
++    for (const auto slot : bindings[i].second) {
++      if (slot < 0) continue;
++      if (!first) std::cout << ',';
++      json_string(profile.slots.at(static_cast<unsigned>(slot)).expected.identity); first = false;
++    }
++    std::cout << ']';
++  }
++  std::cout << '}';
++}
++
++void oracle() {
++  std::cout << "{\"device_access\":false,\"real_can_tx\":false,\"scope\":\"synthetic_session_routes\",\"fixtures\":[";
++  unsigned count = 0;
++  for (const unsigned dos_slot : {0U, 1U}) for (const bool same : {false, true}) for (const bool reversed : {false, true}) {
++    const auto profile = profile_for(dos_slot, same);
++    auto inventory = inventory_for(profile);
++    if (reversed) std::reverse(inventory.begin(), inventory.end());
++    SessionRegistry registry(profile);
++    const auto snapshot = registry.reconcile(inventory);
++    CanRouter router(registry);
++    CHECK(snapshot.group_available);
++    CHECK(router.enqueue_tx(six_routes(registry, 1000), 1000));
++    if (count++) std::cout << ',';
++    std::cout << "{\"dos_slot\":" << dos_slot << ",\"same_model\":"; bool_json(same);
++    std::cout << ",\"reversed_inventory\":"; bool_json(reversed);
++    std::cout << ",\"profile\":"; profile_json(registry.profile());
++    std::cout << ",\"inventory\":[";
++    for (unsigned i = 0; i < 2; ++i) {
++      if (i) std::cout << ',';
++      std::cout << '{'; identity_json(inventory[i].identity, false); std::cout << '}';
++    }
++    std::cout << "],\"registered_identities\":["; json_string(snapshot.slots[0].binding.expected.identity);
++    std::cout << ','; json_string(snapshot.slots[1].binding.expected.identity);
++    std::cout << "],\"available\":"; bool_json(snapshot.group_available);
++    std::cout << ",\"permissions\":{\"device_access_enabled\":"; bool_json(registry.device_access_enabled());
++    std::cout << ",\"can_tx_enabled\":"; bool_json(registry.can_tx_enabled());
++    std::cout << ",\"firmware_install_enabled\":"; bool_json(registry.firmware_install_enabled());
++    std::cout << "},\"role_identities\":"; role_identities_json(registry.profile());
++    std::cout << ",\"routes\":[";
++    unsigned route_count = 0;
++    for (unsigned slot = 0; slot < 2; ++slot) for (unsigned local = 0; local < 3; ++local) {
++      const auto intent = router.take_tx(slot, 1000);
++      CHECK(intent);
++      CHECK(intent.value.token.slot == slot && intent.value.frame.local_bus == local);
++      std::array<unsigned, 3> sources{};
++      for (unsigned flag = 0; flag < 3; ++flag) {
++        const auto bytes = encoded(slot, local, flag == 1, flag == 2);
++        CHECK(router.receive(intent.value.token, bytes.data(), bytes.size(), 1000, 1000));
++        const auto received = router.take_rx(slot, 1000);
++        CHECK(received);
++        sources[flag] = received.value.source;
++      }
++      if (route_count++) std::cout << ',';
++      std::cout << "{\"host_source\":" << slot * 4U + local << ",\"slot\":" << intent.value.token.slot
++                << ",\"local_bus\":" << intent.value.frame.local_bus << ",\"identity\":";
++      json_string(snapshot.slots[intent.value.token.slot].binding.expected.identity);
++      std::cout << ",\"wire_hex\":"; json_string(hex(intent.value.encoded));
++      std::cout << ",\"rx_sources\":[" << sources[0] << ',' << sources[1] << ',' << sources[2] << "]}";
++    }
++    std::cout << "]}";
++  }
++  std::cout << "]}\n";
++}
++}  // namespace
++
++int main(int argc, char **argv) {
++  std::size_t groups = 0;
++  std::vector<std::string> names;
++  auto test = [&](const char *name, const std::function<void()> &body) {
++    body(); ++groups; names.emplace_back(name);
++  };
++  try {
++    if (argc == 2 && std::string(argv[1]) == "--oracle") { oracle(); return 0; }
++    CHECK(argc == 1);
++    test("p0_contract_all_eight_profile_inventory_permutations", [] {
++      for (const unsigned dos : {0U, 1U}) for (const bool same : {false, true}) for (const bool reverse : {false, true}) {
++        const auto profile = profile_for(dos, same);
++        SessionRegistry registry(profile);
++        auto inventory = inventory_for(profile);
++        if (reverse) std::reverse(inventory.begin(), inventory.end());
++        const auto state = registry.reconcile(inventory);
++        CHECK(state.group_available && !state.permanently_closed);
++        CHECK(!registry.device_access_enabled() && !registry.can_tx_enabled() && !registry.firmware_install_enabled());
++        for (unsigned slot = 0; slot < 2; ++slot) {
++          CHECK(state.slots[slot].slot == slot && state.slots[slot].connected);
++          CHECK(state.slots[slot].binding.expected == profile.slots[slot].expected);
++        }
++      }
++    });
++    test("p2_short_reads_every_split_keep_per_board_parser_isolated", [] {
++      for (std::size_t split = 0; split <= 27; ++split) {
++        const auto profile = profile_for(); SessionRegistry registry(profile);
++        CHECK(registry.reconcile(inventory_for(profile)).group_available); CanRouter router(registry);
++        FakeClock clock; FakeBackend a, b; Transport ta(a, clock), tb(b, clock);
++        const auto token0 = router.current_token(0, clock.time), token1 = router.current_token(1, clock.time);
++        CHECK(token0 && token1);
++        Bytes bytes;
++        for (unsigned local = 0; local < 3; ++local) {
++          const auto frame = encoded(0, local); bytes.insert(bytes.end(), frame.begin(), frame.end());
++        }
++        CHECK(bytes.size() == 27);
++        const Bytes prefix(bytes.begin(), bytes.begin() + static_cast<std::ptrdiff_t>(split));
++        const Bytes suffix(bytes.begin() + static_cast<std::ptrdiff_t>(split), bytes.end());
++        CHECK(fake_receive(router, ta, a, token0.value, prefix, clock.time, clock.time));
++        CHECK(fake_receive(router, tb, b, token1.value, encoded(1, 2, true), clock.time, clock.time));
++        const auto independent = router.take_rx(1, clock.time);
++        CHECK(independent && independent.value.source == 0x86 && independent.value.frame.local_bus == 2);
++        CHECK(fake_receive(router, ta, a, token0.value, suffix, clock.time, clock.time));
++        for (unsigned local = 0; local < 3; ++local) {
++          const auto result = router.take_rx(0, clock.time);
++          CHECK(result && result.value.source == local && result.value.frame.local_bus == local);
++          CHECK(result.value.frame.payload == Bytes({static_cast<std::uint8_t>(local), static_cast<std::uint8_t>(local), 0}));
++          CHECK(result.value.receive_timestamp_us == clock.time);
++        }
++        CHECK(router.take_rx(0, clock.time).error == RouterError::Empty);
++        CHECK(a.calls.size() == 2 && b.calls.size() == 1);
++        CHECK(ta.healthy() && tb.healthy());
++      }
++    });
++    test("six_routes_reach_only_their_fake_p2_backend_with_mcu_local_buses", [] {
++      for (const unsigned dos : {0U, 1U}) {
++        const auto profile = profile_for(dos); SessionRegistry registry(profile);
++        CHECK(registry.reconcile(inventory_for(profile)).group_available); CanRouter router(registry);
++        FakeClock clock; FakeBackend a, b; Transport ta(a, clock), tb(b, clock);
++        CHECK(router.enqueue_tx(six_routes(registry, clock.time), clock.time));
++        for (unsigned slot = 0; slot < 2; ++slot) for (unsigned local = 0; local < 3; ++local) {
++          const auto intent = router.take_tx(slot, clock.time); CHECK(intent);
++          CHECK(intent.value.token.slot == slot && intent.value.frame.local_bus == local);
++          CHECK(fake_send(registry, router, intent.value, slot == 0 ? ta : tb, clock.time).status == Status::Ok);
++        }
++        CHECK(a.calls.size() == 3 && b.calls.size() == 3);
++        for (unsigned slot = 0; slot < 2; ++slot) {
++          const auto &calls = slot == 0 ? a.calls : b.calls;
++          for (unsigned local = 0; local < 3; ++local) {
++            CHECK(calls[local].kind == Kind::BulkWrite && calls[local].endpoint == 3);
++            const auto &raw = calls[local].payload;
++            const auto decoded = decode_can_frame(raw.data(), raw.size(), capability(profile, slot), FrameDirection::Tx);
++            CHECK(decoded && decoded.value.local_bus == local);
++            CHECK(decoded.value.address == 0x321U + 4U * slot + local);
++            CHECK(decoded.value.payload == wire_frame(slot, local).payload);
++          }
++        }
++        for (const unsigned invalid : {3U, 7U, 8U, 0x80U, 0xC4U, 0xFFFFFFFFU}) {
++          TxBatch bad = six_routes(registry, clock.time);
++          bad.frames = {host_frame(0), host_frame(invalid)};
++          CHECK(!router.enqueue_tx(bad, clock.time));
++          CHECK(router.take_tx(0, clock.time).error == RouterError::Empty);
++          CHECK(router.take_tx(1, clock.time).error == RouterError::Empty);
++        }
++        CHECK(a.calls.size() == 3 && b.calls.size() == 3);
++      }
++    });
++    test("disconnect_reconnect_discards_partial_and_both_queued_slots", [] {
++      const auto profile = profile_for(); SessionRegistry registry(profile);
++      CHECK(registry.reconcile(inventory_for(profile)).group_available); CanRouter router(registry);
++      FakeClock clock; FakeBackend a, b; Transport ta(a, clock), tb(b, clock);
++      const auto old0 = router.current_token(0, clock.time), old1 = router.current_token(1, clock.time);
++      CHECK(old0 && old1);
++      const auto bytes = encoded(0, 1);
++      CHECK(fake_receive(router, ta, a, old0.value, Bytes(bytes.begin(), bytes.begin() + 4), clock.time, clock.time));
++      CHECK(fake_receive(router, tb, b, old1.value, encoded(1, 0), clock.time, clock.time));
++      CHECK(router.enqueue_tx(six_routes(registry, clock.time), clock.time));
++      CHECK(registry.disconnect(0, old0.value.epoch, old0.value.connection_token));
++      CHECK(!registry.snapshot().group_available);
++      const auto cleared = router.inspect(clock.time); CHECK(cleared.error == RouterError::GroupUnavailable);
++      CHECK((cleared.value.tx == std::array<std::size_t, 2>({0, 0})));
++      CHECK((cleared.value.rx == std::array<std::size_t, 2>({0, 0})));
++      CHECK((cleared.value.fragment_bytes == std::array<std::size_t, 2>({0, 0})));
++      CHECK(router.take_tx(1, clock.time).error == RouterError::GroupUnavailable);
++      const auto reconnected = registry.reconcile(inventory_for(profile, 2, 1));
++      CHECK(reconnected.group_available);
++      const auto fresh = router.current_token(0, clock.time); CHECK(fresh);
++      CHECK(fresh.value.epoch > old0.value.epoch);
++      CHECK(!registry.disconnect(0, old0.value.epoch, old0.value.connection_token));
++      CHECK(router.receive(old0.value, bytes.data() + 4, bytes.size() - 4, clock.time, clock.time).error == RouterError::StaleSession);
++      CHECK(router.receive(old1.value, bytes.data(), bytes.size(), clock.time, clock.time).error == RouterError::StaleSession);
++      CHECK(registry.snapshot().group_available);
++      CHECK(router.receive(fresh.value, bytes.data(), bytes.size(), clock.time, clock.time));
++      const auto fresh_rx = router.take_rx(0, clock.time); CHECK(fresh_rx && fresh_rx.value.source == 1);
++      CHECK(router.take_rx(0, clock.time).error == RouterError::Empty);
++      CHECK(router.counters().epoch_tx_drops == 6 && router.counters().epoch_rx_drops == 1);
++      CHECK(router.counters().epoch_fragment_bytes == 4);
++      CHECK(a.calls.size() == 1 && b.calls.size() == 1);
++    });
++    test("replacement_and_unknown_protocol_never_promote_survivor", [] {
++      for (const bool wrong_protocol : {false, true}) {
++        const auto profile = profile_for(); SessionRegistry registry(profile);
++        CHECK(registry.reconcile(inventory_for(profile)).group_available); CanRouter router(registry);
++        CHECK(router.enqueue_tx(six_routes(registry, 1000), 1000));
++        auto replacement = inventory_for(profile, 2, 1);
++        if (wrong_protocol) replacement[0].identity.protocol_profile = "current:0000000000000000";
++        else replacement[0].identity.identity = "fixture:replacement-at-reused-address";
++        const auto state = registry.reconcile(replacement);
++        CHECK(!state.group_available);
++        CHECK(state.slots[0].binding.expected.identity == "fixture:dos");
++        CHECK(state.slots[1].binding.expected.identity == "fixture:external");
++        CHECK(router.take_tx(0, 1000).error == RouterError::GroupUnavailable);
++        CHECK(router.take_tx(1, 1000).error == RouterError::GroupUnavailable);
++        CHECK(!router.enqueue_tx(six_routes(registry, 1000), 1000));
++      }
++    });
++    test("uncertain_p2_write_closes_group_without_replay_or_sibling_fallback", [] {
++      const auto profile = profile_for(); SessionRegistry registry(profile);
++      CHECK(registry.reconcile(inventory_for(profile)).group_available); CanRouter router(registry);
++      FakeClock clock; FakeBackend a, b; Transport ta(a, clock), tb(b, clock);
++      CHECK(router.enqueue_tx(six_routes(registry, clock.time), clock.time));
++      const auto intent = router.take_tx(0, clock.time); CHECK(intent);
++      a.script.push_back({Status::IoError, 1, {}, false, true});
++      const auto failure = fake_send(registry, router, intent.value, ta, clock.time);
++      CHECK(failure.status == Status::IoError && !failure.actual_known && failure.delivery_uncertain);
++      CHECK(!ta.healthy() && tb.healthy());
++      CHECK(!registry.snapshot().group_available);
++      CHECK(router.take_tx(0, clock.time).error == RouterError::GroupUnavailable);
++      CHECK(router.take_tx(1, clock.time).error == RouterError::GroupUnavailable);
++      CHECK(!router.enqueue_tx(six_routes(registry, clock.time), clock.time));
++      CHECK(a.calls.size() == 1 && b.calls.empty());
++      Request stale; stale.kind = Kind::BulkWrite; stale.endpoint = 3; stale.payload = intent.value.encoded;
++      CHECK(ta.perform(stale).status == Status::Poisoned);
++      CHECK(a.calls.size() == 1 && b.calls.empty());
++      CHECK(registry.reconcile(inventory_for(profile, 2, 1)).group_available);
++      CHECK(router.take_tx(0, clock.time).error == RouterError::Empty);
++      CHECK(router.take_tx(1, clock.time).error == RouterError::Empty);
++      CHECK(!registry.disconnect(0, intent.value.token.epoch, intent.value.token.connection_token));
++      CHECK(registry.snapshot().group_available);
++    });
++    test("held_intent_and_ingress_batch_cannot_cross_connection_generation", [] {
++      const auto profile = profile_for(); SessionRegistry registry(profile);
++      CHECK(registry.reconcile(inventory_for(profile)).group_available); CanRouter router(registry);
++      FakeClock clock; FakeBackend backend; Transport transport(backend, clock);
++      const auto old_batch = six_routes(registry, clock.time);
++      CHECK(router.enqueue_tx(old_batch, clock.time));
++      const auto held = router.take_tx(0, clock.time); CHECK(held);
++      CHECK(registry.disconnect(0, held.value.token.epoch, held.value.token.connection_token));
++      CHECK(fake_send(registry, router, held.value, transport, clock.time).status == Status::Invalid);
++      CHECK(registry.reconcile(inventory_for(profile, 2, 1)).group_available);
++      ++clock.time;
++      CHECK(router.enqueue_tx(old_batch, clock.time).error == RouterError::StaleSession);
++      CHECK(fake_send(registry, router, held.value, transport, clock.time).status == Status::Invalid);
++      CHECK(backend.calls.empty());
++      CHECK(router.take_tx(0, clock.time).error == RouterError::Empty);
++      CHECK(router.take_tx(1, clock.time).error == RouterError::Empty);
++      CHECK(registry.snapshot().group_available);
++    });
++    test("extra_inventory_retires_live_tokens_and_clears_both_queues", [] {
++      const auto profile = profile_for(); SessionRegistry registry(profile);
++      const auto original = inventory_for(profile);
++      CHECK(registry.reconcile(original).group_available); CanRouter router(registry);
++      CHECK(router.enqueue_tx(six_routes(registry, 1000), 1000));
++      auto extra = original;
++      extra.push_back({profile.slots[1].expected, 1});
++      extra.back().identity.identity = "fixture:unexpected-third";
++      CHECK(!registry.reconcile(extra).group_available);
++      CHECK(router.take_tx(0, 1000).error == RouterError::GroupUnavailable);
++      CHECK(router.take_tx(1, 1000).error == RouterError::GroupUnavailable);
++      CHECK(!registry.reconcile(original).group_available);
++      CHECK(registry.reconcile(inventory_for(profile, 2, 2)).group_available);
++      CHECK(router.take_tx(0, 1000).error == RouterError::Empty);
++      CHECK(router.take_tx(1, 1000).error == RouterError::Empty);
++      CHECK(router.counters().epoch_tx_drops == 6);
++    });
++    test("held_rx_publication_checks_original_age_and_connection_token", [] {
++      const auto profile = profile_for(); SessionRegistry registry(profile);
++      CHECK(registry.reconcile(inventory_for(profile)).group_available); CanRouter router(registry);
++      const auto token = router.current_token(1, 1000); CHECK(token);
++      const auto bytes = encoded(1, 0);
++      CHECK(router.receive(token.value, bytes.data(), bytes.size(), 1000, 1000));
++      const auto held = router.take_rx(1, 1000); CHECK(held);
++      CHECK(router.validate_rx_frame(held.value, 1000));
++      CHECK(router.validate_rx_frame(held.value, 1000 + kRxMaxAgeUs).error == RouterError::Expired);
++      CHECK(registry.disconnect(1, token.value.epoch, token.value.connection_token));
++      CHECK(registry.reconcile(inventory_for(profile, 1, 2)).group_available);
++      CHECK(router.current_token(1, 1000 + kRxMaxAgeUs + 1));
++      CHECK(router.validate_rx_frame(held.value, 999).error == RouterError::StaleSession);
++      CHECK(registry.snapshot().group_available);
++      CHECK(router.take_rx(1, 1000 + kRxMaxAgeUs + 1).error == RouterError::Empty);
++    });
++    test("held_intent_final_dispatch_checks_queue_and_source_age", [] {
++      for (const bool source_age : {false, true}) for (const auto offset : {0U, 1U}) {
++        const auto profile = profile_for(); SessionRegistry registry(profile);
++        CHECK(registry.reconcile(inventory_for(profile)).group_available); CanRouter router(registry);
++        FakeClock clock; FakeBackend backend; Transport transport(backend, clock);
++        const auto source = source_age ? clock.time - kSendcanMaxAgeUs + 1000 : clock.time;
++        CHECK(router.enqueue_tx(six_routes(registry, source), clock.time));
++        const auto held = router.take_tx(0, clock.time); CHECK(held);
++        clock.time += (source_age ? 1000 : kTxQueueMaxAgeUs) + offset;
++        CHECK(router.validate_intent(held.value, clock.time).error == RouterError::Expired);
++        CHECK(fake_send(registry, router, held.value, transport, clock.time).status == Status::Invalid);
++        CHECK(backend.calls.empty() && transport.healthy());
++      }
++    });
++    test("original_fragment_receive_age_is_not_renewed_by_transport_or_publication", [] {
++      const auto profile = profile_for(); SessionRegistry registry(profile);
++      CHECK(registry.reconcile(inventory_for(profile)).group_available); CanRouter router(registry);
++      FakeClock clock; FakeBackend backend; Transport transport(backend, clock);
++      const auto token = router.current_token(1, clock.time); CHECK(token);
++      const auto bytes = encoded(1, 2);
++      const auto original = clock.time;
++      CHECK(fake_receive(router, transport, backend, token.value, Bytes(bytes.begin(), bytes.begin() + 3), original, clock.time));
++      clock.time += 20000;
++      CHECK(fake_receive(router, transport, backend, token.value, Bytes(bytes.begin() + 3, bytes.end()), clock.time, clock.time));
++      const auto published = router.take_rx(1, clock.time); CHECK(published);
++      CHECK(published.value.receive_timestamp_us == original && published.value.source == 6);
++      CHECK(router.take_rx(1, clock.time).error == RouterError::Empty);
++      CHECK(fake_receive(router, transport, backend, token.value, bytes, clock.time, clock.time));
++      clock.time += kRxMaxAgeUs + 1;
++      CHECK(router.take_rx(1, clock.time).error == RouterError::Empty);
++      CHECK(router.counters().expired_rx == 1);
++      CHECK(backend.calls.size() == 3);
++    });
++    std::cout << "{\"suite\":\"session_router_integration\",\"passed\":" << groups
++              << ",\"failed\":0,\"skipped\":0,\"assertions\":" << assertions
++              << ",\"device_access\":false,\"real_can_tx\":false,\"transport\":\"P2_with_fake_backends_only\",\"cases\":[";
++    for (std::size_t i = 0; i < names.size(); ++i) {
++      if (i) std::cout << ',';
++      json_string(names[i]);
++    }
++    std::cout << "]}\n";
++    return 0;
++  } catch (const std::exception &error) {
++    std::cerr << "FAIL after " << groups << " groups: " << error.what() << '\n';
++    return 1;
++  }
++}

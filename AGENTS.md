@@ -22,8 +22,9 @@ Flagship PLUS, with the user's existing Mr One C3XL and Panda hardware.
 ## Current execution boundary
 
 - The current user request authorizes local implementation and offline acceptance
-  of P2 on the completed P0/P1 patches: USB/SPI abstraction, explicit USB
-  backend, preserved original SPI path and offline transport/regression tests.
+  of P3 on the completed P0/P1/P2 patches: fixed slots, connection epochs,
+  bidirectional CAN routing, bounded/expiring queues and required-group
+  availability, with offline lifecycle/routing regression tests.
   Local Linux build preparation is separate from network-denied validation.
   Maintain an explicit downstream branch
   and independent patches against the locked baseline; keep the official
