@@ -1,0 +1,71 @@
+{
+  "schema": "songplus-panda-p0p1-patch-series/v1",
+  "baselines": {
+    "upstream-openpilot": "35e78a9d9518855ec0dacec919e719624a28131f",
+    "upstream-openpilot/opendbc_repo": "b3bd79a659dae961af169a3baac723961f720133",
+    "upstream-openpilot/panda": "a59195163c32a3a375ea6c86715dc08fd0984c1b"
+  },
+  "design_snapshot_commit": "9746a0b",
+  "development_branch": "songplus/dos-usb-p0p1",
+  "series": [
+    {
+      "file": "0001-offline-profile-registry-mock.patch",
+      "sha256": "eb50258572f5bf26d990ffae42e50d67915551b3bb5c7ad19138a1be1a0dee0f",
+      "commit": "b01f37b2fa470b62568e1e67455ba645a71e5c36",
+      "stage": "P0"
+    },
+    {
+      "file": "0002-pinned-protocol-codecs-tests.patch",
+      "sha256": "7b800df8dc29bb534197322d293f9d1fa2a77b2c89adea1b726cb50a51f4f938",
+      "commit": "3ab5233f9de0e1c0e65bfb2ca8339077da83c939",
+      "stage": "P1"
+    }
+  ],
+  "result_files": {
+    "openpilot/selfdrive/pandad/compatibility/README.md": "115e3f69699c6f4c9c9687198a8660185d06276d5f3a61791182a35fd355e099",
+    "openpilot/selfdrive/pandad/compatibility/__init__.py": "a038f90fb126e58e5d78e2e36e352df65dc5bd6765afd18f05805b4c2a987ddd",
+    "openpilot/selfdrive/pandad/compatibility/can_codec.cc": "1ed4bccad356218d030c193f6a75ba70afe79f0e719f341aac35be13c6765789",
+    "openpilot/selfdrive/pandad/compatibility/can_codec.h": "e1dd34a783275304b9c0a0dbaaea8c6db96e3563e1250ab0cd31ac40f3ca950b",
+    "openpilot/selfdrive/pandad/compatibility/health.py": "cb83fa0a027bd17e14bdf478dbf755c835ecf701e12804ed5e1946108aec6633",
+    "openpilot/selfdrive/pandad/compatibility/mock_transport.py": "967000e3079f91d531d906b3730cc8dfbd9e7bc96b2913a88ca90ad4ec8993ed",
+    "openpilot/selfdrive/pandad/compatibility/profile.py": "dd87f6d0ea40a5a2f65461cbe309e09b1bd14d026b9502e326c7dc80d5f95aef",
+    "openpilot/selfdrive/pandad/compatibility/profiles/unbound.json": "5c867ca4f5f95f06e0e5cda1c0bc54f03ee36f6025e0017e7420a050d10984f9",
+    "openpilot/selfdrive/pandad/compatibility/registry.py": "09ce543d31b6522f7ec2317a9b2b7a610e45fa083047d2c4f7518987e1b2ba47",
+    "openpilot/selfdrive/pandad/compatibility/tests/check_can_oracle.py": "6e55e4d2af1b48db0ca6cf0add6e1b3f386c9dce22ef80d77333b1364f816246",
+    "openpilot/selfdrive/pandad/compatibility/tests/health_layout_probe.cc": "5fa8f65713fcc383a800372296594a489d16ba31adb40892b97ba00b61b9c6e1",
+    "openpilot/selfdrive/pandad/compatibility/tests/run_python_tests.py": "9cc6afa6a7ab3100259f01d00366b3536cee3190e8225440cbadd5e395ddd3a9",
+    "openpilot/selfdrive/pandad/compatibility/tests/test_can_codec.cc": "8ff20a3efa15c1fb93e5c492d2626a72a245bc0c0ff158b9a82151c88a7c2b75",
+    "openpilot/selfdrive/pandad/compatibility/tests/test_health.py": "cc3168c24ec5a37a0e104fd1b675e0b9609f0526692c0a18df17aa91d697c57a",
+    "openpilot/selfdrive/pandad/compatibility/tests/test_mock_transport.py": "f8635b243fd8e4fa9cad31c75638a51e031ce608dcdbf77e4540c5406cda31b9",
+    "openpilot/selfdrive/pandad/compatibility/tests/test_offline_integration.py": "d267a50b7908a9d2668982d93225cb64c86d4c23c4cc08ecce621c994982d6d4",
+    "openpilot/selfdrive/pandad/compatibility/tests/test_profile.py": "12507192c45129aa200c65faf805b6df665c3e3e111ee0e3cf4d2038fe04128d"
+  },
+  "baseline_inputs": {
+    "upstream-openpilot/openpilot/selfdrive/pandad/panda.h": "325fbcc720a9af7988ec8098a32568f85ed923f55508e829c6a5fe3d3ca210af",
+    "upstream-openpilot/openpilot/selfdrive/pandad/panda.cc": "b5a198a30ff5a193e5c71e2c0bc2b2649a5d6737ae13bee4ec7bbba471eec9b9",
+    "upstream-openpilot/panda/board/health.h": "f512bcff6925e233a35c00e2d921fe01933fd77c0705c573a233b170d73ce20d",
+    "upstream-openpilot/panda/board/can.h": "ee30d6a723476e5bfaf5493249af715c0f783b95fe4cdc19cb868da09b2334e8",
+    "upstream-openpilot/panda/board/can_comms.h": "5806c9bda986d0044b6cb83ed0b79ae95b715b75f0f6fb33cbfc6e2e660841b3",
+    "upstream-openpilot/panda/board/main_comms.h": "57c717ac0434b16e6026e46d006d72a89be8661d9e51c3e1a99719b524c0a203",
+    "upstream-openpilot/panda/board/sys/sys.h": "452049183c5033cf2391bc59ccc4da87e03838de50533d0f65b492749d534e89",
+    "upstream-openpilot/panda/board/drivers/can_common.h": "1509297d8ce4f8a527c3bf941dae3f82a26db82a4c3397fd324bd32b81ec9ec1",
+    "upstream-openpilot/opendbc_repo/opendbc/safety/can.h": "76f2ab751f89797c0a2254ab9a010a261678fe30f869d4e777cb7f2048802743",
+    "upstream-openpilot/opendbc_repo/opendbc/safety/declarations.h": "f6a6d2466c1131b734b763a9d65cdbd51bcf66f876e14bd662be5f8c55b0b284"
+  },
+  "acceptance_ids": [
+    "A00",
+    "A01",
+    "A02",
+    "A10",
+    "A11",
+    "A12",
+    "A13",
+    "A14",
+    "A15"
+  ],
+  "scope": "Standalone P0/P1 host logic only; no active pandad/USB/MCU integration",
+  "required_python": "3.12.13",
+  "device_access": false,
+  "installation_enabled": false,
+  "acceptance_map_sha256": "48c048872d5d7b439ee25f7f99b3fe33af449f167ab028929650f1bf85f657ff"
+}

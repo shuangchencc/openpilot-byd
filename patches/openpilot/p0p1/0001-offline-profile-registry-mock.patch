@@ -1,0 +1,923 @@
+From b01f37b2fa470b62568e1e67455ba645a71e5c36 Mon Sep 17 00:00:00 2001
+From: scarvito <7883167+scarvito@user.noreply.gitee.com>
+Date: Sun, 18 Oct 2026 02:11:02 +0800
+Subject: [PATCH] Add offline unbound profiles, identity registry and mock
+ Panda transport
+
+---
+ .../pandad/compatibility/__init__.py          |   7 +
+ .../pandad/compatibility/mock_transport.py    | 131 ++++++++
+ .../selfdrive/pandad/compatibility/profile.py | 201 ++++++++++++
+ .../compatibility/profiles/unbound.json       |  20 ++
+ .../pandad/compatibility/registry.py          | 101 ++++++
+ .../tests/test_mock_transport.py              | 110 +++++++
+ .../compatibility/tests/test_profile.py       | 288 ++++++++++++++++++
+ 7 files changed, 858 insertions(+)
+ create mode 100644 openpilot/selfdrive/pandad/compatibility/__init__.py
+ create mode 100644 openpilot/selfdrive/pandad/compatibility/mock_transport.py
+ create mode 100644 openpilot/selfdrive/pandad/compatibility/profile.py
+ create mode 100644 openpilot/selfdrive/pandad/compatibility/profiles/unbound.json
+ create mode 100644 openpilot/selfdrive/pandad/compatibility/registry.py
+ create mode 100644 openpilot/selfdrive/pandad/compatibility/tests/test_mock_transport.py
+ create mode 100644 openpilot/selfdrive/pandad/compatibility/tests/test_profile.py
+
+diff --git a/openpilot/selfdrive/pandad/compatibility/__init__.py b/openpilot/selfdrive/pandad/compatibility/__init__.py
+new file mode 100644
+index 0000000000000000000000000000000000000000..a400bed1b1588382f65339109f2c4f018c01019b
+--- /dev/null
++++ b/openpilot/selfdrive/pandad/compatibility/__init__.py
+@@ -0,0 +1,7 @@
++"""Offline-only dual-Panda contracts; importing this package opens no hardware.
++
++This package is deliberately not imported by pandad. Use it as ``compatibility``
++with this directory's parent on PYTHONPATH to avoid the existing pandad package
++initializer and its cereal dependencies. No successful simulation authorizes
++device access, real CAN transmission, or firmware installation.
++"""
+diff --git a/openpilot/selfdrive/pandad/compatibility/mock_transport.py b/openpilot/selfdrive/pandad/compatibility/mock_transport.py
+new file mode 100644
+index 0000000000000000000000000000000000000000..36bc75640379fba23296b23a9358e7bb6c865010
+--- /dev/null
++++ b/openpilot/selfdrive/pandad/compatibility/mock_transport.py
+@@ -0,0 +1,131 @@
++"""Bounded scripted memory transport. A write is only recorded command intent.
++
++No device files, clocks, waits, threads, sockets, USB, Panda, or GPIO are used.
++These limits are fixture resource limits, not validated USB timing budgets.
++"""
++
++from dataclasses import dataclass, asdict
++
++
++MAX_TRANSFER_BYTES = 4096
++MAX_SCRIPT_STEPS = 512
++MAX_SCRIPT_BYTES = 1024 * 1024
++MAX_TIMEOUT_MS = 1000
++
++
++class MockTransportError(Exception):
++  pass
++
++
++class ScriptError(MockTransportError):
++  pass
++
++
++class MockTimeout(MockTransportError):
++  pass
++
++
++class MockDisconnected(MockTransportError):
++  pass
++
++
++class MockCancelled(MockTransportError):
++  pass
++
++
++ERRORS = {"timeout": MockTimeout, "disconnected": MockDisconnected, "cancelled": MockCancelled}
++
++
++@dataclass(frozen=True)
++class ScriptStep:
++  operation: str
++  payload: bytes = b""
++  returned_count: int | None = None
++  error: str | None = None
++
++  def __post_init__(self) -> None:
++    if type(self.operation) is not str or self.operation not in ("read", "write"):
++      raise ScriptError("operation must be read or write")
++    if type(self.payload) is not bytes or len(self.payload) > MAX_TRANSFER_BYTES:
++      raise ScriptError("payload must be bounded immutable bytes")
++    if self.returned_count is not None and (self.operation != "write" or type(self.returned_count) is not int
++                                           or not 0 <= self.returned_count <= len(self.payload)):
++      raise ScriptError("invalid returned_count")
++    if self.error is not None and (type(self.error) is not str or self.error not in ERRORS):
++      raise ScriptError("invalid scripted error")
++    if self.error is not None and (self.returned_count is not None or (self.operation == "read" and self.payload)):
++      raise ScriptError("error cannot also return data or a count")
++
++
++@dataclass(frozen=True)
++class TraceEvent:
++  operation: str
++  requested_count: int
++  timeout_ms: int
++  payload_hex: str
++  returned_count: int | None
++  result: str
++  actual_device_access: bool = False
++  actual_can_tx: bool = False
++
++
++class ScriptedTransport:
++  def __init__(self, steps: tuple[ScriptStep, ...]):
++    if type(steps) is not tuple or not all(type(s) is ScriptStep for s in steps):
++      raise ScriptError("script must be an immutable tuple of ScriptStep")
++    if len(steps) > MAX_SCRIPT_STEPS or sum(len(s.payload) for s in steps) > MAX_SCRIPT_BYTES:
++      raise ScriptError("script exceeds resource limit")
++    self._steps = steps
++    self._cursor = 0
++    self._trace: list[TraceEvent] = []
++    self._closed = False
++
++  @property
++  def trace(self) -> tuple[TraceEvent, ...]:
++    return tuple(self._trace)
++
++  def trace_json(self) -> list[dict]:
++    return [asdict(event) for event in self._trace]
++
++  @property
++  def remaining_steps(self) -> int:
++    return len(self._steps) - self._cursor
++
++  @staticmethod
++  def _arguments(size: int, timeout_ms: int) -> None:
++    if type(size) is not int or not 0 <= size <= MAX_TRANSFER_BYTES:
++      raise ScriptError("transfer size out of range")
++    if type(timeout_ms) is not int or not 1 <= timeout_ms <= MAX_TIMEOUT_MS:
++      raise ScriptError("timeout must be a bounded positive integer")
++
++  def _next(self, operation: str, size: int, timeout_ms: int, payload: bytes = b"") -> ScriptStep:
++    self._arguments(size, timeout_ms)
++    if self._closed:
++      raise MockCancelled("transport is closed")
++    if self._cursor == len(self._steps):
++      raise ScriptError("script exhausted")
++    step = self._steps[self._cursor]
++    if step.operation != operation:
++      raise ScriptError("unexpected operation")
++    if (operation == "read" and len(step.payload) > size) or (operation == "write" and step.payload != payload):
++      raise ScriptError("request does not match script")
++    self._cursor += 1
++    count = None if step.error else (len(step.payload) if step.returned_count is None else step.returned_count)
++    self._trace.append(TraceEvent(operation, size, timeout_ms, (payload if operation == "write" else step.payload).hex(),
++                                  count, step.error or "ok"))
++    if step.error:
++      raise ERRORS[step.error](f"scripted {step.error}")
++    return step
++
++  def read(self, size: int, *, timeout_ms: int = 100) -> bytes:
++    return self._next("read", size, timeout_ms).payload
++
++  def write(self, payload: bytes, *, timeout_ms: int = 100) -> int:
++    if type(payload) is not bytes:
++      raise ScriptError("write payload must be immutable bytes")
++    step = self._next("write", len(payload), timeout_ms, payload)
++    return len(payload) if step.returned_count is None else step.returned_count
++
++  def close(self) -> None:
++    # Closing an in-memory script never emits a physical reset/cancel operation.
++    self._closed = True
+diff --git a/openpilot/selfdrive/pandad/compatibility/profile.py b/openpilot/selfdrive/pandad/compatibility/profile.py
+new file mode 100644
+index 0000000000000000000000000000000000000000..e39b248d93dbdfb1e248b09eb110ad90a1a5b2ed
+--- /dev/null
++++ b/openpilot/selfdrive/pandad/compatibility/profile.py
+@@ -0,0 +1,201 @@
++"""Strict, immutable profiles for the offline compatibility implementation."""
++
++from dataclasses import dataclass
++import json
++
++
++SCHEMA = "songplus-dual-panda-offline-profile/v1"
++CURRENT_PROTOCOL = "current:f512bcff76f2ab75"
++UNSUPPORTED = "UNSUPPORTED"
++MAX_PROFILE_BYTES = 32768
++# This is a synthetic policy catalog, not evidence of the user's physical PCB.
++# Supporting another board family requires an explicit reviewed catalog change.
++KNOWN_BOARD_MCU_PAIRS = (("DOS", "F4"), ("RED_PANDA", "H7"))
++
++
++class ProfileError(ValueError):
++  pass
++
++
++def _require(condition: bool, message: str) -> None:
++  if not condition:
++    raise ProfileError(message)
++
++
++def _text(value: object) -> bool:
++  return type(value) is str and 0 < len(value) <= 128 and value == value.strip() and all(32 < ord(c) < 127 for c in value)
++
++
++def _slot(value: object) -> bool:
++  return type(value) is int and value in (0, 1)
++
++
++@dataclass(frozen=True)
++class Capabilities:
++  can_buses: tuple[int, ...]
++  can_fd: bool
++  diagnostic: bool
++  harness: bool
++  ignition: bool
++  fan: bool
++  power_monitor: bool
++  ir: bool
++
++  def __post_init__(self) -> None:
++    _require(type(self.can_buses) is tuple and all(type(x) is int for x in self.can_buses)
++             and self.can_buses == (0, 1, 2), "CAN buses must be exactly (0, 1, 2)")
++    for key in ("can_fd", "diagnostic", "harness", "ignition", "fan", "power_monitor", "ir"):
++      _require(type(getattr(self, key)) is bool, f"capability {key} must be boolean")
++
++
++@dataclass(frozen=True)
++class SlotBinding:
++  slot: int
++  identity_binding: str | None
++  expected_board_type: str | None
++  mcu_family: str | None
++  exact_mcu: str | None
++  transport: str | None
++  protocol_profile: str | None
++  capabilities: Capabilities | None
++  application_signature: str | None
++  safety_config_semantics: str | None
++
++  def __post_init__(self) -> None:
++    _require(_slot(self.slot), "slot must be integer 0 or 1")
++    values = [getattr(self, name) for name in self.__dataclass_fields__ if name != "slot"]
++    if all(value is None for value in values):
++      return
++    _require(all(value is not None for value in values), "binding must be fully specified or completely unbound")
++    for name in self.__dataclass_fields__:
++      if name not in ("slot", "capabilities"):
++        _require(_text(getattr(self, name)), f"binding {name} must be nonempty bounded ASCII")
++    _require(self.identity_binding.startswith("fixture:"), "only fixture: identities are permitted")
++    _require(self.exact_mcu.startswith("fixture:"), "MCU declaration must be explicitly synthetic")
++    _require(self.application_signature.startswith("fixture:"), "application signature must be explicitly synthetic")
++    _require(self.transport in ("USB", "SPI"), "unsupported transport")
++    _require(self.mcu_family in ("F4", "H7"), "unsupported MCU family")
++    _require((self.expected_board_type, self.mcu_family) in KNOWN_BOARD_MCU_PAIRS,
++             "unknown board type or incompatible board/MCU family")
++    _require(self.protocol_profile == CURRENT_PROTOCOL, "only the locked current control ABI can bind")
++    _require(type(self.capabilities) is Capabilities, "capabilities must be explicit")
++    _require(self.mcu_family != "F4" or not self.capabilities.can_fd, "F4 cannot declare CAN-FD")
++    _require(self.safety_config_semantics == "noOutput", "P0 fixture safety must be noOutput")
++
++
++@dataclass(frozen=True)
++class Roles:
++  vehicle_can: int | str | None
++  diagnostic: int | str | None
++  harness: int | str | None
++  ignition_sources: tuple[int, ...] | None
++  fan_control: int | str | None
++  power_monitor: int | str | None
++  ir_control: int | str | None
++
++  def __post_init__(self) -> None:
++    for name in self.__dataclass_fields__:
++      value = getattr(self, name)
++      if name == "ignition_sources":
++        _require(value is None or (type(value) is tuple and len(value) in (1, 2)
++                 and all(_slot(x) for x in value) and len(set(value)) == len(value)), "invalid ignition_sources")
++      else:
++        _require(value is None or _slot(value) or (type(value) is str and value == UNSUPPORTED), f"invalid role {name}")
++
++
++@dataclass(frozen=True)
++class Profile:
++  schema: str
++  purpose: str
++  binding_status: str
++  device_access_enabled: bool
++  can_tx_enabled: bool
++  firmware_install_enabled: bool
++  expected_board_count: int
++  required_slots: tuple[int, ...]
++  bus_stride: int
++  ordinary_local_can_buses: tuple[int, ...]
++  slots: tuple[SlotBinding, ...]
++  roles: Roles
++
++  def __post_init__(self) -> None:
++    _require(self.schema == SCHEMA, "unknown profile schema")
++    _require(self.purpose == "offline_fixture", "profile is for offline fixtures only")
++    _require(type(self.binding_status) is str and self.binding_status in ("UNBOUND", "SYNTHETIC_BOUND"), "invalid binding status")
++    for name in ("device_access_enabled", "can_tx_enabled", "firmware_install_enabled"):
++      _require(getattr(self, name) is False, f"{name} must remain false")
++    _require(type(self.expected_board_count) is int and self.expected_board_count == 2, "exactly two required boards")
++    _require(type(self.required_slots) is tuple and all(type(x) is int for x in self.required_slots)
++             and self.required_slots == (0, 1), "required slots must be exactly (0, 1)")
++    _require(type(self.bus_stride) is int and self.bus_stride == 4, "bus stride must be 4")
++    _require(type(self.ordinary_local_can_buses) is tuple and all(type(x) is int for x in self.ordinary_local_can_buses)
++             and self.ordinary_local_can_buses == (0, 1, 2), "ordinary local CAN buses must be (0, 1, 2)")
++    _require(type(self.slots) is tuple and len(self.slots) == 2 and all(type(s) is SlotBinding for s in self.slots), "invalid slots")
++    _require(tuple(s.slot for s in self.slots) == (0, 1), "profile slots must be canonical, unique and fixed")
++    _require(type(self.roles) is Roles, "invalid roles")
++    if self.binding_status == "UNBOUND":
++      _require(all(s.identity_binding is None for s in self.slots), "unbound profile cannot contain bindings")
++      _require(all(getattr(self.roles, n) is None for n in self.roles.__dataclass_fields__), "unbound profile cannot assign roles")
++      return
++    _require(all(s.identity_binding is not None for s in self.slots), "synthetic profile needs both bindings")
++    _require(len({s.identity_binding for s in self.slots}) == 2, "duplicate bound identity")
++    role_caps = {"vehicle_can": None, "diagnostic": "diagnostic", "harness": "harness", "fan_control": "fan",
++                 "power_monitor": "power_monitor", "ir_control": "ir"}
++    for role, cap in role_caps.items():
++      owner = getattr(self.roles, role)
++      if owner == UNSUPPORTED and role in ("fan_control", "power_monitor", "ir_control"):
++        _require(not any(getattr(s.capabilities, cap) for s in self.slots), f"{role} cannot hide a declared capability")
++      else:
++        _require(_slot(owner), f"{role} needs an explicit slot")
++        _require(cap is None or getattr(self.slots[owner].capabilities, cap), f"{role} owner lacks capability")
++    _require(self.roles.ignition_sources is not None, "ignition sources must be explicit")
++    _require(all(self.slots[s].capabilities.ignition for s in self.roles.ignition_sources), "ignition owner lacks capability")
++
++
++def _object(pairs: list[tuple[str, object]]) -> dict:
++  result = {}
++  for key, value in pairs:
++    if key in result:
++      raise ProfileError(f"duplicate JSON key: {key}")
++    result[key] = value
++  return result
++
++
++def _fields(value: object, cls: type) -> dict:
++  _require(type(value) is dict, f"{cls.__name__} must be an object")
++  _require(set(value) == set(cls.__dataclass_fields__), f"{cls.__name__} fields must match schema exactly")
++  return dict(value)
++
++
++def _tuple(value: object, name: str) -> tuple:
++  _require(type(value) is list, f"{name} must be a JSON array")
++  return tuple(value)
++
++
++def load_profile(serialized: str | bytes) -> Profile:
++  """Parse supplied JSON without opening a file or importing any hardware API."""
++  _require(type(serialized) in (str, bytes), "profile input must be str or bytes")
++  try:
++    raw = serialized.encode("utf-8") if type(serialized) is str else serialized
++    _require(len(raw) <= MAX_PROFILE_BYTES, "profile exceeds size limit")
++    data = json.loads(raw.decode("utf-8"), object_pairs_hook=_object,
++                      parse_constant=lambda _: (_ for _ in ()).throw(ProfileError("non-finite JSON value")))
++  except (UnicodeError, json.JSONDecodeError, RecursionError) as error:
++    raise ProfileError("invalid JSON profile") from error
++  values = _fields(data, Profile)
++  for field in ("required_slots", "ordinary_local_can_buses", "slots"):
++    values[field] = _tuple(values[field], field)
++  slots = []
++  for value in values["slots"]:
++    fields = _fields(value, SlotBinding)
++    if fields["capabilities"] is not None:
++      caps = _fields(fields["capabilities"], Capabilities)
++      caps["can_buses"] = _tuple(caps["can_buses"], "can_buses")
++      fields["capabilities"] = Capabilities(**caps)
++    slots.append(SlotBinding(**fields))
++  values["slots"] = tuple(slots)
++  roles = _fields(values["roles"], Roles)
++  if roles["ignition_sources"] is not None:
++    roles["ignition_sources"] = _tuple(roles["ignition_sources"], "ignition_sources")
++  values["roles"] = Roles(**roles)
++  return Profile(**values)
+diff --git a/openpilot/selfdrive/pandad/compatibility/profiles/unbound.json b/openpilot/selfdrive/pandad/compatibility/profiles/unbound.json
+new file mode 100644
+index 0000000000000000000000000000000000000000..2f54cc293b636344bbbc063b1c11648b80f352c1
+--- /dev/null
++++ b/openpilot/selfdrive/pandad/compatibility/profiles/unbound.json
+@@ -0,0 +1,20 @@
++{
++  "schema": "songplus-dual-panda-offline-profile/v1",
++  "purpose": "offline_fixture",
++  "binding_status": "UNBOUND",
++  "device_access_enabled": false,
++  "can_tx_enabled": false,
++  "firmware_install_enabled": false,
++  "expected_board_count": 2,
++  "required_slots": [0, 1],
++  "bus_stride": 4,
++  "ordinary_local_can_buses": [0, 1, 2],
++  "slots": [
++    {"slot": 0, "identity_binding": null, "expected_board_type": null, "mcu_family": null, "exact_mcu": null,
++     "transport": null, "protocol_profile": null, "capabilities": null, "application_signature": null, "safety_config_semantics": null},
++    {"slot": 1, "identity_binding": null, "expected_board_type": null, "mcu_family": null, "exact_mcu": null,
++     "transport": null, "protocol_profile": null, "capabilities": null, "application_signature": null, "safety_config_semantics": null}
++  ],
++  "roles": {"vehicle_can": null, "diagnostic": null, "harness": null, "ignition_sources": null,
++            "fan_control": null, "power_monitor": null, "ir_control": null}
++}
+diff --git a/openpilot/selfdrive/pandad/compatibility/registry.py b/openpilot/selfdrive/pandad/compatibility/registry.py
+new file mode 100644
+index 0000000000000000000000000000000000000000..f28272a3a573c44e3b512a5dbca68550c6609ed2
+--- /dev/null
++++ b/openpilot/selfdrive/pandad/compatibility/registry.py
+@@ -0,0 +1,101 @@
++"""Atomic registration of supplied synthetic observations; no discovery IO."""
++
++from dataclasses import dataclass
++
++from .profile import Capabilities, Profile, SlotBinding
++
++
++class RegistryError(ValueError):
++  def __init__(self, code: str):
++    self.code = code
++    super().__init__(code)
++
++
++@dataclass(frozen=True)
++class Observation:
++  identity: str
++  board_type: str
++  mcu_family: str
++  exact_mcu: str
++  transport: str
++  protocol_profile: str
++  capabilities: Capabilities
++  application_signature: str
++
++  def __post_init__(self) -> None:
++    # Reuse exactly the bound-profile contract, with the observation's noOutput
++    # fixture semantics. No board type is inferred from transport or ordering.
++    SlotBinding(0, self.identity, self.board_type, self.mcu_family, self.exact_mcu,
++                self.transport, self.protocol_profile, self.capabilities,
++                self.application_signature, "noOutput")
++
++
++@dataclass(frozen=True)
++class Registry:
++  """Snapshot for simulation, not a live connection or permission token.
++
++  A caller must register the complete observation set on each reconciliation.
++  Disconnect/reconnect epochs and real control-session lifecycle belong to P3.
++  """
++  profile: Profile
++  boards: tuple[Observation, ...]
++
++  def __post_init__(self) -> None:
++    _validate(self.profile, self.boards)
++    if tuple(o.identity for o in self.boards) != tuple(s.identity_binding for s in self.profile.slots):
++      raise RegistryError("NONCANONICAL_REGISTRY")
++
++  @property
++  def device_access_enabled(self) -> bool:
++    return False
++
++  @property
++  def can_tx_enabled(self) -> bool:
++    return False
++
++  @property
++  def firmware_install_enabled(self) -> bool:
++    return False
++
++  def for_role(self, role: str) -> tuple[Observation, ...]:
++    if type(role) is not str or role not in self.profile.roles.__dataclass_fields__:
++      raise RegistryError("UNKNOWN_ROLE")
++    slots = getattr(self.profile.roles, role)
++    if slots == "UNSUPPORTED":
++      return ()
++    return tuple(self.boards[s] for s in (slots if type(slots) is tuple else (slots,)))
++
++
++def _validate(profile: Profile, observations: tuple[Observation, ...]) -> None:
++  if type(profile) is not Profile:
++    raise RegistryError("INVALID_PROFILE")
++  if profile.binding_status != "SYNTHETIC_BOUND":
++    raise RegistryError("UNBOUND_PROFILE")
++  if type(observations) is not tuple or not all(type(o) is Observation for o in observations):
++    raise RegistryError("INVALID_OBSERVATIONS")
++  if len(observations) != 2:
++    raise RegistryError("REQUIRED_BOARD_COUNT")
++  identities = [o.identity for o in observations]
++  if len(set(identities)) != 2:
++    raise RegistryError("DUPLICATE_IDENTITY")
++  by_identity = {o.identity: o for o in observations}
++  if set(by_identity) != {slot.identity_binding for slot in profile.slots}:
++    raise RegistryError("UNEXPECTED_IDENTITY")
++  fields = {"board_type": "expected_board_type", "mcu_family": "mcu_family", "exact_mcu": "exact_mcu", "transport": "transport",
++            "protocol_profile": "protocol_profile", "capabilities": "capabilities", "application_signature": "application_signature"}
++  for binding in profile.slots:
++    observation = by_identity[binding.identity_binding]
++    for observed, expected in fields.items():
++      if getattr(observation, observed) != getattr(binding, expected):
++        raise RegistryError(f"MISMATCH_{observed.upper()}")
++
++
++def register(profile: Profile, observations: tuple[Observation, ...]) -> Registry:
++  """Validate the entire inventory and bind it to fixed profile slots atomically.
++
++  Reversed discovery order is accepted. Missing, extra, duplicate (including
++  the same identity on USB and SPI), or substituted boards reject the group.
++  """
++  _validate(profile, observations)
++  by_identity = {observation.identity: observation for observation in observations}
++  return Registry(profile, tuple(by_identity[slot.identity_binding] for slot in profile.slots))
+diff --git a/openpilot/selfdrive/pandad/compatibility/tests/test_mock_transport.py b/openpilot/selfdrive/pandad/compatibility/tests/test_mock_transport.py
+new file mode 100644
+index 0000000000000000000000000000000000000000..7ed925bed0076b34ce73d51c801e658e945aa228
+--- /dev/null
++++ b/openpilot/selfdrive/pandad/compatibility/tests/test_mock_transport.py
+@@ -0,0 +1,110 @@
++from dataclasses import FrozenInstanceError
++import json
++import unittest
++
++from compatibility.mock_transport import (MAX_SCRIPT_BYTES, MAX_SCRIPT_STEPS, MAX_TRANSFER_BYTES,
++                                           MockCancelled, MockDisconnected, MockTimeout, ScriptError, ScriptStep, ScriptedTransport)
++
++
++class TestMockTransport(unittest.TestCase):
++  def test_short_reads_and_writes_are_returned_without_retry(self):
++    mock = ScriptedTransport((ScriptStep("read", b"a"), ScriptStep("read", b""), ScriptStep("write", b"abcd", 2)))
++    self.assertEqual(mock.read(4096), b"a")
++    self.assertEqual(mock.read(4), b"")
++    self.assertEqual(mock.write(b"abcd"), 2)
++    self.assertEqual(mock.remaining_steps, 0)
++    trace = mock.trace_json()
++    self.assertEqual([e["returned_count"] for e in trace], [1, 0, 2])
++    self.assertTrue(all(not e["actual_device_access"] and not e["actual_can_tx"] for e in trace))
++    self.assertEqual(json.loads(json.dumps(trace)), trace)
++
++  def test_scripted_errors_are_explicit_and_do_not_retry(self):
++    for error, cls in (("timeout", MockTimeout), ("disconnected", MockDisconnected), ("cancelled", MockCancelled)):
++      mock = ScriptedTransport((ScriptStep("read", error=error),))
++      with self.subTest(error=error), self.assertRaises(cls):
++        mock.read(1)
++      self.assertEqual(mock.remaining_steps, 0)
++      self.assertEqual(mock.trace[0].result, error)
++      self.assertIsNone(mock.trace[0].returned_count)
++
++  def test_mock_write_error_records_only_intent(self):
++    mock = ScriptedTransport((ScriptStep("write", b"abc", error="timeout"),))
++    with self.assertRaises(MockTimeout):
++      mock.write(b"abc")
++    self.assertEqual(mock.trace[0].payload_hex, "616263")
++    self.assertFalse(mock.trace[0].actual_can_tx)
++    self.assertIsNone(mock.trace[0].returned_count)
++
++  def test_strict_script_mismatch_does_not_consume(self):
++    mock = ScriptedTransport((ScriptStep("write", b"expected"), ScriptStep("read", b"ab")))
++    for call in (lambda: mock.read(1), lambda: mock.write(b"wrong")):
++      with self.assertRaises(ScriptError):
++        call()
++    self.assertEqual(mock.remaining_steps, 2)
++    self.assertEqual(mock.trace, ())
++    self.assertEqual(mock.write(b"expected"), 8)
++    with self.assertRaises(ScriptError):
++      mock.read(1)
++    self.assertEqual(mock.remaining_steps, 1)
++
++  def test_argument_boundaries_and_types(self):
++    for size in (-1, MAX_TRANSFER_BYTES + 1, True, 1.0):
++      mock = ScriptedTransport((ScriptStep("read"),))
++      with self.subTest(size=size), self.assertRaises(ScriptError):
++        mock.read(size)
++      self.assertEqual(mock.remaining_steps, 1)
++    for timeout in (0, 1001, True, 1.0, None):
++      mock = ScriptedTransport((ScriptStep("read"),))
++      with self.subTest(timeout=timeout), self.assertRaises(ScriptError):
++        mock.read(0, timeout_ms=timeout)
++    for size, timeout in ((0, 1), (MAX_TRANSFER_BYTES, 1000)):
++      self.assertEqual(ScriptedTransport((ScriptStep("read"),)).read(size, timeout_ms=timeout), b"")
++    with self.assertRaises(ScriptError):
++      ScriptedTransport(()).write(bytearray(b"x"))
++
++  def test_step_contract_validation(self):
++    for args in (("reset",), ("read", bytearray()), ("read", b"x" * 4097), ("read", b"", 0),
++                 ("write", b"x", True), ("write", b"x", 2), ("read", b"", None, "unknown"),
++                 ("read", b"x", None, "timeout"), ("write", b"x", 0, "timeout")):
++      with self.subTest(args=args[:1]), self.assertRaises(ScriptError):
++        ScriptStep(*args)
++
++  def test_script_resources_are_bounded(self):
++    for script in ([], (object(),), (ScriptStep("read"),) * (MAX_SCRIPT_STEPS + 1),
++                   (ScriptStep("read", b"a" * MAX_TRANSFER_BYTES),) * (MAX_SCRIPT_BYTES // MAX_TRANSFER_BYTES + 1)):
++      with self.assertRaises(ScriptError):
++        ScriptedTransport(script)
++    mock = ScriptedTransport((ScriptStep("read"),) * MAX_SCRIPT_STEPS)
++    self.assertEqual(mock.remaining_steps, MAX_SCRIPT_STEPS)
++
++  def test_instances_are_independent_and_close_is_local(self):
++    first = ScriptedTransport((ScriptStep("read", error="timeout"),))
++    second = ScriptedTransport((ScriptStep("read", b"ok"),))
++    with self.assertRaises(MockTimeout):
++      first.read(2)
++    first.close()
++    first.close()
++    with self.assertRaises(MockCancelled):
++      first.read(2)
++    self.assertEqual(second.read(2), b"ok")
++    self.assertEqual(len(first.trace), 1)
++    self.assertEqual(len(second.trace), 1)
++
++  def test_trace_is_immutable_and_export_is_detached(self):
++    mock = ScriptedTransport((ScriptStep("read", b"a"),))
++    mock.read(1)
++    with self.assertRaises(FrozenInstanceError):
++      mock.trace[0].result = "fake"
++    exported = mock.trace_json()
++    exported[0]["actual_can_tx"] = True
++    self.assertFalse(mock.trace[0].actual_can_tx)
++
++  def test_exhaustion_is_explicit(self):
++    mock = ScriptedTransport(())
++    with self.assertRaisesRegex(ScriptError, "script exhausted"):
++      mock.read(0)
++    self.assertEqual(mock.trace, ())
++
++
++if __name__ == "__main__":
++  unittest.main()
+diff --git a/openpilot/selfdrive/pandad/compatibility/tests/test_profile.py b/openpilot/selfdrive/pandad/compatibility/tests/test_profile.py
+new file mode 100644
+index 0000000000000000000000000000000000000000..e56b79b3aecefff18c4db5c312916673a2fe3a7c
+--- /dev/null
++++ b/openpilot/selfdrive/pandad/compatibility/tests/test_profile.py
+@@ -0,0 +1,288 @@
++import ast
++from dataclasses import FrozenInstanceError, replace
++import json
++from pathlib import Path
++import unittest
++from unittest.mock import patch
++
++from compatibility.profile import CURRENT_PROTOCOL, ProfileError, load_profile
++from compatibility.registry import Observation, Registry, RegistryError, register
++from compatibility.mock_transport import ScriptedTransport
++
++
++PACKAGE = Path(__file__).resolve().parents[1]
++
++
++def unbound_dict():
++  return json.loads((PACKAGE / "profiles" / "unbound.json").read_text())
++
++
++def synthetic_dict(dos_slot=0):
++  data = unbound_dict()
++  data["binding_status"] = "SYNTHETIC_BOUND"
++  for slot in (0, 1):
++    is_dos = slot == dos_slot
++    data["slots"][slot].update({
++      "identity_binding": "fixture:dos" if is_dos else "fixture:external",
++      "expected_board_type": "DOS" if is_dos else "RED_PANDA",
++      "mcu_family": "F4" if is_dos else "H7",
++      "exact_mcu": "fixture:unknown-F4" if is_dos else "fixture:unknown-H7",
++      "transport": "USB", "protocol_profile": CURRENT_PROTOCOL,
++      "capabilities": {"can_buses": [0, 1, 2], "can_fd": not is_dos, "diagnostic": not is_dos,
++                       "harness": not is_dos, "ignition": True, "fan": is_dos, "power_monitor": is_dos, "ir": False},
++      "application_signature": "fixture:dos-app" if is_dos else "fixture:red-app",
++      "safety_config_semantics": "noOutput",
++    })
++  data["roles"] = {"vehicle_can": 1 - dos_slot, "diagnostic": 1 - dos_slot, "harness": 1 - dos_slot,
++                   "ignition_sources": [0, 1], "fan_control": dos_slot, "power_monitor": dos_slot, "ir_control": "UNSUPPORTED"}
++  return data
++
++
++def observations(profile):
++  return tuple(Observation(s.identity_binding, s.expected_board_type, s.mcu_family, s.exact_mcu,
++                           s.transport, s.protocol_profile, s.capabilities, s.application_signature) for s in profile.slots)
++
++
++class TestProfile(unittest.TestCase):
++  def test_unbound_loads_with_permissions_denied(self):
++    profile = load_profile(json.dumps(unbound_dict()))
++    self.assertEqual(profile.binding_status, "UNBOUND")
++    self.assertFalse(profile.device_access_enabled or profile.can_tx_enabled or profile.firmware_install_enabled)
++    with self.assertRaisesRegex(RegistryError, "UNBOUND_PROFILE"):
++      register(profile, ())
++
++  def test_profile_is_deeply_immutable(self):
++    profile = load_profile(json.dumps(synthetic_dict()))
++    with self.assertRaises(FrozenInstanceError):
++      profile.binding_status = "UNBOUND"
++    with self.assertRaises(FrozenInstanceError):
++      profile.slots[0].capabilities.can_fd = True
++    self.assertIsInstance(profile.slots, tuple)
++    self.assertIsInstance(profile.roles.ignition_sources, tuple)
++
++  def test_duplicate_json_keys_rejected_at_every_depth(self):
++    raw = json.dumps(unbound_dict())
++    for old, new in (("\"schema\":", "\"schema\": 0, \"schema\":"),
++                     ("\"slot\": 0", "\"slot\": 0, \"slot\": 0"),
++                     ("\"vehicle_can\": null", "\"vehicle_can\": null, \"vehicle_can\": null")):
++      with self.subTest(field=old), self.assertRaisesRegex(ProfileError, "duplicate JSON key"):
++        load_profile(raw.replace(old, new, 1))
++
++  def test_unknown_and_missing_fields_rejected(self):
++    for mutation in (lambda d: d.update(extra=1), lambda d: d.pop("roles"), lambda d: d["slots"][0].pop("exact_mcu"),
++                     lambda d: d["roles"].pop("diagnostic"), lambda d: d["slots"][0]["capabilities"].update(extra=False)):
++      data = synthetic_dict()
++      mutation(data)
++      with self.subTest(mutation=mutation), self.assertRaises(ProfileError):
++        load_profile(json.dumps(data))
++
++  def test_permission_flags_cannot_be_enabled_or_coerced(self):
++    for name in ("device_access_enabled", "can_tx_enabled", "firmware_install_enabled"):
++      for value in (True, 0, "false", None):
++        data = unbound_dict()
++        data[name] = value
++        with self.subTest(name=name, value=value), self.assertRaises(ProfileError):
++          load_profile(json.dumps(data))
++
++  def test_integer_fields_reject_boolean_and_coercion(self):
++    for field, value in (("expected_board_count", 2.0), ("bus_stride", "4"), ("required_slots", [False, True]),
++                         ("ordinary_local_can_buses", [False, 1, 2]), ("slots", {})):
++      data = unbound_dict()
++      data[field] = value
++      with self.subTest(field=field), self.assertRaises(ProfileError):
++        load_profile(json.dumps(data))
++    data = synthetic_dict()
++    data["slots"][0]["capabilities"]["fan"] = 1
++    with self.assertRaises(ProfileError):
++      load_profile(json.dumps(data))
++
++  def test_nonfinite_invalid_encoding_oversize_and_deep_input(self):
++    for raw in (b"\xff", "NaN", "Infinity", "{", " " * 32769, "[" * 2000 + "]" * 2000, 7):
++      with self.subTest(raw_type=type(raw).__name__), self.assertRaises(ProfileError):
++        load_profile(raw)
++
++  def test_non_fixture_identities_and_legacy_abi_rejected(self):
++    for key, value in (("identity_binding", "actual-serial"), ("identity_binding", ""), ("exact_mcu", "STM32F413"),
++                       ("application_signature", "hardware-signature"), ("protocol_profile", "legacy:16/4/5"),
++                       ("transport", "AUTO"), ("mcu_family", "UNKNOWN"), ("safety_config_semantics", "allOutput")):
++      data = synthetic_dict()
++      data["slots"][0][key] = value
++      with self.subTest(key=key, value=value), self.assertRaises(ProfileError):
++        load_profile(json.dumps(data))
++
++  def test_unbound_partial_or_role_assignment_rejected(self):
++    for change in (lambda d: d["slots"][0].update(identity_binding="fixture:x"),
++                   lambda d: d["roles"].update(vehicle_can=0),
++                   lambda d: d.update(binding_status="SYNTHETIC_BOUND")):
++      data = unbound_dict()
++      change(data)
++      with self.assertRaises(ProfileError):
++        load_profile(json.dumps(data))
++
++  def test_unknown_board_type_cannot_self_authorize(self):
++    for board_type in ("UNKNOWN", "SYNTHETIC_SAME_TYPE", "DOS_CLONE", "RED", ""):
++      data = synthetic_dict()
++      data["slots"][0]["expected_board_type"] = board_type
++      with self.subTest(board_type=board_type), self.assertRaises(ProfileError):
++        load_profile(json.dumps(data))
++
++  def test_known_board_type_requires_its_mcu_family(self):
++    for slot, family in ((0, "H7"), (1, "F4")):
++      data = synthetic_dict()
++      data["slots"][slot]["mcu_family"] = family
++      data["slots"][slot]["capabilities"]["can_fd"] = False
++      with self.subTest(slot=slot, family=family), self.assertRaisesRegex(ProfileError, "board/MCU family"):
++        load_profile(json.dumps(data))
++
++  def test_fixed_slots_and_duplicate_binding(self):
++    for change in (lambda d: d["slots"].reverse(), lambda d: d["slots"][1].update(slot=0),
++                   lambda d: d["slots"][1].update(identity_binding="fixture:dos")):
++      data = synthetic_dict()
++      change(data)
++      with self.assertRaises(ProfileError):
++        load_profile(json.dumps(data))
++
++  def test_missing_wrong_or_ambiguous_roles_rejected(self):
++    for name in ("vehicle_can", "diagnostic", "harness", "ignition_sources", "fan_control", "power_monitor", "ir_control"):
++      data = synthetic_dict()
++      data["roles"][name] = None
++      with self.subTest(name=name), self.assertRaises(ProfileError):
++        load_profile(json.dumps(data))
++    for role, owner in (("vehicle_can", True), ("harness", 0), ("diagnostic", 0), ("fan_control", 1),
++                        ("power_monitor", 1), ("ir_control", 0), ("ignition_sources", []), ("ignition_sources", [0, 0])):
++      data = synthetic_dict()
++      data["roles"][role] = owner
++      with self.subTest(role=role, owner=owner), self.assertRaises(ProfileError):
++        load_profile(json.dumps(data))
++
++  def test_unsupported_peripheral_is_explicit_and_cannot_hide_capability(self):
++    data = synthetic_dict()
++    data["roles"]["fan_control"] = "UNSUPPORTED"
++    with self.assertRaises(ProfileError):
++      load_profile(json.dumps(data))
++    data["slots"][0]["capabilities"]["fan"] = False
++    profile = load_profile(json.dumps(data))
++    self.assertEqual(register(profile, observations(profile)).for_role("fan_control"), ())
++
++  def test_f4_fd_and_illegal_can_buses_rejected(self):
++    for key, value in (("can_fd", True), ("can_buses", [0, 1, 2, 3]), ("can_buses", [0, 0, 2])):
++      data = synthetic_dict()
++      data["slots"][0]["capabilities"][key] = value
++      with self.subTest(key=key), self.assertRaises(ProfileError):
++        load_profile(json.dumps(data))
++
++  def test_ignition_requires_owner_capability(self):
++    data = synthetic_dict()
++    data["slots"][0]["capabilities"]["ignition"] = False
++    with self.assertRaises(ProfileError):
++      load_profile(json.dumps(data))
++
++
++class TestRegistry(unittest.TestCase):
++  def test_both_role_arrangements_and_reverse_enumeration(self):
++    for dos_slot in (0, 1):
++      profile = load_profile(json.dumps(synthetic_dict(dos_slot)))
++      expected = observations(profile)
++      for discovered in (expected, expected[::-1]):
++        with self.subTest(dos_slot=dos_slot, reverse=discovered != expected):
++          group = register(profile, discovered)
++          self.assertEqual(group.boards, expected)
++          self.assertEqual(group.for_role("vehicle_can")[0].identity, "fixture:external")
++          self.assertEqual(group.for_role("fan_control")[0].identity, "fixture:dos")
++          self.assertEqual(group.for_role("ignition_sources"), expected)
++          self.assertEqual(group.for_role("ir_control"), ())
++          self.assertFalse(group.device_access_enabled or group.can_tx_enabled or group.firmware_install_enabled)
++
++  def test_same_type_boards_are_bound_by_identity_only(self):
++    data = synthetic_dict()
++    for slot in data["slots"]:
++      slot["expected_board_type"] = "RED_PANDA"
++      slot["mcu_family"] = "H7"
++      slot["exact_mcu"] = "fixture:unknown-H7"
++    profile = load_profile(json.dumps(data))
++    observed = observations(profile)
++    self.assertEqual(register(profile, observed[::-1]).boards, observed)
++
++  def test_empty_missing_and_extra_inventory_fail_entire_group(self):
++    profile = load_profile(json.dumps(synthetic_dict()))
++    observed = observations(profile)
++    for inventory in ((), observed[:1], observed + (replace(observed[1], identity="fixture:extra"),)):
++      with self.subTest(count=len(inventory)), self.assertRaisesRegex(RegistryError, "REQUIRED_BOARD_COUNT"):
++        register(profile, inventory)
++
++  def test_duplicate_and_dual_transport_identity_quarantined(self):
++    profile = load_profile(json.dumps(synthetic_dict()))
++    observed = observations(profile)
++    for second in (observed[0], replace(observed[0], transport="SPI")):
++      with self.assertRaisesRegex(RegistryError, "DUPLICATE_IDENTITY"):
++        register(profile, (observed[0], second))
++
++  def test_unknown_identity_and_replacement_rejected(self):
++    profile = load_profile(json.dumps(synthetic_dict()))
++    observed = observations(profile)
++    with self.assertRaisesRegex(RegistryError, "UNEXPECTED_IDENTITY"):
++      register(profile, (observed[0], replace(observed[1], identity="fixture:replacement")))
++
++  def test_observation_mismatches_rejected(self):
++    profile = load_profile(json.dumps(synthetic_dict()))
++    observed = observations(profile)
++    for field, value in (("transport", "SPI"), ("exact_mcu", "fixture:other"),
++                         ("application_signature", "fixture:other-app"), ("capabilities", replace(observed[0].capabilities, fan=False))):
++      with self.subTest(field=field), self.assertRaisesRegex(RegistryError, f"MISMATCH_{field.upper()}"):
++        register(profile, (replace(observed[0], **{field: value}), observed[1]))
++    # A valid catalog entry still cannot replace a different expected board.
++    wrong_board = replace(observed[0], board_type="RED_PANDA", mcu_family="H7", exact_mcu="fixture:unknown-H7")
++    with self.assertRaisesRegex(RegistryError, "MISMATCH_BOARD_TYPE"):
++      register(profile, (wrong_board, observed[1]))
++
++  def test_invalid_observation_and_profile_types_fail_closed(self):
++    profile = load_profile(json.dumps(synthetic_dict()))
++    for supplied_profile, inventory in ((None, ()), (profile, []), (profile, ({}, {}))):
++      with self.assertRaises(RegistryError):
++        register(supplied_profile, inventory)
++
++  def test_direct_registry_construction_cannot_bypass_checks(self):
++    profile = load_profile(json.dumps(synthetic_dict()))
++    observed = observations(profile)
++    with self.assertRaisesRegex(RegistryError, "NONCANONICAL_REGISTRY"):
++      Registry(profile, observed[::-1])
++    with self.assertRaisesRegex(RegistryError, "REQUIRED_BOARD_COUNT"):
++      Registry(profile, observed[:1])
++
++  def test_unsupported_role_name_rejected(self):
++    profile = load_profile(json.dumps(synthetic_dict()))
++    group = register(profile, observations(profile))
++    for name in ("default", "reset", "__dict__", None):
++      with self.assertRaisesRegex(RegistryError, "UNKNOWN_ROLE"):
++        group.for_role(name)
++
++  def test_construction_registration_and_listing_have_no_hardware_calls(self):
++    raw = json.dumps(synthetic_dict())
++    targets = ("builtins.open", "os.open", "socket.socket", "subprocess.Popen", "pathlib.Path.write_text")
++    spies = []
++    from contextlib import ExitStack
++    with ExitStack() as stack:
++      for target in targets:
++        spies.append(stack.enter_context(patch(target, side_effect=AssertionError("unexpected IO"))))
++      profile = load_profile(raw)
++      group = register(profile, observations(profile)[::-1])
++      self.assertEqual(len(group.boards), 2)
++      transport = ScriptedTransport(())
++      self.assertEqual(transport.trace_json(), [])
++      transport.close()
++    for spy in spies:
++      spy.assert_not_called()
++
++  def test_imports_have_no_hardware_or_runtime_dependency(self):
++    allowed = {"dataclasses", "json", "profile"}
++    for name in ("__init__.py", "profile.py", "registry.py", "mock_transport.py"):
++      tree = ast.parse((PACKAGE / name).read_text())
++      for node in ast.walk(tree):
++        if isinstance(node, ast.Import):
++          self.assertTrue(all(alias.name in allowed for alias in node.names), name)
++        elif isinstance(node, ast.ImportFrom):
++          self.assertIn(node.module, allowed, name)
++
++
++if __name__ == "__main__":
++  unittest.main()

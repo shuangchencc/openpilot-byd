@@ -1,0 +1,114 @@
+{
+  "schema": "songplus-panda-p0p1-acceptance-map/v1",
+  "scope": "Offline host checks only; ARM ABI, hardware IO and runtime integration excluded",
+  "cases": [
+    {
+      "id": "A00",
+      "stage": "P0",
+      "required_python_selectors": [
+        "test_profile.TestRegistry.test_construction_registration_and_listing_have_no_hardware_calls",
+        "test_profile.TestRegistry.test_imports_have_no_hardware_or_runtime_dependency",
+        "test_profile.TestProfile.test_unbound_loads_with_permissions_denied",
+        "test_offline_integration.OfflineIntegration.test_valid_mock_protocol_read_never_enables_control"
+      ],
+      "required_native_groups": [],
+      "requires_independent_oracle": false
+    },
+    {
+      "id": "A01",
+      "stage": "P0",
+      "required_python_selectors": [
+        "test_profile.TestRegistry.test_*",
+        "test_profile.TestProfile.test_unknown_board_type_cannot_self_authorize",
+        "test_profile.TestProfile.test_known_board_type_requires_its_mcu_family"
+      ],
+      "required_native_groups": [],
+      "requires_independent_oracle": false
+    },
+    {
+      "id": "A02",
+      "stage": "P0",
+      "required_python_selectors": [
+        "test_profile.TestProfile.test_missing_wrong_or_ambiguous_roles_rejected",
+        "test_profile.TestProfile.test_f4_fd_and_illegal_can_buses_rejected",
+        "test_profile.TestProfile.test_unsupported_peripheral_is_explicit_and_cannot_hide_capability",
+        "test_profile.TestProfile.test_ignition_requires_owner_capability"
+      ],
+      "required_native_groups": [],
+      "requires_independent_oracle": false
+    },
+    {
+      "id": "A10",
+      "stage": "P1",
+      "required_python_selectors": [
+        "test_health.TestVersions.*",
+        "test_offline_integration.OfflineIntegration.test_bad_or_legacy_version_never_consumes_reset_or_fallback"
+      ],
+      "required_native_groups": [],
+      "requires_independent_oracle": false
+    },
+    {
+      "id": "A11",
+      "stage": "P1",
+      "required_python_selectors": [
+        "test_health.TestHealth.*",
+        "test_health.TestCanHealth.*",
+        "test_health.TestHeaderABI.*"
+      ],
+      "required_native_groups": [],
+      "requires_independent_oracle": false
+    },
+    {
+      "id": "A12",
+      "stage": "P1",
+      "required_python_selectors": [],
+      "required_native_groups": [
+        "fixed_independent_golden_vectors",
+        "all_16_dlc_and_classic_lengths",
+        "address_boundaries",
+        "every_frame_and_payload_split",
+        "stream_64_byte_boundaries_and_multiple_frames",
+        "bounded_inputs_and_maximum_residue"
+      ],
+      "requires_independent_oracle": true
+    },
+    {
+      "id": "A13",
+      "stage": "P1",
+      "required_python_selectors": [
+        "test_mock_transport.TestMockTransport.test_scripted_errors_are_explicit_and_do_not_retry"
+      ],
+      "required_native_groups": [
+        "flags_buses_checksum_and_exact_size",
+        "atomic_error_poison_and_explicit_memory_clear",
+        "invalid_policy_enum_rejected"
+      ],
+      "requires_independent_oracle": true
+    },
+    {
+      "id": "A14",
+      "stage": "P1",
+      "required_python_selectors": [
+        "test_health.TestHealth.test_legacy_golden_no_safety_enum_remapping",
+        "test_offline_integration.OfflineIntegration.test_legacy_offline_decode_cannot_be_registered"
+      ],
+      "required_native_groups": [
+        "host_routing_all_slots_flags_and_forbidden_sources"
+      ],
+      "requires_independent_oracle": true
+    },
+    {
+      "id": "A15",
+      "stage": "P1",
+      "required_python_selectors": [
+        "test_health.TestVersions.test_legacy_must_be_explicit_and_offline",
+        "test_health.TestHeaderABI.test_compiled_sizes_and_every_nonbitfield_offset"
+      ],
+      "required_native_groups": [
+        "every_short_header_prefix",
+        "deterministic_malformed_fuzz_seed_c0ffee11"
+      ],
+      "requires_independent_oracle": true
+    }
+  ]
+}

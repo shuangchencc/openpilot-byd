@@ -21,6 +21,13 @@ Flagship PLUS, with the user's existing Mr One C3XL and Panda hardware.
 
 ## Current execution boundary
 
+- The current user request authorizes local implementation and offline acceptance
+  of P0/P1 from the frozen DOS/USB design: unbound profile, identity/roles, mock
+  transport, version/health/CAN codecs. Maintain an explicit downstream branch
+  and independent patches against the locked baseline; keep the official
+  checkout unchanged. No device access, Panda constructors, firmware/OS changes,
+  slot switching, reset, flashing, real CAN TX or active pandad integration.
+  The design-only statements below describe the previous design delivery.
 - Current work is local DOS/F4 and USB dual-Panda compatibility design against
   the locked official baseline. Do not connect to C3XL or operate hardware as
   part of this design work. The user cannot provide photos/vendor material;

@@ -1,7 +1,13 @@
 后续验证顺序与交付物
 目标：宋 PLUS DM-i 2023 冠军版 110km 旗舰 PLUS；车型名称已经确认，ECU和物理总线仍待确认。
 
-当前本地工作（2026-10-18）
+当前本地实现（2026-10-18）
+P0/P1已实现并通过离线主机验收；结果：validation/panda-compat-p0p1/RESULT.md。
+独立补丁：patches/openpilot/p0p1/；复验：python3 tools/validate_panda_compat.py。
+下一阶段为P2真实USB/SPI后端接口与模拟异常测试；P3–P7尚未实施。
+本轮没有接入设备运行入口、连接C3XL或执行任何系统/固件写入。
+
+设计冻结时的本地计划（历史快照，2026-10-18）
 用户无法提供照片/厂家资料；保留实物未知项，不阻断本地兼容层设计。
 最新设计入口：hardware/design/dos-usb-dual-panda/DESIGN.md。
 P0契约隔离 → P1协议纯逻辑 → P2 USB/SPI → P3双板路由 → P4消息/safety/外围；

@@ -1,0 +1,408 @@
+{
+  "schema": "songplus-panda-p0p1-validation/v1",
+  "status": "PASS_OFFLINE_HOST_ONLY",
+  "tested_at_utc": "2026-10-17T18:12:44.965477+00:00",
+  "baselines": {
+    "upstream-openpilot": "35e78a9d9518855ec0dacec919e719624a28131f",
+    "upstream-openpilot/opendbc_repo": "b3bd79a659dae961af169a3baac723961f720133",
+    "upstream-openpilot/panda": "a59195163c32a3a375ea6c86715dc08fd0984c1b"
+  },
+  "patch_commits": [
+    "b01f37b2fa470b62568e1e67455ba645a71e5c36",
+    "3ab5233f9de0e1c0e65bfb2ca8339077da83c939"
+  ],
+  "manifest_sha256": "5b166a727cccd5ac9ff819e933599b119e8e0b659b88c0b7926c0fc698632b39",
+  "validator_sha256": "7988f1568913b0d0fbe834b896c77917ca752d8516af2530c426eeaaa1163be1",
+  "sandbox_sha256": "8cf4f44421e5ef6b64425e398b14444d2e099e7ae2d2b23770b009b754370fda",
+  "platform": "macOS-26.5.2-arm64-arm-64bit-Mach-O",
+  "python": "Python 3.12.13",
+  "compiler": "/usr/bin/clang++",
+  "compiler_version": "Apple clang version 21.0.0 (clang-2100.1.1.101)\nTarget: arm64-apple-darwin25.5.0\nThread model: posix\nInstalledDir: /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin\n",
+  "macos_network_and_device_node_sandbox": true,
+  "sanitizers": [
+    "address",
+    "undefined"
+  ],
+  "python_tests": {
+    "tests_run": 70,
+    "passed": 70,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "passed_ids": [
+      "test_health.TestCanHealth.test_all_widths_and_types",
+      "test_health.TestCanHealth.test_classic_unknown_and_inconsistent_fd_capabilities",
+      "test_health.TestCanHealth.test_exact_size_and_version_guard",
+      "test_health.TestCanHealth.test_golden_encode_decode_and_kbit_units",
+      "test_health.TestCanHealth.test_invalid_booleans_errors_and_counters",
+      "test_health.TestCanHealth.test_upstream_transient_brs_without_fd_preserved_and_marked",
+      "test_health.TestHeaderABI.test_compiled_health_and_can_goldens",
+      "test_health.TestHeaderABI.test_compiled_sizes_and_every_nonbitfield_offset",
+      "test_health.TestHeaderABI.test_current_source_masks_and_byd_identity",
+      "test_health.TestHeaderABI.test_float32_quantization_matches_host_c_expression",
+      "test_health.TestHealth.test_absent_and_unknown_capabilities_never_fabricate_sensor_readings",
+      "test_health.TestHealth.test_all_known_flags_and_unknown_flag_bits",
+      "test_health.TestHealth.test_current_golden_encode_and_decode",
+      "test_health.TestHealth.test_current_unknown_fault_bits_rejected",
+      "test_health.TestHealth.test_decode_validates_semantics_not_only_encode",
+      "test_health.TestHealth.test_exact_length_for_both_layouts",
+      "test_health.TestHealth.test_legacy_boolean_and_nonfinite_load_rejected",
+      "test_health.TestHealth.test_legacy_golden_no_safety_enum_remapping",
+      "test_health.TestHealth.test_normalized_units_and_distinct_counter_semantics",
+      "test_health.TestHealth.test_quantization_rejects_nonfinite_types_and_unsafe_widths",
+      "test_health.TestHealth.test_saturation_and_rounding_are_explicit_not_raw_wrap",
+      "test_health.TestHealth.test_snapshots_are_immutable",
+      "test_health.TestHealth.test_strict_widths_types_and_exact_fields",
+      "test_health.TestHealth.test_unknown_enums_and_current_legacy_safety_id",
+      "test_health.TestVersions.test_all_short_overlong_and_wrong_hashes_rejected",
+      "test_health.TestVersions.test_control_protocol_property_rejects_coerced_or_wrong_types",
+      "test_health.TestVersions.test_current_exact_pair",
+      "test_health.TestVersions.test_legacy_must_be_explicit_and_offline",
+      "test_health.TestVersions.test_types_and_forged_versions_rejected",
+      "test_mock_transport.TestMockTransport.test_argument_boundaries_and_types",
+      "test_mock_transport.TestMockTransport.test_exhaustion_is_explicit",
+      "test_mock_transport.TestMockTransport.test_instances_are_independent_and_close_is_local",
+      "test_mock_transport.TestMockTransport.test_mock_write_error_records_only_intent",
+      "test_mock_transport.TestMockTransport.test_script_resources_are_bounded",
+      "test_mock_transport.TestMockTransport.test_scripted_errors_are_explicit_and_do_not_retry",
+      "test_mock_transport.TestMockTransport.test_short_reads_and_writes_are_returned_without_retry",
+      "test_mock_transport.TestMockTransport.test_step_contract_validation",
+      "test_mock_transport.TestMockTransport.test_strict_script_mismatch_does_not_consume",
+      "test_mock_transport.TestMockTransport.test_trace_is_immutable_and_export_is_detached",
+      "test_offline_integration.OfflineIntegration.test_bad_or_legacy_version_never_consumes_reset_or_fallback",
+      "test_offline_integration.OfflineIntegration.test_legacy_offline_decode_cannot_be_registered",
+      "test_offline_integration.OfflineIntegration.test_profile_and_version_identity_agree",
+      "test_offline_integration.OfflineIntegration.test_valid_mock_protocol_read_never_enables_control",
+      "test_profile.TestProfile.test_duplicate_json_keys_rejected_at_every_depth",
+      "test_profile.TestProfile.test_f4_fd_and_illegal_can_buses_rejected",
+      "test_profile.TestProfile.test_fixed_slots_and_duplicate_binding",
+      "test_profile.TestProfile.test_ignition_requires_owner_capability",
+      "test_profile.TestProfile.test_integer_fields_reject_boolean_and_coercion",
+      "test_profile.TestProfile.test_known_board_type_requires_its_mcu_family",
+      "test_profile.TestProfile.test_missing_wrong_or_ambiguous_roles_rejected",
+      "test_profile.TestProfile.test_non_fixture_identities_and_legacy_abi_rejected",
+      "test_profile.TestProfile.test_nonfinite_invalid_encoding_oversize_and_deep_input",
+      "test_profile.TestProfile.test_permission_flags_cannot_be_enabled_or_coerced",
+      "test_profile.TestProfile.test_profile_is_deeply_immutable",
+      "test_profile.TestProfile.test_unbound_loads_with_permissions_denied",
+      "test_profile.TestProfile.test_unbound_partial_or_role_assignment_rejected",
+      "test_profile.TestProfile.test_unknown_and_missing_fields_rejected",
+      "test_profile.TestProfile.test_unknown_board_type_cannot_self_authorize",
+      "test_profile.TestProfile.test_unsupported_peripheral_is_explicit_and_cannot_hide_capability",
+      "test_profile.TestRegistry.test_both_role_arrangements_and_reverse_enumeration",
+      "test_profile.TestRegistry.test_construction_registration_and_listing_have_no_hardware_calls",
+      "test_profile.TestRegistry.test_direct_registry_construction_cannot_bypass_checks",
+      "test_profile.TestRegistry.test_duplicate_and_dual_transport_identity_quarantined",
+      "test_profile.TestRegistry.test_empty_missing_and_extra_inventory_fail_entire_group",
+      "test_profile.TestRegistry.test_imports_have_no_hardware_or_runtime_dependency",
+      "test_profile.TestRegistry.test_invalid_observation_and_profile_types_fail_closed",
+      "test_profile.TestRegistry.test_observation_mismatches_rejected",
+      "test_profile.TestRegistry.test_same_type_boards_are_bound_by_identity_only",
+      "test_profile.TestRegistry.test_unknown_identity_and_replacement_rejected",
+      "test_profile.TestRegistry.test_unsupported_role_name_rejected"
+    ],
+    "failed_ids": []
+  },
+  "native_can_tests": "PASS fixed_independent_golden_vectors\nPASS all_16_dlc_and_classic_lengths\nPASS address_boundaries\nPASS flags_buses_checksum_and_exact_size\nPASS every_short_header_prefix\nPASS every_frame_and_payload_split\nPASS stream_64_byte_boundaries_and_multiple_frames\nPASS atomic_error_poison_and_explicit_memory_clear\nPASS bounded_inputs_and_maximum_residue\nPASS independent_parser_state\nPASS host_routing_all_slots_flags_and_forbidden_sources\nPASS deterministic_malformed_fuzz_seed_c0ffee11\nPASS invalid_policy_enum_rejected\n{\"passed\":13,\"failed\":0,\"assertions\":47031,\"fuzz_seed\":\"c0ffee11\",\"fuzz_iterations\":4096,\"device_access\":false}\n",
+  "native_summary": {
+    "passed": 13,
+    "failed": 0,
+    "assertions": 47031,
+    "fuzz_seed": "c0ffee11",
+    "fuzz_iterations": 4096,
+    "device_access": false
+  },
+  "independent_oracle": {
+    "status": "PASS",
+    "oracle": "independent Python bit formula and fixed classic vector",
+    "seed": "0x501C0DEC",
+    "valid_vectors": 64,
+    "cross_language_checks": 220,
+    "native_invocations": 1,
+    "baseline_c_layout_vector_checked": true,
+    "assertions_enabled": true,
+    "device_access": false,
+    "scope": "host C++ wire codec only"
+  },
+  "health_host_abi": {
+    "host_abi_only": true,
+    "sizes": {
+      "health": 48,
+      "can_health": 64,
+      "can_packet": 72,
+      "can_alignment": 4
+    },
+    "offsets": {
+      "health": {
+        "uptime": 0,
+        "voltage": 4,
+        "current": 6,
+        "safety_tx_blocked": 8,
+        "safety_rx_invalid": 12,
+        "tx_buffer_overflow": 16,
+        "rx_buffer_overflow": 20,
+        "faults": 24,
+        "flags": 28,
+        "car_harness_status": 30,
+        "safety_mode": 31,
+        "safety_param": 32,
+        "fault_status": 34,
+        "alternative_experience": 35,
+        "interrupt_load": 37,
+        "fan_power": 38,
+        "spi_error_count": 39,
+        "sbu1_voltage_mV": 41,
+        "sbu2_voltage_mV": 43,
+        "sound_output_level": 45,
+        "temperature": 47
+      },
+      "can_health": {
+        "bus_off": 0,
+        "bus_off_cnt": 1,
+        "error_warning": 5,
+        "error_passive": 6,
+        "last_error": 7,
+        "last_stored_error": 8,
+        "last_data_error": 9,
+        "last_data_stored_error": 10,
+        "receive_error_cnt": 11,
+        "transmit_error_cnt": 12,
+        "total_error_cnt": 13,
+        "total_tx_lost_cnt": 17,
+        "total_rx_lost_cnt": 21,
+        "total_tx_cnt": 25,
+        "total_rx_cnt": 29,
+        "total_fwd_cnt": 33,
+        "total_tx_checksum_error_cnt": 37,
+        "can_speed": 41,
+        "can_data_speed": 43,
+        "canfd_enabled": 45,
+        "brs_enabled": 46,
+        "canfd_non_iso": 47,
+        "irq0_call_rate": 48,
+        "irq1_call_rate": 52,
+        "irq2_call_rate": 56,
+        "can_core_reset_cnt": 60
+      },
+      "checksum": 5,
+      "data": 6
+    },
+    "current_health_hex": "040302013930a6021413121124232221343332314443424101800000110102135251010800804b6261e40cb004727141",
+    "can_health_hex": "01040302010100030702067fff14131211242322213433323144434241545352516463626174737271f401d0070101008483828194939291a4a3a2a1b4b3b2b1",
+    "can_frame_hex": "321809000023112233",
+    "can_fd_frame_hex": "958e87d0c68a000102030405060708090a0b",
+    "known_fault_mask": 250905023,
+    "known_alternative_experience_mask": 26,
+    "current_byd_safety": 35,
+    "quantization_vectors": [
+      {
+        "load": -1,
+        "temperature": -100,
+        "encoded_load": 0,
+        "encoded_temperature": 0
+      },
+      {
+        "load": 0,
+        "temperature": -40,
+        "encoded_load": 0,
+        "encoded_temperature": 0
+      },
+      {
+        "load": 0.0019607844296842813,
+        "temperature": -39.5,
+        "encoded_load": 1,
+        "encoded_temperature": 1
+      },
+      {
+        "load": 0.5,
+        "temperature": 25.5,
+        "encoded_load": 128,
+        "encoded_temperature": 66
+      },
+      {
+        "load": 1,
+        "temperature": 214.5,
+        "encoded_load": 255,
+        "encoded_temperature": 255
+      },
+      {
+        "load": 2,
+        "temperature": 300,
+        "encoded_load": 255,
+        "encoded_temperature": 255
+      }
+    ]
+  },
+  "acceptance_results": [
+    {
+      "id": "A00",
+      "stage": "P0",
+      "status": "PASS_OFFLINE_HOST_ONLY",
+      "python_evidence": [
+        "test_offline_integration.OfflineIntegration.test_valid_mock_protocol_read_never_enables_control",
+        "test_profile.TestProfile.test_unbound_loads_with_permissions_denied",
+        "test_profile.TestRegistry.test_construction_registration_and_listing_have_no_hardware_calls",
+        "test_profile.TestRegistry.test_imports_have_no_hardware_or_runtime_dependency"
+      ],
+      "native_evidence": [],
+      "independent_oracle": false
+    },
+    {
+      "id": "A01",
+      "stage": "P0",
+      "status": "PASS_OFFLINE_HOST_ONLY",
+      "python_evidence": [
+        "test_profile.TestProfile.test_known_board_type_requires_its_mcu_family",
+        "test_profile.TestProfile.test_unknown_board_type_cannot_self_authorize",
+        "test_profile.TestRegistry.test_both_role_arrangements_and_reverse_enumeration",
+        "test_profile.TestRegistry.test_construction_registration_and_listing_have_no_hardware_calls",
+        "test_profile.TestRegistry.test_direct_registry_construction_cannot_bypass_checks",
+        "test_profile.TestRegistry.test_duplicate_and_dual_transport_identity_quarantined",
+        "test_profile.TestRegistry.test_empty_missing_and_extra_inventory_fail_entire_group",
+        "test_profile.TestRegistry.test_imports_have_no_hardware_or_runtime_dependency",
+        "test_profile.TestRegistry.test_invalid_observation_and_profile_types_fail_closed",
+        "test_profile.TestRegistry.test_observation_mismatches_rejected",
+        "test_profile.TestRegistry.test_same_type_boards_are_bound_by_identity_only",
+        "test_profile.TestRegistry.test_unknown_identity_and_replacement_rejected",
+        "test_profile.TestRegistry.test_unsupported_role_name_rejected"
+      ],
+      "native_evidence": [],
+      "independent_oracle": false
+    },
+    {
+      "id": "A02",
+      "stage": "P0",
+      "status": "PASS_OFFLINE_HOST_ONLY",
+      "python_evidence": [
+        "test_profile.TestProfile.test_f4_fd_and_illegal_can_buses_rejected",
+        "test_profile.TestProfile.test_ignition_requires_owner_capability",
+        "test_profile.TestProfile.test_missing_wrong_or_ambiguous_roles_rejected",
+        "test_profile.TestProfile.test_unsupported_peripheral_is_explicit_and_cannot_hide_capability"
+      ],
+      "native_evidence": [],
+      "independent_oracle": false
+    },
+    {
+      "id": "A10",
+      "stage": "P1",
+      "status": "PASS_OFFLINE_HOST_ONLY",
+      "python_evidence": [
+        "test_health.TestVersions.test_all_short_overlong_and_wrong_hashes_rejected",
+        "test_health.TestVersions.test_control_protocol_property_rejects_coerced_or_wrong_types",
+        "test_health.TestVersions.test_current_exact_pair",
+        "test_health.TestVersions.test_legacy_must_be_explicit_and_offline",
+        "test_health.TestVersions.test_types_and_forged_versions_rejected",
+        "test_offline_integration.OfflineIntegration.test_bad_or_legacy_version_never_consumes_reset_or_fallback"
+      ],
+      "native_evidence": [],
+      "independent_oracle": false
+    },
+    {
+      "id": "A11",
+      "stage": "P1",
+      "status": "PASS_OFFLINE_HOST_ONLY",
+      "python_evidence": [
+        "test_health.TestCanHealth.test_all_widths_and_types",
+        "test_health.TestCanHealth.test_classic_unknown_and_inconsistent_fd_capabilities",
+        "test_health.TestCanHealth.test_exact_size_and_version_guard",
+        "test_health.TestCanHealth.test_golden_encode_decode_and_kbit_units",
+        "test_health.TestCanHealth.test_invalid_booleans_errors_and_counters",
+        "test_health.TestCanHealth.test_upstream_transient_brs_without_fd_preserved_and_marked",
+        "test_health.TestHeaderABI.test_compiled_health_and_can_goldens",
+        "test_health.TestHeaderABI.test_compiled_sizes_and_every_nonbitfield_offset",
+        "test_health.TestHeaderABI.test_current_source_masks_and_byd_identity",
+        "test_health.TestHeaderABI.test_float32_quantization_matches_host_c_expression",
+        "test_health.TestHealth.test_absent_and_unknown_capabilities_never_fabricate_sensor_readings",
+        "test_health.TestHealth.test_all_known_flags_and_unknown_flag_bits",
+        "test_health.TestHealth.test_current_golden_encode_and_decode",
+        "test_health.TestHealth.test_current_unknown_fault_bits_rejected",
+        "test_health.TestHealth.test_decode_validates_semantics_not_only_encode",
+        "test_health.TestHealth.test_exact_length_for_both_layouts",
+        "test_health.TestHealth.test_legacy_boolean_and_nonfinite_load_rejected",
+        "test_health.TestHealth.test_legacy_golden_no_safety_enum_remapping",
+        "test_health.TestHealth.test_normalized_units_and_distinct_counter_semantics",
+        "test_health.TestHealth.test_quantization_rejects_nonfinite_types_and_unsafe_widths",
+        "test_health.TestHealth.test_saturation_and_rounding_are_explicit_not_raw_wrap",
+        "test_health.TestHealth.test_snapshots_are_immutable",
+        "test_health.TestHealth.test_strict_widths_types_and_exact_fields",
+        "test_health.TestHealth.test_unknown_enums_and_current_legacy_safety_id"
+      ],
+      "native_evidence": [],
+      "independent_oracle": false
+    },
+    {
+      "id": "A12",
+      "stage": "P1",
+      "status": "PASS_OFFLINE_HOST_ONLY",
+      "python_evidence": [],
+      "native_evidence": [
+        "fixed_independent_golden_vectors",
+        "all_16_dlc_and_classic_lengths",
+        "address_boundaries",
+        "every_frame_and_payload_split",
+        "stream_64_byte_boundaries_and_multiple_frames",
+        "bounded_inputs_and_maximum_residue"
+      ],
+      "independent_oracle": true
+    },
+    {
+      "id": "A13",
+      "stage": "P1",
+      "status": "PASS_OFFLINE_HOST_ONLY",
+      "python_evidence": [
+        "test_mock_transport.TestMockTransport.test_scripted_errors_are_explicit_and_do_not_retry"
+      ],
+      "native_evidence": [
+        "flags_buses_checksum_and_exact_size",
+        "atomic_error_poison_and_explicit_memory_clear",
+        "invalid_policy_enum_rejected"
+      ],
+      "independent_oracle": true
+    },
+    {
+      "id": "A14",
+      "stage": "P1",
+      "status": "PASS_OFFLINE_HOST_ONLY",
+      "python_evidence": [
+        "test_health.TestHealth.test_legacy_golden_no_safety_enum_remapping",
+        "test_offline_integration.OfflineIntegration.test_legacy_offline_decode_cannot_be_registered"
+      ],
+      "native_evidence": [
+        "host_routing_all_slots_flags_and_forbidden_sources"
+      ],
+      "independent_oracle": true
+    },
+    {
+      "id": "A15",
+      "stage": "P1",
+      "status": "PASS_OFFLINE_HOST_ONLY",
+      "python_evidence": [
+        "test_health.TestHeaderABI.test_compiled_sizes_and_every_nonbitfield_offset",
+        "test_health.TestVersions.test_legacy_must_be_explicit_and_offline"
+      ],
+      "native_evidence": [
+        "every_short_header_prefix",
+        "deterministic_malformed_fuzz_seed_c0ffee11"
+      ],
+      "independent_oracle": true
+    }
+  ],
+  "source_tree_sha256": "586ebb8fca976dbac7703a6518163353109f2a929de04adc9cbdac5ee5bdc244",
+  "runtime_integrated": false,
+  "real_transport": false,
+  "device_access": false,
+  "MCU_build": false,
+  "ARM_ABI_validated": false,
+  "deployment_ready": false,
+  "remaining_stages": [
+    "P2",
+    "P3",
+    "P4",
+    "P5",
+    "P6",
+    "P7"
+  ],
+  "reproduction_command": "python3 tools/validate_panda_compat.py",
+  "raw_result_ignored_path": "results/panda-compat-p0p1/run-hpjei9o0/result.json",
+  "raw_result_sha256": "6840a9a4c91d40dc224168f493f29251376d23097ae3a74d2a14195fbc01404a"
+}
