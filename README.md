@@ -6,6 +6,8 @@
 
 第 1 步已完成授权的只读实机核查及补证，最新见 [板型、产品配置与恢复链](hardware/step1/followup/RESULT.md) 和 [待补材料清单](hardware/step1/followup/USER-CHECKLIST.md)，此前 [实机快照](hardware/step1/STEP-1-RESULT.md) 保留。已确认 SDA845/Adreno630、AGNOS 10.1 B 槽和内部 DOS 软件身份；用户确认本机出厂无驾驶员相机、无电话卡功能，厂家系列资料支持该取舍。具体 PCB/MCU、外置 Panda、道路相机当前运行及恢复能力仍有未过门槛，官方驾驶员监控硬件差异需单独解决。所有设备写入操作继续保持关闭。
 
+用户无法提供照片和厂家资料，现已转入 [DOS/F4、USB 双 Panda 本地兼容层设计](hardware/design/dos-usb-dual-panda/DESIGN.md)。修改模块、P0–P7顺序与逐项离线验收已列出；实物未知项保留，但不阻断本地设计和mock工作。当前交付是设计包，兼容层尚未实现，计划中的测试尚未执行；本轮没有连接设备，也没有改动官方子模块。
+
 ## 固定基线
 
 “最新版”指 **2026-10-18 00:54:34 +08:00 核验的官方 master**，之后不会自动跟随 HEAD。最新发布版另记为 `v0.11.1`，不把 master 称为稳定发行版。
@@ -77,6 +79,8 @@ python3 tools/validate_project.py
 
 第 1 步证据可用 `python3 hardware/step1/verify.py` 离线复核。诊断工具默认只预览，`--connect` 才使用本地连接配置；不会混入 bootstrap、CI 或通常的离线验证入口。
 
-第 1 步补充证据另用 `python3 hardware/step1/followup/verify.py` 离线复核；新增采集入口 `tools/inspect_c3xl_followup.py` 同样默认不连接。当前外置 Panda 先提供身份与供电资料，不直接接回运行中的 C3XL 做枚举，避免旧启动程序可能触发的自动刷写路径。
+第 1 步补充证据另用 `python3 hardware/step1/followup/verify.py` 离线复核；采集入口 `tools/inspect_c3xl_followup.py` 同样默认不连接。此前外置 Panda 身份与供电资料请求保留为历史未知项；本轮不接回运行中的 C3XL 做枚举，继续推进本地设计。
+
+兼容层设计包可用 `python3 hardware/design/dos-usb-dual-panda/verify.py` 离线复核。此检查只验证设计文件、源码锚点、阶段依赖和验收覆盖，不运行Panda代码、不表示实现测试通过。此前照片/资料清单保留为历史待补项，当前本地工作不等待这些材料。
 
 后续先核实板卡/相机/线束与恢复能力，同时利用带来源和事件标注的被动日志确认本车协议。随后实现只读 CarState，再推进控制器、匹配 safety、目标机台架与受控车辆验收。验收标准和顺序见 [NEXT-STEPS.txt](NEXT-STEPS.txt) 及 [hardware/patch-plan.txt](hardware/patch-plan.txt)。

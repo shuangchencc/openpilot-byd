@@ -1,0 +1,1829 @@
+{
+  "schema_version": 1,
+  "date": "2026-10-18",
+  "status": "design_only_no_implementation_build_or_flash",
+  "scope": {
+    "local_static_review_only": true,
+    "device_connected": false,
+    "target_code_imported": false,
+    "compiled": false,
+    "bootstub_replacement": false,
+    "allowed_output_files": [
+      "firmware-design.md",
+      "firmware-design.json"
+    ]
+  },
+  "baseline": {
+    "openpilot": "35e78a9d9518855ec0dacec919e719624a28131f",
+    "panda": "a59195163c32a3a375ea6c86715dc08fd0984c1b",
+    "opendbc": "b3bd79a659dae961af169a3baac723961f720133",
+    "dp_reference": "94ad85cfda64773a960d048dc11cac02d4aa86a5",
+    "sp098_source_commit": null,
+    "sp098_label_not_commit": "DEV-e26a80db-DEBUG"
+  },
+  "decisions": [
+    "Shared current protocol and current opendbc safety for F4/DOS and H7; downstream patch stack, no frozen legacy safety fork.",
+    "Legacy decoder/bridge only for offline or isolated observation; never transform packet versions to grant control eligibility to unknown old safety.",
+    "Keep installed bootstub unchanged. Candidate application build only; installer/reset/flash/recovery entry points separated and absent from runtime/test/build default.",
+    "No user photos/vendor documents required for offline design or candidate implementation. Unknown hardware fields remain explicit deployment gates.",
+    "Use canonical 64-byte CAN payload type on both MCUs; F4 rejects CAN FD/DLC>8 and uses smaller profile queues. H7 preserves FDCAN capabilities."
+  ],
+  "protocol": {
+    "legacy": {
+      "versions": {
+        "health": 16,
+        "can": 4,
+        "can_health": 5
+      },
+      "version_reply_size": 3,
+      "version_reply_hex": "10 04 05",
+      "version_reply_format": "<BBB",
+      "health": {
+        "format": "<IIIIIIIIBBBBBHBBBHfBBHBHHB",
+        "size": 58,
+        "fields": [
+          {
+            "name": "uptime",
+            "format": "I",
+            "offset": 0,
+            "size": 4
+          },
+          {
+            "name": "voltage",
+            "format": "I",
+            "offset": 4,
+            "size": 4
+          },
+          {
+            "name": "current",
+            "format": "I",
+            "offset": 8,
+            "size": 4
+          },
+          {
+            "name": "safety_tx_blocked",
+            "format": "I",
+            "offset": 12,
+            "size": 4
+          },
+          {
+            "name": "safety_rx_invalid",
+            "format": "I",
+            "offset": 16,
+            "size": 4
+          },
+          {
+            "name": "tx_buffer_overflow",
+            "format": "I",
+            "offset": 20,
+            "size": 4
+          },
+          {
+            "name": "rx_buffer_overflow",
+            "format": "I",
+            "offset": 24,
+            "size": 4
+          },
+          {
+            "name": "faults",
+            "format": "I",
+            "offset": 28,
+            "size": 4
+          },
+          {
+            "name": "ignition_line",
+            "format": "B",
+            "offset": 32,
+            "size": 1
+          },
+          {
+            "name": "ignition_can",
+            "format": "B",
+            "offset": 33,
+            "size": 1
+          },
+          {
+            "name": "controls_allowed",
+            "format": "B",
+            "offset": 34,
+            "size": 1
+          },
+          {
+            "name": "car_harness_status",
+            "format": "B",
+            "offset": 35,
+            "size": 1
+          },
+          {
+            "name": "safety_mode",
+            "format": "B",
+            "offset": 36,
+            "size": 1
+          },
+          {
+            "name": "safety_param",
+            "format": "H",
+            "offset": 37,
+            "size": 2
+          },
+          {
+            "name": "fault_status",
+            "format": "B",
+            "offset": 39,
+            "size": 1
+          },
+          {
+            "name": "power_save_enabled",
+            "format": "B",
+            "offset": 40,
+            "size": 1
+          },
+          {
+            "name": "heartbeat_lost",
+            "format": "B",
+            "offset": 41,
+            "size": 1
+          },
+          {
+            "name": "alternative_experience",
+            "format": "H",
+            "offset": 42,
+            "size": 2
+          },
+          {
+            "name": "interrupt_load",
+            "format": "f",
+            "offset": 44,
+            "size": 4
+          },
+          {
+            "name": "fan_power",
+            "format": "B",
+            "offset": 48,
+            "size": 1
+          },
+          {
+            "name": "safety_rx_checks_invalid",
+            "format": "B",
+            "offset": 49,
+            "size": 1
+          },
+          {
+            "name": "spi_checksum_error_count",
+            "format": "H",
+            "offset": 50,
+            "size": 2
+          },
+          {
+            "name": "fan_stall_count",
+            "format": "B",
+            "offset": 52,
+            "size": 1
+          },
+          {
+            "name": "sbu1_voltage_mV",
+            "format": "H",
+            "offset": 53,
+            "size": 2
+          },
+          {
+            "name": "sbu2_voltage_mV",
+            "format": "H",
+            "offset": 55,
+            "size": 2
+          },
+          {
+            "name": "som_reset_triggered",
+            "format": "B",
+            "offset": 57,
+            "size": 1
+          }
+        ],
+        "validation": "stdlib struct calculation from historical literal; actual old MCU C layout not recovered"
+      },
+      "can_health": {
+        "format": "<BIBBBBBBBBIIIIIIIHHBBBIIII",
+        "size": 64
+      },
+      "can_version_is_not_bus_count": true,
+      "board_dos_type": 6,
+      "byd_safety_id": 32,
+      "source_c_firmware_present": false
+    },
+    "target": {
+      "version_reply_format": "<II",
+      "version_reply_size": 8,
+      "version_reply_hex": "f5 12 bc ff 76 f2 ab 75",
+      "header_hashes": {
+        "health": {
+          "normalized_sha256": "f512bcff6925e233a35c00e2d921fe01933fd77c0705c573a233b170d73ce20d",
+          "version_u32": 4290515701,
+          "version_hex": "0xffbc12f5"
+        },
+        "can": {
+          "normalized_sha256": "76f2ab751f89797c0a2254ab9a010a261678fe30f869d4e777cb7f2048802743",
+          "version_u32": 1974202998,
+          "version_hex": "0x75abf276"
+        }
+      },
+      "health": {
+        "format": "<IHHIIIIIHBBHBHBBHHHHB",
+        "size": 48,
+        "fields": [
+          {
+            "name": "uptime_pkt",
+            "c_type": "uint32_t",
+            "format": "I",
+            "offset": 0,
+            "size": 4
+          },
+          {
+            "name": "voltage_pkt",
+            "c_type": "uint16_t",
+            "format": "H",
+            "offset": 4,
+            "size": 2
+          },
+          {
+            "name": "current_pkt",
+            "c_type": "uint16_t",
+            "format": "H",
+            "offset": 6,
+            "size": 2
+          },
+          {
+            "name": "safety_tx_blocked_pkt",
+            "c_type": "uint32_t",
+            "format": "I",
+            "offset": 8,
+            "size": 4
+          },
+          {
+            "name": "safety_rx_invalid_pkt",
+            "c_type": "uint32_t",
+            "format": "I",
+            "offset": 12,
+            "size": 4
+          },
+          {
+            "name": "tx_buffer_overflow_pkt",
+            "c_type": "uint32_t",
+            "format": "I",
+            "offset": 16,
+            "size": 4
+          },
+          {
+            "name": "rx_buffer_overflow_pkt",
+            "c_type": "uint32_t",
+            "format": "I",
+            "offset": 20,
+            "size": 4
+          },
+          {
+            "name": "faults_pkt",
+            "c_type": "uint32_t",
+            "format": "I",
+            "offset": 24,
+            "size": 4
+          },
+          {
+            "name": "flags_pkt",
+            "c_type": "uint16_t",
+            "format": "H",
+            "offset": 28,
+            "size": 2
+          },
+          {
+            "name": "car_harness_status_pkt",
+            "c_type": "uint8_t",
+            "format": "B",
+            "offset": 30,
+            "size": 1
+          },
+          {
+            "name": "safety_mode_pkt",
+            "c_type": "uint8_t",
+            "format": "B",
+            "offset": 31,
+            "size": 1
+          },
+          {
+            "name": "safety_param_pkt",
+            "c_type": "uint16_t",
+            "format": "H",
+            "offset": 32,
+            "size": 2
+          },
+          {
+            "name": "fault_status_pkt",
+            "c_type": "uint8_t",
+            "format": "B",
+            "offset": 34,
+            "size": 1
+          },
+          {
+            "name": "alternative_experience_pkt",
+            "c_type": "uint16_t",
+            "format": "H",
+            "offset": 35,
+            "size": 2
+          },
+          {
+            "name": "interrupt_load_pkt",
+            "c_type": "uint8_t",
+            "format": "B",
+            "offset": 37,
+            "size": 1
+          },
+          {
+            "name": "fan_power",
+            "c_type": "uint8_t",
+            "format": "B",
+            "offset": 38,
+            "size": 1
+          },
+          {
+            "name": "spi_error_count_pkt",
+            "c_type": "uint16_t",
+            "format": "H",
+            "offset": 39,
+            "size": 2
+          },
+          {
+            "name": "sbu1_voltage_mV",
+            "c_type": "uint16_t",
+            "format": "H",
+            "offset": 41,
+            "size": 2
+          },
+          {
+            "name": "sbu2_voltage_mV",
+            "c_type": "uint16_t",
+            "format": "H",
+            "offset": 43,
+            "size": 2
+          },
+          {
+            "name": "sound_output_level_pkt",
+            "c_type": "uint16_t",
+            "format": "H",
+            "offset": 45,
+            "size": 2
+          },
+          {
+            "name": "temperature_pkt",
+            "c_type": "uint8_t",
+            "format": "B",
+            "offset": 47,
+            "size": 1
+          }
+        ],
+        "validation": "static packed-source calculation; cross-compiler ABI assertions not run"
+      },
+      "can_health": {
+        "format": "<BIBBBBBBBBIIIIIIIHHBBBIIII",
+        "size": 64,
+        "fields": [
+          {
+            "name": "bus_off",
+            "c_type": "uint8_t",
+            "format": "B",
+            "offset": 0,
+            "size": 1
+          },
+          {
+            "name": "bus_off_cnt",
+            "c_type": "uint32_t",
+            "format": "I",
+            "offset": 1,
+            "size": 4
+          },
+          {
+            "name": "error_warning",
+            "c_type": "uint8_t",
+            "format": "B",
+            "offset": 5,
+            "size": 1
+          },
+          {
+            "name": "error_passive",
+            "c_type": "uint8_t",
+            "format": "B",
+            "offset": 6,
+            "size": 1
+          },
+          {
+            "name": "last_error",
+            "c_type": "uint8_t",
+            "format": "B",
+            "offset": 7,
+            "size": 1
+          },
+          {
+            "name": "last_stored_error",
+            "c_type": "uint8_t",
+            "format": "B",
+            "offset": 8,
+            "size": 1
+          },
+          {
+            "name": "last_data_error",
+            "c_type": "uint8_t",
+            "format": "B",
+            "offset": 9,
+            "size": 1
+          },
+          {
+            "name": "last_data_stored_error",
+            "c_type": "uint8_t",
+            "format": "B",
+            "offset": 10,
+            "size": 1
+          },
+          {
+            "name": "receive_error_cnt",
+            "c_type": "uint8_t",
+            "format": "B",
+            "offset": 11,
+            "size": 1
+          },
+          {
+            "name": "transmit_error_cnt",
+            "c_type": "uint8_t",
+            "format": "B",
+            "offset": 12,
+            "size": 1
+          },
+          {
+            "name": "total_error_cnt",
+            "c_type": "uint32_t",
+            "format": "I",
+            "offset": 13,
+            "size": 4
+          },
+          {
+            "name": "total_tx_lost_cnt",
+            "c_type": "uint32_t",
+            "format": "I",
+            "offset": 17,
+            "size": 4
+          },
+          {
+            "name": "total_rx_lost_cnt",
+            "c_type": "uint32_t",
+            "format": "I",
+            "offset": 21,
+            "size": 4
+          },
+          {
+            "name": "total_tx_cnt",
+            "c_type": "uint32_t",
+            "format": "I",
+            "offset": 25,
+            "size": 4
+          },
+          {
+            "name": "total_rx_cnt",
+            "c_type": "uint32_t",
+            "format": "I",
+            "offset": 29,
+            "size": 4
+          },
+          {
+            "name": "total_fwd_cnt",
+            "c_type": "uint32_t",
+            "format": "I",
+            "offset": 33,
+            "size": 4
+          },
+          {
+            "name": "total_tx_checksum_error_cnt",
+            "c_type": "uint32_t",
+            "format": "I",
+            "offset": 37,
+            "size": 4
+          },
+          {
+            "name": "can_speed",
+            "c_type": "uint16_t",
+            "format": "H",
+            "offset": 41,
+            "size": 2
+          },
+          {
+            "name": "can_data_speed",
+            "c_type": "uint16_t",
+            "format": "H",
+            "offset": 43,
+            "size": 2
+          },
+          {
+            "name": "canfd_enabled",
+            "c_type": "uint8_t",
+            "format": "B",
+            "offset": 45,
+            "size": 1
+          },
+          {
+            "name": "brs_enabled",
+            "c_type": "uint8_t",
+            "format": "B",
+            "offset": 46,
+            "size": 1
+          },
+          {
+            "name": "canfd_non_iso",
+            "c_type": "uint8_t",
+            "format": "B",
+            "offset": 47,
+            "size": 1
+          },
+          {
+            "name": "irq0_call_rate",
+            "c_type": "uint32_t",
+            "format": "I",
+            "offset": 48,
+            "size": 4
+          },
+          {
+            "name": "irq1_call_rate",
+            "c_type": "uint32_t",
+            "format": "I",
+            "offset": 52,
+            "size": 4
+          },
+          {
+            "name": "irq2_call_rate",
+            "c_type": "uint32_t",
+            "format": "I",
+            "offset": 56,
+            "size": 4
+          },
+          {
+            "name": "can_core_reset_cnt",
+            "c_type": "uint32_t",
+            "format": "I",
+            "offset": 60,
+            "size": 4
+          }
+        ],
+        "validation": "static packed-source calculation; cross-compiler ABI assertions not run"
+      },
+      "can_health_guard": "health header hash; no third independent version",
+      "ordinary_local_can_buses": [
+        0,
+        1,
+        2
+      ],
+      "byd_safety_id": 35,
+      "byd_gated_by": "ALLOW_DEBUG",
+      "CANPacket_t_expected_size": 72,
+      "CANPacket_t_expected_alignment": 4,
+      "CANPacket_t_expected_checksum_offset": 5,
+      "CANPacket_t_expected_data_offset": 6,
+      "CANPacket_t_validation": "source-derived expectation; ARM compiler ABI not executed"
+    },
+    "wire": {
+      "header_bytes": 6,
+      "dlc_to_length": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        12,
+        16,
+        20,
+        24,
+        32,
+        48,
+        64
+      ],
+      "byte0": "DLC[7:4], local bus[3:1], FD[0]",
+      "word_bytes_1_to_4_le": "address<<3 | extended<<2 | returned<<1 | rejected",
+      "byte5": "XOR of header bytes0..4 and payload; XOR of full wire frame equals zero",
+      "wire_size": "6 + DLC_TO_LEN[DLC]",
+      "max_wire_size": 70,
+      "classic_max_wire_size": 14,
+      "per_usb_64byte_counter": false,
+      "old_difference": "Old packer clears fd bit and always chunks after buffer exceeds256; new fd argument sets bit0 and chunk=False is default. Both reviewed Python sources use six-byte header and XOR. Neither source proves the old MCU implementation.",
+      "tx_input_contract": "reject returned/rejected flags, invalid identifier/bus, bad checksum, unsupported FD/DLC before hardware TX; preserve bounded partial parsing"
+    },
+    "health_semantic_changes": [
+      "voltage/current u32 to saturated u16",
+      "Boolean status bytes packed into 16-bit flags; adds NMI/hardfault flags",
+      "interrupt load float to u8/255 quantization",
+      "SPI checksum error field becomes SPI error field; do not assume identical counter meaning",
+      "old fan_stall_count absent",
+      "sound output and temperature added; temperature byte decodes as byte-40, no unavailable sentinel in baseline"
+    ],
+    "independent_wire_vectors": [
+      {
+        "id": "classic",
+        "address": "0x123",
+        "data_hex": "112233",
+        "local_bus": 1,
+        "fd": false,
+        "wire_hex": "32 18 09 00 00 23 11 22 33",
+        "f4_expected": "codec_accept_subject_to_safety",
+        "h7_expected": "codec_accept_subject_to_capability_and_safety",
+        "evidence": "independent formula fixture, not target-code execution"
+      },
+      {
+        "id": "extended_classic",
+        "address": "0x18da10f1",
+        "data_hex": "0001020304050607",
+        "local_bus": 2,
+        "fd": false,
+        "wire_hex": "84 8c 87 d0 c6 99 00 01 02 03 04 05 06 07",
+        "f4_expected": "codec_accept_subject_to_safety",
+        "h7_expected": "codec_accept_subject_to_capability_and_safety",
+        "evidence": "independent formula fixture, not target-code execution"
+      },
+      {
+        "id": "fd12",
+        "address": "0x123",
+        "data_hex": "000102030405060708090a0b",
+        "local_bus": 0,
+        "fd": true,
+        "wire_hex": "91 18 09 00 00 80 00 01 02 03 04 05 06 07 08 09 0a 0b",
+        "f4_expected": "reject_fd_or_dlc",
+        "h7_expected": "codec_accept_subject_to_capability_and_safety",
+        "evidence": "independent formula fixture, not target-code execution"
+      }
+    ]
+  },
+  "memory": {
+    "CANPacket_t_bytes_expected_not_compiled": 72,
+    "h7_baseline_queue_elements": {
+      "rx": 4096,
+      "tx_per_bus": 416,
+      "tx_buses": 3,
+      "bytes": 384768
+    },
+    "f4_proposed_queue_elements": {
+      "rx": 256,
+      "tx_per_bus": 64,
+      "tx_buses": 3,
+      "bytes": 32256,
+      "status": "illustrative candidate budget; not verified MCU capacity or accepted throughput"
+    },
+    "additional_budget": [
+      "queue descriptors",
+      "health and safety state",
+      "USB buffers",
+      "DMA alignment/visibility",
+      "stack and interrupt nesting",
+      "heap if present",
+      "startup copying/zeroing",
+      "code and signed-image metadata"
+    ],
+    "f4_app_start_reference": "0x08004000",
+    "h7_app_start_reference": "0x08020000",
+    "actual_f4_flash_ram_capacity": null,
+    "preserve_regions": [
+      "installed bootstub",
+      "provisioning",
+      "OTP",
+      "reserved startup/fault cookies"
+    ],
+    "canonical_can_header_changed": false
+  },
+  "bootstub_boundary": {
+    "installed_bootstub_must_remain_unchanged": true,
+    "default_upstream_build_also_builds_bootstub": true,
+    "proposed_app_only_target_required": true,
+    "candidate_manifest_deployable": false,
+    "acceptance_requires": [
+      "declared exact MCU/link geometry",
+      "app entry and vector compatibility",
+      "length/version tag/minimum contract",
+      "accepted signature public metadata",
+      "no bootstub/provisioning overwrite",
+      "separate later authorized install and recovery procedure"
+    ],
+    "no_claim": "Current reference bootstub source and historical firmware files do not prove installed bootstub identity or that new signed app can start."
+  },
+  "modules": [
+    {
+      "id": "FW01",
+      "area": "application-only build graph",
+      "paths": [
+        "panda/SConscript"
+      ],
+      "change": "Separate app-only targets and per-MCU include/startup/linker config. Preserve explicit ALLOW_DEBUG provenance; do not reuse H7 flags on F4. Default graph currently also builds bootstub.",
+      "dependency": "Complete pinned F4 BSP plus toolchain lock; signing compatibility remains unproven.",
+      "anchors": [
+        "build_h7",
+        "version_hash",
+        "dp_dual_mcu"
+      ],
+      "status": "planned_not_implemented"
+    },
+    {
+      "id": "FW02",
+      "area": "F4 BSP and startup",
+      "paths": [
+        "panda/board/config.h",
+        "panda/board/stm32f4/* (proposed restored sources)",
+        "panda/board/early_init.h"
+      ],
+      "change": "Supply clock, interrupt, ADC, PWM, USB, timer, startup, vector relocation and linker implementation. Use explicit candidate profile; unknown clock/chip/pins remain null in deployable profile.",
+      "dependency": "Full licensed historical F4 runtime is absent locally; select and pin complete source before implementing.",
+      "anchors": [
+        "mcu_config",
+        "old_mcu_profile",
+        "h7_memory",
+        "dp_lite_detect"
+      ],
+      "status": "planned_not_implemented"
+    },
+    {
+      "id": "FW03",
+      "area": "DOS board adapter",
+      "paths": [
+        "panda/board/boards/board_declarations.h",
+        "panda/board/boards/dos.h (proposed)",
+        "panda/board/stm32f4/board.h (proposed)"
+      ],
+      "change": "Add DOS=6 without masquerading as H7. Map legacy initializer to new API (has_fan/LED PWM/bootkick/siren/thermal/harness), explicit feature capability. Treat DP pin table as reference only. Do not copy broad detection or infer 4 CAN controllers from 4 transceivers.",
+      "dependency": "Reference-only pin profile and mock GPIO; hardware verification is later deployment condition, not design prerequisite.",
+      "anchors": [
+        "board_interface",
+        "dp_dos_pins",
+        "dp_dos_interface",
+        "dp_lite_detect"
+      ],
+      "status": "planned_not_implemented"
+    },
+    {
+      "id": "FW04",
+      "area": "classic CAN backend",
+      "paths": [
+        "panda/board/main.c",
+        "panda/board/drivers/bxcan.h (proposed)",
+        "panda/board/drivers/can_common.h"
+      ],
+      "change": "Select backend by MCU; adapt bxCAN RX/TX/interrupt/errors to current CANPacket_t and current safety calls. Reject FD and DLC>8 before unsafe copy/queue. Local bus only 0..2. Preserve checksums, returned/rejected semantics and overflow counters.",
+      "dependency": "F4 controller/filter/mailbox definitions from chosen BSP; never reuse old safety header.",
+      "anchors": [
+        "main_driver_safety",
+        "can_abi",
+        "tx_checksum_safety",
+        "h7_driver",
+        "can_bus_count"
+      ],
+      "status": "planned_not_implemented"
+    },
+    {
+      "id": "FW05",
+      "area": "shared protocol and health",
+      "paths": [
+        "panda/board/health.h",
+        "panda/board/main_comms.h",
+        "panda/board/can_comms.h",
+        "opendbc/opendbc/safety/can.h"
+      ],
+      "change": "Keep canonical new headers shared; 0xdd returns exact current two hashes. Implement health providers and capability-aware host semantics. Transport reset clears only that board/session residue. Validate TX flags/range/checksum before any backend use.",
+      "dependency": "Unsupported sound/temperature/FD stats need explicit absent semantics; zero is not proof of measurement. Do not change target hashes merely to accept old layouts.",
+      "anchors": [
+        "health_layout",
+        "health_encode",
+        "version_reply",
+        "usb_stream",
+        "new_python_health"
+      ],
+      "status": "planned_not_implemented"
+    },
+    {
+      "id": "FW06",
+      "area": "shared safety",
+      "paths": [
+        "opendbc/opendbc/safety/safety.h",
+        "opendbc/opendbc/safety/declarations.h",
+        "panda/board/main.c",
+        "panda/board/drivers/*can.h"
+      ],
+      "change": "Both MCUs use locked current RX/TX/FWD/tick and local bus IDs. Only MCU internal checked forwarding may bypass TX hook. Unknown mode and missed heartbeats return SILENT. Never expose skip_tx_hook to host.",
+      "dependency": "Song PLUS-specific safety remains separate unimplemented work; BYD 32 to 35 is not a semantic conversion; debug BYD availability is not vehicle acceptance.",
+      "anchors": [
+        "safety_rx",
+        "safety_tx_fwd",
+        "safety_tick",
+        "safety_registry",
+        "old_byd_id",
+        "new_byd_id"
+      ],
+      "status": "planned_not_implemented"
+    },
+    {
+      "id": "FW07",
+      "area": "resource profiles and linker",
+      "paths": [
+        "panda/board/drivers/can_common.h",
+        "panda/board/stm32f4/*_flash.ld (proposed)",
+        "panda/board/stm32h7/stm32h7x5_flash.ld"
+      ],
+      "change": "Keep canonical 64-byte payload and hash. Configure smaller F4 queues; validate Flash/RAM/stack/DMA/interrupt budgets per declared MCU. Preserve H7 memory layout and FDCAN behavior.",
+      "dependency": "Physical MCU density and RAM not proven. Candidate queue count is tunable estimate, not validated capacity or throughput.",
+      "anchors": [
+        "queues",
+        "can_abi",
+        "h7_memory"
+      ],
+      "status": "planned_not_implemented"
+    },
+    {
+      "id": "FW08",
+      "area": "timer and watchdog HAL",
+      "paths": [
+        "panda/board/drivers/timers.h",
+        "panda/board/drivers/simple_watchdog.h",
+        "panda/board/main.c"
+      ],
+      "change": "Implement calibrated 1us timer, wrap-safe elapsed, 8Hz loop and 1Hz safety tick. Preserve threshold boundary semantics and heartbeat fail-closed behavior.",
+      "dependency": "Offline fake clock can prove logic, not oscillator accuracy/ISR jitter; software watchdog cannot independently detect all CPU stalls.",
+      "anchors": [
+        "timer_hal",
+        "software_watchdog",
+        "heartbeat",
+        "heartbeat_failures",
+        "main_time_init",
+        "watchdog_fault_record"
+      ],
+      "status": "planned_not_implemented"
+    },
+    {
+      "id": "FW09",
+      "area": "USB identity and maintenance isolation",
+      "paths": [
+        "panda/board/drivers/usb.h",
+        "panda/board/config.h",
+        "panda/python/__init__.py",
+        "panda/python/constants.py"
+      ],
+      "change": "Separate per-MCU application metadata and USB capability catalog from reset/flash/recover. Shared protocol does not change each board role or global bus mapping. Firmware manifest binds MCU/profile/source/signature, not merely 32-bit wire hash.",
+      "dependency": "Preserve installed bootstub; app USB VID may differ from existing bootstub. Host allowlist and maintenance workflow require explicit mode separation.",
+      "anchors": [
+        "new_python_catalog",
+        "usb_identity",
+        "mcu_config",
+        "old_mcu_profile"
+      ],
+      "status": "planned_not_implemented"
+    },
+    {
+      "id": "FW10",
+      "area": "offline tests and artifact manifest",
+      "paths": [
+        "panda/tests/libpanda/*",
+        "opendbc/opendbc/safety/tests/*",
+        "downstream offline test/build manifest (proposed)"
+      ],
+      "change": "Run pure ABI/codec/safety/HAL tests plus separate F4 and H7 app compile/link; never run discovery/constructor/reset/flash helpers. Record full hashes, compiler/link flags, maps, safety mode set and nondeployable status.",
+      "dependency": "Implementation and all compile/test execution are future work.",
+      "anchors": [
+        "build_h7",
+        "version_hash",
+        "app_signing_contract"
+      ],
+      "status": "planned_not_implemented"
+    }
+  ],
+  "implementation_order": [
+    {
+      "id": "F0",
+      "deliverable": "Freeze ABI/source manifest and maintenance separation",
+      "depends_on": [],
+      "modules": [
+        "FW01",
+        "FW05",
+        "FW09"
+      ],
+      "acceptance": [
+        "FWA03",
+        "FWA16"
+      ],
+      "status": "planned_not_started"
+    },
+    {
+      "id": "F1",
+      "deliverable": "Select full traceable F4 source; write explicit candidate profile and fake HAL",
+      "depends_on": [
+        "F0"
+      ],
+      "modules": [
+        "FW02",
+        "FW03"
+      ],
+      "acceptance": [
+        "FWA13"
+      ],
+      "status": "planned_not_started"
+    },
+    {
+      "id": "F2",
+      "deliverable": "Application-only F4/H7 targets and resource/linker profiles",
+      "depends_on": [
+        "F1"
+      ],
+      "modules": [
+        "FW01",
+        "FW02",
+        "FW07"
+      ],
+      "acceptance": [
+        "FWA01",
+        "FWA02",
+        "FWA10"
+      ],
+      "status": "planned_not_started"
+    },
+    {
+      "id": "F3",
+      "deliverable": "Current wire and classic-CAN driver with per-MCU health providers",
+      "depends_on": [
+        "F2"
+      ],
+      "modules": [
+        "FW04",
+        "FW05"
+      ],
+      "acceptance": [
+        "FWA04",
+        "FWA05",
+        "FWA06",
+        "FWA09"
+      ],
+      "status": "planned_not_started"
+    },
+    {
+      "id": "F4",
+      "deliverable": "Current safety, clocks and failure behavior integrated on both shims",
+      "depends_on": [
+        "F3"
+      ],
+      "modules": [
+        "FW06",
+        "FW08"
+      ],
+      "acceptance": [
+        "FWA07",
+        "FWA08",
+        "FWA11",
+        "FWA12"
+      ],
+      "status": "planned_not_started"
+    },
+    {
+      "id": "F5",
+      "deliverable": "H7 regression plus reproducible candidate manifest, still nondeployable",
+      "depends_on": [
+        "F4"
+      ],
+      "modules": [
+        "FW09",
+        "FW10"
+      ],
+      "acceptance": [
+        "FWA14",
+        "FWA15",
+        "FWA16"
+      ],
+      "status": "planned_not_started"
+    }
+  ],
+  "offline_acceptance": [
+    {
+      "id": "FWA01",
+      "area": "F4 and H7 app compile/link",
+      "stimulus": "Build each declared MCU app independently with locked cached toolchain; compiler warnings fail; no downloads, USB access or bootstub/install target. Produce ELF/map/bin and manifest.",
+      "pass_condition": "Both targets link under explicit profiles; incomplete F4 source means not run, never a stub pass.",
+      "modules": [
+        "FW01",
+        "FW02",
+        "FW07"
+      ],
+      "status": "planned_not_run",
+      "evidence_required": [
+        "test_report",
+        "source_and_toolchain_manifest"
+      ]
+    },
+    {
+      "id": "FWA02",
+      "area": "C/Python ABI",
+      "stimulus": "Compiler static_assert sizeof health=48, CAN health=64, CANPacket=72, offsetof(data)=6, checksum=5; all non-bitfield offsets match JSON. Validate bitfields by serialized byte vectors, not offsetof(bitfield).",
+      "pass_condition": "Run for F4 ARM, H7 ARM and host shims; verify wire length is 6+DLC length, never sizeof(CANPacket_t).",
+      "modules": [
+        "FW04",
+        "FW05"
+      ],
+      "status": "planned_not_run",
+      "evidence_required": [
+        "test_report",
+        "source_and_toolchain_manifest"
+      ]
+    },
+    {
+      "id": "FWA03",
+      "area": "Version and source hash",
+      "stimulus": "Normalize CR exactly as baseline; assert health=0xffbc12f5, CAN=0x75abf276, reply f5 12 bc ff 76 f2 ab 75; mutate header/layout and verify mismatch.",
+      "pass_condition": "Reject old 3-byte 10 04 05, unknown lengths and wrong hashes in target session; no fallback masquerade. Full source hashes tracked separately.",
+      "modules": [
+        "FW05",
+        "FW09"
+      ],
+      "status": "planned_not_run",
+      "evidence_required": [
+        "test_report",
+        "source_and_toolchain_manifest"
+      ]
+    },
+    {
+      "id": "FWA04",
+      "area": "Protocol boundary vectors",
+      "stimulus": "Classic 0..8 bytes, extended and standard limits, all DLC mappings for H7; fd bit, return/reject flags, XOR. Add invalid address, local bus 3..7 and simultaneous return+reject.",
+      "pass_condition": "Known vectors exact; F4 rejects fd=1 and DLC>8, even short payload. Host-origin returned/rejected frames rejected. No truncation or FD demotion.",
+      "modules": [
+        "FW04",
+        "FW05"
+      ],
+      "status": "planned_not_run",
+      "evidence_required": [
+        "test_report",
+        "source_and_toolchain_manifest"
+      ]
+    },
+    {
+      "id": "FWA05",
+      "area": "USB stream assembly",
+      "stimulus": "Split every frame at each byte and across 63/64/65-byte USB boundaries; concatenate frames and inject corrupt checksum/incomplete tails.",
+      "pass_condition": "No per-64-byte counter invented; parser never emits partial/bad frame; bounded buffers; reconnect/reset drops residue. Each board has isolated state.",
+      "modules": [
+        "FW05",
+        "FW09"
+      ],
+      "status": "planned_not_run",
+      "evidence_required": [
+        "test_report",
+        "source_and_toolchain_manifest"
+      ]
+    },
+    {
+      "id": "FWA06",
+      "area": "Health and capability semantics",
+      "stimulus": "Old58/new48/CANhealth64 independent fixtures; voltage/current saturation, flags, load rounding, temp offset, absent feature values.",
+      "pass_condition": "Layout mismatch rejected; absence visible in capability-aware view; zero temperature byte must not be reported as a valid -40 C reading for absent sensor. Old fan stall not fabricated in new packet.",
+      "modules": [
+        "FW03",
+        "FW05"
+      ],
+      "status": "planned_not_run",
+      "evidence_required": [
+        "test_report",
+        "source_and_toolchain_manifest"
+      ]
+    },
+    {
+      "id": "FWA07",
+      "area": "Current safety parity",
+      "stimulus": "Run current safety suite with each backend shim and same current header; RX checksum/counter/lag/frequency, TX whitelist/relay, FWD block paths, nooutput/SILENT.",
+      "pass_condition": "Identical safety decisions for F4/H7 classic vectors. All applicable suite cases pass; ALLOW_DEBUG build status recorded. BYD pass never labeled Song PLUS approval.",
+      "modules": [
+        "FW04",
+        "FW06"
+      ],
+      "status": "planned_not_run",
+      "evidence_required": [
+        "test_report",
+        "source_and_toolchain_manifest"
+      ]
+    },
+    {
+      "id": "FWA08",
+      "area": "No bypass path",
+      "stimulus": "Trace all host TX entry points and checked forwarding; test bad checksum, unknown mode, wrong local bus, relay malfunction, unsupported format.",
+      "pass_condition": "No host-controlled skip_tx_hook, ALLOUTPUT or ELM327 workaround. Rejected count/flags/checksum consistent; invalid input never reaches hardware send stub.",
+      "modules": [
+        "FW04",
+        "FW06"
+      ],
+      "status": "planned_not_run",
+      "evidence_required": [
+        "test_report",
+        "source_and_toolchain_manifest"
+      ]
+    },
+    {
+      "id": "FWA09",
+      "area": "Queue safety and backpressure",
+      "stimulus": "Flood RX/TX, wrap producer/consumer indices, queue full/empty transitions, ISR/main interleaving model and canary memory.",
+      "pass_condition": "No overwrite/use of uninitialized payload; overflow counters and backpressure observable. Test each F4/H7 queue profile, not only H7 large buffers.",
+      "modules": [
+        "FW04",
+        "FW07"
+      ],
+      "status": "planned_not_run",
+      "evidence_required": [
+        "test_report",
+        "source_and_toolchain_manifest"
+      ]
+    },
+    {
+      "id": "FWA10",
+      "area": "Link and memory bounds",
+      "stimulus": "Map assertions for startup/app/vector/stack/heap/static queues, data/bss/copy tables, bank visibility and flash reserved areas.",
+      "pass_condition": "Nothing overlaps bootstub, provisioning, OTP or reserved cookies; all sections in declared MCU banks; F4 contains no assumed H7 bank addresses. Size growth budget recorded.",
+      "modules": [
+        "FW01",
+        "FW02",
+        "FW07"
+      ],
+      "status": "planned_not_run",
+      "evidence_required": [
+        "test_report",
+        "source_and_toolchain_manifest"
+      ]
+    },
+    {
+      "id": "FWA11",
+      "area": "Timers and safety elapsed",
+      "stimulus": "Fake clock advances through exact thresholds and uint32 wrap; verify 1us conversion, 8Hz tick, 1Hz safety_tick and timestamp arithmetic.",
+      "pass_condition": "Threshold and wrap cases match current source; elapsed values cannot wrap into permissive safety decisions. Runtime clock accuracy remains hardware test.",
+      "modules": [
+        "FW08",
+        "FW06"
+      ],
+      "status": "planned_not_run",
+      "evidence_required": [
+        "test_report",
+        "source_and_toolchain_manifest"
+      ]
+    },
+    {
+      "id": "FWA12",
+      "area": "Watchdog/heartbeat failures",
+      "stimulus": "Inject tick delays at 374999,375000,375001 us; heartbeat loss on/off and engaged mismatch; IRQ starvation model.",
+      "pass_condition": "Software watchdog records fault only for elapsed >375000 as current source; it does not itself set SILENT or reset. Separately verify heartbeat thresholds 5/2 enter SILENT and >=3 engaged mismatches clear controls. IRQ starvation model exposes inability to independently certify a halted CPU.",
+      "modules": [
+        "FW08",
+        "FW06"
+      ],
+      "status": "planned_not_run",
+      "evidence_required": [
+        "test_report",
+        "source_and_toolchain_manifest"
+      ]
+    },
+    {
+      "id": "FWA13",
+      "area": "Board GPIO contract using mocks",
+      "stimulus": "Run declared DOS reference mode/harness/power transitions against fake GPIO, include unsupported mode and feature-off cases.",
+      "pass_condition": "Pin operations match declared reference and never silently map unknown profile to H7/DOS. Physical pin correctness remains unknown; no target execution.",
+      "modules": [
+        "FW02",
+        "FW03"
+      ],
+      "status": "planned_not_run",
+      "evidence_required": [
+        "test_report",
+        "source_and_toolchain_manifest"
+      ]
+    },
+    {
+      "id": "FWA14",
+      "area": "H7 regression",
+      "stimulus": "Unmodified H7 fixture corpus covers CANFD, BRS, error counters, queue bank layout and original SPI/USB protocol.",
+      "pass_condition": "Shared changes keep H7 FD capability and expected source behavior; no F4 restriction leaks into H7.",
+      "modules": [
+        "FW04",
+        "FW05",
+        "FW07"
+      ],
+      "status": "planned_not_run",
+      "evidence_required": [
+        "test_report",
+        "source_and_toolchain_manifest"
+      ]
+    },
+    {
+      "id": "FWA15",
+      "area": "App/bootstub compatibility metadata",
+      "stimulus": "Inspect existing app file format and public bootstub contract without private key/provision reads; compare entry/length/version/minimum/signature public metadata.",
+      "pass_condition": "Only compatible app format eligible for later bench planning; installed bootstub trust/MCU remains unproven => deployable=false. No signature bypass or bootstub replacement.",
+      "modules": [
+        "FW01",
+        "FW09"
+      ],
+      "status": "planned_not_run",
+      "evidence_required": [
+        "test_report",
+        "source_and_toolchain_manifest"
+      ]
+    },
+    {
+      "id": "FWA16",
+      "area": "Hermetic maintenance isolation",
+      "stimulus": "Audit build/test entry graph and mock imports for device APIs, subprocess flash/recovery, reset/GPIO/role writes, network downloads.",
+      "pass_condition": "Offline CI cannot acquire device handles; firmware mismatch only quarantines. Build artifacts have no auto-install command.",
+      "modules": [
+        "FW01",
+        "FW09",
+        "FW10"
+      ],
+      "status": "planned_not_run",
+      "evidence_required": [
+        "test_report",
+        "source_and_toolchain_manifest"
+      ]
+    }
+  ],
+  "unknowns": [
+    {
+      "field": "physical_mcu_part_revision_flash_ram",
+      "value": null,
+      "impact": "Explicit candidate MCU allows offline build only; cannot infer chip density from DOS USB type or Python table.",
+      "deployment_gate": true
+    },
+    {
+      "field": "physical_gpio_clock_oscillator_harness_variant",
+      "value": null,
+      "impact": "DP pin declarations are simulation reference. Need independent verification before executing this board init on hardware.",
+      "deployment_gate": true
+    },
+    {
+      "field": "installed_bootstub_bytes_trust_root_min_version",
+      "value": null,
+      "impact": "File artifacts and current bootstub source are not a dump of installed MCU bootstub; application acceptability is unproven.",
+      "deployment_gate": true
+    },
+    {
+      "field": "F4_full_BSP_source_and_license_pin",
+      "value": null,
+      "impact": "Local DP snippets do not supply complete startup/linker/bxCAN runtime; obtain a complete traceable source baseline before implementing F4 build.",
+      "deployment_gate": false
+    },
+    {
+      "field": "F4_temperature_provider_and_unsupported_health_semantics",
+      "value": null,
+      "impact": "Current wire has no generic unavailable bit; add reviewed capability semantics or real calibrated provider without pretending zero is measurement.",
+      "deployment_gate": true
+    },
+    {
+      "field": "physical_external_H7_variant_bus_wiring",
+      "value": null,
+      "impact": "Preserve current H7 reference path; no assumption that external board is H725 or a particular hardware type.",
+      "deployment_gate": true
+    },
+    {
+      "field": "Song_PLUS_vehicle_specific_safety",
+      "value": null,
+      "impact": "Current BYD mode is not a completed Song PLUS port; needs separate vehicle protocol and safety work.",
+      "deployment_gate": true
+    }
+  ],
+  "user_statement": {
+    "no_driver_camera": true,
+    "no_SIM_phone_function": true,
+    "photos_or_vendor_material_unavailable": true,
+    "effect": "Do not assume missing peripherals exist or block local design waiting for them."
+  },
+  "sources": [
+    {
+      "id": "panda_build",
+      "path": "upstream-openpilot/panda/SConscript",
+      "commit": "a59195163c32a3a375ea6c86715dc08fd0984c1b",
+      "sha256": "b3544b66774e9a4456bbb17ff040e725460bb700a9ab2e4505e7dbafa81772f9",
+      "line_count": 174,
+      "evidence_class": "locked_official_source",
+      "version_label": null
+    },
+    {
+      "id": "health",
+      "path": "upstream-openpilot/panda/board/health.h",
+      "commit": "a59195163c32a3a375ea6c86715dc08fd0984c1b",
+      "sha256": "f512bcff6925e233a35c00e2d921fe01933fd77c0705c573a233b170d73ce20d",
+      "line_count": 64,
+      "evidence_class": "locked_official_source",
+      "version_label": null
+    },
+    {
+      "id": "main_comms",
+      "path": "upstream-openpilot/panda/board/main_comms.h",
+      "commit": "a59195163c32a3a375ea6c86715dc08fd0984c1b",
+      "sha256": "57c717ac0434b16e6026e46d006d72a89be8661d9e51c3e1a99719b524c0a203",
+      "line_count": 323,
+      "evidence_class": "locked_official_source",
+      "version_label": null
+    },
+    {
+      "id": "python",
+      "path": "upstream-openpilot/panda/python/__init__.py",
+      "commit": "a59195163c32a3a375ea6c86715dc08fd0984c1b",
+      "sha256": "20815dd095ba76bdb9d095e33ddbba62a7ccabf7bd4e87bdc61dee147e9fb04a",
+      "line_count": 795,
+      "evidence_class": "locked_official_source",
+      "version_label": null
+    },
+    {
+      "id": "can_comms",
+      "path": "upstream-openpilot/panda/board/can_comms.h",
+      "commit": "a59195163c32a3a375ea6c86715dc08fd0984c1b",
+      "sha256": "5806c9bda986d0044b6cb83ed0b79ae95b715b75f0f6fb33cbfc6e2e660841b3",
+      "line_count": 146,
+      "evidence_class": "locked_official_source",
+      "version_label": null
+    },
+    {
+      "id": "can_count",
+      "path": "upstream-openpilot/panda/board/can.h",
+      "commit": "a59195163c32a3a375ea6c86715dc08fd0984c1b",
+      "sha256": "ee30d6a723476e5bfaf5493249af715c0f783b95fe4cdc19cb868da09b2334e8",
+      "line_count": 5,
+      "evidence_class": "locked_official_source",
+      "version_label": null
+    },
+    {
+      "id": "can_common",
+      "path": "upstream-openpilot/panda/board/drivers/can_common.h",
+      "commit": "a59195163c32a3a375ea6c86715dc08fd0984c1b",
+      "sha256": "1509297d8ce4f8a527c3bf941dae3f82a26db82a4c3397fd324bd32b81ec9ec1",
+      "line_count": 187,
+      "evidence_class": "locked_official_source",
+      "version_label": null
+    },
+    {
+      "id": "fdcan",
+      "path": "upstream-openpilot/panda/board/drivers/fdcan.h",
+      "commit": "a59195163c32a3a375ea6c86715dc08fd0984c1b",
+      "sha256": "c2dc76a42e039414b1f8b384cec8e3eae47f8f4eeea68d92150b843598f6f150",
+      "line_count": 272,
+      "evidence_class": "locked_official_source",
+      "version_label": null
+    },
+    {
+      "id": "main",
+      "path": "upstream-openpilot/panda/board/main.c",
+      "commit": "a59195163c32a3a375ea6c86715dc08fd0984c1b",
+      "sha256": "c72ebafaf2891ccc7ed447db6a1839f85c1d2c4d77f92f01a77ff2db882360bc",
+      "line_count": 371,
+      "evidence_class": "locked_official_source",
+      "version_label": null
+    },
+    {
+      "id": "timers",
+      "path": "upstream-openpilot/panda/board/drivers/timers.h",
+      "commit": "a59195163c32a3a375ea6c86715dc08fd0984c1b",
+      "sha256": "5328d20470d4fc43b327ccf0be5bd41e91ccdf4d2d97230cbfa345870ae58fa4",
+      "line_count": 33,
+      "evidence_class": "locked_official_source",
+      "version_label": null
+    },
+    {
+      "id": "watchdog",
+      "path": "upstream-openpilot/panda/board/drivers/simple_watchdog.h",
+      "commit": "a59195163c32a3a375ea6c86715dc08fd0984c1b",
+      "sha256": "38cd9992ac95ec35dd22a24a2896ec453407d33b98ddb9ff06b5b1a1a85d20d3",
+      "line_count": 23,
+      "evidence_class": "locked_official_source",
+      "version_label": null
+    },
+    {
+      "id": "boards",
+      "path": "upstream-openpilot/panda/board/boards/board_declarations.h",
+      "commit": "a59195163c32a3a375ea6c86715dc08fd0984c1b",
+      "sha256": "536032eee2fac73314af7dfb105df81fca33bf05f87094f11ee30af8de778241",
+      "line_count": 60,
+      "evidence_class": "locked_official_source",
+      "version_label": null
+    },
+    {
+      "id": "config",
+      "path": "upstream-openpilot/panda/board/config.h",
+      "commit": "a59195163c32a3a375ea6c86715dc08fd0984c1b",
+      "sha256": "a9814cb0ef7939d65507809995d704c55f9e4dfb2411934f44fa8e829d2d48e2",
+      "line_count": 26,
+      "evidence_class": "locked_official_source",
+      "version_label": null
+    },
+    {
+      "id": "h7_linker",
+      "path": "upstream-openpilot/panda/board/stm32h7/stm32h7x5_flash.ld",
+      "commit": "a59195163c32a3a375ea6c86715dc08fd0984c1b",
+      "sha256": "2da174976f3e3abf0542e78549a4a12a20df39023a56b1c5a23ae41958e95894",
+      "line_count": 223,
+      "evidence_class": "locked_official_source",
+      "version_label": null
+    },
+    {
+      "id": "bootstub",
+      "path": "upstream-openpilot/panda/board/bootstub.c",
+      "commit": "a59195163c32a3a375ea6c86715dc08fd0984c1b",
+      "sha256": "c363f70286b1591805de82f830c7f3b0a6b9cd9ba53eb0be4bf023535f0582ef",
+      "line_count": 82,
+      "evidence_class": "locked_official_source",
+      "version_label": null
+    },
+    {
+      "id": "usb",
+      "path": "upstream-openpilot/panda/board/drivers/usb.h",
+      "commit": "a59195163c32a3a375ea6c86715dc08fd0984c1b",
+      "sha256": "dd520b2567206dce35ab24bb27fbc432ee5be6111142943bac088dc5a802dd92",
+      "line_count": 753,
+      "evidence_class": "locked_official_source",
+      "version_label": null
+    },
+    {
+      "id": "can_packet",
+      "path": "upstream-openpilot/opendbc_repo/opendbc/safety/can.h",
+      "commit": "b3bd79a659dae961af169a3baac723961f720133",
+      "sha256": "76f2ab751f89797c0a2254ab9a010a261678fe30f869d4e777cb7f2048802743",
+      "line_count": 20,
+      "evidence_class": "locked_official_source",
+      "version_label": null
+    },
+    {
+      "id": "safety_defs",
+      "path": "upstream-openpilot/opendbc_repo/opendbc/safety/declarations.h",
+      "commit": "b3bd79a659dae961af169a3baac723961f720133",
+      "sha256": "f6a6d2466c1131b734b763a9d65cdbd51bcf66f876e14bd662be5f8c55b0b284",
+      "line_count": 368,
+      "evidence_class": "locked_official_source",
+      "version_label": null
+    },
+    {
+      "id": "safety",
+      "path": "upstream-openpilot/opendbc_repo/opendbc/safety/safety.h",
+      "commit": "b3bd79a659dae961af169a3baac723961f720133",
+      "sha256": "48523444b74f68181a8ef16afc74e790862591632d49d760c01271292c952c6e",
+      "line_count": 537,
+      "evidence_class": "locked_official_source",
+      "version_label": null
+    },
+    {
+      "id": "dp_build",
+      "path": "research/evidence/public-source/dragonpilot-94ad85cf/panda_tici/board/SConscript",
+      "commit": "94ad85cfda64773a960d048dc11cac02d4aa86a5",
+      "sha256": "5f09764e1a72c17f9dc7f95f0a5f17a4faca601cacd886f3fc4c3fdfc10111d3",
+      "line_count": 18,
+      "evidence_class": "pinned_public_reference",
+      "version_label": null
+    },
+    {
+      "id": "dp_dos",
+      "path": "research/evidence/public-source/dragonpilot-94ad85cf/panda_tici/board/boards/dos.h",
+      "commit": "94ad85cfda64773a960d048dc11cac02d4aa86a5",
+      "sha256": "ec15964f5d3cb106a0fb5932fb34d71e1d2bd5d01780c979eaeec471318a42ed",
+      "line_count": 158,
+      "evidence_class": "pinned_public_reference",
+      "version_label": null
+    },
+    {
+      "id": "dp_f4",
+      "path": "research/evidence/public-source/dragonpilot-94ad85cf/panda_tici/board/stm32f4/board.h",
+      "commit": "94ad85cfda64773a960d048dc11cac02d4aa86a5",
+      "sha256": "f65f4c1d45a1a56a8b0c70f166424778d13a68708981d48b0954f1e85c899c5b",
+      "line_count": 42,
+      "evidence_class": "pinned_public_reference",
+      "version_label": null
+    },
+    {
+      "id": "sp098_python",
+      "path": "../op_rootdir/data/openpilot/panda/python/__init__.py",
+      "commit": null,
+      "sha256": "c2df6b142adb4ae1a4163128760a8e03a4659eae349b3f7b062231cec7a762c7",
+      "line_count": 953,
+      "evidence_class": "historical_local_snapshot_not_proven_firmware_source",
+      "version_label": "DEV-e26a80db-DEBUG"
+    },
+    {
+      "id": "sp098_mcu",
+      "path": "../op_rootdir/data/openpilot/panda/python/constants.py",
+      "commit": null,
+      "sha256": "a2ed3128ea0b2e83613638e00c8da7b169a27575b7380bd4efe85bca26a23761",
+      "line_count": 65,
+      "evidence_class": "historical_local_snapshot_not_proven_firmware_source",
+      "version_label": "DEV-e26a80db-DEBUG"
+    },
+    {
+      "id": "faults",
+      "path": "upstream-openpilot/panda/board/sys/faults.h",
+      "commit": "a59195163c32a3a375ea6c86715dc08fd0984c1b",
+      "sha256": "c4df5dbedf40c7f30231b99a095dd4950152aafaa8dfcc7c056598f57916bb3b",
+      "line_count": 27,
+      "evidence_class": "locked_official_source",
+      "version_label": null
+    }
+  ],
+  "anchors": [
+    {
+      "id": "build_h7",
+      "source_id": "panda_build",
+      "start_line": 67,
+      "end_line": 141,
+      "claim": "Only H7 project definition; include path, startup, app entry and bootstub/main targets are coupled."
+    },
+    {
+      "id": "version_hash",
+      "source_id": "panda_build",
+      "start_line": 159,
+      "end_line": 174,
+      "claim": "Header SHA-256 first four bytes little endian after removing CR; H7 targets only."
+    },
+    {
+      "id": "health_layout",
+      "source_id": "health",
+      "start_line": 3,
+      "end_line": 64,
+      "claim": "Packed health and CAN health fields and health flags."
+    },
+    {
+      "id": "health_encode",
+      "source_id": "main_comms",
+      "start_line": 9,
+      "end_line": 54,
+      "claim": "Saturation, flags, interrupt-load and temperature scaling."
+    },
+    {
+      "id": "version_reply",
+      "source_id": "main_comms",
+      "start_line": 222,
+      "end_line": 231,
+      "claim": "Safety control and two-u32 0xdd response."
+    },
+    {
+      "id": "new_python_codec",
+      "source_id": "python",
+      "start_line": 34,
+      "end_line": 118,
+      "claim": "Six-byte CAN header, XOR checksum, fd bit, optional chunking, strict versions."
+    },
+    {
+      "id": "new_python_catalog",
+      "source_id": "python",
+      "start_line": 125,
+      "end_line": 155,
+      "claim": "VID pair, H7-only catalog and header-hash definitions."
+    },
+    {
+      "id": "new_python_health",
+      "source_id": "python",
+      "start_line": 518,
+      "end_line": 595,
+      "claim": "health decoding; CAN health uses shared health hash."
+    },
+    {
+      "id": "new_python_versions",
+      "source_id": "python",
+      "start_line": 617,
+      "end_line": 621,
+      "claim": "0xdd reads exactly eight bytes, unpacked as two little-endian u32."
+    },
+    {
+      "id": "usb_stream",
+      "source_id": "can_comms",
+      "start_line": 8,
+      "end_line": 146,
+      "claim": "Wire framing has no per-64-byte sequence counter; stream assembly and reset."
+    },
+    {
+      "id": "can_abi",
+      "source_id": "can_packet",
+      "start_line": 3,
+      "end_line": 20,
+      "claim": "Canonical CANPacket_t has 64-byte data, packed and aligned(4)."
+    },
+    {
+      "id": "can_bus_count",
+      "source_id": "can_count",
+      "start_line": 1,
+      "end_line": 5,
+      "claim": "Target firmware has three ordinary CAN buses."
+    },
+    {
+      "id": "queues",
+      "source_id": "can_common",
+      "start_line": 16,
+      "end_line": 39,
+      "claim": "4096 RX and three 416 TX queues; H7 bank section placements."
+    },
+    {
+      "id": "tx_checksum_safety",
+      "source_id": "can_common",
+      "start_line": 144,
+      "end_line": 176,
+      "claim": "XOR and TX safety/rejection path; internal skip hook flag exists."
+    },
+    {
+      "id": "h7_driver",
+      "source_id": "fdcan",
+      "start_line": 88,
+      "end_line": 218,
+      "claim": "H7 FDCAN TX/RX, checksums and forwarding."
+    },
+    {
+      "id": "main_driver_safety",
+      "source_id": "main",
+      "start_line": 13,
+      "end_line": 79,
+      "claim": "FDCAN include and unknown-mode SILENT fallback."
+    },
+    {
+      "id": "heartbeat",
+      "source_id": "main",
+      "start_line": 101,
+      "end_line": 103,
+      "claim": "Ignition-on/off heartbeat thresholds are 5 and 2."
+    },
+    {
+      "id": "heartbeat_failures",
+      "source_id": "main",
+      "start_line": 187,
+      "end_line": 248,
+      "claim": "Heartbeat mismatch, expiry and 1Hz safety tick behavior."
+    },
+    {
+      "id": "main_time_init",
+      "source_id": "main",
+      "start_line": 293,
+      "end_line": 311,
+      "claim": "1-us timer initialization; 8-Hz watchdog loop threshold is 375000 us."
+    },
+    {
+      "id": "timer_hal",
+      "source_id": "timers",
+      "start_line": 1,
+      "end_line": 33,
+      "claim": "Timers depend on APB timer frequency constants."
+    },
+    {
+      "id": "software_watchdog",
+      "source_id": "watchdog",
+      "start_line": 5,
+      "end_line": 23,
+      "claim": "Kick detects elapsed time strictly greater than threshold; not independent hardware watchdog."
+    },
+    {
+      "id": "board_interface",
+      "source_id": "boards",
+      "start_line": 13,
+      "end_line": 60,
+      "claim": "New board function/feature layout and hardware-type catalog."
+    },
+    {
+      "id": "mcu_config",
+      "source_id": "config",
+      "start_line": 1,
+      "end_line": 26,
+      "claim": "H7 config include and registered USB VID."
+    },
+    {
+      "id": "h7_memory",
+      "source_id": "h7_linker",
+      "start_line": 56,
+      "end_line": 80,
+      "claim": "H7 startup cookies, app start, stack and memory banks; not F4 geometry."
+    },
+    {
+      "id": "app_signing_contract",
+      "source_id": "bootstub",
+      "start_line": 30,
+      "end_line": 80,
+      "claim": "Current reference checks app length/version/signature before jump; not proof of installed old bootstub."
+    },
+    {
+      "id": "usb_identity",
+      "source_id": "usb",
+      "start_line": 460,
+      "end_line": 468,
+      "claim": "USB bcdDevice high byte is software hardware type."
+    },
+    {
+      "id": "new_byd_id",
+      "source_id": "safety_defs",
+      "start_line": 30,
+      "end_line": 40,
+      "claim": "Current SAFETY_BYD is 35."
+    },
+    {
+      "id": "safety_rx",
+      "source_id": "safety",
+      "start_line": 199,
+      "end_line": 227,
+      "claim": "Current RX checks and common safety processing."
+    },
+    {
+      "id": "safety_tx_fwd",
+      "source_id": "safety",
+      "start_line": 241,
+      "end_line": 287,
+      "claim": "Current TX whitelist/relay protection and local-bus forwarding contract."
+    },
+    {
+      "id": "safety_tick",
+      "source_id": "safety",
+      "start_line": 320,
+      "end_line": 340,
+      "claim": "Microsecond timestamps and lag/frequency enforcement."
+    },
+    {
+      "id": "safety_registry",
+      "source_id": "safety",
+      "start_line": 391,
+      "end_line": 423,
+      "claim": "BYD entry gated by ALLOW_DEBUG; no proof of Song PLUS readiness."
+    },
+    {
+      "id": "dp_dual_mcu",
+      "source_id": "dp_build",
+      "start_line": 1,
+      "end_line": 18,
+      "claim": "F4 and H7 referenced but base_project_f4 implementation absent in this snippet."
+    },
+    {
+      "id": "dp_dos_pins",
+      "source_id": "dp_dos",
+      "start_line": 9,
+      "end_line": 128,
+      "claim": "Reference transceiver mux, fan/IR/bootkick/harness pins; not measured device facts."
+    },
+    {
+      "id": "dp_dos_interface",
+      "source_id": "dp_dos",
+      "start_line": 130,
+      "end_line": 158,
+      "claim": "Legacy DOS interface differs from current board struct."
+    },
+    {
+      "id": "dp_lite_detect",
+      "source_id": "dp_f4",
+      "start_line": 8,
+      "end_line": 42,
+      "claim": "Reference F4 HAL and Lite-as-DOS detection comment; not independent manufacturer confirmation."
+    },
+    {
+      "id": "old_can_codec",
+      "source_id": "sp098_python",
+      "start_line": 26,
+      "end_line": 104,
+      "claim": "Old CAN-v4 Python uses six-byte header, XOR and byte0 bit0 cleared."
+    },
+    {
+      "id": "old_byd_id",
+      "source_id": "sp098_python",
+      "start_line": 140,
+      "end_line": 148,
+      "claim": "Historical SAFETY_BYD is 32."
+    },
+    {
+      "id": "old_catalog_versions",
+      "source_id": "sp098_python",
+      "start_line": 160,
+      "end_line": 187,
+      "claim": "DOS type 6, F4 catalog and versions 16/4/5 with exact struct formats."
+    },
+    {
+      "id": "old_health_decode",
+      "source_id": "sp098_python",
+      "start_line": 621,
+      "end_line": 695,
+      "claim": "Historical health fields including float interrupt load and fan stall count."
+    },
+    {
+      "id": "old_version_reply",
+      "source_id": "sp098_python",
+      "start_line": 722,
+      "end_line": 729,
+      "claim": "Historical 0xdd expects three bytes: health/CAN/CAN-health versions."
+    },
+    {
+      "id": "old_mcu_profile",
+      "source_id": "sp098_mcu",
+      "start_line": 27,
+      "end_line": 54,
+      "claim": "Historical F4 app 0x08004000/H7 0x08020000 library profiles; no physical chip proof."
+    },
+    {
+      "id": "watchdog_fault_record",
+      "source_id": "faults",
+      "start_line": 8,
+      "end_line": 19,
+      "claim": "fault_occurred records status/bits; does not itself set SILENT or reset MCU."
+    }
+  ],
+  "verification_this_round": {
+    "static_source_files_hashed": 25,
+    "protocol_sizes_calculated_with_stdlib_only": true,
+    "source_anchor_bounds_checked": true,
+    "source_code_executed": false,
+    "tests_built_or_run": false,
+    "device_or_can_io": false,
+    "limits": "Static arithmetic and source provenance checks are document checks, not implementation tests or hardware certification."
+  },
+  "integration_schedule": "Main plan P5 may run after P1 in parallel with P2-P4. Internal F0-F5 ordering applies to firmware prerequisites only and does not serialize host USB/session development."
+}

@@ -1,0 +1,59 @@
+{
+  "schema": "songplus-dos-usb-hardware-assumptions/v1",
+  "user_update": "2026-10-18 user cannot provide photos or manufacturer material; exterior similarity to official C3X is only a description",
+  "photos_or_vendor_materials_requested_again": false,
+  "local_design_blocked": false,
+  "local_mock_implementation_blocked": false,
+  "device_compatibility_verified": false,
+  "recovery_verified": false,
+  "deployment_ready": false,
+  "known": [
+    {
+      "fact": "DOS software identity on current internal USB path",
+      "basis": "hardware/step1/followup/live-evidence.json plus earlier fresh pandaStates and hash-bound legacy API",
+      "limit": "No exact MCU silicon/PCB/bootstub proof"
+    },
+    {
+      "fact": "User unit lacks driver camera and telephone-card function",
+      "basis": "user clarification and vendor series description",
+      "limit": "Does not prove no USB communication hardware; not an official full-DM solution"
+    },
+    {
+      "fact": "Historical external redPanda plus DOS configuration",
+      "basis": "archived evidence only",
+      "limit": "External board absent from current sampled USB enumeration"
+    }
+  ],
+  "unknowns": [
+    {
+      "id": "U1",
+      "item": "Exact DOS MCU/PCB/SOM/revision and resource limits",
+      "effect_now": "Use explicit candidate MCU type with separately checked compile budgets; never infer from casing",
+      "blocks_later": "Physical deployment/flash selection and board GPIO/peripheral changes"
+    },
+    {
+      "id": "U2",
+      "item": "External Panda identity and stable physical role binding",
+      "effect_now": "Test both slot orderings using synthetic IDs; keep profile unbound",
+      "blocks_later": "Actual two-device connection and global-to-local vehicle bus assignment"
+    },
+    {
+      "id": "U3",
+      "item": "Current MCU firmware/bootstub/provisioning and app compatibility",
+      "effect_now": "Plan common current ABI; preserve bootstub; old protocol decoder offline only",
+      "blocks_later": "Firmware installation and reliable recovery"
+    },
+    {
+      "id": "U4",
+      "item": "Device recovery protocol, loader, port/power mapping and rollback rehearsal",
+      "effect_now": "Continue local design/build planning without changing device",
+      "blocks_later": "Any deployment that needs an assured rollback path"
+    },
+    {
+      "id": "U5",
+      "item": "AGNOS/QCOM runtime, no-DM hardware solution, vehicle wiring/protocol and Song PLUS safety",
+      "effect_now": "Separate workstreams; do not bind ATTO3 safety or suppress DM",
+      "blocks_later": "Complete target runtime and vehicle actuation validation"
+    }
+  ]
+}

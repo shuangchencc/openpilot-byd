@@ -1,0 +1,18 @@
+{
+  "schema": "songplus-dual-panda-design-manifest/v1",
+  "scope": "Design documents and verifier only; no runtime implementation or device artifacts",
+  "files": {
+    "DESIGN.md": "275b093877c24c21c96256bb6f46a7868155d26395e7c425681e600534875053",
+    "VALIDATION.md": "210ef34c23cf7264b39ca0cb04f9c7c042d9d641e042cb59d0c8ed1b627aa2a1",
+    "firmware-design.json": "73e04562d970221b5cae7bccf0d77d3c93425edbd5d0627968450a3db74c0273",
+    "firmware-design.md": "19ea40fae083d059c02dfa2062932a4046993e038831156afd69838cf5704e28",
+    "hardware-assumptions.json": "c1eb2881e6ebaeb3b2d5d8720f65e59d272d25762adaf40d6778b9d9434540bc",
+    "host-design.json": "ac0d500df12428d23c79056afa38adcdf34597e8c1b00fa1bf6ec18125051154",
+    "host-design.md": "6b1d880e24f343d43c4f992a0b85f1227619dfff34389b50e08cfeafa386b83b",
+    "implementation-plan.json": "8806bf10fc6f27f71047febf662a7da16c60079567224bf06329bfc2bd0bb999",
+    "offline-acceptance.json": "bb2a890e019f4e4c663b45109e834ce7ef00b8144f55c2cd16e1e5ae345c9a81",
+    "profile.template.json": "c3e43e880224587be153f5d32c2e1a4c4b948dec96794d765ea7e286f84ebd77",
+    "review-requirements.json": "88654ee13911200c2037637a3786b3f0ab6abdc67335529896a3ea5f3e5664df",
+    "verify.py": "b8f7b8eaafb6c0266ad9707873d9f40252cf1e442d2e179992f822c6b6e5e02b"
+  }
+}

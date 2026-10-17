@@ -1,0 +1,1365 @@
+{
+  "schema": "songplus-dual-panda-review-requirements/v1",
+  "scope": "Local static design review only. No device connection, firmware build, implementation or hardware validation performed by this review.",
+  "official_commit": "35e78a9d9518855ec0dacec919e719624a28131f",
+  "dependency_commits": {
+    "upstream-openpilot/opendbc_repo": "b3bd79a659dae961af169a3baac723961f720133",
+    "upstream-openpilot/panda": "a59195163c32a3a375ea6c86715dc08fd0984c1b"
+  },
+  "evidence_limits": [
+    "Historical DOS/legacy API sources illustrate differences; they are not identified installed firmware.",
+    "Installed host API summary is not an MCU protocol response or exact silicon identification.",
+    "Mock/offline scenarios below are acceptance requirements, not executed passing tests.",
+    "Future device control, USB enumeration/claim, MCU reads, bench power/connection changes and flashing require their own explicitly scoped work."
+  ],
+  "requirements": [
+    {
+      "id": "REV-01",
+      "title": "稳定身份与角色，不依赖枚举顺序",
+      "blocking_gate": "before_any_vehicle_actuation",
+      "basis": [
+        "python_api",
+        "host_daemon"
+      ],
+      "requirement": "每个逻辑 slot 绑定经过确认的物理角色、独立设备身份和能力；同型板、USB 端口或列表次序不能代替身份。无法唯一绑定时隔离，不猜测车辆板或维护目标。",
+      "must_verify": [
+        {
+          "id": "REV-01-1",
+          "scenario": "两块同型板交换枚举顺序及 USB 端口",
+          "expected": "slot、safetyConfigs 下标、全局 bus 和外设所有者保持同一身份映射。"
+        },
+        {
+          "id": "REV-01-2",
+          "scenario": "空/非法/重复身份、未登记第三板、同一板重复传输路径",
+          "expected": "不静默去重后选择第一块；报告冲突并禁止受影响配置进入可发送状态。"
+        },
+        {
+          "id": "REV-01-3",
+          "scenario": "断开一板后由另一设备占据相同 USB 位置",
+          "expected": "不继承原身份、待发队列、权限或维护目标。"
+        }
+      ],
+      "implementation_status": "not_implemented_by_this_review",
+      "acceptance_ids": [
+        "A01",
+        "A30",
+        "A32"
+      ],
+      "acceptance_execution_status": "NOT_RUN"
+    },
+    {
+      "id": "REV-02",
+      "title": "固定 slot 与消费者缺板感知",
+      "blocking_gate": "before_any_vehicle_actuation",
+      "basis": [
+        "safety_consumer",
+        "hardware_consumer",
+        "bus_consumer",
+        "host_daemon"
+      ],
+      "requirement": "v1 固定两块 required Panda；pandaStates 顺序、safetyConfigs、全局 bus、harness/外设所有者保持一致。必需板缺失不得缩短列表；消费者必须明确感知整组失效且不能接受伪造的健康占位。",
+      "must_verify": [
+        {
+          "id": "REV-02-1",
+          "scenario": "slot 0 或 slot 1 分别断开、全部断开、状态列表空或少一项",
+          "expected": "剩余板不移位；缺失状态可见；必需角色故障触发禁止进入/退出控制路径。"
+        },
+        {
+          "id": "REV-02-2",
+          "scenario": "safetyConfigs 长度为 0/1/3 或顺序错误",
+          "expected": "配置校验失败，禁止越界或把车辆安全模式设置到内部外设板。"
+        },
+        {
+          "id": "REV-02-3",
+          "scenario": "试图把当前 v1 双板配置中的一板声明为 optional 或缺一板继续控制",
+          "expected": "拒绝配置/保持整组不可用；未来部分工作能力需另行设计，不自动重编号。"
+        }
+      ],
+      "implementation_status": "not_implemented_by_this_review",
+      "acceptance_ids": [
+        "A34",
+        "A40",
+        "A41",
+        "A42"
+      ],
+      "acceptance_execution_status": "NOT_RUN"
+    },
+    {
+      "id": "REV-03",
+      "title": "stride 4 与返回/拒绝标记分离",
+      "blocking_gate": "before_any_vehicle_actuation",
+      "basis": [
+        "host_wire",
+        "host_transport",
+        "can_wire",
+        "can_schema",
+        "mcu_can"
+      ],
+      "requirement": "全局物理 bus=4*slot+local_bus，当前每板仅 local 0..2；3/7 保留。returned 0x80、rejected 0xC0 是 RX 类别，不是可发送 bus。先验证类别与板/总线范围，再路由；不能用取模或掩码将返回/拒绝帧变成 TX。",
+      "must_verify": [
+        {
+          "id": "REV-03-1",
+          "scenario": "双板 local 0..2 × 普通/returned/rejected 全组合",
+          "expected": "RX 的 slot 和类别无损保留；普通全局 bus 0/1/2/4/5/6 只发到唯一正确板。"
+        },
+        {
+          "id": "REV-03-2",
+          "scenario": "wire returned 与 rejected 同时为 1",
+          "expected": "作为畸形帧拒绝，不能因相加超过 UInt8 而截断到合法 bus。"
+        },
+        {
+          "id": "REV-03-3",
+          "scenario": "发送 src 为 3/7、负数、越界、0x80+bus 或 0xC0+bus",
+          "expected": "全部拒绝且零设备发送；不广播、不回落第一板。"
+        }
+      ],
+      "implementation_status": "not_implemented_by_this_review",
+      "acceptance_ids": [
+        "A13",
+        "A31"
+      ],
+      "acceptance_execution_status": "NOT_RUN"
+    },
+    {
+      "id": "REV-04",
+      "title": "USB 分帧和输入边界",
+      "blocking_gate": "before_any_vehicle_actuation",
+      "basis": [
+        "host_transport",
+        "host_wire",
+        "python_api",
+        "can_wire"
+      ],
+      "requirement": "对 USB 任意分包/合包做有界增量解析；头、DLC、地址、扩展位、校验和及协议保留位均按选定 ABI 验证。无符号长度相减不可先于最小头长检查；错误数据不得产生可用半帧或隐式设备重置。",
+      "must_verify": [
+        {
+          "id": "REV-04-1",
+          "scenario": "每个合法报文的所有切分位置，尤其仅 0..5 字节头；多帧合包与剩余尾字节",
+          "expected": "与完整输入解码一致，无越界/未初始化读取，缓冲有上限。"
+        },
+        {
+          "id": "REV-04-2",
+          "scenario": "坏校验、截断载荷、超长流、非法地址/DLC 组合、FD 保留位异常",
+          "expected": "分类报告错误，无可用伪帧；故障路径不发 0xc0 或其他控制写。"
+        },
+        {
+          "id": "REV-04-3",
+          "scenario": "合法前缀后紧跟坏帧",
+          "expected": "发布有效性与丢弃策略明确；坏批次不能以默认 valid=true 混入正常控制输入。"
+        }
+      ],
+      "implementation_status": "not_implemented_by_this_review",
+      "acceptance_ids": [
+        "A12",
+        "A13",
+        "A15",
+        "A62"
+      ],
+      "acceptance_execution_status": "NOT_RUN"
+    },
+    {
+      "id": "REV-05",
+      "title": "协议握手与固件身份绑定",
+      "blocking_gate": "before_any_vehicle_actuation",
+      "basis": [
+        "python_api",
+        "mcu_control",
+        "firmware_build",
+        "installed_api",
+        "legacy_reference",
+        "host_transport"
+      ],
+      "requirement": "按精确回复长度及版本白名单选择 ABI：旧三字节版本与新八字节头文件哈希不可混用。现机 host API 的 16/4/5 与历史参考 17/4/5 不等价，也不证明实际 MCU 回复。固件标识、MCU/板型、协议与构建产物必须成组绑定。 本设计 v1 仅允许新版目标 ABI 取得未来控制资格，所有旧版仅离线解码。",
+      "must_verify": [
+        {
+          "id": "REV-05-1",
+          "scenario": "旧 16/4/5、历史 17/4/5、新 <II> 哈希、未知版本及 0/1/2/4/7/9 字节回复",
+          "expected": "新版仅在精确哈希白名单内可通过目标 ABI 门槛；旧版仅注册的独立离线 decoder 可解码，永远无控制资格；未知/短包无控制写、无自动降级。"
+        },
+        {
+          "id": "REV-05-2",
+          "scenario": "哈希相符但板型/MCU/构建清单不符，或固件签名属于另一角色",
+          "expected": "不能只因任一 panda.bin.signed 尾部匹配而授予兼容资格。"
+        },
+        {
+          "id": "REV-05-3",
+          "scenario": "bootstub、DFU、缺固件、版本不匹配",
+          "expected": "只报告需单独维护，不在连接循环内恢复/刷写。"
+        }
+      ],
+      "implementation_status": "not_implemented_by_this_review",
+      "acceptance_ids": [
+        "A10",
+        "A15",
+        "A70"
+      ],
+      "acceptance_execution_status": "NOT_RUN"
+    },
+    {
+      "id": "REV-06",
+      "title": "Health 归一化不得补造安全状态",
+      "blocking_gate": "before_any_vehicle_actuation",
+      "basis": [
+        "mcu_health",
+        "host_transport",
+        "host_daemon",
+        "installed_api",
+        "legacy_reference"
+      ],
+      "requirement": "每个 ABI 单独定义精确长度、字节序、单位、位图和能力缺失；转换到统一状态同时保留原版本及字段有效性。关键 safety/ignition/heartbeat/relay 字段未知或陈旧即不可用，不能填 0 后视为健康。",
+      "must_verify": [
+        {
+          "id": "REV-06-1",
+          "scenario": "每个支持 ABI 的全字段黄金数据与所有短读长度、超长读、未知枚举/故障位",
+          "expected": "精确解码或显式失败；未知故障不丢失、不伪装为另一已知故障；短读不接受为零填充结构。"
+        },
+        {
+          "id": "REV-06-2",
+          "scenario": "旧浮点 interrupt_load、新 uint8/255；电压电流宽度、SBU mV/V、计数器回卷",
+          "expected": "单位及边界一致，溢出/NaN/缺字段不会生成合理但错误的数值。"
+        },
+        {
+          "id": "REV-06-3",
+          "scenario": "CAN health 缺失或只更新其中一板",
+          "expected": "整组/逐板有效性策略明确，旧健康数据不替换为新采样。"
+        }
+      ],
+      "implementation_status": "not_implemented_by_this_review",
+      "acceptance_ids": [
+        "A11",
+        "A15"
+      ],
+      "acceptance_execution_status": "NOT_RUN"
+    },
+    {
+      "id": "REV-07",
+      "title": "时间戳、年龄与连接代次",
+      "blocking_gate": "before_any_vehicle_actuation",
+      "basis": [
+        "event_timestamp",
+        "clock",
+        "can_schema",
+        "host_daemon"
+      ],
+      "requirement": "USB CAN 没有已证实的 MCU 逐帧时间戳；统一使用同一宿主启动时钟记录读取/入队时间和代次，不能宣称两板硬件时钟同步。聚合发布不得将等待过久的数据重新标新鲜；TX 同时校验 valid、年龄和当前代次。",
+      "must_verify": [
+        {
+          "id": "REV-07-1",
+          "scenario": "一板快速一板延迟、聚合等待、重连前残留、时钟边界",
+          "expected": "每板数据年龄有上限且可审计；不虚构跨板真实时间顺序，不重放旧代次。"
+        },
+        {
+          "id": "REV-07-2",
+          "scenario": "过期/未来/无效 sendcan；边界为配置的最大年龄 ±1 ns",
+          "expected": "明确丢弃规则和计数；不利用新消息封装刷新旧帧。"
+        },
+        {
+          "id": "REV-07-3",
+          "scenario": "重启宿主或重连后序列/计数归零",
+          "expected": "新代次独立，旧缓存和待发送操作失效。"
+        }
+      ],
+      "implementation_status": "not_implemented_by_this_review",
+      "acceptance_ids": [
+        "A32",
+        "A33"
+      ],
+      "acceptance_execution_status": "NOT_RUN"
+    },
+    {
+      "id": "REV-08",
+      "title": "并发、超时与不确定写入",
+      "blocking_gate": "before_any_vehicle_actuation",
+      "basis": [
+        "spi_transport",
+        "usb_transport",
+        "host_daemon"
+      ],
+      "requirement": "两板读写/health/外设任务有独立有界预算、队列和取消路径。USB 不继承 SPI transaction id 去重语义；部分或结果不明的写入不得盲目重放整批。所有预算必须在进入台架前给出数值与验收容差。",
+      "must_verify": [
+        {
+          "id": "REV-08-1",
+          "scenario": "一板无响应/持续繁忙/拔线/队列满，另一板持续工作",
+          "expected": "故障板不能无限占用线程、锁或主循环；另一板的健康和散热服务仍在规定期限内。"
+        },
+        {
+          "id": "REV-08-2",
+          "scenario": "短写、超时但设备可能已接收、同一批中途断连",
+          "expected": "不会重复发送已接收前缀；不确定结果显式失效并阻止重试导致双重执行。"
+        },
+        {
+          "id": "REV-08-3",
+          "scenario": "最大 CAN 流量、健康请求竞争及关闭操作",
+          "expected": "队列有界、公平调度、丢弃可计数；取消/退出在给定时限完成。"
+        }
+      ],
+      "implementation_status": "not_implemented_by_this_review",
+      "acceptance_ids": [
+        "A20",
+        "A21",
+        "A24"
+      ],
+      "acceptance_execution_status": "NOT_RUN"
+    },
+    {
+      "id": "REV-09",
+      "title": "逐板安全配置与全局使能屏障",
+      "blocking_gate": "before_any_vehicle_actuation",
+      "basis": [
+        "safety_config",
+        "mcu_control",
+        "mcu_runtime",
+        "safety_consumer"
+      ],
+      "requirement": "安全模式按固定 slot 设置并读取验证 safetyModel/param/alternativeExperience；全体必需角色准备完成前不开放车辆 TX。控制写不是跨板原子操作，因此必须用宿主使能屏障及失败回退，不能只复用 safetyConfigs[0]。",
+      "must_verify": [
+        {
+          "id": "REV-09-1",
+          "scenario": "第二板设置失败、读回不符、超时；第一板已设置成功",
+          "expected": "保持全局 TX 禁止，呈现每板结果；不以第一板成功宣称整个系统就绪。"
+        },
+        {
+          "id": "REV-09-2",
+          "scenario": "重连/启动遗留 ControlsReady、FirmwareQueryDone、CarParams",
+          "expected": "旧参数不能越过当前身份、代次及读回校验。"
+        },
+        {
+          "id": "REV-09-3",
+          "scenario": "配置更换、onroad/offroad 变化、未知安全模式回落 SILENT",
+          "expected": "重新验证完整配置；未知/回落状态不进入车辆 TX。"
+        }
+      ],
+      "implementation_status": "not_implemented_by_this_review",
+      "acceptance_ids": [
+        "A41",
+        "A45"
+      ],
+      "acceptance_execution_status": "NOT_RUN"
+    },
+    {
+      "id": "REV-10",
+      "title": "诊断模式也是主动发送",
+      "blocking_gate": "before_any_vehicle_actuation",
+      "basis": [
+        "safety_config",
+        "independent_safety",
+        "mcu_runtime"
+      ],
+      "requirement": "ELM327、OBD 多路切换、固件查询是主动配置/发送阶段，必须与发现和被动观测分离；只对指定车辆角色开放审核过的诊断范围。任何兼容或识别失败都不能用 allOutput、跳过固件检查或伪造 STARTED 解决。",
+      "must_verify": [
+        {
+          "id": "REV-10-1",
+          "scenario": "被动模式、无车台架、STARTED/BOARDD_SKIP_FW_CHECK/BOARDD_LOOPBACK 环境变量存在",
+          "expected": "不自动切入 ELM327 或启用 CAN TX；危险调试开关被策略拒绝或明确隔离。"
+        },
+        {
+          "id": "REV-10-2",
+          "scenario": "固件查询或 OBD 请求指向内部外设 slot/未知 bus",
+          "expected": "拒绝，不能广播给所有板。"
+        },
+        {
+          "id": "REV-10-3",
+          "scenario": "诊断超时/取消/切回正常模式",
+          "expected": "发送权限关闭并核实预期安全状态，不能遗留诊断权限。"
+        }
+      ],
+      "implementation_status": "not_implemented_by_this_review",
+      "acceptance_ids": [
+        "A00",
+        "A43",
+        "A70"
+      ],
+      "acceptance_execution_status": "NOT_RUN"
+    },
+    {
+      "id": "REV-11",
+      "title": "独立 MCU 安全与拒绝帧不可绕行",
+      "blocking_gate": "before_any_vehicle_actuation",
+      "basis": [
+        "independent_safety",
+        "mcu_can",
+        "mcu_runtime"
+      ],
+      "requirement": "车辆命令必须由承载该物理总线的 MCU 执行独立 safety_tx/relay/forwarding 检查。兼容层不能通过另一板或软件桥重发被拒绝/被阻断转发的报文，也不能将一板 controlsAllowed 复制给另一板。",
+      "must_verify": [
+        {
+          "id": "REV-11-1",
+          "scenario": "MCU 拒绝命令、relay malfunction、forwarding block 命中",
+          "expected": "可观察拒绝/故障，其他板零替代发送；宿主不能降级安全模式以求成功。"
+        },
+        {
+          "id": "REV-11-2",
+          "scenario": "相同地址在两板不同物理总线上合法性不同",
+          "expected": "按明确 slot 和安全配置独立判断，不跨板共享授权。"
+        },
+        {
+          "id": "REV-11-3",
+          "scenario": "returned/rejected 帧进入日志、回放、诊断或 TX 队列",
+          "expected": "类别始终保留，所有可能出口均拒绝将其路由为新车辆命令。"
+        }
+      ],
+      "implementation_status": "not_implemented_by_this_review",
+      "acceptance_ids": [
+        "A31",
+        "A60",
+        "A64"
+      ],
+      "acceptance_execution_status": "NOT_RUN"
+    },
+    {
+      "id": "REV-12",
+      "title": "断连与故障必须及时阻断车辆发送",
+      "blocking_gate": "before_any_vehicle_actuation",
+      "basis": [
+        "safety_consumer",
+        "host_daemon",
+        "mcu_runtime"
+      ],
+      "requirement": "必需板身份、transport、health 或配置失效时，宿主立即撤销相应全局车辆发送资格并发布故障；不能等待 MCU 2/5 秒心跳回退或消费者遍历剩余列表。散热服务和安全退出按独立所有者策略继续。",
+      "must_verify": [
+        {
+          "id": "REV-12-1",
+          "scenario": "在未接合/已接合/发送中分别断开任一必需板",
+          "expected": "规定检测与阻断上限内不再接受新车辆 TX，剩余板不换角色，退出控制可见。"
+        },
+        {
+          "id": "REV-12-2",
+          "scenario": "有 USB 数据但 health 不更新，或读回 safety 配置改变",
+          "expected": "按同样故障门限阻断，不被 CAN 活跃假象掩盖。"
+        },
+        {
+          "id": "REV-12-3",
+          "scenario": "重连原板或另一板",
+          "expected": "完整重握手和新的使能屏障前无车辆 TX；旧待发队列已清空。"
+        }
+      ],
+      "implementation_status": "not_implemented_by_this_review",
+      "acceptance_ids": [
+        "A34",
+        "A40",
+        "A42",
+        "A45",
+        "A62"
+      ],
+      "acceptance_execution_status": "NOT_RUN"
+    },
+    {
+      "id": "REV-13",
+      "title": "心跳与看门狗逐板验证",
+      "blocking_gate": "before_any_vehicle_actuation",
+      "basis": [
+        "mcu_runtime",
+        "mcu_control",
+        "host_daemon"
+      ],
+      "requirement": "每板心跳与该板状态及系统控制状态相符；禁止以关闭心跳检查维持兼容。宿主故障、断电、进程卡死后的 MCU 安全回退、报警与继电器行为必须按具体旧/新固件分别验证，不能由 H7 源码推定旧 DOS 已具备。",
+      "must_verify": [
+        {
+          "id": "REV-13-1",
+          "scenario": "一板健康失败导致 heartbeat 路径跳过；另一板正常",
+          "expected": "故障策略明确且不会连带饿死内部散热；不发送伪造 engaged=true。"
+        },
+        {
+          "id": "REV-13-2",
+          "scenario": "控制许可与 engaged 不一致、宿主卡死/断电、心跳丢失",
+          "expected": "mock 验证宿主策略；未来隔离台架实测各 MCU 的回退时限、模式/relay/报警，不外推旧板。"
+        },
+        {
+          "id": "REV-13-3",
+          "scenario": "正常运行代码企图调用 disable heartbeat",
+          "expected": "策略和测试直接拒绝，不作为恢复手段。"
+        }
+      ],
+      "implementation_status": "not_implemented_by_this_review",
+      "acceptance_ids": [
+        "A45",
+        "A46",
+        "A54",
+        "A65"
+      ],
+      "acceptance_execution_status": "NOT_RUN"
+    },
+    {
+      "id": "REV-14",
+      "title": "点火、harness 与供电所有者分别建模",
+      "blocking_gate": "before_any_vehicle_actuation",
+      "basis": [
+        "hardware_consumer",
+        "host_daemon",
+        "mcu_runtime",
+        "legacy_dos"
+      ],
+      "requirement": "系统点火仅聚合被确认且新鲜的允许来源；车辆 harness、内部供电及外设角色明确指定。外置车辆板点火真、DOS 本地点火假时，不能直接沿用每板 !ignition_local 关闭内部服务；陈旧点火不可无限保持 onroad。",
+      "must_verify": [
+        {
+          "id": "REV-14-1",
+          "scenario": "DOS ignition=false、车辆板=true；相反组合；一板陈旧或消失",
+          "expected": "系统点火与每板供电动作符合显式真值表，内部风扇/主机不被错误断电。"
+        },
+        {
+          "id": "REV-14-2",
+          "scenario": "slot 0 没有 harness、slot 1 有 harness；两个 harness 不同状态",
+          "expected": "in_car 取明确车辆角色，不能盲用 pandaStates[0]。"
+        },
+        {
+          "id": "REV-14-3",
+          "scenario": "harness 翻转、点火边沿、供电恢复",
+          "expected": "总线方向与安全配置重新验证，不因重新初始化发送旧命令。"
+        }
+      ],
+      "implementation_status": "not_implemented_by_this_review",
+      "acceptance_ids": [
+        "A42",
+        "A44",
+        "A45"
+      ],
+      "acceptance_execution_status": "NOT_RUN"
+    },
+    {
+      "id": "REV-15",
+      "title": "外围控制只发给能力明确的所有者",
+      "blocking_gate": "before_any_vehicle_actuation",
+      "basis": [
+        "host_daemon",
+        "red_hardware",
+        "legacy_dos",
+        "mcu_runtime"
+      ],
+      "requirement": "fan/IR/siren/SOM/bootkick/power-save/CAN 参数各有明确能力和角色所有者；不能因都叫 Panda 而广播。C3XL 无驾驶员相机按已知产品配置处理；不得以伪造 cabinCameraState 或关闭安全要求掩盖完整 DM 缺口。",
+      "must_verify": [
+        {
+          "id": "REV-15-1",
+          "scenario": "内部 DOS + 无 fan/IR 的 Red；两板顺序交换",
+          "expected": "风扇等命令只发到绑定所有者，外置板不接收无关外围命令。"
+        },
+        {
+          "id": "REV-15-2",
+          "scenario": "deviceState 失活、风扇命令过期、内部板断连或控制写失败",
+          "expected": "执行有时限的散热故障/降级策略，不能无限维持无依据的旧占空比。"
+        },
+        {
+          "id": "REV-15-3",
+          "scenario": "无驾驶员相机、IR 输入超时、异常热状态",
+          "expected": "无伪造相机消息；IR 明确关闭/不支持；DM 和整机热验证仍为独立阻断项。"
+        }
+      ],
+      "implementation_status": "not_implemented_by_this_review",
+      "acceptance_ids": [
+        "A02",
+        "A44",
+        "A46"
+      ],
+      "acceptance_execution_status": "NOT_RUN"
+    },
+    {
+      "id": "REV-16",
+      "title": "发现与运行路径隔离维护副作用",
+      "blocking_gate": "before_any_device_connection_by_new_code",
+      "basis": [
+        "startup_wrapper",
+        "python_api",
+        "host_transport",
+        "spi_transport",
+        "host_daemon",
+        "usb_transport"
+      ],
+      "requirement": "纯发现、被动观测、协议握手、已授权运行配置、维护刷写为不同能力边界。普通连接/错误/热插拔路径不得调用现有 Panda 默认构造副作用或包装器的 reset/recover/flash；USB claim/detach、控制读也不能被描述为本轮被动 sysfs 观察。",
+      "must_verify": [
+        {
+          "id": "REV-16-1",
+          "scenario": "发现、未知板、坏包、版本错、bootstub/DFU、重试/热插拔",
+          "expected": "监控 mock 边界：零 reset/recover/flash、心跳禁用、波特率改写、自动 CAN-FD 或 0xc0 通信重置。"
+        },
+        {
+          "id": "REV-16-2",
+          "scenario": "启动完整原版 pandad.py/Panda 构造器或通用更新路径",
+          "expected": "测试必须阻止进入该路径，而非用 skip 固件检查继续启动。"
+        },
+        {
+          "id": "REV-16-3",
+          "scenario": "维护目标不唯一、两块同型板、运行中的内部板或缺少恢复证据",
+          "expected": "维护不成为自动动作；后续必须单独确认目标与恢复方案，本轮没有执行资格。"
+        }
+      ],
+      "implementation_status": "not_implemented_by_this_review",
+      "acceptance_ids": [
+        "A00",
+        "A13",
+        "A70"
+      ],
+      "acceptance_execution_status": "NOT_RUN"
+    },
+    {
+      "id": "REV-17",
+      "title": "旧 MCU 能力与完整 F4 端口边界",
+      "blocking_gate": "before_any_legacy_firmware_deployment",
+      "basis": [
+        "firmware_build",
+        "python_api",
+        "legacy_dos",
+        "installed_api"
+      ],
+      "requirement": "旧 DOS 的 MCU 精确型号/容量/板修订仍需证据；恢复 F4 支持不是增加枚举或用 H7 二进制替换。classic CAN、USB、时钟/中断、watchdog、启动/链接、CAN 计时、harness/relay、fan/bootkick、相机时钟及恢复均是独立验收面。",
+      "must_verify": [
+        {
+          "id": "REV-17-1",
+          "scenario": "对无 CAN-FD 能力的 DOS 请求 FD/BRS/non-ISO 或大于 8 字节数据",
+          "expected": "在宿主能力边界拒绝，不静默截断/降级、不错误发控制请求。"
+        },
+        {
+          "id": "REV-17-2",
+          "scenario": "仅编译 H7 或旧参考 F4 固件成功",
+          "expected": "报告不宣称现机可刷；必须另有精确目标、内存图、启动/驱动及独立安全验证。"
+        },
+        {
+          "id": "REV-17-3",
+          "scenario": "未来 F4 移植变更 TIM/PLL/中断/USB/CAN 或 bootkick",
+          "expected": "审查共享时钟/相机 strobe/看门狗耦合，列出隔离台架实测；无恢复验证时保持刷写禁止。"
+        }
+      ],
+      "implementation_status": "not_implemented_by_this_review",
+      "acceptance_ids": [
+        "A13",
+        "A50",
+        "A51",
+        "A53",
+        "A54",
+        "A55"
+      ],
+      "acceptance_execution_status": "NOT_RUN"
+    },
+    {
+      "id": "REV-18",
+      "title": "H7 ABI 和官方单板路径回归",
+      "blocking_gate": "before_any_vehicle_actuation",
+      "basis": [
+        "can_wire",
+        "host_wire",
+        "python_api",
+        "firmware_build",
+        "host_daemon",
+        "mcu_health"
+      ],
+      "requirement": "协议抽象必须保留锁定 H7 的合法报文字节和语义；C++ 头首位称 reserved 而 MCU/Python 为 fd，必须显式协调。新 F4 分支不得更改 H7 头文件哈希、当前安全语义或默认单板 SPI 路径而不提供审查证据。",
+      "must_verify": [
+        {
+          "id": "REV-18-1",
+          "scenario": "同一批合法 H7 报文跨 Python/C++/MCU fixture；classic/FD 和所有 DLC",
+          "expected": "字节、校验、地址及 flags 与已选协议一致；差异有明确版本边界。"
+        },
+        {
+          "id": "REV-18-2",
+          "scenario": "既有单板 SPI 的合法 CAN、health、安全状态和错误事件",
+          "expected": "比较锁定基线；兼容层不造成路由/配置回归，不要求保留已发现的畸形输入缺陷。"
+        },
+        {
+          "id": "REV-18-3",
+          "scenario": "构建头哈希、主机 parser 与固件不一致",
+          "expected": "离线校验阻断，不以 BOARDD_SKIP_FW_CHECK 放行。"
+        }
+      ],
+      "implementation_status": "not_implemented_by_this_review",
+      "acceptance_ids": [
+        "A15",
+        "A22",
+        "A52",
+        "A63"
+      ],
+      "acceptance_execution_status": "NOT_RUN"
+    },
+    {
+      "id": "REV-19",
+      "title": "正常关闭与异常退出分别设计",
+      "blocking_gate": "before_any_vehicle_actuation",
+      "basis": [
+        "host_daemon",
+        "mcu_runtime",
+        "safety_consumer"
+      ],
+      "requirement": "明确正常退出、已接合退出、设备丢失、线程卡死及宿主断电的不同动作；不要假设进程退出总能写 NO_OUTPUT 或闭合继电器。所有清理动作只能作用当前代次和已验证角色，且不引发复位循环。",
+      "must_verify": [
+        {
+          "id": "REV-19-1",
+          "scenario": "SIGINT/正常退出发生于 offroad、onroad 未接合和已接合",
+          "expected": "mock 验证每种状态的动作序列与期限；车辆控制权限撤销，保持明确的故障/报警路径。"
+        },
+        {
+          "id": "REV-19-2",
+          "scenario": "退出期间另一线程持锁、设备断开、被不同身份替换",
+          "expected": "清理可终止，无死锁、无对替代设备的遗留控制写。"
+        },
+        {
+          "id": "REV-19-3",
+          "scenario": "无法执行宿主清理的进程崩溃/断电",
+          "expected": "依赖独立 MCU 的已验证回退；离线结果不能冒充硬件断电/relay 实测。"
+        }
+      ],
+      "implementation_status": "not_implemented_by_this_review",
+      "acceptance_ids": [
+        "A45",
+        "A62",
+        "A65"
+      ],
+      "acceptance_execution_status": "NOT_RUN"
+    }
+  ],
+  "sources": [
+    {
+      "id": "host_wire",
+      "path": "upstream-openpilot/openpilot/selfdrive/pandad/panda.h",
+      "sha256": "325fbcc720a9af7988ec8098a32568f85ed923f55508e829c6a5fe3d3ca210af",
+      "classification": "official",
+      "repository": "upstream-openpilot",
+      "commit": "35e78a9d9518855ec0dacec919e719624a28131f",
+      "line_count": 98
+    },
+    {
+      "id": "host_transport",
+      "path": "upstream-openpilot/openpilot/selfdrive/pandad/panda.cc",
+      "sha256": "b5a198a30ff5a193e5c71e2c0bc2b2649a5d6737ae13bee4ec7bbba471eec9b9",
+      "classification": "official",
+      "repository": "upstream-openpilot",
+      "commit": "35e78a9d9518855ec0dacec919e719624a28131f",
+      "line_count": 290
+    },
+    {
+      "id": "host_daemon",
+      "path": "upstream-openpilot/openpilot/selfdrive/pandad/pandad.cc",
+      "sha256": "db81105a5cdb619ad1f90cde776735b7b2225a6833de71e8a421111177040221",
+      "classification": "official",
+      "repository": "upstream-openpilot",
+      "commit": "35e78a9d9518855ec0dacec919e719624a28131f",
+      "line_count": 452
+    },
+    {
+      "id": "safety_config",
+      "path": "upstream-openpilot/openpilot/selfdrive/pandad/panda_safety.cc",
+      "sha256": "5cca50b8a47e498a73e47f583d1cbff8e820810a9fc07bfb2e61de0f8850354d",
+      "classification": "official",
+      "repository": "upstream-openpilot",
+      "commit": "35e78a9d9518855ec0dacec919e719624a28131f",
+      "line_count": 70
+    },
+    {
+      "id": "startup_wrapper",
+      "path": "upstream-openpilot/openpilot/selfdrive/pandad/pandad.py",
+      "sha256": "b4a845934d813aaf40ac9b59c7bd1d954635e70b342ab9dc1923129abba641be",
+      "classification": "official",
+      "repository": "upstream-openpilot",
+      "commit": "35e78a9d9518855ec0dacec919e719624a28131f",
+      "line_count": 93
+    },
+    {
+      "id": "spi_transport",
+      "path": "upstream-openpilot/openpilot/selfdrive/pandad/spi.cc",
+      "sha256": "61c0c34d4e3d843bce21fb095623994a6a16d60bacf25fad5cf29ab151d60aab",
+      "classification": "official",
+      "repository": "upstream-openpilot",
+      "commit": "35e78a9d9518855ec0dacec919e719624a28131f",
+      "line_count": 386
+    },
+    {
+      "id": "python_api",
+      "path": "upstream-openpilot/panda/python/__init__.py",
+      "sha256": "20815dd095ba76bdb9d095e33ddbba62a7ccabf7bd4e87bdc61dee147e9fb04a",
+      "classification": "official",
+      "repository": "upstream-openpilot/panda",
+      "commit": "a59195163c32a3a375ea6c86715dc08fd0984c1b",
+      "line_count": 795
+    },
+    {
+      "id": "usb_transport",
+      "path": "upstream-openpilot/panda/python/usb.py",
+      "sha256": "9df75802abefd9fd148e6b40f45c865f84e0c8322fe8abcba42294c8f63e5db9",
+      "classification": "official",
+      "repository": "upstream-openpilot/panda",
+      "commit": "a59195163c32a3a375ea6c86715dc08fd0984c1b",
+      "line_count": 98
+    },
+    {
+      "id": "mcu_health",
+      "path": "upstream-openpilot/panda/board/health.h",
+      "sha256": "f512bcff6925e233a35c00e2d921fe01933fd77c0705c573a233b170d73ce20d",
+      "classification": "official",
+      "repository": "upstream-openpilot/panda",
+      "commit": "a59195163c32a3a375ea6c86715dc08fd0984c1b",
+      "line_count": 64
+    },
+    {
+      "id": "mcu_control",
+      "path": "upstream-openpilot/panda/board/main_comms.h",
+      "sha256": "57c717ac0434b16e6026e46d006d72a89be8661d9e51c3e1a99719b524c0a203",
+      "classification": "official",
+      "repository": "upstream-openpilot/panda",
+      "commit": "a59195163c32a3a375ea6c86715dc08fd0984c1b",
+      "line_count": 323
+    },
+    {
+      "id": "mcu_runtime",
+      "path": "upstream-openpilot/panda/board/main.c",
+      "sha256": "c72ebafaf2891ccc7ed447db6a1839f85c1d2c4d77f92f01a77ff2db882360bc",
+      "classification": "official",
+      "repository": "upstream-openpilot/panda",
+      "commit": "a59195163c32a3a375ea6c86715dc08fd0984c1b",
+      "line_count": 371
+    },
+    {
+      "id": "mcu_can",
+      "path": "upstream-openpilot/panda/board/drivers/can_common.h",
+      "sha256": "1509297d8ce4f8a527c3bf941dae3f82a26db82a4c3397fd324bd32b81ec9ec1",
+      "classification": "official",
+      "repository": "upstream-openpilot/panda",
+      "commit": "a59195163c32a3a375ea6c86715dc08fd0984c1b",
+      "line_count": 187
+    },
+    {
+      "id": "firmware_build",
+      "path": "upstream-openpilot/panda/SConscript",
+      "sha256": "b3544b66774e9a4456bbb17ff040e725460bb700a9ab2e4505e7dbafa81772f9",
+      "classification": "official",
+      "repository": "upstream-openpilot/panda",
+      "commit": "a59195163c32a3a375ea6c86715dc08fd0984c1b",
+      "line_count": 174
+    },
+    {
+      "id": "red_hardware",
+      "path": "upstream-openpilot/panda/board/boards/red.h",
+      "sha256": "71d7bb48348b30c0bbfd8a86bc4aa923852115e36a9cd706b5a6511ef6b01e1b",
+      "classification": "official",
+      "repository": "upstream-openpilot/panda",
+      "commit": "a59195163c32a3a375ea6c86715dc08fd0984c1b",
+      "line_count": 133
+    },
+    {
+      "id": "can_wire",
+      "path": "upstream-openpilot/opendbc_repo/opendbc/safety/can.h",
+      "sha256": "76f2ab751f89797c0a2254ab9a010a261678fe30f869d4e777cb7f2048802743",
+      "classification": "official",
+      "repository": "upstream-openpilot/opendbc_repo",
+      "commit": "b3bd79a659dae961af169a3baac723961f720133",
+      "line_count": 20
+    },
+    {
+      "id": "independent_safety",
+      "path": "upstream-openpilot/opendbc_repo/opendbc/safety/safety.h",
+      "sha256": "48523444b74f68181a8ef16afc74e790862591632d49d760c01271292c952c6e",
+      "classification": "official",
+      "repository": "upstream-openpilot/opendbc_repo",
+      "commit": "b3bd79a659dae961af169a3baac723961f720133",
+      "line_count": 537
+    },
+    {
+      "id": "bus_consumer",
+      "path": "upstream-openpilot/opendbc_repo/opendbc/car/__init__.py",
+      "sha256": "0e4a16467d400ea89852ad3e18206231948bcba61ea67ad48637b9ed18f760bc",
+      "classification": "official",
+      "repository": "upstream-openpilot/opendbc_repo",
+      "commit": "b3bd79a659dae961af169a3baac723961f720133",
+      "line_count": 232
+    },
+    {
+      "id": "safety_consumer",
+      "path": "upstream-openpilot/openpilot/selfdrive/selfdrived/selfdrived.py",
+      "sha256": "632ea5bc4c12247b55fbe7060e390fe7064fb8f3cfaa85df5bea37297e1c3c40",
+      "classification": "official",
+      "repository": "upstream-openpilot",
+      "commit": "35e78a9d9518855ec0dacec919e719624a28131f",
+      "line_count": 591
+    },
+    {
+      "id": "hardware_consumer",
+      "path": "upstream-openpilot/openpilot/system/hardware/hardwared.py",
+      "sha256": "5d94bd66a393e0abe150a626168fcc2ba697ed70c57675dd7b9d84735a1f590f",
+      "classification": "official",
+      "repository": "upstream-openpilot",
+      "commit": "35e78a9d9518855ec0dacec919e719624a28131f",
+      "line_count": 525
+    },
+    {
+      "id": "event_timestamp",
+      "path": "upstream-openpilot/openpilot/cereal/messaging/messaging.h",
+      "sha256": "f679d0b3ada726d96b91197fdf0c1c7861c094eba1725fc132a54050612742e6",
+      "classification": "official",
+      "repository": "upstream-openpilot",
+      "commit": "35e78a9d9518855ec0dacec919e719624a28131f",
+      "line_count": 102
+    },
+    {
+      "id": "can_schema",
+      "path": "upstream-openpilot/openpilot/cereal/log.capnp",
+      "sha256": "60ea81bac323120e04a456901e4bbd349a377a3db53a568d6870e9371859cc10",
+      "classification": "official",
+      "repository": "upstream-openpilot",
+      "commit": "35e78a9d9518855ec0dacec919e719624a28131f",
+      "line_count": 2719
+    },
+    {
+      "id": "clock",
+      "path": "upstream-openpilot/openpilot/common/timing.h",
+      "sha256": "66a580e240fa4fe4af03bc3073ddd0f4db5d1027720e8adfa92ba448f7c8bc71",
+      "classification": "official",
+      "repository": "upstream-openpilot",
+      "commit": "35e78a9d9518855ec0dacec919e719624a28131f",
+      "line_count": 51
+    },
+    {
+      "id": "legacy_reference",
+      "path": "research/evidence/public-source/dragonpilot-94ad85cf/panda_tici/python/__init__.py",
+      "sha256": "474bb40626070bd1b85c7b81fad2aa1c4de3eb06f0e9562948795c5cbfe71483",
+      "classification": "historical_reference_not_installed_firmware",
+      "line_count": 860
+    },
+    {
+      "id": "legacy_dos",
+      "path": "research/evidence/public-source/dragonpilot-94ad85cf/panda_tici/board/boards/dos.h",
+      "sha256": "ec15964f5d3cb106a0fb5932fb34d71e1d2bd5d01780c979eaeec471318a42ed",
+      "classification": "historical_reference_not_installed_firmware",
+      "line_count": 158
+    },
+    {
+      "id": "installed_api",
+      "path": "hardware/step1/evidence/installed-panda-api-summary.json",
+      "sha256": "ed6a480b44262d859ad8fb33b003b244d70d76ceaf1102aaa7ca06380424bd55",
+      "classification": "project_evidence_host_api_not_mcu_reply",
+      "line_count": 40
+    }
+  ],
+  "anchors": [
+    {
+      "source_id": "host_wire",
+      "start_line": 18,
+      "end_line": 42,
+      "sha256": "eff06b5040e2ab0f81b3aa1857f643e0bcfc0075587a9fdac9ef29984adf0060",
+      "claim": "Host CAN header, stride 4 and RX returned/rejected encodings."
+    },
+    {
+      "source_id": "host_transport",
+      "start_line": 15,
+      "end_line": 36,
+      "sha256": "d989d4635efddeeab729adad4afe6f3b23216d522e87cfac518b9b7ffe87ae08",
+      "claim": "SPI-only constructor, exact-signature reads, permissive health short reads, CAN framing and reset-on-checksum-error behavior."
+    },
+    {
+      "source_id": "host_transport",
+      "start_line": 87,
+      "end_line": 126,
+      "sha256": "5f856b47a21e48b8257fa818cf02013589cede3d6409c6648dbe4a05668ea39f",
+      "claim": "SPI-only constructor, exact-signature reads, permissive health short reads, CAN framing and reset-on-checksum-error behavior."
+    },
+    {
+      "source_id": "host_transport",
+      "start_line": 168,
+      "end_line": 281,
+      "sha256": "629e4a144a8a6096abe1e5bee4404ab74bda393afa036967dc9aa360404ec329",
+      "claim": "SPI-only constructor, exact-signature reads, permissive health short reads, CAN framing and reset-on-checksum-error behavior."
+    },
+    {
+      "source_id": "host_daemon",
+      "start_line": 26,
+      "end_line": 105,
+      "sha256": "4f02d9844c0a0327b2d020ff8b47d9eff0562076e29b52c46d99f210c417c35b",
+      "claim": "Single-board startup, transmit/receive, health, ignition, power, peripherals, scheduling and shutdown behavior."
+    },
+    {
+      "source_id": "host_daemon",
+      "start_line": 108,
+      "end_line": 141,
+      "sha256": "1b17bb1abdeb3841a307e8afd9a8bb52a715123752bdac854d9faf7ae198f11d",
+      "claim": "Single-board startup, transmit/receive, health, ignition, power, peripherals, scheduling and shutdown behavior."
+    },
+    {
+      "source_id": "host_daemon",
+      "start_line": 166,
+      "end_line": 235,
+      "sha256": "b706db44ad13dc234d51f411d206649a20936516d33be9bc2b46f6e435d3a871",
+      "claim": "Single-board startup, transmit/receive, health, ignition, power, peripherals, scheduling and shutdown behavior."
+    },
+    {
+      "source_id": "host_daemon",
+      "start_line": 263,
+      "end_line": 278,
+      "sha256": "70abac6a90aab4fd001d6ea282d50b19242e8d5adcc8aaac578e2567e7cc9d51",
+      "claim": "Single-board startup, transmit/receive, health, ignition, power, peripherals, scheduling and shutdown behavior."
+    },
+    {
+      "source_id": "host_daemon",
+      "start_line": 281,
+      "end_line": 360,
+      "sha256": "2ec891134403ddb6abc3d58b6fbd6458509887524bb079178a994292169021b6",
+      "claim": "Single-board startup, transmit/receive, health, ignition, power, peripherals, scheduling and shutdown behavior."
+    },
+    {
+      "source_id": "host_daemon",
+      "start_line": 362,
+      "end_line": 451,
+      "sha256": "deffd9c95d2045a1cabee87e8b7f39e870b6a3318a442e507a50b2039ba827c9",
+      "claim": "Single-board startup, transmit/receive, health, ignition, power, peripherals, scheduling and shutdown behavior."
+    },
+    {
+      "source_id": "safety_config",
+      "start_line": 5,
+      "end_line": 70,
+      "sha256": "b4d8772b9805313722e0b0538d2a74b9b49f9d850aa7abfe32dd91a308b91975",
+      "claim": "ELM327/multiplexing startup, parameter prerequisites and safetyConfigs[0] configuration."
+    },
+    {
+      "source_id": "startup_wrapper",
+      "start_line": 14,
+      "end_line": 45,
+      "sha256": "0b0490983fd6ab625e5edfb1fad1aba2ec043c3a3a8596d6c8c3ed127e6e510b",
+      "claim": "Automatic internal reset, readiness checks, recover and flash in the normal wrapper."
+    },
+    {
+      "source_id": "startup_wrapper",
+      "start_line": 62,
+      "end_line": 87,
+      "sha256": "da9e5672500568c0cb7ccf0fd61020c558ead03106f9cd51706cb4e6b0442f7b",
+      "claim": "Automatic internal reset, readiness checks, recover and flash in the normal wrapper."
+    },
+    {
+      "source_id": "spi_transport",
+      "start_line": 65,
+      "end_line": 113,
+      "sha256": "236c632e22df5c3730f98d6dc0b2df07aaebbad8305518da59f43f3644ff2e8c",
+      "claim": "SPI open/configuration, discovery, bounded and unbounded retry behavior; transaction IDs provide SPI-specific deduplication."
+    },
+    {
+      "source_id": "spi_transport",
+      "start_line": 150,
+      "end_line": 185,
+      "sha256": "d9f1940c8f65b202928e440c0f7f7eb7c0ccdc9f62e4b527670671545f63e815",
+      "claim": "SPI open/configuration, discovery, bounded and unbounded retry behavior; transaction IDs provide SPI-specific deduplication."
+    },
+    {
+      "source_id": "spi_transport",
+      "start_line": 227,
+      "end_line": 265,
+      "sha256": "724fe19bab237a7998183a8cac599bb0de34d15a2f2c11398834af6c75f7fde3",
+      "claim": "SPI open/configuration, discovery, bounded and unbounded retry behavior; transaction IDs provide SPI-specific deduplication."
+    },
+    {
+      "source_id": "python_api",
+      "start_line": 55,
+      "end_line": 104,
+      "sha256": "5566743f6e309fb32074383c1bf8c027c9028e57dfe33e308a77bfa0a246f9f7",
+      "claim": "CAN framing, supported boards, state-changing default constructor, USB claim/discovery and version parsing."
+    },
+    {
+      "source_id": "python_api",
+      "start_line": 152,
+      "end_line": 174,
+      "sha256": "edf23bffd50158b7e6f20ce731fb68cf7363bdf111bb5e75f0a2446d259da680",
+      "claim": "CAN framing, supported boards, state-changing default constructor, USB claim/discovery and version parsing."
+    },
+    {
+      "source_id": "python_api",
+      "start_line": 212,
+      "end_line": 247,
+      "sha256": "0760565ec934470fdeadbfc62beb02474d96ac99ba62cd2098c01a79b3b160ce",
+      "claim": "CAN framing, supported boards, state-changing default constructor, USB claim/discovery and version parsing."
+    },
+    {
+      "source_id": "python_api",
+      "start_line": 275,
+      "end_line": 350,
+      "sha256": "50cb09e2d4078b7e337fae2d5c9a2307ff0cc6df82691434076fc2735b89dc3a",
+      "claim": "CAN framing, supported boards, state-changing default constructor, USB claim/discovery and version parsing."
+    },
+    {
+      "source_id": "python_api",
+      "start_line": 617,
+      "end_line": 624,
+      "sha256": "6e6a7ea6de4b6b98170b4c4d3d3f4f0fd9021bb2c7b64bf045ae8e5c10b1e8b2",
+      "claim": "CAN framing, supported boards, state-changing default constructor, USB claim/discovery and version parsing."
+    },
+    {
+      "source_id": "usb_transport",
+      "start_line": 6,
+      "end_line": 23,
+      "sha256": "ad7712d751c5e39b3f6443f5748703c58ed7f902fec844d10b7ee0bd9d8aefde",
+      "claim": "libusb operations are forwarded without SPI transaction IDs; bootloader operations are a separate active path."
+    },
+    {
+      "source_id": "usb_transport",
+      "start_line": 27,
+      "end_line": 60,
+      "sha256": "08984adb6c275e82f39a34abad1635b56b40f65fb64ca7153adb94e21d8f4978",
+      "claim": "libusb operations are forwarded without SPI transaction IDs; bootloader operations are a separate active path."
+    },
+    {
+      "source_id": "mcu_health",
+      "start_line": 3,
+      "end_line": 64,
+      "sha256": "20eb0ed21ee2d4295d745f8061e4797946f1b9363867aae1292248ee944aada8",
+      "claim": "Current packed health/CAN-health fields, widths and flag definitions."
+    },
+    {
+      "source_id": "mcu_control",
+      "start_line": 105,
+      "end_line": 113,
+      "sha256": "fa14c240c0a8df20a6620feb6e33061012b67b071e2ad257825773034bb2a681",
+      "claim": "Communication reset, safety setting, current version response, power-save and heartbeat control requests."
+    },
+    {
+      "source_id": "mcu_control",
+      "start_line": 218,
+      "end_line": 231,
+      "sha256": "0bdc5ad592d2623da8051642b88e8d941d55e632615e6d2f7d10e9abf8e8b881",
+      "claim": "Communication reset, safety setting, current version response, power-save and heartbeat control requests."
+    },
+    {
+      "source_id": "mcu_control",
+      "start_line": 257,
+      "end_line": 264,
+      "sha256": "f47debb0a837af76278c9d2e76e6412875734e345bf790c794d15b6ccd675b23",
+      "claim": "Communication reset, safety setting, current version response, power-save and heartbeat control requests."
+    },
+    {
+      "source_id": "mcu_control",
+      "start_line": 277,
+      "end_line": 295,
+      "sha256": "bc2f8524e03454a9b86ed44f11da08a9a6beb45a192d63db7b7d334a8d4e8fb9",
+      "claim": "Communication reset, safety setting, current version response, power-save and heartbeat control requests."
+    },
+    {
+      "source_id": "mcu_runtime",
+      "start_line": 30,
+      "end_line": 85,
+      "sha256": "96ab198600cdd4e4daa6734ba5d5873ecf9d3447a4b47829a452997e85fc01bd",
+      "claim": "MCU safety fallback, harness reinitialization, independent heartbeat/watchdog, siren and fan fallback."
+    },
+    {
+      "source_id": "mcu_runtime",
+      "start_line": 101,
+      "end_line": 230,
+      "sha256": "0d0a67dfb501b09b2a671ab7fac65337c3113bef61f6024404a2a527bf4ca7ee",
+      "claim": "MCU safety fallback, harness reinitialization, independent heartbeat/watchdog, siren and fan fallback."
+    },
+    {
+      "source_id": "mcu_can",
+      "start_line": 146,
+      "end_line": 177,
+      "sha256": "a678029e365e9f65cc2bfffbdcb94c8d8ad479978fcbaca0f86f77cdc8fb1b19",
+      "claim": "Checksum and MCU safety rejection handling; rejected frames are returned to RX, not alternate transmit buses."
+    },
+    {
+      "source_id": "firmware_build",
+      "start_line": 129,
+      "end_line": 141,
+      "sha256": "31a92e448ca540b749f6ebab51f8b5aeec7a6e8747652a0ce512948afa573a5b",
+      "claim": "H7-only target definition and current protocol-hash generation."
+    },
+    {
+      "source_id": "firmware_build",
+      "start_line": 159,
+      "end_line": 171,
+      "sha256": "eb4fce829dbcd959fbbd3317aee622c66c123250509f33124fe5c46b2eb72371",
+      "claim": "H7-only target definition and current protocol-hash generation."
+    },
+    {
+      "source_id": "red_hardware",
+      "start_line": 5,
+      "end_line": 7,
+      "sha256": "ccb9fdd90daa196e852cf2767774a8e66c86f6e8f3f620daef43a78f58ea3168",
+      "claim": "Current Red hardware declaration has no fan, IR, siren or SOM/bootkick peripherals."
+    },
+    {
+      "source_id": "red_hardware",
+      "start_line": 114,
+      "end_line": 133,
+      "sha256": "a9980437ead60c58d258cafce0f42aeef152a0dac43d530f00d5e6fb242b4d02",
+      "claim": "Current Red hardware declaration has no fan, IR, siren or SOM/bootkick peripherals."
+    },
+    {
+      "source_id": "can_wire",
+      "start_line": 3,
+      "end_line": 20,
+      "sha256": "a10a3a64e3c4dfd7b5e3b4bd6d164a2b7052e3fc909f9967910ab6d9d2a214eb",
+      "claim": "MCU wire packet has fd bit, local bus, mutually meaningful returned/rejected fields and DLC table."
+    },
+    {
+      "source_id": "independent_safety",
+      "start_line": 241,
+      "end_line": 287,
+      "sha256": "348a732d43693cc8282c8251ad9b38fa2b93d2a610505815c1d2a5b9c5336b1c",
+      "claim": "MCU transmit whitelist/relay checks and forwarding inhibition cannot be bypassed by host rerouting."
+    },
+    {
+      "source_id": "bus_consumer",
+      "start_line": 114,
+      "end_line": 123,
+      "sha256": "640aa25e2924f82a17b860bd0c66d32177f89973e345582fa7d78682fe68164c",
+      "claim": "Vehicle CanBusBase infers offset from fingerprint or safetyConfigs length."
+    },
+    {
+      "source_id": "safety_consumer",
+      "start_line": 325,
+      "end_line": 343,
+      "sha256": "d3c603cda062162a2f597ace17043afe2cf41d699a5c207f0f112ffc63513751",
+      "claim": "selfdrived iterates only received boards and compares safety configuration by list index."
+    },
+    {
+      "source_id": "safety_consumer",
+      "start_line": 497,
+      "end_line": 507,
+      "sha256": "c3292636d19fa15d96d23c942c71af7f74e4a738f2a90d76e9d14462912c537c",
+      "claim": "selfdrived iterates only received boards and compares safety configuration by list index."
+    },
+    {
+      "source_id": "hardware_consumer",
+      "start_line": 268,
+      "end_line": 280,
+      "sha256": "22c19a486e49122f4d2496864045688d78f627bcef352f5a460696cd5b89c787",
+      "claim": "hardwared aggregates ignition across received boards and takes harness status from index 0."
+    },
+    {
+      "source_id": "event_timestamp",
+      "start_line": 43,
+      "end_line": 51,
+      "sha256": "6b79d6bc13f20c4270a7fb1e8fcf15a24fae00c3ef6481408b2e0a1dcb16f42c",
+      "claim": "Event timestamp is assigned at host message creation, not a per-frame MCU clock."
+    },
+    {
+      "source_id": "can_schema",
+      "start_line": 407,
+      "end_line": 415,
+      "sha256": "263b14152e09db65ea02ece6b2623033da5f2771e200a6a1dad407973abdcd7e",
+      "claim": "CAN src is UInt8; old busTime field is deprecated."
+    },
+    {
+      "source_id": "clock",
+      "start_line": 1,
+      "end_line": 25,
+      "sha256": "21596853b19e01bf72a06b29c16fad466c082ad0bff351cbff3a79c1dd5ae1b5",
+      "claim": "Host elapsed-time basis uses CLOCK_BOOTTIME, with platform-specific fallback."
+    },
+    {
+      "source_id": "legacy_reference",
+      "start_line": 130,
+      "end_line": 137,
+      "sha256": "df923605506504ca52d194ac80e61997e5dc00f803f9d17d239b2bbc1c7797a2",
+      "claim": "Historical reference has health 17/CAN 4/CAN-health 5 and three-byte version response, not the installed API health 16."
+    },
+    {
+      "source_id": "legacy_reference",
+      "start_line": 636,
+      "end_line": 642,
+      "sha256": "33d668cd68cd82ddc3e14e2e6a835cf3b7c838686b13affd66eb23e3732a0d79",
+      "claim": "Historical reference has health 17/CAN 4/CAN-health 5 and three-byte version response, not the installed API health 16."
+    },
+    {
+      "source_id": "legacy_dos",
+      "start_line": 5,
+      "end_line": 7,
+      "sha256": "237d6d41c3adcfe816440299f11e4d0b32149cb49c7ab015fa53b93bd18b5fdf",
+      "claim": "Historical DOS/F4 board has classic CAN and coupled fan/IR/SOM/bootkick/camera-clock functions; actual board pinout remains unproven."
+    },
+    {
+      "source_id": "legacy_dos",
+      "start_line": 29,
+      "end_line": 31,
+      "sha256": "16b8e63e0df57c7f46458a062b1524ec5a48d30bfca3087036eea7e76475f332",
+      "claim": "Historical DOS/F4 board has classic CAN and coupled fan/IR/SOM/bootkick/camera-clock functions; actual board pinout remains unproven."
+    },
+    {
+      "source_id": "legacy_dos",
+      "start_line": 65,
+      "end_line": 113,
+      "sha256": "a8746dd7e93e12f24765ae37a19c1662b69a09a2bb74119ecae8fabb91bec639",
+      "claim": "Historical DOS/F4 board has classic CAN and coupled fan/IR/SOM/bootkick/camera-clock functions; actual board pinout remains unproven."
+    },
+    {
+      "source_id": "legacy_dos",
+      "start_line": 130,
+      "end_line": 158,
+      "sha256": "9557d65fa8896d6d8ab3cd7c016b9380ba31929301cc8c6fe4a0e09a172ab19a",
+      "claim": "Historical DOS/F4 board has classic CAN and coupled fan/IR/SOM/bootkick/camera-clock functions; actual board pinout remains unproven."
+    },
+    {
+      "source_id": "installed_api",
+      "start_line": 1,
+      "end_line": 40,
+      "sha256": "ed6a480b44262d859ad8fb33b003b244d70d76ceaf1102aaa7ca06380424bd55",
+      "claim": "Hash-bound installed host API summary declares health 16/CAN 4/CAN-health 5 and DOS/F4 classification; not an MCU reply."
+    }
+  ],
+  "review_status": "STATIC_REVIEW_COMPLETE; all 19 requirements map to planned acceptance IDs. No acceptance tests, device operations or compatibility implementation performed.",
+  "pending_acceptance_detail_requests": [],
+  "resolved_acceptance_detail_requests": [
+    {
+      "requirement_ids": [
+        "REV-06"
+      ],
+      "detail": "Unknown enum/fault bits, NaN, widths/units/counter wrap and partially stale health must be explicit negative cases.",
+      "acceptance_ids": [
+        "A11"
+      ],
+      "disposition": "ACCEPTED_IN_MAIN_DESIGN_PLAN",
+      "execution_status": "NOT_RUN"
+    },
+    {
+      "requirement_ids": [
+        "REV-07"
+      ],
+      "detail": "Invalid sendcan Event and RX age not refreshed by aggregation; ± boundary checks.",
+      "acceptance_ids": [
+        "A33"
+      ],
+      "disposition": "ACCEPTED_IN_MAIN_DESIGN_PLAN",
+      "execution_status": "NOT_RUN"
+    },
+    {
+      "requirement_ids": [
+        "REV-08"
+      ],
+      "detail": "Freeze numeric task deadlines, queue ages/caps, detection/cancel bounds and tolerances before implementation acceptance; test each bound.",
+      "acceptance_ids": [
+        "A20",
+        "A21",
+        "A24"
+      ],
+      "disposition": "ACCEPTED_IN_MAIN_DESIGN_PLAN",
+      "execution_status": "NOT_RUN"
+    },
+    {
+      "requirement_ids": [
+        "REV-13",
+        "REV-15"
+      ],
+      "detail": "Stale deviceState/fan desire, internal thermal owner unavailable, heartbeat failure; no rerouting and explicit safe thermal action.",
+      "acceptance_ids": [
+        "A44",
+        "A45",
+        "A46"
+      ],
+      "disposition": "ACCEPTED_IN_MAIN_DESIGN_PLAN",
+      "execution_status": "NOT_RUN"
+    },
+    {
+      "requirement_ids": [
+        "REV-11"
+      ],
+      "detail": "MCU rejected, relay fault or forwarding blocked never retransmits through another board or less restrictive safety mode.",
+      "acceptance_ids": [
+        "A31",
+        "A60",
+        "A64"
+      ],
+      "disposition": "ACCEPTED_IN_MAIN_DESIGN_PLAN",
+      "execution_status": "NOT_RUN"
+    },
+    {
+      "requirement_ids": [
+        "REV-19"
+      ],
+      "detail": "Normal/SIGINT, engaged exit, lock contention/disconnect/replacement and host crash/power loss have separate bounded action traces.",
+      "acceptance_ids": [
+        "A45",
+        "A62",
+        "A65"
+      ],
+      "disposition": "ACCEPTED_IN_MAIN_DESIGN_PLAN",
+      "execution_status": "NOT_RUN"
+    }
+  ]
+}

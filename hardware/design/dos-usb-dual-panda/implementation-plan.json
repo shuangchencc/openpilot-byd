@@ -1,0 +1,167 @@
+{
+  "schema": "songplus-dos-usb-dual-panda-plan/v1",
+  "scope": "LOCAL_DESIGN_ONLY",
+  "official_pins": {
+    "openpilot": "35e78a9d9518855ec0dacec919e719624a28131f",
+    "panda": "a59195163c32a3a375ea6c86715dc08fd0984c1b",
+    "opendbc": "b3bd79a659dae961af169a3baac723961f720133"
+  },
+  "implementation_complete": false,
+  "device_access_this_task": false,
+  "photos_required_to_start_local_work": false,
+  "patches_applied": false,
+  "stages": [
+    {
+      "id": "P0",
+      "name": "契约与隔离入口",
+      "depends_on": [],
+      "modules": [
+        "profile.template.json",
+        "board_profile.* (proposed)",
+        "board_registry.* (proposed)",
+        "mock transport (proposed)"
+      ],
+      "deliverable": "运行入口与维护操作隔离；模板未绑定且默认无设备访问/TX",
+      "status": "PLANNED",
+      "acceptance_status": "NOT_RUN"
+    },
+    {
+      "id": "P1",
+      "name": "协议纯逻辑",
+      "depends_on": [
+        "P0"
+      ],
+      "modules": [
+        "panda.h/.cc",
+        "panda/python/__init__.py",
+        "panda/python/constants.py",
+        "panda/board/main_comms.h",
+        "panda/board/health.h",
+        "opendbc/safety/can.h"
+      ],
+      "deliverable": "统一目标ABI；legacy仅离线解析，精确长度/版本/能力验证",
+      "status": "PLANNED",
+      "acceptance_status": "NOT_RUN"
+    },
+    {
+      "id": "P2",
+      "name": "USB后端与SPI回归",
+      "depends_on": [
+        "P0",
+        "P1"
+      ],
+      "modules": [
+        "panda_comms.h",
+        "spi.cc",
+        "usb.cc (proposed)",
+        "openpilot/selfdrive/pandad/SConscript"
+      ],
+      "deliverable": "逐板隔离handle/超时/错误；抽出纯逻辑构建，保留原SPI路径",
+      "status": "PLANNED",
+      "acceptance_status": "NOT_RUN"
+    },
+    {
+      "id": "P3",
+      "name": "双板会话与路由",
+      "depends_on": [
+        "P1",
+        "P2"
+      ],
+      "modules": [
+        "session_registry.* (proposed)",
+        "can_router.* (proposed)",
+        "panda.h/.cc",
+        "pandad.h/.cc",
+        "main.cc"
+      ],
+      "deliverable": "固定slot与epoch，host/local总线正确，任何缺板不自动重映射",
+      "status": "PLANNED",
+      "acceptance_status": "NOT_RUN"
+    },
+    {
+      "id": "P4",
+      "name": "消息安全与外围整合",
+      "depends_on": [
+        "P3"
+      ],
+      "modules": [
+        "panda_safety.cc",
+        "pandad.cc",
+        "selfdrived.py",
+        "hardwared.py",
+        "card.py",
+        "opendbc/car/__init__.py",
+        "related UI consumers"
+      ],
+      "deliverable": "两块required，固定pandaStates长度；配置读回屏障；角色明确",
+      "status": "PLANNED",
+      "acceptance_status": "NOT_RUN"
+    },
+    {
+      "id": "P5",
+      "name": "F4工程与资源",
+      "depends_on": [
+        "P0",
+        "P1"
+      ],
+      "modules": [
+        "panda/SConscript",
+        "panda/board/boards",
+        "panda/board/stm32f4 (proposed restoration)",
+        "MCU drivers/startup/linker scripts",
+        "panda/tests/libpanda"
+      ],
+      "deliverable": "完整有出处BSP和明确资源预算，F4/H7共同新版safety；仅候选本地app构建",
+      "status": "PLANNED",
+      "acceptance_status": "NOT_RUN"
+    },
+    {
+      "id": "P6",
+      "name": "故障注入与安全回归",
+      "depends_on": [
+        "P4",
+        "P5"
+      ],
+      "modules": [
+        "host mock tests (proposed)",
+        "panda/tests/libpanda",
+        "opendbc/safety tests",
+        "Linux build job (proposed)"
+      ],
+      "deliverable": "fault injection、版本与safety一致性、Linux集成和单H7/SPI回归",
+      "status": "PLANNED",
+      "acceptance_status": "NOT_RUN"
+    },
+    {
+      "id": "P7",
+      "name": "独立维护封装",
+      "depends_on": [
+        "P6"
+      ],
+      "modules": [
+        "patches/openpilot (proposed)",
+        "patches/panda (proposed)",
+        "patches/opendbc (proposed)",
+        "downstream lock/artifact manifest (proposed)",
+        "CI and validation reports"
+      ],
+      "deliverable": "固定配套源码/补丁/工具链；离线完成不升级实机/恢复状态",
+      "status": "PLANNED",
+      "acceptance_status": "NOT_RUN"
+    }
+  ],
+  "parallelization": "P5 can start after P1 while host P2-P4 continue. P6 joins both paths.",
+  "runtime_policy": {
+    "cereal_schema_change_v1": false,
+    "expected_boards": 2,
+    "all_boards_required": true,
+    "partial_operation_v1": false,
+    "autoflash": false,
+    "automatic_board_reset": false,
+    "unknown_identity_action": "QUARANTINE",
+    "legacy_protocol_use": "OFFLINE_ONLY",
+    "target_protocol_use": "CURRENT_ABI_ON_F4_AND_H7",
+    "real_can_tx_this_scope": false
+  },
+  "completion_criterion": "All required future acceptance cases executed and passing, with actual compiler/runtime scope reported. Hardware recovery and vehicle readiness remain separate."
+}

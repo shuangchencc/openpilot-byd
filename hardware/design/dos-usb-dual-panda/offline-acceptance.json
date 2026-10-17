@@ -1,0 +1,420 @@
+{
+  "schema": "songplus-dos-usb-offline-acceptance/v1",
+  "status": "SPECIFIED_NOT_EXECUTED",
+  "case_count": 41,
+  "device_access_allowed": false,
+  "real_can_tx_allowed": false,
+  "reference_oracle_policy": "Use independent golden data/spec/reference source for correctness; do not rely only on pack/unpack roundtrips. No imports of device constructors.",
+  "cases": [
+    {
+      "id": "A00",
+      "stage": "P0",
+      "name": "无副作用入口",
+      "inputs": "import/construct/list with fake filesystem, libusb and GPIO spies",
+      "expected": "No device open/control/reset/flash/role write; runtime gate remains denied",
+      "required_evidence": "call trace and negative assertion results",
+      "required": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "A01",
+      "stage": "P0",
+      "name": "未绑定与歧义身份",
+      "inputs": "empty/duplicate identities, two same-type boards, wrong transport, extra unexpected board",
+      "expected": "Reject or quarantine; do not choose first device or infer MCU from casing",
+      "required_evidence": "binding error matrix and synthetic profile fixtures",
+      "required": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "A02",
+      "stage": "P0",
+      "name": "角色与能力契约",
+      "inputs": "missing vehicle/harness/ignition/peripheral roles; inconsistent CAN-FD capability",
+      "expected": "Cannot instantiate active group; unknown remains unknown",
+      "required_evidence": "profile validation report, no actual device identifiers",
+      "required": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "A10",
+      "stage": "P1",
+      "name": "版本协商分代",
+      "inputs": "0xdd current f512bcff76f2ab75 bytes; legacy 10 04 05; lengths 0..7 or >8; unknown hashes",
+      "expected": "Current exact 8-byte pair accepted only for pinned ABI; legacy only decoder; short/unknown fails before control",
+      "required_evidence": "independent byte vectors, parser outputs and rejection tests",
+      "required": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "A11",
+      "stage": "P1",
+      "name": "health精确语义",
+      "inputs": "legacy58/current48/CAN-health64 bytes, bit flags, widths, interrupt scaling, absent fields, all truncations; unknown fault bits/enums, NaN/Inf legacy load, width overflow and unsupported sensors",
+      "expected": "Exact-size decoding; correct units/flags; unavailable fields explicitly unsupported; no zero-filled healthy short read; invalid or unknown mandatory health semantics make the session unusable; no unsafe numeric cast or invented normal value",
+      "required_evidence": "field-by-field golden table and C/Python comparison; generated sizeof/offsetof later",
+      "required": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "A12",
+      "stage": "P1",
+      "name": "CAN边界和分片",
+      "inputs": "0..8-byte classic payloads; all legal FD DLCs; std/extended address bounds; every header/payload split point; USB64 boundaries",
+      "expected": "Correct roundtrip against independent oracle; no 64-byte counter assumption; bounded incomplete frame storage",
+      "required_evidence": "golden bytes plus property/fuzz seeds; not merely implementation self-roundtrip",
+      "required": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "A13",
+      "stage": "P1",
+      "name": "能力与坏帧",
+      "inputs": "F4 receives FD-bit or payload>8; invalid local bus; bad XOR; both returned+rejected flags; oversized frame",
+      "expected": "Explicit reject/error; no truncation, capability promotion, auto-reset or automatic retry with writes",
+      "required_evidence": "negative vector table and zero control-write trace",
+      "required": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "A14",
+      "stage": "P1",
+      "name": "原始协议与主机逻辑区分",
+      "inputs": "wire bytes, normalized frame, host src with flags and slot offset",
+      "expected": "Keep wire framing, safety semantics and host routing distinct; no old safety enum substitution",
+      "required_evidence": "reviewed normalized data contract and golden translations",
+      "required": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "A15",
+      "stage": "P1",
+      "name": "版本特定结构和头部边界",
+      "inputs": "SP098 health16 versus DP reference17; C++ reserved bit versus MCU/Python FD bit; 0..5 byte CAN header fragments",
+      "expected": "Never parse version16 with version17 layout; exact version/length whitelist; unify FD semantics; safe length-before-subtraction/check-before-copy and no auto reset on incomplete data",
+      "required_evidence": "independent ABI fixtures, compiler sanitizer run and every short-header prefix case",
+      "required": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "A20",
+      "stage": "P2",
+      "name": "传输返回值",
+      "inputs": "mock success/short read/timeout/STALL/disconnect/cancel and partial write",
+      "expected": "Result includes exact actual length/error; no unbounded retries; unsent/uncertain CAN data never replayed automatically",
+      "required_evidence": "mock transcript, bounded attempt counts, no duplicate frame oracle",
+      "required": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "A21",
+      "stage": "P2",
+      "name": "双handle隔离",
+      "inputs": "A blocked, B healthy, then disconnect A; concurrent control/bulk calls",
+      "expected": "Per-handle locks/errors; B scheduling progresses; shared buffers never mix; group validity can still fail",
+      "required_evidence": "deterministic scheduler trace and per-handle buffer checks",
+      "required": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "A22",
+      "stage": "P2",
+      "name": "SPI不退化",
+      "inputs": "pinned single-H7 SPI behavior with mocked transport",
+      "expected": "Same supported wire output/semantics; no USB fallback on SPI failure without explicit profile",
+      "required_evidence": "before/after golden output comparison",
+      "required": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "A23",
+      "stage": "P2",
+      "name": "可移植构建边界",
+      "inputs": "pure-core host target on macOS; full USB/SPI host link on Linux environment",
+      "expected": "Each scope builds/tests separately; macOS minimal never substituted for Linux pandad",
+      "required_evidence": "compiler/link logs and platform-labelled test reports",
+      "required": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "A24",
+      "stage": "P2",
+      "name": "调度与取消预算",
+      "inputs": "All read/write/lock/queue/health-age/heartbeat/cancel paths; one blocked board; threshold-1/threshold/threshold+1 and timer wrap",
+      "expected": "Before implementation acceptance freeze numeric deadlines, queue capacities and age limits with source/rationale; fake clock proves bounded cancellation and fairness, no unbounded retries or starvation",
+      "required_evidence": "versioned timing-budget table plus virtual-clock traces for every boundary",
+      "required": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "A30",
+      "stage": "P3",
+      "name": "稳定槽位",
+      "inputs": "DOS/red profile both permutations; USB enumeration reversed; synthetic identical models with distinct bindings",
+      "expected": "Stable slot independent of enumeration and type sorting; neither physical order is assumed real",
+      "required_evidence": "permutation fixture outcomes",
+      "required": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "A31",
+      "stage": "P3",
+      "name": "双向总线映射",
+      "inputs": "slot0 local0/1/2 and slot1 local0/1/2; reserved host3/7; all src flags",
+      "expected": "Ordinary 0/1/2 and4/5/6 map once; MCU sees0/1/2; TX flags/reserved/unknown buses rejected",
+      "required_evidence": "6-route bidirectional matrix, forbidden-route zero-count assertions",
+      "required": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "A32",
+      "stage": "P3",
+      "name": "掉板与替板",
+      "inputs": "disconnect/reconnect/identity change at partial RX and queued TX; address reuse",
+      "expected": "Keep slot reserved; increment epoch; discard stale partial/queued data; replacement must rebind; no surviving-board promotion",
+      "required_evidence": "epoch transition log and no-cross-session frame proof",
+      "required": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "A33",
+      "stage": "P3",
+      "name": "时间和队列",
+      "inputs": "old/future sendcan timestamps, long queue delay, mixed-board RX, queue overflow; sendcan Event.valid=false; delayed queued RX and republishing",
+      "expected": "Reject expired/future/old-epoch TX; per-board order kept; overflow visible; no claimed cross-board hardware synchronization; invalid sendcan is rejected; aggregate publishing preserves original receive age and never renews freshness of old RX",
+      "required_evidence": "virtual-clock cases, queue bounds and reported loss counters",
+      "required": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "A34",
+      "stage": "P3",
+      "name": "仅完整组可用",
+      "inputs": "one required board missing, late discovery, reconnect with unknown protocol",
+      "expected": "Publish group unavailable, zero routed vehicle TX, no automatic one-board degradation",
+      "required_evidence": "two-board state machine trace",
+      "required": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "A40",
+      "stage": "P4",
+      "name": "固定健康列表",
+      "inputs": "0/1/2/3 discovered devices, one stale/short health, reused previous value",
+      "expected": "Exactly2 configured slots when publishing this profile; any missing/stale required slot makes Event.valid false; no healthy placeholder",
+      "required_evidence": "serialized pandaStates fixtures and consumer reactions",
+      "required": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "A41",
+      "stage": "P4",
+      "name": "safety屏障",
+      "inputs": "2 safetyConfigs with per-slot params and alternativeExperience; empty/short/extra configs; one readback mismatch",
+      "expected": "No simulated control TX until all configured identities/versions/safety readbacks match; unused board noOutput explicit; no index0 replication",
+      "required_evidence": "per-board command/readback transcript and denied-TX counters",
+      "required": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "A42",
+      "stage": "P4",
+      "name": "消费者缺板检测",
+      "inputs": "missing fixed slot, invalid Event, stale data; different vehicle/harness slots",
+      "expected": "selfdrived/hardwared/UI fail required-count/validity/freshness checks; no accidental promotion of index0",
+      "required_evidence": "consumer tests against frozen schema and role profile",
+      "required": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "A43",
+      "stage": "P4",
+      "name": "诊断和车辆查询隔离",
+      "inputs": "firmware query/multiplexing requests before vehicle role or policy is bound",
+      "expected": "No implicit ELM327/query/sendcan on both boards; diagnostics remain off in offline/default profile",
+      "required_evidence": "mock control/CAN trace with forbidden calls absent",
+      "required": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "A44",
+      "stage": "P4",
+      "name": "外围角色和点火",
+      "inputs": "DOS local ignition=false while vehicle board ignition=true; missing peripherals; no cabin camera; diagnostic board differs from vehicle/harness/fan boards",
+      "expected": "System ignition uses configured sources; no accidental DOS power-save; fan/current/harness chosen by role; unavailable IR not written; OBD/VIN/firmware queries use explicit diagnostic role and remain disabled in passive/offline scope",
+      "required_evidence": "role-specific command routing matrix; no fake ignition injection",
+      "required": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "A45",
+      "stage": "P4",
+      "name": "故障组退出",
+      "inputs": "failed required board during engagement, healthy sibling, frozen selfdriveState",
+      "expected": "Close host TX gate on observed invalidation within frozen bound; reject stale enabled state; healthy sibling gets bounded explicit exit/heartbeat handling. Separately prove MCU heartbeat timeout enters SILENT and software-watchdog fault reporting; do not equate software-watchdog fault with immediate SILENT or claim hardware watchdog recovery.",
+      "required_evidence": "virtual-clock transition and write-intent traces; hardware behavior remains untested",
+      "required": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "A46",
+      "stage": "P4",
+      "name": "外围状态失效",
+      "inputs": "Stale fan/deviceState command; internal-board disconnect; missing sensor; required-board fault while fan board remains reachable",
+      "expected": "Reject stale peripheral commands; make capability/role-specific thermal exit and heartbeat policy explicit and bounded; loss of observability/required board closes control group. Do not invent safe physical fan output for unknown hardware",
+      "required_evidence": "mock peripheral traces and independent thermal/heartbeat transition matrix; hardware cooling behavior remains untested",
+      "required": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "A50",
+      "stage": "P5",
+      "name": "F4来源完整性",
+      "inputs": "pinned legacy BSP source/license, startup/linker/USB/bxCAN/clock/interrupt/watchdog dependencies",
+      "expected": "No missing private binary dependency; thin archived DOS header alone fails complete-source gate",
+      "required_evidence": "source inventory, licenses and commit/hash manifest",
+      "required": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "A51",
+      "stage": "P5",
+      "name": "分MCU构建",
+      "inputs": "F4 candidate app and retained H7 app using pinned current opendbc safety and toolchain",
+      "expected": "Independent clean compile/link; warnings treated as errors; separate artifacts; no bootstub replacement or device install",
+      "required_evidence": "compile logs, ELF/linker map, toolchain/pin/artifact hashes",
+      "required": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "A52",
+      "stage": "P5",
+      "name": "ABI跨语言一致",
+      "inputs": "C firmware/test compile on both MCU targets, C++ host and Python formats",
+      "expected": "sizeof/offsetof/alignment/hash/endianness agree; health48, CAN-health64 and expected wire bytes checked; CANPacket_t size measured not guessed",
+      "required_evidence": "generated ABI report and static assertions, hash recalculation",
+      "required": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "A53",
+      "stage": "P5",
+      "name": "F4资源预算",
+      "inputs": "F4-specific RX/TX queue dimensions, stacks, DMA-capable memory, boot/app/provisioning regions",
+      "expected": "No copying H7 ~384768-byte data queues into F4; documented capacity bound and reserve, linker failures for exceeded/unknown bounds; no section overlaps",
+      "required_evidence": "memory/stack report and enforced linker limits; real silicon capacity remains unverified",
+      "required": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "A54",
+      "stage": "P5",
+      "name": "MCU差异适配",
+      "inputs": "bxCAN versus FDCAN, IRQ/timer wraparound, watchdog/heartbeat, unsupported peripheral fields",
+      "expected": "Common API retains correct semantics with capability rejection; no fabricated FD or sensor capability; timing assumptions explicit",
+      "required_evidence": "host-mocked low-level tests plus required later hardware-test list",
+      "required": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "A55",
+      "stage": "P5",
+      "name": "bootstub边界",
+      "inputs": "candidate app start/address/signature versus known and unknown installed bootstub",
+      "expected": "Unknown compatibility prevents deployment package; app build does not authorize bootstub change; no key/provisioning copied",
+      "required_evidence": "artifact contract and rejection manifest",
+      "required": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "A60",
+      "stage": "P6",
+      "name": "safety同源与本地总线",
+      "inputs": "same current safety sources F4/H7; noOutput and allowed test modes; local-bus negatives",
+      "expected": "Correct current safety API; local0/1/2 only; noOutput forbids TX; wrong bus/DLC/checksum/counter/timeout rejected per chosen model",
+      "required_evidence": "safety test reports labelled host/MCU target; no vehicle claim",
+      "required": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "A61",
+      "stage": "P6",
+      "name": "旧BYD配置不混用",
+      "inputs": "legacy enum32/param33 versus pinned enum35/ATTO3 implementation",
+      "expected": "Cannot select new safety by translating an integer or retain private legacy firmware semantics; Song PLUS unavailable",
+      "required_evidence": "negative config fixture with explicit unsupported reason",
+      "required": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "A62",
+      "stage": "P6",
+      "name": "复合故障注入",
+      "inputs": "bad checksum + disconnect + stale health + reconnect; queue overflow; one board delayed",
+      "expected": "Group invalid, zero new control TX, no replay of prior commands, clear diagnostic cause, no auto flash/reset/recover",
+      "required_evidence": "deterministic integration trace and event assertions",
+      "required": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "A63",
+      "stage": "P6",
+      "name": "单H7回归和构建覆盖",
+      "inputs": "existing relevant pure codec/safety tests; new fake USB integration; Linux host build",
+      "expected": "No regression in declared supported H7/SPI path; hardware-starting existing tests excluded or separately classified",
+      "required_evidence": "actual pass/fail/skip counts, test inventory, compiler logs",
+      "required": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "A64",
+      "stage": "P6",
+      "name": "拒绝发送不可绕板",
+      "inputs": "MCU TX rejected, relay malfunction, FWD blocked, safety mismatch and host-visible error during dual-board operation",
+      "expected": "Preserve original board and local-bus decision; never retry rejected/blocked CAN on sibling, change safety mode, spoof RX, or route through diagnostic path to bypass rejection",
+      "required_evidence": "negative route traces showing zero alternate-board or alternate-mode send attempts",
+      "required": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "A65",
+      "stage": "P6",
+      "name": "退出与断电边界",
+      "inputs": "SIGINT and normal exit, exit while engaged, disconnect holding transport lock, process death, USB power loss",
+      "expected": "Planned shutdown closes TX and cancels work within frozen bound; reachable sibling exit handled independently; abrupt process/power death modeled separately through MCU heartbeat expiry. No claim that finally blocks execute after power loss",
+      "required_evidence": "virtual-clock/cancellation traces and separate normal-shutdown versus abrupt-death reports",
+      "required": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "A70",
+      "stage": "P7",
+      "name": "维护入口隔离",
+      "inputs": "runtime wrapper sees unknown board/protocol/signature, build missing artifact",
+      "expected": "Report unavailable; never auto-download, build-and-install, enter DFU, toggle role or replace bootstub",
+      "required_evidence": "negative subprocess/device-spy trace",
+      "required": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "A71",
+      "stage": "P7",
+      "name": "可复现补丁和产物",
+      "inputs": "clean pinned source plus ordered downstream patches and cached dependencies",
+      "expected": "Rebuild with no network/device; patch applicability and pin drift fail clearly; per-MCU hash/version metadata consistent",
+      "required_evidence": "downstream lock, patch hashes, artifact metadata, offline rebuild logs",
+      "required": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "A72",
+      "stage": "P7",
+      "name": "完成状态不越界",
+      "inputs": "all required offline cases, remaining unknown hardware/recovery/DM/vehicle conditions",
+      "expected": "Only mark offline compatibility complete when all required cases run/pass; never auto-mark deployment/recovery/vehicle ready",
+      "required_evidence": "scoped acceptance report separating host/F4/H7/target/vehicle",
+      "required": true,
+      "status": "NOT_RUN"
+    }
+  ]
+}

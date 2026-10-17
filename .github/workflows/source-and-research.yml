@@ -33,6 +33,7 @@ jobs:
           python3 hardware/verify_source_evidence.py
           python3 hardware/step1/verify.py
           python3 hardware/step1/followup/verify.py
+          python3 hardware/design/dos-usb-dual-panda/verify.py
       - name: Research tools and historical upstream host tests
         env:
           UV_OFFLINE: '1'

@@ -21,6 +21,13 @@ Flagship PLUS, with the user's existing Mr One C3XL and Panda hardware.
 
 ## Current execution boundary
 
+- Current work is local DOS/F4 and USB dual-Panda compatibility design against
+  the locked official baseline. Do not connect to C3XL or operate hardware as
+  part of this design work. The user cannot provide photos/vendor material;
+  retain unknown physical identities without blocking local design/mock work
+  or treating exterior similarity as proof. See
+  `hardware/design/dos-usb-dual-panda/DESIGN.md` for the current plan. Planned
+  implementation/test cases are not completed compatibility validation.
 - The user has authorized Step 1: connect to the separately powered C3XL via
   existing authenticated SSH for read-only hardware, OS and recovery inspection.
   Keep this an explicit diagnostic action separate from bootstrap/validation.

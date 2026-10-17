@@ -23,7 +23,8 @@
     "os_update": false,
     "panda_flash": false,
     "target_process_launch": false,
-    "meaning": "Step 1 explicit read-only SSH inspection; not an automatic bootstrap/validation behavior."
+    "meaning": "Historical Step 1 explicit read-only SSH inspection; current compatibility design is local only, no device connection or automatic bootstrap/validation hardware action.",
+    "current_task_device_connection": false
   },
   "milestones": [
     "Pinned complete upstream and reproducible host validation",
@@ -41,5 +42,7 @@
     "driver_camera_installed": false,
     "telephone_card_function": false,
     "exact_pcb_revision_confirmed": false
-  }
+  },
+  "current_work": "local_dos_usb_dual_panda_design",
+  "compatibility_design": "hardware/design/dos-usb-dual-panda/implementation-plan.json"
 }

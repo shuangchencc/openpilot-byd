@@ -1,6 +1,14 @@
 后续验证顺序与交付物
 目标：宋 PLUS DM-i 2023 冠军版 110km 旗舰 PLUS；车型名称已经确认，ECU和物理总线仍待确认。
 
+当前本地工作（2026-10-18）
+用户无法提供照片/厂家资料；保留实物未知项，不阻断本地兼容层设计。
+最新设计入口：hardware/design/dos-usb-dual-panda/DESIGN.md。
+P0契约隔离 → P1协议纯逻辑 → P2 USB/SPI → P3双板路由 → P4消息/safety/外围；
+P5 F4候选工程可在P1后并行；P6故障注入/回归 → P7独立维护封装。
+当前均为计划，尚未实现/执行其验收。本轮不连接设备、不改系统、不切槽、不刷固件。
+旧hardware/patch-plan.txt是历史DP候选计划；针对当前官方锁定栈的DOS/USB工作以上述新设计为准。
+
 第 0 步状态（2026-10-18）
 官方完整基线、依赖与模型已固定；macOS minimal 构建、H7 本地开发固件编译、
 精选官方测试和研究回归已通过。入口为 README.md、tools/validate_project.py，
