@@ -1,4 +1,4 @@
-# Offline dual-Panda contracts and codecs (P0/P1/P2)
+# Offline dual-Panda contracts and codecs (P0/P1/P2/P3)
 
 Standalone Python standard-library contracts and C++17 CAN codecs against
 openpilot `35e78a9d`, panda `a5919516`, opendbc `b3bd79a6`. This package is not
@@ -39,8 +39,8 @@ missing fixtures fail, never skip. The probe includes the pinned Panda `board/`
 and opendbc repository headers and reports host ABI only. Tests never import
 Panda, discover devices, compile MCU firmware or start the original pandad.
 
-P3–P7 still own runtime integration, connection epochs,
-whole-group freshness/safety barriers, F4 firmware, system-level fault handling
+P4–P7 still own active runtime integration, whole-group freshness/safety
+barriers, F4 firmware, system-level fault handling
 and deployment packaging. Existing pandad startup/flash behavior is unchanged
 because this isolated package is not connected to that entry point.
 
@@ -87,3 +87,36 @@ The engineering validator `tools/validate_panda_transport.py` cleanly composes
 P0/P1/P2 patches, reruns P0/P1, and builds/tests P2 on macOS and Linux under
 network/device-node isolation. Linux includes real libusb and spidev linkage;
 it is a standalone transport target, not a full active pandad daemon build.
+
+## P3 session and routing layer
+
+`session_registry` validates a typed equivalent of P0's synthetic profile,
+canonical fixed slots and the complete supplied inventory. It never discovers or
+opens devices. Slot epochs and group generation distinguish lifecycle changes;
+positive connection tokens strictly increase for each new handle of an identity.
+A repeated live token is idempotent, while a retired token cannot reconnect.
+Addresses and enumeration order never become identity. Missing/unknown/duplicate
+or replaced boards cannot silently promote a surviving board or change a binding.
+Only a new explicit profile/registry can bind a replacement. Counter exhaustion
+fails closed. Structural group availability is separate from P4 safety readiness;
+real device, CAN TX and firmware permissions always remain false.
+
+`can_router` uses this authoritative registry, P1 codecs and per-slot parsers.
+It maps host buses0/1/2 and4/5/6 to local0/1/2 exactly once, rejects reserved buses
+and TX receipt flags, enforces bound FD capability, and returns offline simulation
+intents. It has no Transport reference, syscall or actual write entry point.
+Connection/group changes invalidate queued TX, RX and partial bytes before their
+next use; stale callbacks cannot populate a new connection. Bounded queues expose
+expiry/overflow/lifecycle loss counters. Original receive times remain attached
+to frames through fragmentation and publication. Per-board FIFO order does not
+claim hardware synchronization between boards.
+
+The integration test connects P3 routing to actual P2 Transport instances whose
+backends are fake-only. Its oracle output is checked independently by locked
+Python using the existing P0 profile/registry and independent CAN bit formulas.
+No second production JSON profile parser or live activation path is added.
+`P3-BUDGET.md` records candidate queue and timestamp bounds; the outer engineering
+runner `tools/validate_panda_sessions.py` replays all four patches and executes
+P0/P1/P2 regressions plus P3 on macOS/Linux. Existing active pandad/SPI sources
+remain unchanged. P4 must integrate health/safety, production lifecycle events,
+configuration/engagement barriers and message consumers before real use.
