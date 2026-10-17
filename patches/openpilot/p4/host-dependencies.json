@@ -1,0 +1,1509 @@
+{
+  "schema": "songplus-p2-host-dependencies/v1",
+  "preparation_separate_from_offline_validation": true,
+  "macos": {
+    "libusb_version": "1.0.30",
+    "origin": "pre-existing Homebrew installation",
+    "usb_include": "/opt/homebrew/Cellar/libusb/1.0.30/include/libusb-1.0",
+    "usb_library": "/opt/homebrew/Cellar/libusb/1.0.30/lib/libusb-1.0.0.dylib",
+    "files": [
+      {
+        "path": "/opt/homebrew/Cellar/libusb/1.0.30/include/libusb-1.0/libusb.h",
+        "sha256": "a61260ab145b051b86df2b0575956f01810190abe2c7df6aca831c33bdc8082c"
+      },
+      {
+        "path": "/opt/homebrew/Cellar/libusb/1.0.30/lib/libusb-1.0.0.dylib",
+        "sha256": "c083aa7f842e0fc061c9306b5b65ec036ae5f95a8dd29cf70e8faace3f06775f"
+      }
+    ]
+  },
+  "linux": {
+    "distribution": "Debian 12 bookworm arm64",
+    "libusb_version": "2:1.0.26-1",
+    "origin": "Debian official package archive, apt-get download into task-local prefix; no system installation",
+    "packages": [
+      {
+        "name": "libusb-1.0-0-dev",
+        "sha256": "74a2ebfb4796323ea710e47c1f25fe09d05d6e3bfb1dd71007776a80f18441ec"
+      },
+      {
+        "name": "libusb-1.0-0",
+        "sha256": "e0648086b231c9204514d31480d517cb1b51e301ac39e69335a67d01ec785608"
+      }
+    ],
+    "files": [
+      {
+        "path": "usr/include/libusb-1.0/libusb.h",
+        "sha256": "ca94b99bf4ca9c588804eb0b2187f237a165d80b22054a27608abee3280b8eb0"
+      },
+      {
+        "path": "usr/lib/aarch64-linux-gnu/libusb-1.0.so.0.3.0",
+        "sha256": "68e5f56b93ee03b203fa59eb9785075b11703b38b27a273a27bc73da7ffc5847"
+      }
+    ],
+    "build_environment": {
+      "kind": "local Lima VZ aarch64 VM; no USB passthrough",
+      "compiler_observed": "g++ (Debian 12.2.0-14+deb12u1) 12.2.0",
+      "zlib_dev_observed": "1:1.2.13.dfsg-1",
+      "libudev_observed": "252.39-1~deb12u2",
+      "base_image": "https://cloud.debian.org/images/cloud/bookworm/20260923-2610/debian-12-genericcloud-arm64-20260923-2610.qcow2",
+      "base_image_sha512": "89a752d5c7d8e88bee39a57d88d496cca574f7d1e8df5df7a169825435f99feb11ed13ab27ec7bee96fe1584be4ff9479358fbca6cc859efa109f4aba18724c8"
+    }
+  },
+  "target_runtime_dependency_locked": false,
+  "note": "These pin offline build dependencies only. Device libusb packaging/AGNOS integration remains later work.",
+  "daemon": {
+    "macos": {
+      "prefix": "/Users/shuang/Code/openpilot/songplus-port-lab/upstream-openpilot/.venv/lib/python3.12/site-packages",
+      "files": [
+        {
+          "path": "/Users/shuang/Code/openpilot/songplus-port-lab/upstream-openpilot/.venv/lib/python3.12/site-packages/capnproto/install/bin/capnp",
+          "sha256": "7bdf344cc14a8ea98dee620ebd4f5790d7dba0584a14e74d0c27b0878cb5d276"
+        },
+        {
+          "path": "/Users/shuang/Code/openpilot/songplus-port-lab/upstream-openpilot/.venv/lib/python3.12/site-packages/capnproto/install/bin/capnpc",
+          "sha256": "7bdf344cc14a8ea98dee620ebd4f5790d7dba0584a14e74d0c27b0878cb5d276"
+        },
+        {
+          "path": "/Users/shuang/Code/openpilot/songplus-port-lab/upstream-openpilot/.venv/lib/python3.12/site-packages/capnproto/install/bin/capnpc-c++",
+          "sha256": "550d2223efb67184c6c5be7de1eb17705c77d1057f2978a8a535443753e47943"
+        },
+        {
+          "path": "/Users/shuang/Code/openpilot/songplus-port-lab/upstream-openpilot/.venv/lib/python3.12/site-packages/capnproto/install/include/capnp/any.h",
+          "sha256": "10f1961bc01936cc2c10ca8d8e58d7ed18313bec5c36575c0e32063326d00efe"
+        },
+        {
+          "path": "/Users/shuang/Code/openpilot/songplus-port-lab/upstream-openpilot/.venv/lib/python3.12/site-packages/capnproto/install/include/capnp/blob.h",
+          "sha256": "439d36671dcb41b470a24cf89687366798096a9c4c63fb63a7766e94242b99c0"
+        },
+        {
+          "path": "/Users/shuang/Code/openpilot/songplus-port-lab/upstream-openpilot/.venv/lib/python3.12/site-packages/capnproto/install/include/capnp/c++.capnp",
+          "sha256": "52ead0eaa560b21e692d6f3d9966a52dfc99e19f53ae2d7c7bd2944a240d86de"
+        },
+        {
+          "path": "/Users/shuang/Code/openpilot/songplus-port-lab/upstream-openpilot/.venv/lib/python3.12/site-packages/capnproto/install/include/capnp/c++.capnp.h",
+          "sha256": "3487c36b3af98da4ebfe38a912689fc90501d22c9384eeaa703a690288fedc28"
+        },
+        {
+          "path": "/Users/shuang/Code/openpilot/songplus-port-lab/upstream-openpilot/.venv/lib/python3.12/site-packages/capnproto/install/include/capnp/capability.h",
+          "sha256": "92d1d28d2e60e897951539d1a86785bb3114acba46a7eba4d39773798e7beb7a"
+        },
+        {
+          "path": "/Users/shuang/Code/openpilot/songplus-port-lab/upstream-openpilot/.venv/lib/python3.12/site-packages/capnproto/install/include/capnp/common.h",
+          "sha256": "fafc7492d3af551294b0bc76c104b9437d522515b9bdc0a3975a96a24702707d"
+        },
+        {
+          "path": "/Users/shuang/Code/openpilot/songplus-port-lab/upstream-openpilot/.venv/lib/python3.12/site-packages/capnproto/install/include/capnp/compat/json.capnp",
+          "sha256": "8d7f2199c46ececfb98d243318e875a5937ad7ba8b7f962d7399319d0bcddc48"
+        },
+        {
+          "path": "/Users/shuang/Code/openpilot/songplus-port-lab/upstream-openpilot/.venv/lib/python3.12/site-packages/capnproto/install/include/capnp/compat/json.capnp.h",
+          "sha256": "6cffd58820fb55eb4298db408c6483498e133d0c3ac18ec133de32352b9a4e93"
+        },
+        {
+          "path": "/Users/shuang/Code/openpilot/songplus-port-lab/upstream-openpilot/.venv/lib/python3.12/site-packages/capnproto/install/include/capnp/compat/json.h",
+          "sha256": "8f49b2b630a68d0dd670a1c02ca07828cbc50b286873a96162e3c98d917605cf"
+        },
+        {
+          "path": "/Users/shuang/Code/openpilot/songplus-port-lab/upstream-openpilot/.venv/lib/python3.12/site-packages/capnproto/install/include/capnp/compat/std-iterator.h",
+          "sha256": "5d9736f4a5f375152212cf32d29f532be56fb67042fc6acdda6fe10a53dd175f"
+        },
+        {
+          "path": "/Users/shuang/Code/openpilot/songplus-port-lab/upstream-openpilot/.venv/lib/python3.12/site-packages/capnproto/install/include/capnp/compat/websocket-rpc.h",
+          "sha256": "c78823c60374bb7f15009f2c8af3acad7e198e40c9642eabf097a5adb78b23cf"
+        },
+        {
+          "path": "/Users/shuang/Code/openpilot/songplus-port-lab/upstream-openpilot/.venv/lib/python3.12/site-packages/capnproto/install/include/capnp/dynamic.h",
+          "sha256": "f85f4be68fd66314b662b417e6698b78376571531bc9a31de0428eb208437e64"
+        },
+        {
+          "path": "/Users/shuang/Code/openpilot/songplus-port-lab/upstream-openpilot/.venv/lib/python3.12/site-packages/capnproto/install/include/capnp/endian.h",
+          "sha256": "a0af5284aaff0e72a07e6adb795278791c83422886625fff76da1da1d640d34a"
+        },
+        {
+          "path": "/Users/shuang/Code/openpilot/songplus-port-lab/upstream-openpilot/.venv/lib/python3.12/site-packages/capnproto/install/include/capnp/ez-rpc.h",
+          "sha256": "2043e1d621614d3dfa059e7fd0414b19c1ffc3a2ff89effd38a88713bd141044"
+        },
+        {
+          "path": "/Users/shuang/Code/openpilot/songplus-port-lab/upstream-openpilot/.venv/lib/python3.12/site-packages/capnproto/install/include/capnp/generated-header-support.h",
+          "sha256": "f971ffcfd1ebd463582c76f0e7d8bf09daaadf90f4453a8c557cd05ad569bd47"
+        },
+        {
+          "path": "/Users/shuang/Code/openpilot/songplus-port-lab/upstream-openpilot/.venv/lib/python3.12/site-packages/capnproto/install/include/capnp/layout.h",
+          "sha256": "e6ca311f285196b4235968c7ef0894934da594ec1fb251890b3d28175fa986eb"
+        },
+        {
+          "path": "/Users/shuang/Code/openpilot/songplus-port-lab/upstream-openpilot/.venv/lib/python3.12/site-packages/capnproto/install/include/capnp/list.h",
+          "sha256": "defb1b47c3719b5be6f0f8b977e1f7c7df743aa726a4006a43fc8204102f994b"
+        },
+        {
+          "path": "/Users/shuang/Code/openpilot/songplus-port-lab/upstream-openpilot/.venv/lib/python3.12/site-packages/capnproto/install/include/capnp/membrane.h",
+          "sha256": "bf4dea094e6d9c68177fbbed8f4308ea1b3e2de3d623f4df868f71fbb4dfaeec"
+        },
+        {
+          "path": "/Users/shuang/Code/openpilot/songplus-port-lab/upstream-openpilot/.venv/lib/python3.12/site-packages/capnproto/install/include/capnp/message.h",
+          "sha256": "05800493640c741a8d14beab66f257bbf7f9be0898242ab623bd27a2ccb85edf"
+        },
+        {
+          "path": "/Users/shuang/Code/openpilot/songplus-port-lab/upstream-openpilot/.venv/lib/python3.12/site-packages/capnproto/install/include/capnp/orphan.h",
+          "sha256": "b612d8a30861d1e504c4969376e6e4a31485ebddeaf7294ff10dd98e0de8d683"
+        },
+        {
+          "path": "/Users/shuang/Code/openpilot/songplus-port-lab/upstream-openpilot/.venv/lib/python3.12/site-packages/capnproto/install/include/capnp/persistent.capnp",
+          "sha256": "d77d4d2e2c1e9c42ded13de54ed11b535b076ac210945b53ecf76fd7648a867a"
+        },
+        {
+          "path": "/Users/shuang/Code/openpilot/songplus-port-lab/upstream-openpilot/.venv/lib/python3.12/site-packages/capnproto/install/include/capnp/persistent.capnp.h",
+          "sha256": "b01ddc47e9161ce8e4384e9d09e3bcfb21fe5db28bdc816d93946bc93f42b02c"
+        },
+        {
+          "path": "/Users/shuang/Code/openpilot/songplus-port-lab/upstream-openpilot/.venv/lib/python3.12/site-packages/capnproto/install/include/capnp/pointer-helpers.h",
+          "sha256": "65984141eed82cdb0194cf89efdcdbb0efdde6becd80fe985cf8b99d6e7bc3be"
+        },
+        {
+          "path": "/Users/shuang/Code/openpilot/songplus-port-lab/upstream-openpilot/.venv/lib/python3.12/site-packages/capnproto/install/include/capnp/pretty-print.h",
+          "sha256": "bf7aff99c2cac37c8c6bfde6d3484d9669488452f918b7ccd73798cfcff874ae"
+        },
+        {
+          "path": "/Users/shuang/Code/openpilot/songplus-port-lab/upstream-openpilot/.venv/lib/python3.12/site-packages/capnproto/install/include/capnp/raw-schema.h",
+          "sha256": "b961b66cbfaaba2cf9d425d919052a1bd760993912297245d49e55305bdd3a37"
+        },
+        {
+          "path": "/Users/shuang/Code/openpilot/songplus-port-lab/upstream-openpilot/.venv/lib/python3.12/site-packages/capnproto/install/include/capnp/rpc-prelude.h",
+          "sha256": "67b4360a71516ba83722bbe8448ebbd5f85290d9a340c055eb236aa54e8ba582"
+        },
+        {
+          "path": "/Users/shuang/Code/openpilot/songplus-port-lab/upstream-openpilot/.venv/lib/python3.12/site-packages/capnproto/install/include/capnp/rpc-twoparty.capnp",
+          "sha256": "a28328408261d476403acb1f3861a7d88075ffaefca1996c21c746b580527223"
+        },
+        {
+          "path": "/Users/shuang/Code/openpilot/songplus-port-lab/upstream-openpilot/.venv/lib/python3.12/site-packages/capnproto/install/include/capnp/rpc-twoparty.capnp.h",
+          "sha256": "6eac54986cc09a8d4b5e181afe9570d99742695fd371d9edf2f1b4f5751de5b5"
+        },
+        {
+          "path": "/Users/shuang/Code/openpilot/songplus-port-lab/upstream-openpilot/.venv/lib/python3.12/site-packages/capnproto/install/include/capnp/rpc-twoparty.h",
+          "sha256": "4180f59db413d46702d8cc3ff26f8770ec1c4dd60459d5fb93b2cc6f57c4b2f3"
+        },
+        {
+          "path": "/Users/shuang/Code/openpilot/songplus-port-lab/upstream-openpilot/.venv/lib/python3.12/site-packages/capnproto/install/include/capnp/rpc.capnp",
+          "sha256": "026845b4658ac5c3ef40d0c892060241ba1caed09b8219c158ee609ccfcfadf5"
+        },
+        {
+          "path": "/Users/shuang/Code/openpilot/songplus-port-lab/upstream-openpilot/.venv/lib/python3.12/site-packages/capnproto/install/include/capnp/rpc.capnp.h",
+          "sha256": "1fa6bdccab561a81ae0dac44256bd24a8936479be33870a7362cce8a034100ba"
+        },
+        {
+          "path": "/Users/shuang/Code/openpilot/songplus-port-lab/upstream-openpilot/.venv/lib/python3.12/site-packages/capnproto/install/include/capnp/rpc.h",
+          "sha256": "74745a63e48d61af48443c28b1bbb4fb73377f02af22ccded14ac18d462a0c50"
+        },
+        {
+          "path": "/Users/shuang/Code/openpilot/songplus-port-lab/upstream-openpilot/.venv/lib/python3.12/site-packages/capnproto/install/include/capnp/schema-lite.h",
+          "sha256": "5fec4460e8d4e34964584316bd8eddb18cf00ce438c5abfa597f810764d1db8d"
+        },
+        {
+          "path": "/Users/shuang/Code/openpilot/songplus-port-lab/upstream-openpilot/.venv/lib/python3.12/site-packages/capnproto/install/include/capnp/schema-loader.h",
+          "sha256": "4bcfc7a135944042d92a62631614e478fe2b54fa26e96d6150214ebf3fff0582"
+        },
+        {
+          "path": "/Users/shuang/Code/openpilot/songplus-port-lab/upstream-openpilot/.venv/lib/python3.12/site-packages/capnproto/install/include/capnp/schema-parser.h",
+          "sha256": "6dcca284a20e5f4089f06793c08ddc5ce896591ae52177a8f50e3d759c90913f"
+        },
+        {
+          "path": "/Users/shuang/Code/openpilot/songplus-port-lab/upstream-openpilot/.venv/lib/python3.12/site-packages/capnproto/install/include/capnp/schema.capnp",
+          "sha256": "3cd91a6ee4f22684cf378d295b4d7616d321446bf2fd6bd87c84aac1b8ebc677"
+        },
+        {
+          "path": "/Users/shuang/Code/openpilot/songplus-port-lab/upstream-openpilot/.venv/lib/python3.12/site-packages/capnproto/install/include/capnp/schema.capnp.h",
+          "sha256": "6ae4e3a9e66d7706a937b00a4748f563ebcac49605dc751fefd5d9975d2f5670"
+        },
+        {
+          "path": "/Users/shuang/Code/openpilot/songplus-port-lab/upstream-openpilot/.venv/lib/python3.12/site-packages/capnproto/install/include/capnp/schema.h",
+          "sha256": "34d8e97c9cbb4bec723d304017028b375d5196de1bfc8cccd1432977758ff8a2"
+        },
+        {
+          "path": "/Users/shuang/Code/openpilot/songplus-port-lab/upstream-openpilot/.venv/lib/python3.12/site-packages/capnproto/install/include/capnp/serialize-async.h",
+          "sha256": "783ff9fbef54e3b0a4fa4a45b7e4c4f4d7b2ad4b69ec3b64dd54af9b6bdf277b"
+        },
+        {
+          "path": "/Users/shuang/Code/openpilot/songplus-port-lab/upstream-openpilot/.venv/lib/python3.12/site-packages/capnproto/install/include/capnp/serialize-packed.h",
+          "sha256": "f7703ab1735202da3d14790be8eaf3e3525106b0537d712976636f686ba0c949"
+        },
+        {
+          "path": "/Users/shuang/Code/openpilot/songplus-port-lab/upstream-openpilot/.venv/lib/python3.12/site-packages/capnproto/install/include/capnp/serialize-text.h",
+          "sha256": "09d6f004cc1f6b81b15db0bc49b093ee567bc2254505445661e7000df441bef4"
+        },
+        {
+          "path": "/Users/shuang/Code/openpilot/songplus-port-lab/upstream-openpilot/.venv/lib/python3.12/site-packages/capnproto/install/include/capnp/serialize.h",
+          "sha256": "7298d6c77ef62a17c85639d401d784e38988da5ef180c24b2259fc699ee63f1b"
+        },
+        {
+          "path": "/Users/shuang/Code/openpilot/songplus-port-lab/upstream-openpilot/.venv/lib/python3.12/site-packages/capnproto/install/include/capnp/stream.capnp",
+          "sha256": "5b0656ca3daca9ef28740c14813d5dd474fd0f9991ce99f652838f4cccf6fb30"
+        },
+        {
+          "path": "/Users/shuang/Code/openpilot/songplus-port-lab/upstream-openpilot/.venv/lib/python3.12/site-packages/capnproto/install/include/capnp/stream.capnp.h",
+          "sha256": "f0d1242a398ad056578d726fbd389fbd5a4b75f3e6b14c744c65d6a8181061d8"
+        },
+        {
+          "path": "/Users/shuang/Code/openpilot/songplus-port-lab/upstream-openpilot/.venv/lib/python3.12/site-packages/capnproto/install/include/kj/arena.h",
+          "sha256": "f63615b0dc3811945dda5cf81a09fda949ac5b8dbf65e1b679b470928071a4ed"
+        },
+        {
+          "path": "/Users/shuang/Code/openpilot/songplus-port-lab/upstream-openpilot/.venv/lib/python3.12/site-packages/capnproto/install/include/kj/array.h",
+          "sha256": "7e9c648b94c5fd48c02e824937d2a23bb88f363a6b9340eba56461a795f17462"
+        },
+        {
+          "path": "/Users/shuang/Code/openpilot/songplus-port-lab/upstream-openpilot/.venv/lib/python3.12/site-packages/capnproto/install/include/kj/async-inl.h",
+          "sha256": "ca43231210dc0bbcedc3a45efb0dd89f1d9f4e2ed92a58e051c69b7dea19e416"
+        },
+        {
+          "path": "/Users/shuang/Code/openpilot/songplus-port-lab/upstream-openpilot/.venv/lib/python3.12/site-packages/capnproto/install/include/kj/async-io.h",
+          "sha256": "4285914f2f6ad737962613cd9ca4925661be4ee7158f087e422a47a5f5e49d45"
+        },
+        {
+          "path": "/Users/shuang/Code/openpilot/songplus-port-lab/upstream-openpilot/.venv/lib/python3.12/site-packages/capnproto/install/include/kj/async-prelude.h",
+          "sha256": "2ad3b901fe1bbcb2a194afda3e972f60ecc1c177a648ed1e06f4a21e1c759401"
+        },
+        {
+          "path": "/Users/shuang/Code/openpilot/songplus-port-lab/upstream-openpilot/.venv/lib/python3.12/site-packages/capnproto/install/include/kj/async-queue.h",
+          "sha256": "3c0de280492851175479a252359d0357728ab7b8a6926298bdbcd17b651a6589"
+        },
+        {
+          "path": "/Users/shuang/Code/openpilot/songplus-port-lab/upstream-openpilot/.venv/lib/python3.12/site-packages/capnproto/install/include/kj/async-unix.h",
+          "sha256": "22cb34d94c4d00d580994c0080af0f55fe374692d352cfa94fcba411d340839b"
+        },
+        {
+          "path": "/Users/shuang/Code/openpilot/songplus-port-lab/upstream-openpilot/.venv/lib/python3.12/site-packages/capnproto/install/include/kj/async-win32.h",
+          "sha256": "0376a418188c432e29cce292cb3cc8ab7305e77a737e764c2409978ce00f3912"
+        },
+        {
+          "path": "/Users/shuang/Code/openpilot/songplus-port-lab/upstream-openpilot/.venv/lib/python3.12/site-packages/capnproto/install/include/kj/async.h",
+          "sha256": "5518f01649701874b53523d50cf092c412167ef6d9bcf8381eef46303bdcb283"
+        },
+        {
+          "path": "/Users/shuang/Code/openpilot/songplus-port-lab/upstream-openpilot/.venv/lib/python3.12/site-packages/capnproto/install/include/kj/cidr.h",
+          "sha256": "f75470e47035ee38bda04fa5b21d3998adbb8ef6c7e845eee581bf01bf577724"
+        },
+        {
+          "path": "/Users/shuang/Code/openpilot/songplus-port-lab/upstream-openpilot/.venv/lib/python3.12/site-packages/capnproto/install/include/kj/common.h",
+          "sha256": "765da14a044da1a88bb61826eaf09d109e55364e36b9cc084f6ced40020ed37d"
+        },
+        {
+          "path": "/Users/shuang/Code/openpilot/songplus-port-lab/upstream-openpilot/.venv/lib/python3.12/site-packages/capnproto/install/include/kj/compat/gtest.h",
+          "sha256": "baba5633516e4c52269bcb819b5143c25335f0f27c1da24f4505de76faa00c70"
+        },
+        {
+          "path": "/Users/shuang/Code/openpilot/songplus-port-lab/upstream-openpilot/.venv/lib/python3.12/site-packages/capnproto/install/include/kj/compat/gzip.h",
+          "sha256": "570e17a9a4b4ccd0ead03ce99f6160b0873cc6cad81fde588d7d645ebc68a04e"
+        },
+        {
+          "path": "/Users/shuang/Code/openpilot/songplus-port-lab/upstream-openpilot/.venv/lib/python3.12/site-packages/capnproto/install/include/kj/compat/http.h",
+          "sha256": "876b01d1b3f5265a07718e1a8c43a2e8aae8d7c00b31a02f0e8bca0fdd9cafba"
+        },
+        {
+          "path": "/Users/shuang/Code/openpilot/songplus-port-lab/upstream-openpilot/.venv/lib/python3.12/site-packages/capnproto/install/include/kj/compat/url.h",
+          "sha256": "f3083a330b6568899aa00693ebf5284ddcaa01a49f57a9fd3b7702064457abd4"
+        },
+        {
+          "path": "/Users/shuang/Code/openpilot/songplus-port-lab/upstream-openpilot/.venv/lib/python3.12/site-packages/capnproto/install/include/kj/debug.h",
+          "sha256": "5b0025d9ef07e59a882f8cba1eb4a0cc958f9f1afa46d87e6428d1ef0fc92a87"
+        },
+        {
+          "path": "/Users/shuang/Code/openpilot/songplus-port-lab/upstream-openpilot/.venv/lib/python3.12/site-packages/capnproto/install/include/kj/encoding.h",
+          "sha256": "dbd15b023ba6cee8b8a5911ca96c0f39812cb9bec07ba7a1d09849b1dd2d666f"
+        },
+        {
+          "path": "/Users/shuang/Code/openpilot/songplus-port-lab/upstream-openpilot/.venv/lib/python3.12/site-packages/capnproto/install/include/kj/exception.h",
+          "sha256": "a4fa4f0ac73c2d98199a2a373f043aedb8b7b6001636377a0cab29fd164d471f"
+        },
+        {
+          "path": "/Users/shuang/Code/openpilot/songplus-port-lab/upstream-openpilot/.venv/lib/python3.12/site-packages/capnproto/install/include/kj/filesystem.h",
+          "sha256": "1cd173f0c71f0b1310d1b08e3c091ecd6a2423ed024d6ef31b9847421d623e1c"
+        },
+        {
+          "path": "/Users/shuang/Code/openpilot/songplus-port-lab/upstream-openpilot/.venv/lib/python3.12/site-packages/capnproto/install/include/kj/function.h",
+          "sha256": "f07c386af48f8f0fc09006bf6834c6d37c1a9dee375db54f64026d4824a899c0"
+        },
+        {
+          "path": "/Users/shuang/Code/openpilot/songplus-port-lab/upstream-openpilot/.venv/lib/python3.12/site-packages/capnproto/install/include/kj/hash.h",
+          "sha256": "5e9f42721fdeac9e5ec101533f9ce83fd4cca778e7e35f705a005ec93ad8701c"
+        },
+        {
+          "path": "/Users/shuang/Code/openpilot/songplus-port-lab/upstream-openpilot/.venv/lib/python3.12/site-packages/capnproto/install/include/kj/io.h",
+          "sha256": "d6bad9d02b69664186ef7668d3c3b79b56e01ea00b6402489626d1b3226d5156"
+        },
+        {
+          "path": "/Users/shuang/Code/openpilot/songplus-port-lab/upstream-openpilot/.venv/lib/python3.12/site-packages/capnproto/install/include/kj/list.h",
+          "sha256": "28161ce96dff7442ccb9219c45a126ba9e1de3d7aad603273ec527131e4f7a10"
+        },
+        {
+          "path": "/Users/shuang/Code/openpilot/songplus-port-lab/upstream-openpilot/.venv/lib/python3.12/site-packages/capnproto/install/include/kj/main.h",
+          "sha256": "a3f61970b819bd8af9ed9d5bdca0ac82103a0811492875c71980e83e8a520708"
+        },
+        {
+          "path": "/Users/shuang/Code/openpilot/songplus-port-lab/upstream-openpilot/.venv/lib/python3.12/site-packages/capnproto/install/include/kj/map.h",
+          "sha256": "5abee1e4fab9225b2256a2ea6b627bfcf4940a67b4574a24e5f4708651ed73d7"
+        },
+        {
+          "path": "/Users/shuang/Code/openpilot/songplus-port-lab/upstream-openpilot/.venv/lib/python3.12/site-packages/capnproto/install/include/kj/memory.h",
+          "sha256": "33c8f93ecc97debf21799527ee1941c8154cb0a3d41db947d0c9d05c8ac8fb1a"
+        },
+        {
+          "path": "/Users/shuang/Code/openpilot/songplus-port-lab/upstream-openpilot/.venv/lib/python3.12/site-packages/capnproto/install/include/kj/mutex.h",
+          "sha256": "7af80d7359c24b8e094397aa959b6bde8fe1bc3e6481b603ce8ca3e3fac293f5"
+        },
+        {
+          "path": "/Users/shuang/Code/openpilot/songplus-port-lab/upstream-openpilot/.venv/lib/python3.12/site-packages/capnproto/install/include/kj/one-of.h",
+          "sha256": "ac1d7e85db778008930b8e747e82cbfad0ed16a655477030d4485b2ea83799fd"
+        },
+        {
+          "path": "/Users/shuang/Code/openpilot/songplus-port-lab/upstream-openpilot/.venv/lib/python3.12/site-packages/capnproto/install/include/kj/parse/char.h",
+          "sha256": "fe67742b082882b4dc12cb4074b0f00a548fddc84c2cb03baf68a6272b2fcf1e"
+        },
+        {
+          "path": "/Users/shuang/Code/openpilot/songplus-port-lab/upstream-openpilot/.venv/lib/python3.12/site-packages/capnproto/install/include/kj/parse/common.h",
+          "sha256": "85aa59cb9b3943f7bde4a7e4215365712ceb157afd4448960a5448cf8485a70c"
+        },
+        {
+          "path": "/Users/shuang/Code/openpilot/songplus-port-lab/upstream-openpilot/.venv/lib/python3.12/site-packages/capnproto/install/include/kj/refcount.h",
+          "sha256": "50b4b097dd3408dddf8f8a85eb8fae61ad4cf2f13891bff9b0a6e69ef588f954"
+        },
+        {
+          "path": "/Users/shuang/Code/openpilot/songplus-port-lab/upstream-openpilot/.venv/lib/python3.12/site-packages/capnproto/install/include/kj/source-location.h",
+          "sha256": "4c1ce72b658548aec180228cc21ef532a570e788c78a524596f3b6b44cfc13da"
+        },
+        {
+          "path": "/Users/shuang/Code/openpilot/songplus-port-lab/upstream-openpilot/.venv/lib/python3.12/site-packages/capnproto/install/include/kj/std/iostream.h",
+          "sha256": "3bb219dbb54944ba2e89d8eb43c18e1157db12471068c0fc879a9ea48ea69140"
+        },
+        {
+          "path": "/Users/shuang/Code/openpilot/songplus-port-lab/upstream-openpilot/.venv/lib/python3.12/site-packages/capnproto/install/include/kj/string-tree.h",
+          "sha256": "2c779f8c4edd6a96bbb3149c9869896d6aa02aa931a800d5cfa97a589d315ece"
+        },
+        {
+          "path": "/Users/shuang/Code/openpilot/songplus-port-lab/upstream-openpilot/.venv/lib/python3.12/site-packages/capnproto/install/include/kj/string.h",
+          "sha256": "ac906c445ae6d2462d48fb0c5d3a7643844e6bb5ea6594a7b115440dead980e3"
+        },
+        {
+          "path": "/Users/shuang/Code/openpilot/songplus-port-lab/upstream-openpilot/.venv/lib/python3.12/site-packages/capnproto/install/include/kj/table.h",
+          "sha256": "c33ae1ee13d39a57ea86d7e6e8ba82111fa7d8536617aa4f070a593e03fa0d73"
+        },
+        {
+          "path": "/Users/shuang/Code/openpilot/songplus-port-lab/upstream-openpilot/.venv/lib/python3.12/site-packages/capnproto/install/include/kj/test.h",
+          "sha256": "6d445ae7fe22e7b5c718e13258bf1f96ff05e121e0afd52f8682942cdf5b9e53"
+        },
+        {
+          "path": "/Users/shuang/Code/openpilot/songplus-port-lab/upstream-openpilot/.venv/lib/python3.12/site-packages/capnproto/install/include/kj/thread.h",
+          "sha256": "192e624d44f755c6de486c858d55a57c3ab62f42450c00e9e5e087de6f007a94"
+        },
+        {
+          "path": "/Users/shuang/Code/openpilot/songplus-port-lab/upstream-openpilot/.venv/lib/python3.12/site-packages/capnproto/install/include/kj/threadlocal.h",
+          "sha256": "277a41c338a54ad92dd4a77f70fe6648628f3fb9572cbcdbbbe9bfbd5bcc8bed"
+        },
+        {
+          "path": "/Users/shuang/Code/openpilot/songplus-port-lab/upstream-openpilot/.venv/lib/python3.12/site-packages/capnproto/install/include/kj/time.h",
+          "sha256": "bc48fe3fe437c525de9ec0aaf7a9021985772820f2625fb0d3b5a8a56fb8a5ab"
+        },
+        {
+          "path": "/Users/shuang/Code/openpilot/songplus-port-lab/upstream-openpilot/.venv/lib/python3.12/site-packages/capnproto/install/include/kj/timer.h",
+          "sha256": "be693430183743c701489bf90dcbc6435446815b1ce4ea1ffedb6e8e173d1a1b"
+        },
+        {
+          "path": "/Users/shuang/Code/openpilot/songplus-port-lab/upstream-openpilot/.venv/lib/python3.12/site-packages/capnproto/install/include/kj/tuple.h",
+          "sha256": "5221a2eeb76fd3b0b07de388b98e55391b27002fd50dd8b871bbe6a55c201350"
+        },
+        {
+          "path": "/Users/shuang/Code/openpilot/songplus-port-lab/upstream-openpilot/.venv/lib/python3.12/site-packages/capnproto/install/include/kj/units.h",
+          "sha256": "8469955b20216f6c386d93872f758b1106dd5d893da3edf213fb3b7e5babcbbe"
+        },
+        {
+          "path": "/Users/shuang/Code/openpilot/songplus-port-lab/upstream-openpilot/.venv/lib/python3.12/site-packages/capnproto/install/include/kj/vector.h",
+          "sha256": "617a358c3c0944857b8e76277ccd0526cdb765e82a1c4ead73423686fad2576c"
+        },
+        {
+          "path": "/Users/shuang/Code/openpilot/songplus-port-lab/upstream-openpilot/.venv/lib/python3.12/site-packages/capnproto/install/include/kj/win32-api-version.h",
+          "sha256": "fcc8a0003e7793c3e2fbcccc66f6ab09466842deada0842db4c3310327d5ac68"
+        },
+        {
+          "path": "/Users/shuang/Code/openpilot/songplus-port-lab/upstream-openpilot/.venv/lib/python3.12/site-packages/capnproto/install/include/kj/windows-sanity.h",
+          "sha256": "f8140402c4c39a3f5165ae23f5ca4bd54b5b2f37d619adae05402b3bbfd7f004"
+        },
+        {
+          "path": "/Users/shuang/Code/openpilot/songplus-port-lab/upstream-openpilot/.venv/lib/python3.12/site-packages/capnproto/install/lib/libcapnp.a",
+          "sha256": "537501c8ab1ac77684ec0f20e533143d7696cc8f7bf9f2acd510e7749bcd6b29"
+        },
+        {
+          "path": "/Users/shuang/Code/openpilot/songplus-port-lab/upstream-openpilot/.venv/lib/python3.12/site-packages/capnproto/install/lib/libkj.a",
+          "sha256": "b7fcd4eb21cb68c4ad25e0e4ea65a538430fe478f908d376186e7e2782c190d8"
+        },
+        {
+          "path": "/Users/shuang/Code/openpilot/songplus-port-lab/upstream-openpilot/.venv/lib/python3.12/site-packages/capnp/__init__.pxd",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": "/Users/shuang/Code/openpilot/songplus-port-lab/upstream-openpilot/.venv/lib/python3.12/site-packages/capnp/__init__.py",
+          "sha256": "c6562e2dac45d103b79884ee535ad2c87883ed75d56f7d37b9c8155d4e68d5f6"
+        },
+        {
+          "path": "/Users/shuang/Code/openpilot/songplus-port-lab/upstream-openpilot/.venv/lib/python3.12/site-packages/capnp/_gen.py",
+          "sha256": "488ed0332d84083b5ac221e754b94ba5a49dc8f7c24941d834560cb2581a9d2b"
+        },
+        {
+          "path": "/Users/shuang/Code/openpilot/songplus-port-lab/upstream-openpilot/.venv/lib/python3.12/site-packages/capnp/c++.capnp",
+          "sha256": "52ead0eaa560b21e692d6f3d9966a52dfc99e19f53ae2d7c7bd2944a240d86de"
+        },
+        {
+          "path": "/Users/shuang/Code/openpilot/songplus-port-lab/upstream-openpilot/.venv/lib/python3.12/site-packages/capnp/helpers/__init__.pxd",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": "/Users/shuang/Code/openpilot/songplus-port-lab/upstream-openpilot/.venv/lib/python3.12/site-packages/capnp/helpers/capabilityHelper.h",
+          "sha256": "23f7714603c3d514be418beb3f3b6640ec0d1e37f755ef5b836ad27914dbdeb7"
+        },
+        {
+          "path": "/Users/shuang/Code/openpilot/songplus-port-lab/upstream-openpilot/.venv/lib/python3.12/site-packages/capnp/helpers/checkCompiler.h",
+          "sha256": "55b874ea59e1d57d8a4a02daf6305433f081ab7d0f3b3fc12d254631e1e377c3"
+        },
+        {
+          "path": "/Users/shuang/Code/openpilot/songplus-port-lab/upstream-openpilot/.venv/lib/python3.12/site-packages/capnp/helpers/deserialize.h",
+          "sha256": "edf9269732558ba35408b55b423ebb65d66d73781e9cc2e2103237a82abb07c2"
+        },
+        {
+          "path": "/Users/shuang/Code/openpilot/songplus-port-lab/upstream-openpilot/.venv/lib/python3.12/site-packages/capnp/helpers/fixMaybe.h",
+          "sha256": "8ab3ceaa458c9698bf422d37be03cc1e525bacbb3535fedf202b3581f0eb6ec2"
+        },
+        {
+          "path": "/Users/shuang/Code/openpilot/songplus-port-lab/upstream-openpilot/.venv/lib/python3.12/site-packages/capnp/helpers/helpers.pxd",
+          "sha256": "40593473b79bce21ae797618f2127f0b419e57af793dac2be12fcd734d0b23b1"
+        },
+        {
+          "path": "/Users/shuang/Code/openpilot/songplus-port-lab/upstream-openpilot/.venv/lib/python3.12/site-packages/capnp/helpers/non_circular.pxd",
+          "sha256": "8113e849eab7691c86bef39114937d804a9eb31771757aa8eda44d11021fb707"
+        },
+        {
+          "path": "/Users/shuang/Code/openpilot/songplus-port-lab/upstream-openpilot/.venv/lib/python3.12/site-packages/capnp/helpers/rpcHelper.h",
+          "sha256": "dc31dda3baf4db708b7774547f70c3e1ef24dfc71480a9c01ef231aeeb18661e"
+        },
+        {
+          "path": "/Users/shuang/Code/openpilot/songplus-port-lab/upstream-openpilot/.venv/lib/python3.12/site-packages/capnp/helpers/serialize.h",
+          "sha256": "f3d4448e86f89d18e7b539c210e59dc2a64da643a6b67f2597f9b349145a26f7"
+        },
+        {
+          "path": "/Users/shuang/Code/openpilot/songplus-port-lab/upstream-openpilot/.venv/lib/python3.12/site-packages/capnp/includes/__init__.pxd",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": "/Users/shuang/Code/openpilot/songplus-port-lab/upstream-openpilot/.venv/lib/python3.12/site-packages/capnp/includes/capnp_cpp.pxd",
+          "sha256": "7acf858b6654276f8217197dd2a6071796db3d40049b260ab49b6e6fcb7f6920"
+        },
+        {
+          "path": "/Users/shuang/Code/openpilot/songplus-port-lab/upstream-openpilot/.venv/lib/python3.12/site-packages/capnp/includes/schema_cpp.pxd",
+          "sha256": "1af6312112394cf85cb6bd4ee7715a1c702e3703b4c51c74d446f9e859a2393c"
+        },
+        {
+          "path": "/Users/shuang/Code/openpilot/songplus-port-lab/upstream-openpilot/.venv/lib/python3.12/site-packages/capnp/includes/types.pxd",
+          "sha256": "6d17bff914c194bda0582dd1b0f17b17c6ba4276d0f4b1b2c68c205a489b7365"
+        },
+        {
+          "path": "/Users/shuang/Code/openpilot/songplus-port-lab/upstream-openpilot/.venv/lib/python3.12/site-packages/capnp/lib/__init__.pxd",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": "/Users/shuang/Code/openpilot/songplus-port-lab/upstream-openpilot/.venv/lib/python3.12/site-packages/capnp/lib/__init__.py",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": "/Users/shuang/Code/openpilot/songplus-port-lab/upstream-openpilot/.venv/lib/python3.12/site-packages/capnp/lib/capnp.cpython-312-darwin.so",
+          "sha256": "c78412ad3d9b18b7c4dcb9a205368a2e179ab251f6bbff35920cc7e83096941f"
+        },
+        {
+          "path": "/Users/shuang/Code/openpilot/songplus-port-lab/upstream-openpilot/.venv/lib/python3.12/site-packages/capnp/lib/capnp.pxd",
+          "sha256": "94692e34f954b4355987b88a0be09f0f79d320c805763cd25d81318b4475875b"
+        },
+        {
+          "path": "/Users/shuang/Code/openpilot/songplus-port-lab/upstream-openpilot/.venv/lib/python3.12/site-packages/capnp/lib/capnp.pyx",
+          "sha256": "002e4ae326d5bcaa77f8834bb1a3f3ab93e68f4c63412838106725ec8fe4f9e9"
+        },
+        {
+          "path": "/Users/shuang/Code/openpilot/songplus-port-lab/upstream-openpilot/.venv/lib/python3.12/site-packages/capnp/lib/capnp_api.h",
+          "sha256": "f56030f34b78432d6a2ad6c525d02e0b8ed6b87bf56321c6af21700f2b23bba9"
+        },
+        {
+          "path": "/Users/shuang/Code/openpilot/songplus-port-lab/upstream-openpilot/.venv/lib/python3.12/site-packages/capnp/lib/pickle_helper.py",
+          "sha256": "0dd76d66067db8492bb962e3d3d8595134f8bd0ed004832dab98e9592020e8fd"
+        },
+        {
+          "path": "/Users/shuang/Code/openpilot/songplus-port-lab/upstream-openpilot/.venv/lib/python3.12/site-packages/capnp/persistent.capnp",
+          "sha256": "d77d4d2e2c1e9c42ded13de54ed11b535b076ac210945b53ecf76fd7648a867a"
+        },
+        {
+          "path": "/Users/shuang/Code/openpilot/songplus-port-lab/upstream-openpilot/.venv/lib/python3.12/site-packages/capnp/rpc-twoparty.capnp",
+          "sha256": "a28328408261d476403acb1f3861a7d88075ffaefca1996c21c746b580527223"
+        },
+        {
+          "path": "/Users/shuang/Code/openpilot/songplus-port-lab/upstream-openpilot/.venv/lib/python3.12/site-packages/capnp/rpc.capnp",
+          "sha256": "026845b4658ac5c3ef40d0c892060241ba1caed09b8219c158ee609ccfcfadf5"
+        },
+        {
+          "path": "/Users/shuang/Code/openpilot/songplus-port-lab/upstream-openpilot/.venv/lib/python3.12/site-packages/capnp/schema.capnp",
+          "sha256": "3cd91a6ee4f22684cf378d295b4d7616d321446bf2fd6bd87c84aac1b8ebc677"
+        },
+        {
+          "path": "/Users/shuang/Code/openpilot/songplus-port-lab/upstream-openpilot/.venv/lib/python3.12/site-packages/capnp/stream.capnp",
+          "sha256": "5b0656ca3daca9ef28740c14813d5dd474fd0f9991ce99f652838f4cccf6fb30"
+        },
+        {
+          "path": "/Users/shuang/Code/openpilot/songplus-port-lab/upstream-openpilot/.venv/lib/python3.12/site-packages/capnp/templates/module.pyx",
+          "sha256": "cb0b1940f7cba4aba7a149f326d2958973dbfa30423d096492cc7cb057ff52f1"
+        },
+        {
+          "path": "/Users/shuang/Code/openpilot/songplus-port-lab/upstream-openpilot/.venv/lib/python3.12/site-packages/capnp/templates/setup.py.tmpl",
+          "sha256": "205c9b04c9ee4c9e319009342aa4362dfe695daa996f1532b349d28259c8a190"
+        },
+        {
+          "path": "/Users/shuang/Code/openpilot/songplus-port-lab/upstream-openpilot/.venv/lib/python3.12/site-packages/capnp/version.py",
+          "sha256": "242a6904c649f9d8ceb5ed719b5736e7fc0f7d45392e647fe917d755c6c03c42"
+        }
+      ],
+      "pycapnp_version": "2.1.0"
+    },
+    "linux": {
+      "prefix": "/home/shuang.guest/songplus-p4-build/deps/prefix",
+      "files": [
+        {
+          "path": "CMakeFiles/CMakeDirectoryInformation.cmake",
+          "sha256": "ac0c1d530683b387294fe3c1d0e461eea6bdec5b2e03330b08e3e094d54fc732"
+        },
+        {
+          "path": "CMakeFiles/libzstd_static.dir/DependInfo.cmake",
+          "sha256": "86b8156a825f013c316246a604f039ce8cb66cf085f94aa3a478748fe7f3728e"
+        },
+        {
+          "path": "CMakeFiles/libzstd_static.dir/build.make",
+          "sha256": "14bbd2b2707130843dc25ba7c2bfbae4959d4a96a1adfc5672849343901aa75a"
+        },
+        {
+          "path": "CMakeFiles/libzstd_static.dir/cmake_clean.cmake",
+          "sha256": "856b56d0fce5de30e4e573fc0d185a7cbe788a79e49e3c59557749af4216a104"
+        },
+        {
+          "path": "CMakeFiles/libzstd_static.dir/cmake_clean_target.cmake",
+          "sha256": "99973817641c99e91295e24ea7df7ad848fd622d58f2a02542cfb591733c1f96"
+        },
+        {
+          "path": "CMakeFiles/libzstd_static.dir/compiler_depend.make",
+          "sha256": "a1db2c3ff3746b560197494a9f5560c50a14e19d7d9dcfbef89e2b2d6c78e4dc"
+        },
+        {
+          "path": "CMakeFiles/libzstd_static.dir/compiler_depend.ts",
+          "sha256": "b8bff91cd7b291b6a98ba2a81ceb96142b84c7ac8ed563c44ba58c9831cca8df"
+        },
+        {
+          "path": "CMakeFiles/libzstd_static.dir/depend.make",
+          "sha256": "d626931883c8b20e0f1c772a61f7b7c9f441944f689e34fa60f0978c04c59243"
+        },
+        {
+          "path": "CMakeFiles/libzstd_static.dir/flags.make",
+          "sha256": "f973ea60e95e8906ae0bf26edc1308ac06e63a002e4263bafa7b425e9fb055c2"
+        },
+        {
+          "path": "CMakeFiles/libzstd_static.dir/link.txt",
+          "sha256": "e98b1e61f290b1d46824500378e566129dc65a9e82a3498d9bdc8cf7ce70fb12"
+        },
+        {
+          "path": "CMakeFiles/libzstd_static.dir/progress.make",
+          "sha256": "54c6e10961559ee2985736a6e437ce508801a8131a75930d56611206dc163e10"
+        },
+        {
+          "path": "CMakeFiles/libzstd_static.dir/work/zstd/zstd-src/lib/common/debug.c.o",
+          "sha256": "0180d3475cd8a8057d7a0e2c1e337ca1524260b813bc11798a4ebbe15bf7e57c"
+        },
+        {
+          "path": "CMakeFiles/libzstd_static.dir/work/zstd/zstd-src/lib/common/debug.c.o.d",
+          "sha256": "1510cb76c46663ac20a0d4e5a7d8403bc8cd33edbe058e53ab0ea5b30dbfc27b"
+        },
+        {
+          "path": "CMakeFiles/libzstd_static.dir/work/zstd/zstd-src/lib/common/entropy_common.c.o",
+          "sha256": "f47ef3239447374f1f045b5a5aa37e4f7ce6fa78cbf8c19aeadba2e28221f11c"
+        },
+        {
+          "path": "CMakeFiles/libzstd_static.dir/work/zstd/zstd-src/lib/common/entropy_common.c.o.d",
+          "sha256": "e3ef09f241484510c623688e7fa6a57566111827a46ee54b1a890b910dbe6ad1"
+        },
+        {
+          "path": "CMakeFiles/libzstd_static.dir/work/zstd/zstd-src/lib/common/error_private.c.o",
+          "sha256": "6103a19c522aad67926d470b610ff8ba094aa807fe35c7eed6c5569a39374614"
+        },
+        {
+          "path": "CMakeFiles/libzstd_static.dir/work/zstd/zstd-src/lib/common/error_private.c.o.d",
+          "sha256": "182b06066666ba64e7721e66fe264ead4628f6f646ab823848e516abc7d70df2"
+        },
+        {
+          "path": "CMakeFiles/libzstd_static.dir/work/zstd/zstd-src/lib/common/fse_decompress.c.o",
+          "sha256": "2a784b0d847c489f09fb3f5b77e51d06f61484f23fd7513f03eacffb99567843"
+        },
+        {
+          "path": "CMakeFiles/libzstd_static.dir/work/zstd/zstd-src/lib/common/fse_decompress.c.o.d",
+          "sha256": "f78ce227c6b06ffd8e0c7a41ec2708af47624ed310f5b8468c75baddb7044f9d"
+        },
+        {
+          "path": "CMakeFiles/libzstd_static.dir/work/zstd/zstd-src/lib/common/pool.c.o",
+          "sha256": "db3eed96e9511514fbdb3325f2b27504f7b542366fb483c4cb00f192e65bf7bf"
+        },
+        {
+          "path": "CMakeFiles/libzstd_static.dir/work/zstd/zstd-src/lib/common/pool.c.o.d",
+          "sha256": "f1dc8a8763c07582aaf7d9c5be4bc8ed5f693048c08bfd36f3983f2ca4654fd1"
+        },
+        {
+          "path": "CMakeFiles/libzstd_static.dir/work/zstd/zstd-src/lib/common/threading.c.o",
+          "sha256": "1c6bd234933cfd0e61013fae3581507f874733ca5b868c2d6b5ea2860da1d30d"
+        },
+        {
+          "path": "CMakeFiles/libzstd_static.dir/work/zstd/zstd-src/lib/common/threading.c.o.d",
+          "sha256": "fd3bed881cc52f65a6f1f89f3f44c79d2855d9a052a6f0804cfdb01f81973287"
+        },
+        {
+          "path": "CMakeFiles/libzstd_static.dir/work/zstd/zstd-src/lib/common/xxhash.c.o",
+          "sha256": "1301065cba2ca21b97710462fa43a2004c81e6f1261e3d7024e7bbe66e2e54ca"
+        },
+        {
+          "path": "CMakeFiles/libzstd_static.dir/work/zstd/zstd-src/lib/common/xxhash.c.o.d",
+          "sha256": "06afde344b87292ddf2875ce7535af5fa5624d67e5541854f1af8d82ffd6aaef"
+        },
+        {
+          "path": "CMakeFiles/libzstd_static.dir/work/zstd/zstd-src/lib/common/zstd_common.c.o",
+          "sha256": "80a3986cc8847ad5be06ae6c796e815a71c0314595e37e63e6349edc32a84f92"
+        },
+        {
+          "path": "CMakeFiles/libzstd_static.dir/work/zstd/zstd-src/lib/common/zstd_common.c.o.d",
+          "sha256": "05945d38ccc475469e43bbcd017457f55cd53005361aeaacd1d5d61a5e700b0d"
+        },
+        {
+          "path": "CMakeFiles/libzstd_static.dir/work/zstd/zstd-src/lib/compress/fse_compress.c.o",
+          "sha256": "725ee045b8a0a2e10d91d6017579e6ccd1a4765eb56ac4677f5997769667a3df"
+        },
+        {
+          "path": "CMakeFiles/libzstd_static.dir/work/zstd/zstd-src/lib/compress/fse_compress.c.o.d",
+          "sha256": "e9c6b4257ef9c5144e80cc3633261edb18adbc4f653daa9373ffcb0464c88e8e"
+        },
+        {
+          "path": "CMakeFiles/libzstd_static.dir/work/zstd/zstd-src/lib/compress/hist.c.o",
+          "sha256": "fe1d127d11e951dc01cd547baa311a48c957f9edf60774e603f59d195afab14f"
+        },
+        {
+          "path": "CMakeFiles/libzstd_static.dir/work/zstd/zstd-src/lib/compress/hist.c.o.d",
+          "sha256": "950fa9dea91e48f1efe133106b3ac1be5c0160d2b1a4e6d29aef73d9a44858ba"
+        },
+        {
+          "path": "CMakeFiles/libzstd_static.dir/work/zstd/zstd-src/lib/compress/huf_compress.c.o",
+          "sha256": "5b9612223f123e699c2c33198656543165ad56617ed96f8cca1c28fe2a7e746a"
+        },
+        {
+          "path": "CMakeFiles/libzstd_static.dir/work/zstd/zstd-src/lib/compress/huf_compress.c.o.d",
+          "sha256": "1584ea42d41de81ca5da4229ba4e154edf36a7fc0229b1048b108f29641233c5"
+        },
+        {
+          "path": "CMakeFiles/libzstd_static.dir/work/zstd/zstd-src/lib/compress/zstd_compress.c.o",
+          "sha256": "e6b9e515e28c245e3dc6c2569ea9d5e81f6b173bd97bc25995b1732e98cfc44b"
+        },
+        {
+          "path": "CMakeFiles/libzstd_static.dir/work/zstd/zstd-src/lib/compress/zstd_compress.c.o.d",
+          "sha256": "01ae78d95971facfb99c15eb720bb458bfb1bd57f677e59ee81aed77d4c5d58f"
+        },
+        {
+          "path": "CMakeFiles/libzstd_static.dir/work/zstd/zstd-src/lib/compress/zstd_compress_literals.c.o",
+          "sha256": "3737e1bd0ce008396e85d906bd1a75023b86f17e7a5db238673a6d5bb1339a5b"
+        },
+        {
+          "path": "CMakeFiles/libzstd_static.dir/work/zstd/zstd-src/lib/compress/zstd_compress_literals.c.o.d",
+          "sha256": "5935819688eb6b19b3fec2bdaf16089640318498513c991b534cecee2421a692"
+        },
+        {
+          "path": "CMakeFiles/libzstd_static.dir/work/zstd/zstd-src/lib/compress/zstd_compress_sequences.c.o",
+          "sha256": "3b548aa73b85e9de3cc67de1f163486537be7a77a918d8b07f14e1aac1b915cd"
+        },
+        {
+          "path": "CMakeFiles/libzstd_static.dir/work/zstd/zstd-src/lib/compress/zstd_compress_sequences.c.o.d",
+          "sha256": "0d640873199dd3b2ebc18d340676b228365ea7dfc59ac00d6885ff5d77c6483d"
+        },
+        {
+          "path": "CMakeFiles/libzstd_static.dir/work/zstd/zstd-src/lib/compress/zstd_compress_superblock.c.o",
+          "sha256": "971117cb3e39483b594bc85e8e289163726f45cf310f02242cf295f8309cacd4"
+        },
+        {
+          "path": "CMakeFiles/libzstd_static.dir/work/zstd/zstd-src/lib/compress/zstd_compress_superblock.c.o.d",
+          "sha256": "8de0172fd1efdeacf0121dcedbeca54d2abd334aa75d5af10e55136877e4642e"
+        },
+        {
+          "path": "CMakeFiles/libzstd_static.dir/work/zstd/zstd-src/lib/compress/zstd_double_fast.c.o",
+          "sha256": "05ef07232892c4234eeb06537f3415d2130e5cd6ae028cc3e1ee7157469bca80"
+        },
+        {
+          "path": "CMakeFiles/libzstd_static.dir/work/zstd/zstd-src/lib/compress/zstd_double_fast.c.o.d",
+          "sha256": "9912ae48509b518fb1ab65c6069b3ac20c9a26c87e4d4fa25a36b184fdc05f15"
+        },
+        {
+          "path": "CMakeFiles/libzstd_static.dir/work/zstd/zstd-src/lib/compress/zstd_fast.c.o",
+          "sha256": "2f3a7e3ea81eb4389226bedd943b442b6de97db799479010a9a1f7329e15bf4d"
+        },
+        {
+          "path": "CMakeFiles/libzstd_static.dir/work/zstd/zstd-src/lib/compress/zstd_fast.c.o.d",
+          "sha256": "39f965507e6de2cda88b6ab7d0c1681c0dde2b470ca909a377abf830d475c300"
+        },
+        {
+          "path": "CMakeFiles/libzstd_static.dir/work/zstd/zstd-src/lib/compress/zstd_lazy.c.o",
+          "sha256": "23d3279e6a2b528d92fee789ece51afa7dadbed383a2ec32106684f836887131"
+        },
+        {
+          "path": "CMakeFiles/libzstd_static.dir/work/zstd/zstd-src/lib/compress/zstd_lazy.c.o.d",
+          "sha256": "14cbdeaf52af2c0a3dd7b4d6df317f750eee4e486b191b9a3ddf53767fcf54ac"
+        },
+        {
+          "path": "CMakeFiles/libzstd_static.dir/work/zstd/zstd-src/lib/compress/zstd_ldm.c.o",
+          "sha256": "a98b66c02ad521ffa3721a11b19e94799c49d306f056622ca45e359b0038f479"
+        },
+        {
+          "path": "CMakeFiles/libzstd_static.dir/work/zstd/zstd-src/lib/compress/zstd_ldm.c.o.d",
+          "sha256": "1c0ccf499771334e0186d7b69c682dee627fc7508f105e42cf4d2ccc9b31cd89"
+        },
+        {
+          "path": "CMakeFiles/libzstd_static.dir/work/zstd/zstd-src/lib/compress/zstd_opt.c.o",
+          "sha256": "236bb49a5a14688948951d76305977130131d449046bafb20b6c6b965a4639b8"
+        },
+        {
+          "path": "CMakeFiles/libzstd_static.dir/work/zstd/zstd-src/lib/compress/zstd_opt.c.o.d",
+          "sha256": "58a94ce9aa61f287fbacd93eaf80db425037b3692254e63fc5a33ab4726120c0"
+        },
+        {
+          "path": "CMakeFiles/libzstd_static.dir/work/zstd/zstd-src/lib/compress/zstdmt_compress.c.o",
+          "sha256": "76d471b36fcd75de7d3ef07e6334a5b7c4bd042a04b5e6561d1543c60d685d32"
+        },
+        {
+          "path": "CMakeFiles/libzstd_static.dir/work/zstd/zstd-src/lib/compress/zstdmt_compress.c.o.d",
+          "sha256": "8fe07e3bf38a2de60baf7c016307e332f383090f81c818e54974e1312d67d60e"
+        },
+        {
+          "path": "CMakeFiles/libzstd_static.dir/work/zstd/zstd-src/lib/decompress/huf_decompress.c.o",
+          "sha256": "b75ae4d040e2be161f69f5c978ca2b11fd5b55906fca36518b7a4801129787a1"
+        },
+        {
+          "path": "CMakeFiles/libzstd_static.dir/work/zstd/zstd-src/lib/decompress/huf_decompress.c.o.d",
+          "sha256": "50984c91ee277fa085f6084966832c6a4209397092cda24574c01b59e3a9876b"
+        },
+        {
+          "path": "CMakeFiles/libzstd_static.dir/work/zstd/zstd-src/lib/decompress/zstd_ddict.c.o",
+          "sha256": "712c8425571ef59419fe157382340108ffe3d69b18c5e13c910a292e1c56616b"
+        },
+        {
+          "path": "CMakeFiles/libzstd_static.dir/work/zstd/zstd-src/lib/decompress/zstd_ddict.c.o.d",
+          "sha256": "4b068f24ad9e75a42a285ec9cde834268c5e0a31f8fc99668d56d980704fa6b7"
+        },
+        {
+          "path": "CMakeFiles/libzstd_static.dir/work/zstd/zstd-src/lib/decompress/zstd_decompress.c.o",
+          "sha256": "9a3d475e289c42eb7764c2fef842b1123b29191bb28cef20e9f67b596bde3e66"
+        },
+        {
+          "path": "CMakeFiles/libzstd_static.dir/work/zstd/zstd-src/lib/decompress/zstd_decompress.c.o.d",
+          "sha256": "db1092429b9da48686930b299197ddbe58cd7cec340e47c4f9078f35c0af0bab"
+        },
+        {
+          "path": "CMakeFiles/libzstd_static.dir/work/zstd/zstd-src/lib/decompress/zstd_decompress_block.c.o",
+          "sha256": "1a4fe58b12f3e2ef730037074983c8815aaafe60d232d4af3408bdddb5130342"
+        },
+        {
+          "path": "CMakeFiles/libzstd_static.dir/work/zstd/zstd-src/lib/decompress/zstd_decompress_block.c.o.d",
+          "sha256": "6e55246e33bb0ecd142fb044528a1610cd77c7fb99434094a1cdca812e103731"
+        },
+        {
+          "path": "CMakeFiles/libzstd_static.dir/work/zstd/zstd-src/lib/dictBuilder/cover.c.o",
+          "sha256": "553c7a94aa103a1edcd55ebf9991b8d3f1786f13c7b9a6b47384469e7a1403f9"
+        },
+        {
+          "path": "CMakeFiles/libzstd_static.dir/work/zstd/zstd-src/lib/dictBuilder/cover.c.o.d",
+          "sha256": "21103ed202708d5e41316d00a0fb3425ff9b2518560035fbe730e4040ff2acce"
+        },
+        {
+          "path": "CMakeFiles/libzstd_static.dir/work/zstd/zstd-src/lib/dictBuilder/divsufsort.c.o",
+          "sha256": "2de72403bea9915c5b4306f80effcd5cb0869b54253f01077e42a26e13c5d26d"
+        },
+        {
+          "path": "CMakeFiles/libzstd_static.dir/work/zstd/zstd-src/lib/dictBuilder/divsufsort.c.o.d",
+          "sha256": "3192d2a0dfc51898181438a9da97ebcc1ff48bb7203daf76e89a3b64293a5655"
+        },
+        {
+          "path": "CMakeFiles/libzstd_static.dir/work/zstd/zstd-src/lib/dictBuilder/fastcover.c.o",
+          "sha256": "1926a005502b0738d413f3e2ebbde8aefc861daeebc5d10e01b3024d2798c334"
+        },
+        {
+          "path": "CMakeFiles/libzstd_static.dir/work/zstd/zstd-src/lib/dictBuilder/fastcover.c.o.d",
+          "sha256": "599f751123cabc173fe82a9f2d0bc3fe7e5c93d33aa43bef3ecf1cf609ea5c1b"
+        },
+        {
+          "path": "CMakeFiles/libzstd_static.dir/work/zstd/zstd-src/lib/dictBuilder/zdict.c.o",
+          "sha256": "51679d61e161048a456cab6d9b090bf3207c29dfaf5e3cb1d8d38ed24eadae98"
+        },
+        {
+          "path": "CMakeFiles/libzstd_static.dir/work/zstd/zstd-src/lib/dictBuilder/zdict.c.o.d",
+          "sha256": "ca07f724a74aa01d1af800910808714ad6f215a6a4bcd70358c37e236b78ffa0"
+        },
+        {
+          "path": "CMakeFiles/libzstd_static.dir/work/zstd/zstd-src/lib/legacy/zstd_v01.c.o",
+          "sha256": "7940ceee22306f3d8fd5dda94a52507da20cd6f46c34c7b5bd017f3a174f9252"
+        },
+        {
+          "path": "CMakeFiles/libzstd_static.dir/work/zstd/zstd-src/lib/legacy/zstd_v01.c.o.d",
+          "sha256": "e676efd14bc62bbedfa76c5e10f815540aa3fe6fa1c46cfc35fbe5b46b21fb3f"
+        },
+        {
+          "path": "CMakeFiles/libzstd_static.dir/work/zstd/zstd-src/lib/legacy/zstd_v02.c.o",
+          "sha256": "a00a806b24d5c730b063c0f8b5fa3f2457bd9015b41eb7f644d1be621ef0fb48"
+        },
+        {
+          "path": "CMakeFiles/libzstd_static.dir/work/zstd/zstd-src/lib/legacy/zstd_v02.c.o.d",
+          "sha256": "78c7bc94f6e3e2ab8b6680b29e82f59d9f8c5fa7cbd6e1738458458e58ce9a1a"
+        },
+        {
+          "path": "CMakeFiles/libzstd_static.dir/work/zstd/zstd-src/lib/legacy/zstd_v03.c.o",
+          "sha256": "5698182398252d234fd0588d3266edeb828966b5d73b55d3e20a36cb744da892"
+        },
+        {
+          "path": "CMakeFiles/libzstd_static.dir/work/zstd/zstd-src/lib/legacy/zstd_v03.c.o.d",
+          "sha256": "161a36647dacb2eeabbc59ff2882de2c64b22370111eb05f647ea89d2f800c1b"
+        },
+        {
+          "path": "CMakeFiles/libzstd_static.dir/work/zstd/zstd-src/lib/legacy/zstd_v04.c.o",
+          "sha256": "6c37d90379a63834f039530937aaa4d17466027d8d79d2f40fe7cfca3d31d558"
+        },
+        {
+          "path": "CMakeFiles/libzstd_static.dir/work/zstd/zstd-src/lib/legacy/zstd_v04.c.o.d",
+          "sha256": "541c14f6c61e7f9bb20a26e2952ca4a969cff4d404ed04e07fbc698b7f5671ae"
+        },
+        {
+          "path": "CMakeFiles/libzstd_static.dir/work/zstd/zstd-src/lib/legacy/zstd_v05.c.o",
+          "sha256": "8fab49258904771d140795e0fa493871af261614cf2ea12b45d3e311b1e0897f"
+        },
+        {
+          "path": "CMakeFiles/libzstd_static.dir/work/zstd/zstd-src/lib/legacy/zstd_v05.c.o.d",
+          "sha256": "c61a10899bfe9700f032df3e3ede1d4e0e4694f7286aa2ca92f0001368df7918"
+        },
+        {
+          "path": "CMakeFiles/libzstd_static.dir/work/zstd/zstd-src/lib/legacy/zstd_v06.c.o",
+          "sha256": "0332e6ea738ce7edaaae70bbdf76b6b2410937b83694c4dd73c139127d9a4183"
+        },
+        {
+          "path": "CMakeFiles/libzstd_static.dir/work/zstd/zstd-src/lib/legacy/zstd_v06.c.o.d",
+          "sha256": "92997569d3f38caa0949ba74702c20e3dee229c150068e0777e3c5093ca87b20"
+        },
+        {
+          "path": "CMakeFiles/libzstd_static.dir/work/zstd/zstd-src/lib/legacy/zstd_v07.c.o",
+          "sha256": "84515a7a15e5da583779463f6dcea9df231cc3eaeb0f5a475b7adb6d7d722f69"
+        },
+        {
+          "path": "CMakeFiles/libzstd_static.dir/work/zstd/zstd-src/lib/legacy/zstd_v07.c.o.d",
+          "sha256": "051dcf3d4522da3682685f8c64856fe5fd76b96e8b827998dd27705a84cdc902"
+        },
+        {
+          "path": "CMakeFiles/progress.marks",
+          "sha256": "b58a3da5fde2680191877ec88a1aa7d06927cc3b30cdf0d0db8c39b488891576"
+        },
+        {
+          "path": "CMakeFiles/uninstall.dir/DependInfo.cmake",
+          "sha256": "b2ca23380b5c9dd7f07b120e32fb11a157a4def74d801994559b1c8c88f92f55"
+        },
+        {
+          "path": "CMakeFiles/uninstall.dir/build.make",
+          "sha256": "6949c60c13a0dd1c05456145ba9e5adb995b865535541691255fd2d7ed493f3f"
+        },
+        {
+          "path": "CMakeFiles/uninstall.dir/cmake_clean.cmake",
+          "sha256": "76bee29e96e01124c84d421026750c50eca9d852ab99eb828c1a7b252689ac35"
+        },
+        {
+          "path": "CMakeFiles/uninstall.dir/compiler_depend.make",
+          "sha256": "544b5020e80145b8265862c76a0811c3dd31a0820e2834b26038f646fa99c80b"
+        },
+        {
+          "path": "CMakeFiles/uninstall.dir/compiler_depend.ts",
+          "sha256": "5f7329b918c868b9e2549e3175c8cab0d6c02deccfa5f2700ee294575108f150"
+        },
+        {
+          "path": "CMakeFiles/uninstall.dir/progress.make",
+          "sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b"
+        },
+        {
+          "path": "Makefile",
+          "sha256": "b58ec119cdc441d823bfb656cac6aee488f9eba8ff8007af1480cd83fa38eca6"
+        },
+        {
+          "path": "capnproto/__init__.py",
+          "sha256": "ceeba8ab73f72166e37316338bab26575a3c5c41dcd52b5fce587a8a9a213df3"
+        },
+        {
+          "path": "capnproto/install/bin/capnp",
+          "sha256": "7f2103a5b6fe14acb6097e81482e2c108a1b7bbb0065e1263e2d37b151ab57ea"
+        },
+        {
+          "path": "capnproto/install/bin/capnpc",
+          "sha256": "7f2103a5b6fe14acb6097e81482e2c108a1b7bbb0065e1263e2d37b151ab57ea"
+        },
+        {
+          "path": "capnproto/install/bin/capnpc-c++",
+          "sha256": "d82fdb1137b81a3d4bbce45b6be43d62dc26912a74c01dbf87858dcf9ab06fcf"
+        },
+        {
+          "path": "capnproto/install/include/capnp/any.h",
+          "sha256": "10f1961bc01936cc2c10ca8d8e58d7ed18313bec5c36575c0e32063326d00efe"
+        },
+        {
+          "path": "capnproto/install/include/capnp/blob.h",
+          "sha256": "439d36671dcb41b470a24cf89687366798096a9c4c63fb63a7766e94242b99c0"
+        },
+        {
+          "path": "capnproto/install/include/capnp/c++.capnp",
+          "sha256": "52ead0eaa560b21e692d6f3d9966a52dfc99e19f53ae2d7c7bd2944a240d86de"
+        },
+        {
+          "path": "capnproto/install/include/capnp/c++.capnp.h",
+          "sha256": "3487c36b3af98da4ebfe38a912689fc90501d22c9384eeaa703a690288fedc28"
+        },
+        {
+          "path": "capnproto/install/include/capnp/capability.h",
+          "sha256": "92d1d28d2e60e897951539d1a86785bb3114acba46a7eba4d39773798e7beb7a"
+        },
+        {
+          "path": "capnproto/install/include/capnp/common.h",
+          "sha256": "fafc7492d3af551294b0bc76c104b9437d522515b9bdc0a3975a96a24702707d"
+        },
+        {
+          "path": "capnproto/install/include/capnp/compat/json.capnp",
+          "sha256": "8d7f2199c46ececfb98d243318e875a5937ad7ba8b7f962d7399319d0bcddc48"
+        },
+        {
+          "path": "capnproto/install/include/capnp/compat/json.capnp.h",
+          "sha256": "6cffd58820fb55eb4298db408c6483498e133d0c3ac18ec133de32352b9a4e93"
+        },
+        {
+          "path": "capnproto/install/include/capnp/compat/json.h",
+          "sha256": "8f49b2b630a68d0dd670a1c02ca07828cbc50b286873a96162e3c98d917605cf"
+        },
+        {
+          "path": "capnproto/install/include/capnp/compat/std-iterator.h",
+          "sha256": "5d9736f4a5f375152212cf32d29f532be56fb67042fc6acdda6fe10a53dd175f"
+        },
+        {
+          "path": "capnproto/install/include/capnp/compat/websocket-rpc.h",
+          "sha256": "c78823c60374bb7f15009f2c8af3acad7e198e40c9642eabf097a5adb78b23cf"
+        },
+        {
+          "path": "capnproto/install/include/capnp/dynamic.h",
+          "sha256": "f85f4be68fd66314b662b417e6698b78376571531bc9a31de0428eb208437e64"
+        },
+        {
+          "path": "capnproto/install/include/capnp/endian.h",
+          "sha256": "a0af5284aaff0e72a07e6adb795278791c83422886625fff76da1da1d640d34a"
+        },
+        {
+          "path": "capnproto/install/include/capnp/ez-rpc.h",
+          "sha256": "2043e1d621614d3dfa059e7fd0414b19c1ffc3a2ff89effd38a88713bd141044"
+        },
+        {
+          "path": "capnproto/install/include/capnp/generated-header-support.h",
+          "sha256": "f971ffcfd1ebd463582c76f0e7d8bf09daaadf90f4453a8c557cd05ad569bd47"
+        },
+        {
+          "path": "capnproto/install/include/capnp/layout.h",
+          "sha256": "e6ca311f285196b4235968c7ef0894934da594ec1fb251890b3d28175fa986eb"
+        },
+        {
+          "path": "capnproto/install/include/capnp/list.h",
+          "sha256": "defb1b47c3719b5be6f0f8b977e1f7c7df743aa726a4006a43fc8204102f994b"
+        },
+        {
+          "path": "capnproto/install/include/capnp/membrane.h",
+          "sha256": "bf4dea094e6d9c68177fbbed8f4308ea1b3e2de3d623f4df868f71fbb4dfaeec"
+        },
+        {
+          "path": "capnproto/install/include/capnp/message.h",
+          "sha256": "05800493640c741a8d14beab66f257bbf7f9be0898242ab623bd27a2ccb85edf"
+        },
+        {
+          "path": "capnproto/install/include/capnp/orphan.h",
+          "sha256": "b612d8a30861d1e504c4969376e6e4a31485ebddeaf7294ff10dd98e0de8d683"
+        },
+        {
+          "path": "capnproto/install/include/capnp/persistent.capnp",
+          "sha256": "d77d4d2e2c1e9c42ded13de54ed11b535b076ac210945b53ecf76fd7648a867a"
+        },
+        {
+          "path": "capnproto/install/include/capnp/persistent.capnp.h",
+          "sha256": "b01ddc47e9161ce8e4384e9d09e3bcfb21fe5db28bdc816d93946bc93f42b02c"
+        },
+        {
+          "path": "capnproto/install/include/capnp/pointer-helpers.h",
+          "sha256": "65984141eed82cdb0194cf89efdcdbb0efdde6becd80fe985cf8b99d6e7bc3be"
+        },
+        {
+          "path": "capnproto/install/include/capnp/pretty-print.h",
+          "sha256": "bf7aff99c2cac37c8c6bfde6d3484d9669488452f918b7ccd73798cfcff874ae"
+        },
+        {
+          "path": "capnproto/install/include/capnp/raw-schema.h",
+          "sha256": "b961b66cbfaaba2cf9d425d919052a1bd760993912297245d49e55305bdd3a37"
+        },
+        {
+          "path": "capnproto/install/include/capnp/rpc-prelude.h",
+          "sha256": "67b4360a71516ba83722bbe8448ebbd5f85290d9a340c055eb236aa54e8ba582"
+        },
+        {
+          "path": "capnproto/install/include/capnp/rpc-twoparty.capnp",
+          "sha256": "a28328408261d476403acb1f3861a7d88075ffaefca1996c21c746b580527223"
+        },
+        {
+          "path": "capnproto/install/include/capnp/rpc-twoparty.capnp.h",
+          "sha256": "6eac54986cc09a8d4b5e181afe9570d99742695fd371d9edf2f1b4f5751de5b5"
+        },
+        {
+          "path": "capnproto/install/include/capnp/rpc-twoparty.h",
+          "sha256": "4180f59db413d46702d8cc3ff26f8770ec1c4dd60459d5fb93b2cc6f57c4b2f3"
+        },
+        {
+          "path": "capnproto/install/include/capnp/rpc.capnp",
+          "sha256": "026845b4658ac5c3ef40d0c892060241ba1caed09b8219c158ee609ccfcfadf5"
+        },
+        {
+          "path": "capnproto/install/include/capnp/rpc.capnp.h",
+          "sha256": "1fa6bdccab561a81ae0dac44256bd24a8936479be33870a7362cce8a034100ba"
+        },
+        {
+          "path": "capnproto/install/include/capnp/rpc.h",
+          "sha256": "74745a63e48d61af48443c28b1bbb4fb73377f02af22ccded14ac18d462a0c50"
+        },
+        {
+          "path": "capnproto/install/include/capnp/schema-lite.h",
+          "sha256": "5fec4460e8d4e34964584316bd8eddb18cf00ce438c5abfa597f810764d1db8d"
+        },
+        {
+          "path": "capnproto/install/include/capnp/schema-loader.h",
+          "sha256": "4bcfc7a135944042d92a62631614e478fe2b54fa26e96d6150214ebf3fff0582"
+        },
+        {
+          "path": "capnproto/install/include/capnp/schema-parser.h",
+          "sha256": "6dcca284a20e5f4089f06793c08ddc5ce896591ae52177a8f50e3d759c90913f"
+        },
+        {
+          "path": "capnproto/install/include/capnp/schema.capnp",
+          "sha256": "3cd91a6ee4f22684cf378d295b4d7616d321446bf2fd6bd87c84aac1b8ebc677"
+        },
+        {
+          "path": "capnproto/install/include/capnp/schema.capnp.h",
+          "sha256": "6ae4e3a9e66d7706a937b00a4748f563ebcac49605dc751fefd5d9975d2f5670"
+        },
+        {
+          "path": "capnproto/install/include/capnp/schema.h",
+          "sha256": "34d8e97c9cbb4bec723d304017028b375d5196de1bfc8cccd1432977758ff8a2"
+        },
+        {
+          "path": "capnproto/install/include/capnp/serialize-async.h",
+          "sha256": "783ff9fbef54e3b0a4fa4a45b7e4c4f4d7b2ad4b69ec3b64dd54af9b6bdf277b"
+        },
+        {
+          "path": "capnproto/install/include/capnp/serialize-packed.h",
+          "sha256": "f7703ab1735202da3d14790be8eaf3e3525106b0537d712976636f686ba0c949"
+        },
+        {
+          "path": "capnproto/install/include/capnp/serialize-text.h",
+          "sha256": "09d6f004cc1f6b81b15db0bc49b093ee567bc2254505445661e7000df441bef4"
+        },
+        {
+          "path": "capnproto/install/include/capnp/serialize.h",
+          "sha256": "7298d6c77ef62a17c85639d401d784e38988da5ef180c24b2259fc699ee63f1b"
+        },
+        {
+          "path": "capnproto/install/include/capnp/stream.capnp",
+          "sha256": "5b0656ca3daca9ef28740c14813d5dd474fd0f9991ce99f652838f4cccf6fb30"
+        },
+        {
+          "path": "capnproto/install/include/capnp/stream.capnp.h",
+          "sha256": "f0d1242a398ad056578d726fbd389fbd5a4b75f3e6b14c744c65d6a8181061d8"
+        },
+        {
+          "path": "capnproto/install/include/kj/arena.h",
+          "sha256": "f63615b0dc3811945dda5cf81a09fda949ac5b8dbf65e1b679b470928071a4ed"
+        },
+        {
+          "path": "capnproto/install/include/kj/array.h",
+          "sha256": "7e9c648b94c5fd48c02e824937d2a23bb88f363a6b9340eba56461a795f17462"
+        },
+        {
+          "path": "capnproto/install/include/kj/async-inl.h",
+          "sha256": "ca43231210dc0bbcedc3a45efb0dd89f1d9f4e2ed92a58e051c69b7dea19e416"
+        },
+        {
+          "path": "capnproto/install/include/kj/async-io.h",
+          "sha256": "4285914f2f6ad737962613cd9ca4925661be4ee7158f087e422a47a5f5e49d45"
+        },
+        {
+          "path": "capnproto/install/include/kj/async-prelude.h",
+          "sha256": "2ad3b901fe1bbcb2a194afda3e972f60ecc1c177a648ed1e06f4a21e1c759401"
+        },
+        {
+          "path": "capnproto/install/include/kj/async-queue.h",
+          "sha256": "3c0de280492851175479a252359d0357728ab7b8a6926298bdbcd17b651a6589"
+        },
+        {
+          "path": "capnproto/install/include/kj/async-unix.h",
+          "sha256": "22cb34d94c4d00d580994c0080af0f55fe374692d352cfa94fcba411d340839b"
+        },
+        {
+          "path": "capnproto/install/include/kj/async-win32.h",
+          "sha256": "0376a418188c432e29cce292cb3cc8ab7305e77a737e764c2409978ce00f3912"
+        },
+        {
+          "path": "capnproto/install/include/kj/async.h",
+          "sha256": "5518f01649701874b53523d50cf092c412167ef6d9bcf8381eef46303bdcb283"
+        },
+        {
+          "path": "capnproto/install/include/kj/cidr.h",
+          "sha256": "f75470e47035ee38bda04fa5b21d3998adbb8ef6c7e845eee581bf01bf577724"
+        },
+        {
+          "path": "capnproto/install/include/kj/common.h",
+          "sha256": "765da14a044da1a88bb61826eaf09d109e55364e36b9cc084f6ced40020ed37d"
+        },
+        {
+          "path": "capnproto/install/include/kj/compat/gtest.h",
+          "sha256": "baba5633516e4c52269bcb819b5143c25335f0f27c1da24f4505de76faa00c70"
+        },
+        {
+          "path": "capnproto/install/include/kj/compat/gzip.h",
+          "sha256": "570e17a9a4b4ccd0ead03ce99f6160b0873cc6cad81fde588d7d645ebc68a04e"
+        },
+        {
+          "path": "capnproto/install/include/kj/compat/http.h",
+          "sha256": "876b01d1b3f5265a07718e1a8c43a2e8aae8d7c00b31a02f0e8bca0fdd9cafba"
+        },
+        {
+          "path": "capnproto/install/include/kj/compat/url.h",
+          "sha256": "f3083a330b6568899aa00693ebf5284ddcaa01a49f57a9fd3b7702064457abd4"
+        },
+        {
+          "path": "capnproto/install/include/kj/debug.h",
+          "sha256": "5b0025d9ef07e59a882f8cba1eb4a0cc958f9f1afa46d87e6428d1ef0fc92a87"
+        },
+        {
+          "path": "capnproto/install/include/kj/encoding.h",
+          "sha256": "dbd15b023ba6cee8b8a5911ca96c0f39812cb9bec07ba7a1d09849b1dd2d666f"
+        },
+        {
+          "path": "capnproto/install/include/kj/exception.h",
+          "sha256": "a4fa4f0ac73c2d98199a2a373f043aedb8b7b6001636377a0cab29fd164d471f"
+        },
+        {
+          "path": "capnproto/install/include/kj/filesystem.h",
+          "sha256": "1cd173f0c71f0b1310d1b08e3c091ecd6a2423ed024d6ef31b9847421d623e1c"
+        },
+        {
+          "path": "capnproto/install/include/kj/function.h",
+          "sha256": "f07c386af48f8f0fc09006bf6834c6d37c1a9dee375db54f64026d4824a899c0"
+        },
+        {
+          "path": "capnproto/install/include/kj/hash.h",
+          "sha256": "5e9f42721fdeac9e5ec101533f9ce83fd4cca778e7e35f705a005ec93ad8701c"
+        },
+        {
+          "path": "capnproto/install/include/kj/io.h",
+          "sha256": "d6bad9d02b69664186ef7668d3c3b79b56e01ea00b6402489626d1b3226d5156"
+        },
+        {
+          "path": "capnproto/install/include/kj/list.h",
+          "sha256": "28161ce96dff7442ccb9219c45a126ba9e1de3d7aad603273ec527131e4f7a10"
+        },
+        {
+          "path": "capnproto/install/include/kj/main.h",
+          "sha256": "a3f61970b819bd8af9ed9d5bdca0ac82103a0811492875c71980e83e8a520708"
+        },
+        {
+          "path": "capnproto/install/include/kj/map.h",
+          "sha256": "5abee1e4fab9225b2256a2ea6b627bfcf4940a67b4574a24e5f4708651ed73d7"
+        },
+        {
+          "path": "capnproto/install/include/kj/memory.h",
+          "sha256": "33c8f93ecc97debf21799527ee1941c8154cb0a3d41db947d0c9d05c8ac8fb1a"
+        },
+        {
+          "path": "capnproto/install/include/kj/mutex.h",
+          "sha256": "7af80d7359c24b8e094397aa959b6bde8fe1bc3e6481b603ce8ca3e3fac293f5"
+        },
+        {
+          "path": "capnproto/install/include/kj/one-of.h",
+          "sha256": "ac1d7e85db778008930b8e747e82cbfad0ed16a655477030d4485b2ea83799fd"
+        },
+        {
+          "path": "capnproto/install/include/kj/parse/char.h",
+          "sha256": "fe67742b082882b4dc12cb4074b0f00a548fddc84c2cb03baf68a6272b2fcf1e"
+        },
+        {
+          "path": "capnproto/install/include/kj/parse/common.h",
+          "sha256": "85aa59cb9b3943f7bde4a7e4215365712ceb157afd4448960a5448cf8485a70c"
+        },
+        {
+          "path": "capnproto/install/include/kj/refcount.h",
+          "sha256": "50b4b097dd3408dddf8f8a85eb8fae61ad4cf2f13891bff9b0a6e69ef588f954"
+        },
+        {
+          "path": "capnproto/install/include/kj/source-location.h",
+          "sha256": "4c1ce72b658548aec180228cc21ef532a570e788c78a524596f3b6b44cfc13da"
+        },
+        {
+          "path": "capnproto/install/include/kj/std/iostream.h",
+          "sha256": "3bb219dbb54944ba2e89d8eb43c18e1157db12471068c0fc879a9ea48ea69140"
+        },
+        {
+          "path": "capnproto/install/include/kj/string-tree.h",
+          "sha256": "2c779f8c4edd6a96bbb3149c9869896d6aa02aa931a800d5cfa97a589d315ece"
+        },
+        {
+          "path": "capnproto/install/include/kj/string.h",
+          "sha256": "ac906c445ae6d2462d48fb0c5d3a7643844e6bb5ea6594a7b115440dead980e3"
+        },
+        {
+          "path": "capnproto/install/include/kj/table.h",
+          "sha256": "c33ae1ee13d39a57ea86d7e6e8ba82111fa7d8536617aa4f070a593e03fa0d73"
+        },
+        {
+          "path": "capnproto/install/include/kj/test.h",
+          "sha256": "6d445ae7fe22e7b5c718e13258bf1f96ff05e121e0afd52f8682942cdf5b9e53"
+        },
+        {
+          "path": "capnproto/install/include/kj/thread.h",
+          "sha256": "192e624d44f755c6de486c858d55a57c3ab62f42450c00e9e5e087de6f007a94"
+        },
+        {
+          "path": "capnproto/install/include/kj/threadlocal.h",
+          "sha256": "277a41c338a54ad92dd4a77f70fe6648628f3fb9572cbcdbbbe9bfbd5bcc8bed"
+        },
+        {
+          "path": "capnproto/install/include/kj/time.h",
+          "sha256": "bc48fe3fe437c525de9ec0aaf7a9021985772820f2625fb0d3b5a8a56fb8a5ab"
+        },
+        {
+          "path": "capnproto/install/include/kj/timer.h",
+          "sha256": "be693430183743c701489bf90dcbc6435446815b1ce4ea1ffedb6e8e173d1a1b"
+        },
+        {
+          "path": "capnproto/install/include/kj/tuple.h",
+          "sha256": "5221a2eeb76fd3b0b07de388b98e55391b27002fd50dd8b871bbe6a55c201350"
+        },
+        {
+          "path": "capnproto/install/include/kj/units.h",
+          "sha256": "8469955b20216f6c386d93872f758b1106dd5d893da3edf213fb3b7e5babcbbe"
+        },
+        {
+          "path": "capnproto/install/include/kj/vector.h",
+          "sha256": "617a358c3c0944857b8e76277ccd0526cdb765e82a1c4ead73423686fad2576c"
+        },
+        {
+          "path": "capnproto/install/include/kj/win32-api-version.h",
+          "sha256": "fcc8a0003e7793c3e2fbcccc66f6ab09466842deada0842db4c3310327d5ac68"
+        },
+        {
+          "path": "capnproto/install/include/kj/windows-sanity.h",
+          "sha256": "f8140402c4c39a3f5165ae23f5ca4bd54b5b2f37d619adae05402b3bbfd7f004"
+        },
+        {
+          "path": "capnproto/install/lib/libcapnp.a",
+          "sha256": "eaa51cfa88e87e26feca861ae1f0686f35411403712986b5dfbfdb382280fa89"
+        },
+        {
+          "path": "capnproto/install/lib/libkj.a",
+          "sha256": "47a8003c644e5581315582c24857a6f3f16f15480696d240c3545a332045cd16"
+        },
+        {
+          "path": "cmake_install.cmake",
+          "sha256": "623237846117803867a570028772f5b5f8fbdb159a48bc5a38934b4cd40e5940"
+        },
+        {
+          "path": "cmake_uninstall.cmake",
+          "sha256": "25873edebae649e241c42138da17ac8faa264085b4ec9dbcfb58440c61d69b49"
+        },
+        {
+          "path": "comma_deps_capnproto-1.0.1.post103.dist-info/METADATA",
+          "sha256": "b15dc6f3f85b18c65220013043c028550713d16182cd6e47a55579636394eb58"
+        },
+        {
+          "path": "comma_deps_capnproto-1.0.1.post103.dist-info/RECORD",
+          "sha256": "24fc6c895183561e9c527f6adc6917afaec66cf3e933e542d0403b85f41e5ebc"
+        },
+        {
+          "path": "comma_deps_capnproto-1.0.1.post103.dist-info/WHEEL",
+          "sha256": "b5075a5c8bd25e396f75ec196311d85334a3283cfebec7b60d1fa5b1b9403233"
+        },
+        {
+          "path": "comma_deps_capnproto-1.0.1.post103.dist-info/entry_points.txt",
+          "sha256": "99071a87526dca4452d8161d24de76bdb4f6b56976ef9fa0442fbd689f2f89cf"
+        },
+        {
+          "path": "comma_deps_capnproto-1.0.1.post103.dist-info/top_level.txt",
+          "sha256": "44f85324f8342dfe25e389d626eeed2069aa933938244fcb63d39a3f7b917956"
+        },
+        {
+          "path": "comma_deps_json11-20170411.0.post103.dist-info/METADATA",
+          "sha256": "8961c3c55ece6b7bc4d4fecd8ba4e84fb97d6c4f531771b1033c17a2e0259ee4"
+        },
+        {
+          "path": "comma_deps_json11-20170411.0.post103.dist-info/RECORD",
+          "sha256": "08dff57dffe465d5fb101441097a7640a000abb8a81d6e290df2547e9f791802"
+        },
+        {
+          "path": "comma_deps_json11-20170411.0.post103.dist-info/WHEEL",
+          "sha256": "b5075a5c8bd25e396f75ec196311d85334a3283cfebec7b60d1fa5b1b9403233"
+        },
+        {
+          "path": "comma_deps_json11-20170411.0.post103.dist-info/top_level.txt",
+          "sha256": "06f2dd63e392dfb1d3dbe5168b448178229ff45313e82ee133fd99157fb369f9"
+        },
+        {
+          "path": "comma_deps_zeromq-4.3.5.post103.dist-info/METADATA",
+          "sha256": "c1d6afdcc000ea53c23408cac745c35d5809a1c8bb1bda5b9972eb803afd9c38"
+        },
+        {
+          "path": "comma_deps_zeromq-4.3.5.post103.dist-info/RECORD",
+          "sha256": "6e459e4d6ff3e70fb17f33cf49ff068cdf92c6cffb1968bd2fee2123bdcdc95f"
+        },
+        {
+          "path": "comma_deps_zeromq-4.3.5.post103.dist-info/WHEEL",
+          "sha256": "b5075a5c8bd25e396f75ec196311d85334a3283cfebec7b60d1fa5b1b9403233"
+        },
+        {
+          "path": "comma_deps_zeromq-4.3.5.post103.dist-info/top_level.txt",
+          "sha256": "2074172a0b61de3c5ac5f5f4244e6ac02cf827e5836c8828112180795039033e"
+        },
+        {
+          "path": "comma_deps_zstd-1.5.6.post103.dist-info/METADATA",
+          "sha256": "5f25cefdbeb6552702265d9c925b434027b32b9f1bfacc0d7c892ba2931949e2"
+        },
+        {
+          "path": "comma_deps_zstd-1.5.6.post103.dist-info/RECORD",
+          "sha256": "ebb08bc40b2c4d99b31ca5206241baf7dd4565007c46764f1c361be0d974c67c"
+        },
+        {
+          "path": "comma_deps_zstd-1.5.6.post103.dist-info/WHEEL",
+          "sha256": "b5075a5c8bd25e396f75ec196311d85334a3283cfebec7b60d1fa5b1b9403233"
+        },
+        {
+          "path": "comma_deps_zstd-1.5.6.post103.dist-info/top_level.txt",
+          "sha256": "0e1417d3885b9b775681b0b2c29b9ef1e8e4912bb1663a591a4565a3c71afa33"
+        },
+        {
+          "path": "json11/__init__.py",
+          "sha256": "ac6752f55d0a174d9a8fd675e983fd3e9669b0eb545e6d008e011d8079b4e8c9"
+        },
+        {
+          "path": "json11/install/include/json11/json11.hpp",
+          "sha256": "2bc666c25fbeac541add5f97a92526360e49ff822ba003567f8ca6a29421bf6d"
+        },
+        {
+          "path": "json11/install/lib/libjson11.a",
+          "sha256": "75cc9ea7d4562ad6d72d415d0277cdebd2134631a85fa60504133340103e3a40"
+        },
+        {
+          "path": "libzmq.a",
+          "sha256": "bb2aa213c7b823b514107298e9360a5de41feab8314961e5fc8190657fe9002c"
+        },
+        {
+          "path": "libzstd.a",
+          "sha256": "0a9c6639bb2f362c2d557c606e252ebd9b6b9470fce2bda52f64389bf7fa5491"
+        },
+        {
+          "path": "libzstd.pc",
+          "sha256": "76b4e183f1873291538475f9e4d2c4e1478ef63f61a4936d095cf78567d345c6"
+        },
+        {
+          "path": "zeromq/__init__.py",
+          "sha256": "1343f0fc48da61c74147a11ffcc469964a6241a9e9708c9f3a25f563fb7bb41c"
+        },
+        {
+          "path": "zeromq/install/include/zmq.h",
+          "sha256": "af28f65648ab8fbf3c000bdf6395776249fc5d98d28c720f4350c61fb2d91b1a"
+        },
+        {
+          "path": "zeromq/install/include/zmq_utils.h",
+          "sha256": "7aad0d8b0c40b28cce8c3ce75077ecd6bd8fd1a79a91aaed6a434e8b24a02713"
+        },
+        {
+          "path": "zeromq/install/lib/libzmq.a",
+          "sha256": "bb2aa213c7b823b514107298e9360a5de41feab8314961e5fc8190657fe9002c"
+        },
+        {
+          "path": "zstd/__init__.py",
+          "sha256": "a6dd989e513f80c3363004ea3df93058a5dcc669b48ed08ad17725e49f727785"
+        },
+        {
+          "path": "zstd/install/include/zdict.h",
+          "sha256": "02a34169467501fcc665cccb33f5bd455fdb665e9806851777dc8a6c4d5a75e3"
+        },
+        {
+          "path": "zstd/install/include/zstd.h",
+          "sha256": "4fab9cf39160cd15fbd9fbc2fd637ee300002fa70e307f85e8a7e45c1e057906"
+        },
+        {
+          "path": "zstd/install/include/zstd_errors.h",
+          "sha256": "36dbd0a595852e10ff5b52992294f610055b8781101f4634036e05cf7d4bb506"
+        },
+        {
+          "path": "zstd/install/lib/libzstd.a",
+          "sha256": "0a9c6639bb2f362c2d557c606e252ebd9b6b9470fce2bda52f64389bf7fa5491"
+        }
+      ]
+    }
+  },
+  "preparation": {
+    "source_lock": "upstream-openpilot/uv.lock",
+    "source_lock_sha256": "2d05b33b220a5fd221e9b55c65a0f55bd628a6139c8df9e863ab67aa1c630a83",
+    "system_packages_modified": false,
+    "device_access": false,
+    "packages": [
+      {
+        "name": "comma-deps-capnproto",
+        "version": "1.0.1.post103",
+        "wheel": {
+          "url": "https://files.pythonhosted.org/packages/c4/53/38b0e046aab3f0d371d0fa6eb3d4eb3cf787e7d270f429a485e53080416c/comma_deps_capnproto-1.0.1.post103-py3-none-manylinux_2_28_aarch64.whl",
+          "hash": "sha256:4a115a789af5835dde75371abdd0c1766df40764eaccfd912de4212522935d08",
+          "size": 2503570,
+          "upload-time": "2026-09-11T22:31:35.022Z"
+        }
+      },
+      {
+        "name": "comma-deps-json11",
+        "version": "20170411.0.post103",
+        "wheel": {
+          "url": "https://files.pythonhosted.org/packages/6c/be/51c3dd8f80ee0a968a90b4737e0362e7b621366c24c9c55613386ba0aa14/comma_deps_json11-20170411.0.post103-py3-none-manylinux_2_28_aarch64.whl",
+          "hash": "sha256:0f7764609db411d98c540d985c289a2c37f282fbf2a75e2503017f1243546653",
+          "size": 41850,
+          "upload-time": "2026-09-11T22:32:55.711Z"
+        }
+      },
+      {
+        "name": "comma-deps-zeromq",
+        "version": "4.3.5.post103",
+        "wheel": {
+          "url": "https://files.pythonhosted.org/packages/0e/72/522bdc7b93d9c84b2600e9ed84588c94acf698a8aa3186e304c6d54b4371/comma_deps_zeromq-4.3.5.post103-py3-none-manylinux_2_28_aarch64.whl",
+          "hash": "sha256:d25d7b336707f39a6c92f0b01b40ca761d067564b39c6c56a6a7f4cca7fd512d",
+          "size": 832994,
+          "upload-time": "2026-09-11T22:33:39.03Z"
+        }
+      },
+      {
+        "name": "comma-deps-zstd",
+        "version": "1.5.6.post103",
+        "wheel": {
+          "url": "https://files.pythonhosted.org/packages/5b/e2/96a88f630732dd83f0d01adf7707b369a055eea6dc4612a30ae6edaff8fc/comma_deps_zstd-1.5.6.post103-py3-none-manylinux_2_28_aarch64.whl",
+          "hash": "sha256:d9a6b6b6d4ecdfd28d4843f8dcd42dfd6f4886672cc90c0957798f9c0326571a",
+          "size": 956886,
+          "upload-time": "2026-09-11T22:33:49.654Z"
+        }
+      }
+    ],
+    "linux_files_derived_from_locked_wheels": true
+  }
+}

@@ -6,9 +6,9 @@
 
 第 1 步已完成授权的只读实机核查及补证，最新见 [板型、产品配置与恢复链](hardware/step1/followup/RESULT.md) 和 [待补材料清单](hardware/step1/followup/USER-CHECKLIST.md)，此前 [实机快照](hardware/step1/STEP-1-RESULT.md) 保留。已确认 SDA845/Adreno630、AGNOS 10.1 B 槽和内部 DOS 软件身份；用户确认本机出厂无驾驶员相机、无电话卡功能，厂家系列资料支持该取舍。具体 PCB/MCU、外置 Panda、道路相机当前运行及恢复能力仍有未过门槛，官方驾驶员监控硬件差异需单独解决。所有设备写入操作继续保持关闭。
 
-DOS/F4、USB 双 Panda 兼容层的 **P0/P1/P2/P3 已完成本地实现和限定范围的离线验收**。P3 新增固定槽位、连接epoch/组代次、双向CAN路由、过期队列处理和完整组可用性；原SPI运行路径未改动。见 [P3结果与范围](validation/panda-compat-p3/RESULT.md) 和 [独立补丁维护说明](patches/openpilot/p3/README.md)；[P2历史结果](validation/panda-compat-p2/RESULT.md) 保留。尚未接入活动pandad或真实设备，结构可用不表示真实TX许可，官方基线保持不变。
+DOS/F4、USB 双 Panda 兼容层的 **P0/P1/P2/P3/P4 已完成本地实现和限定范围的离线验收**。P4 新增实际 Linux pandad 的显式离线入口、逐板 health/safety/heartbeat 屏障、消息消费者、外围角色和重新接合规则；默认 SPI 路径保留。见 [P4结果与范围](validation/panda-compat-p4/RESULT.md) 和 [独立补丁维护说明](patches/openpilot/p4/README.md)；[P3历史结果](validation/panda-compat-p3/RESULT.md) 保留。当前只接入 fake I/O 与注入的消息循环，未接入实物发现/实时 PubSub；真实设备/TX权限仍关闭，官方基线保持不变。
 
-用户无法提供照片和厂家资料，实物未知项继续保留，不阻断本地工作。[兼容层设计](hardware/design/dos-usb-dual-panda/DESIGN.md) 与其NOT_RUN清单是实现前冻结的历史快照；P0/P1/P2/P3的新验收结果以上述报告为准，P4–P7仍待实施。
+用户无法提供照片和厂家资料，实物未知项继续保留，不阻断本地工作。[兼容层设计](hardware/design/dos-usb-dual-panda/DESIGN.md) 与其NOT_RUN清单是实现前冻结的历史快照；P0–P4的新验收结果以上述报告为准，P5–P7仍待实施。
 
 ## 固定基线
 

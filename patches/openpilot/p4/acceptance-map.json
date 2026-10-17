@@ -1,0 +1,159 @@
+{
+  "schema": "songplus-panda-p4-acceptance-map/v1",
+  "cases": [
+    {
+      "id": "A40",
+      "required_groups": {
+        "control_session": [
+          "incomplete_health_group_never_enables",
+          "health_every_short_prefix_and_legacy_rejected",
+          "can_health_every_short_prefix_and_oversize_rejected",
+          "independent_health_canhealth_and_heartbeat_deadlines"
+        ],
+        "pandad_runtime": [
+          "real_cereal_fixed_two_slots_and_both_role_orders",
+          "serialized_missing_and_extra_inventory_never_shrinks",
+          "short_health_and_can_health_invalidate_whole_group",
+          "source_ages_survive_cereal_republication_and_exact_expiry"
+        ]
+      },
+      "required_python_selectors": [
+        "test_message_policy.*.test_serialized_fixed_required_count_and_unknown_slots",
+        "test_message_policy.*.test_wire_panda_states_matrix_consumer_reactions"
+      ],
+      "scope": "Actual frozen-schema serialization of exactly2 slots; all required health/CAN-health fresh; original observation age retained. Native messages also read by actual Python consumer policy."
+    },
+    {
+      "id": "A41",
+      "required_groups": {
+        "control_session": [
+          "exact_slot_config_cardinality_and_nooutput_only",
+          "per_slot_write_order_readback_and_role_permutations",
+          "safety_model_param_and_alternative_readback_mismatch"
+        ],
+        "pandad_runtime": [
+          "configuration_cardinality_and_offroad_barrier",
+          "per_board_safety_writes_and_readbacks_are_not_replicated",
+          "safety_readback_mismatch_cannot_enable"
+        ]
+      },
+      "required_python_selectors": [],
+      "scope": "Exactly2 explicit noOutput configs with per-slot params, shared CarParams alternativeExperience, ordered writes and independent readbacks; simulated gating only."
+    },
+    {
+      "id": "A42",
+      "required_groups": {
+        "pandad_runtime": [
+          "actual_pandad_cycle_publishes_cereal_and_rejects_stalled_loop"
+        ],
+        "pandad_loop": [
+          "loop_fixed_publication_cadence_and_serialized_outputs",
+          "loop_max16_inputs_and_control_before_ingress",
+          "loop_dual_receive_tx_attempts_and_routed_sendcan"
+        ]
+      },
+      "required_python_selectors": [
+        "test_message_policy.*.test_actual_selfdrived*",
+        "test_message_policy.*.test_actual_hardware*",
+        "test_message_policy.*.test_actual_ui_role_validity_and_stale_engagement",
+        "test_message_policy.*.test_event_valid_seen_source_and_receive_age_boundaries"
+      ],
+      "scope": "Selected actual consumer functions/branches execute against serialized fixtures; default single-board behavior preserved. Actual native event cycle uses injected ingress/publication, without launching full Python daemons."
+    },
+    {
+      "id": "A43",
+      "required_groups": {
+        "control_session": [
+          "unbound_no_device_permission_and_fixed_slots",
+          "exact_slot_config_cardinality_and_nooutput_only"
+        ],
+        "pandad_runtime": [
+          "per_board_safety_writes_and_readbacks_are_not_replicated"
+        ]
+      },
+      "required_python_selectors": [
+        "test_message_policy.*.test_actual_card_callbacks_filter_serialized_events_and_block_queries",
+        "test_message_policy.*.test_actual_card_constructor_and_control_gate_before_side_effects",
+        "test_entry_guard.TestEntryGuard.*"
+      ],
+      "scope": "No implicit ELM327/OBD/query/realCAN; Python wrapper and native compatibility guards reject ordinary hardware startup under profile."
+    },
+    {
+      "id": "A44",
+      "required_groups": {
+        "pandad_runtime": [
+          "explicit_roles_aggregate_ignition_and_no_unsupported_ir",
+          "real_cereal_fixed_two_slots_and_both_role_orders"
+        ]
+      },
+      "required_python_selectors": [
+        "test_message_policy.*.test_both_role_permutations_ignition_harness_voltage_current",
+        "test_message_policy.*.test_fan_role_capability_validity_freshness_and_missing_board"
+      ],
+      "scope": "Role-specific fan, power and harness; OR of configured ignition sources; unsupported IR/diagnostics/power-save output never invented. Peripheral wire power fields come from the explicit power-monitor role, including separate fan/power owners; missing required values make the Event invalid."
+    },
+    {
+      "id": "A45",
+      "required_groups": {
+        "control_session": [
+          "fresh_disabled_enabled_edge_and_no_real_tx",
+          "selfdrive_freshness_invalid_future_duplicate_boundaries",
+          "heartbeat_period_fairness_and_no_duplicate_pending",
+          "disconnect_reconnect_requires_offroad_readback_and_new_edge",
+          "external_fault_flushes_pending_and_epoch_with_sibling_exit",
+          "exit_safety_readback_and_failure_never_replay"
+        ],
+        "pandad_runtime": [
+          "reconnect_requires_new_handles_offroad_and_new_enable_edge",
+          "fault_flushes_queued_can_and_old_cereal_input",
+          "planned_shutdown_has_bounded_exit_and_cancels_all_handles",
+          "offroad_transition_retires_epoch_queue_and_requires_onroad"
+        ],
+        "firmware_liveness": [
+          "heartbeat_write_exact_semantics",
+          "ignition_on_counter_boundary",
+          "ignition_off_counter_boundary",
+          "engaged_false_third_mismatch",
+          "watchdog_strict_threshold",
+          "watchdog_timer_wrap",
+          "watchdog_stall_only_observed_on_resume",
+          "watchdog_fault_does_not_prevent_later_heartbeat_timeout"
+        ],
+        "pandad_loop": [
+          "loop_buffered_epoch_not_retagged_after_fault",
+          "loop_carparams_barrier_rejects_preconfiguration_enable",
+          "loop_gap_exact_threshold_invalidates_before_old_enable",
+          "loop_observed_budget_before_input_and_exact_expiry",
+          "loop_sink_failure_and_source_exception_close_group",
+          "loop_backward_clock_latches_closed_and_publication_overflow_bounded"
+        ]
+      },
+      "required_python_selectors": [
+        "test_message_policy.*.test_actual_selfdrived_gate_restart_and_reconnect_remain_disabled"
+      ],
+      "scope": "Bounded fake-clock host exit, noOutput write/readback then heartbeat(false), fresh offroad reconfiguration and disabled-enabled edge. Actual pinned firmware C with HAL stubs proves distinct heartbeat/SILENT and watchdog-fault behavior; no MCU hardware claim. Fresh offroad transition immediately retires queued control and engaged heartbeat; onroad is required before a new enable."
+    },
+    {
+      "id": "A46",
+      "required_groups": {
+        "pandad_runtime": [
+          "thermal_staleness_preserves_explicit_exit_not_fabricated_fan",
+          "explicit_roles_aggregate_ignition_and_no_unsupported_ir",
+          "uncertain_tx_is_one_shot_and_never_routed_to_sibling",
+          "missing_and_independently_stale_fan_observation_close_control"
+        ],
+        "firmware_liveness": [
+          "timeout_peripheral_intents"
+        ],
+        "pandad_loop": [
+          "loop_peripheral_phase_only_every50ms"
+        ]
+      },
+      "required_python_selectors": [
+        "test_message_policy.*.test_fan_role_capability_validity_freshness_and_missing_board",
+        "test_message_policy.*.test_actual_hardware_invalid_or_frozen_enabled_clears_is_engaged"
+      ],
+      "scope": "Required fan observation/deviceState loss closes simulated control; healthy peer exits, no unknown physical fan fallback or hardware-cooling claim."
+    }
+  ]
+}

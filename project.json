@@ -23,7 +23,7 @@
     "os_update": false,
     "panda_flash": false,
     "target_process_launch": false,
-    "meaning": "Historical Step 1 SSH evidence retained; current P3 sessions/routing and acceptance are local Mac/Linux fake-I/O host builds only, without C3XL connection, active pandad integration or firmware/OS writes.",
+    "meaning": "Historical Step 1 SSH evidence retained; current P4 is local Mac/Linux fake-I/O integration only. Actual Linux pandad is compiled and its explicit offline entry executed; no device discovery, live PubSub, C3XL connection, MCU build or firmware/OS writes.",
     "current_task_device_connection": false
   },
   "milestones": [
@@ -43,22 +43,25 @@
     "telephone_card_function": false,
     "exact_pcb_revision_confirmed": false
   },
-  "current_work": "local_dos_usb_p0_p1_p2_p3_offline_implemented",
+  "current_work": "local_dos_usb_p0_p1_p2_p3_p4_offline_implemented",
   "compatibility_design": "hardware/design/dos-usb-dual-panda/implementation-plan.json",
-  "compatibility_implementation": "patches/openpilot/p3/manifest.json",
+  "compatibility_implementation": "patches/openpilot/p4/manifest.json",
   "compatibility_stage_status": {
     "P0": "OFFLINE_HOST_PASSED",
     "P1": "OFFLINE_HOST_PASSED",
     "P2": "OFFLINE_DECLARED_SCOPE_PASSED",
     "P3": "OFFLINE_DECLARED_SCOPE_PASSED",
-    "P4": "NOT_IMPLEMENTED",
+    "P4": "OFFLINE_DECLARED_SCOPE_PASSED",
     "P5": "NOT_IMPLEMENTED",
     "P6": "NOT_IMPLEMENTED",
     "P7": "NOT_IMPLEMENTED"
   },
   "compatibility_p0p1_implementation": "patches/openpilot/p0p1/manifest.json",
-  "compatibility_acceptance": "validation/panda-compat-p3/result.json",
-  "health_heartbeat_runtime_integrated": false,
+  "compatibility_acceptance": "validation/panda-compat-p4/result.json",
+  "health_heartbeat_runtime_integrated": "offline injected transports and serialized event loop only",
   "compatibility_p2_implementation": "patches/openpilot/p2/manifest.json",
-  "p3_group_availability": "structural_synthetic_only_not_real_tx_permission"
+  "p3_group_availability": "structural_synthetic_only_not_real_tx_permission",
+  "compatibility_p3_implementation": "patches/openpilot/p3/manifest.json",
+  "p4_real_device_runtime_integrated": false,
+  "p4_source_commit": "4d374354317a65c0b23895533f23b403cc226518"
 }
