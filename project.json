@@ -35,5 +35,11 @@
     "Separately validated openpilot longitudinal control"
   ],
   "step0_acceptance": "validation/STEP-0-RESULT.json",
-  "step1_acceptance": "hardware/step1/STEP-1-RESULT.json"
+  "step1_acceptance": "hardware/step1/STEP-1-RESULT.json",
+  "step1_followup": "hardware/step1/followup/RESULT.json",
+  "hardware_configuration_user_reported": {
+    "driver_camera_installed": false,
+    "telephone_card_function": false,
+    "exact_pcb_revision_confirmed": false
+  }
 }

@@ -1,0 +1,12 @@
+{
+  "schema": "songplus-readonly-followup-receipt/v1",
+  "collected_at_utc": "2026-10-17T17:41:25.069005+00:00",
+  "source_sha256": "2c82f8718195e20be38eed1b9ff0f10f29d1b2aa45222c3e0b16bad6456be29c",
+  "runner_sha256": "738f13dd742602f45d6dbd3860ad55199dcf6cd61e67c8d503e2bc305c4fdb4d",
+  "stdout_sha256": "22da230dbb412a866f05bfe0583daad6703bd19b12f9873791c97e0e3f5a6611",
+  "exit_code": 0,
+  "valid_json": true,
+  "device_files_written_by_collector": false,
+  "device_controls_called": false,
+  "note": "SSH and already-running system services may produce normal logs."
+}

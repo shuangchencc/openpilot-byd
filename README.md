@@ -4,7 +4,7 @@
 
 当前完成第 0 步：固定官方源码、配套依赖和模型，整理可迁移的研究证据，建立离线构建与验收入口。尚未实现宋车型端口，也未确认 C3XL 和现有 Panda 能运行这套版本。工程不依赖 Mr One 加密车型模块。
 
-第 1 步已完成本轮授权的只读实机核查，见 [实机结果与兼容性缺口](hardware/step1/STEP-1-RESULT.md)。已确认 SDA845/Adreno630、AGNOS 10.1 B 槽和当前内部 DOS 状态；外置 Panda、三路相机当前运行及恢复能力仍有未过门槛。所有设备写入操作继续保持关闭。
+第 1 步已完成授权的只读实机核查及补证，最新见 [板型、产品配置与恢复链](hardware/step1/followup/RESULT.md) 和 [待补材料清单](hardware/step1/followup/USER-CHECKLIST.md)，此前 [实机快照](hardware/step1/STEP-1-RESULT.md) 保留。已确认 SDA845/Adreno630、AGNOS 10.1 B 槽和内部 DOS 软件身份；用户确认本机出厂无驾驶员相机、无电话卡功能，厂家系列资料支持该取舍。具体 PCB/MCU、外置 Panda、道路相机当前运行及恢复能力仍有未过门槛，官方驾驶员监控硬件差异需单独解决。所有设备写入操作继续保持关闭。
 
 ## 固定基线
 
@@ -76,5 +76,7 @@ python3 tools/validate_project.py
 第 0 步未连接 C3XL；第 1 步使用独立的显式只读 SSH 入口。两步均未发送 CAN、启动设备服务、修改设备系统或刷 Panda。设备地址只保存在被忽略的 `local/` 中。
 
 第 1 步证据可用 `python3 hardware/step1/verify.py` 离线复核。诊断工具默认只预览，`--connect` 才使用本地连接配置；不会混入 bootstrap、CI 或通常的离线验证入口。
+
+第 1 步补充证据另用 `python3 hardware/step1/followup/verify.py` 离线复核；新增采集入口 `tools/inspect_c3xl_followup.py` 同样默认不连接。当前外置 Panda 先提供身份与供电资料，不直接接回运行中的 C3XL 做枚举，避免旧启动程序可能触发的自动刷写路径。
 
 后续先核实板卡/相机/线束与恢复能力，同时利用带来源和事件标注的被动日志确认本车协议。随后实现只读 CarState，再推进控制器、匹配 safety、目标机台架与受控车辆验收。验收标准和顺序见 [NEXT-STEPS.txt](NEXT-STEPS.txt) 及 [hardware/patch-plan.txt](hardware/patch-plan.txt)。

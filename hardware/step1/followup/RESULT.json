@@ -1,0 +1,97 @@
+{
+  "schema": "songplus-step1-followup-result/v1",
+  "status": "READONLY_FOLLOWUP_COMPLETE_WITH_EXTERNAL_EVIDENCE_GAPS",
+  "recorded_at_utc": "2026-10-17T17:44:19.946990+00:00",
+  "sample_at_utc": "2026-10-17T17:41:24.441208+00:00",
+  "official_commit": "35e78a9d9518855ec0dacec919e719624a28131f",
+  "previous_step1_commit": "8496105",
+  "prior_snapshot": "hardware/step1/STEP-1-RESULT.json",
+  "manifest": "hardware/step1/followup/manifest.json",
+  "recovery_verified": false,
+  "deployment_ready": false,
+  "no_driver_camera_user_reported": true,
+  "no_telephone_card_function_user_reported": true,
+  "manufacturer_series_supports_feature_omissions": true,
+  "manufacturer_series_exact_board_match": false,
+  "roles_changed_by_collector": false,
+  "device_actions": {
+    "ssh_sessions": 1,
+    "mode": "explicit passive read-only",
+    "system_config_write": false,
+    "service_start_stop": false,
+    "target_script_installed": false,
+    "camera_open": false,
+    "usb_control_transfer": false,
+    "tty_at_qmi_request": false,
+    "can_transmit": false,
+    "abctl_or_bootctl_executed": false,
+    "slot_change": false,
+    "panda_reset_or_flash": false,
+    "recovery_mode_entered": false,
+    "gpt_repair": false,
+    "misc_or_provisioning_read": false
+  },
+  "resolved_or_refined": [
+    {
+      "id": "C1",
+      "finding": "Missing driver camera treated as manufacturer/user product configuration, not unexplained failure. Official complete DM remains a hardware gap."
+    },
+    {
+      "id": "C2",
+      "finding": "No telephone-card function is distinct from cached USB communication interfaces. No usable SIM/cellular link inferred."
+    },
+    {
+      "id": "R1",
+      "finding": "fstab hash plus selected lines, symlink targets, mounted sources and GPT explain dsp_a/modem_a with system_b."
+    },
+    {
+      "id": "R2",
+      "finding": "Installed libabctl hash matches archived static disassembly. GPT flags allow bounded active/success/unbootable interpretation for boot_a/b only. No boot/recovery test inferred."
+    },
+    {
+      "id": "R3",
+      "finding": "Backup coverage mapped to boot chain and shared partitions; userdata/cache and actual MCU flash/provisioning lack full raw coverage."
+    }
+  ],
+  "remaining_external_evidence": [
+    "Physical PCB/SOM/batch and memory revision binding",
+    "DOS exact silicon/board/bootstub identity",
+    "External Panda model/MCU/power and safe independent enumeration plan",
+    "Physical recovery port/power/data-cable mapping",
+    "Vendor recovery procedure and exact compatible loader/system package",
+    "Future separate recovery/rollback rehearsal",
+    "Future driver-monitoring hardware design and target camera/runtime verification"
+  ],
+  "user_materials": "hardware/step1/followup/USER-CHECKLIST.md",
+  "reports": [
+    "hardware/step1/followup/hardware-profile.json",
+    "hardware/step1/followup/recovery-findings.json"
+  ],
+  "validation": {
+    "integrity_command": "python3 hardware/step1/followup/verify.py",
+    "synthetic_test_command": "python3 -m unittest discover -s hardware/step1/followup/tests -v",
+    "target_runtime_tested": false,
+    "vehicle_control_tested": false,
+    "previous_step0_build_rerun": false,
+    "integrity_status": "PASS",
+    "package_files": 14,
+    "official_hardware_source_anchors": 18,
+    "project_bound_report_sources": 10,
+    "synthetic_tests": {
+      "run": 10,
+      "passed": 10,
+      "skipped": 0
+    },
+    "prior_step1_integrity_status": "PASS",
+    "prior_step1_evidence_files": 10,
+    "prior_step1_source_anchors": 47
+  },
+  "limitations": [
+    "USB role differed from earlier snapshot; collector did not set it. UDC remained not attached and gadget unbound.",
+    "DT sensor slots and V4L nodes are static configuration/registered interfaces, not proof of installed or operating cameras.",
+    "No new full large-backup rehash or full installed-tree drift comparison.",
+    "Archived auto-flash wrapper is static evidence, not a newly hashed live wrapper.",
+    "Vendor video entry discovered; video content not reviewed and no loader obtained.",
+    "Normal SSH/system logging may change independently of the collector."
+  ]
+}

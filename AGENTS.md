@@ -41,6 +41,13 @@ Flagship PLUS, with the user's existing Mr One C3XL and Panda hardware.
   configuration, provisioning material, or full backups into this repository.
 - Driver monitoring, audible alerts, and independent Panda safety are required
   parts of the eventual target; do not hide missing hardware by disabling them.
+- The user has clarified that this C3XL was sold without a driver camera and
+  telephone/SIM-card functionality. Plan with this product configuration; do not
+  treat the missing driver camera as an unexplained fault or ask to start it.
+  A cached USB modem interface does not prove usable cellular/SIM functionality.
+  See `hardware/step1/followup/RESULT.md` for newer evidence, retaining the earlier
+  Step 1 snapshot. Identify external Panda power/ports before connecting it;
+  the archived startup wrapper includes automatic flash/reset paths.
 
 ## Reproducibility
 

@@ -1,0 +1,556 @@
+{
+  "schema": "songplus-step1-hardware-profile-followup/v1",
+  "prepared_date": "2026-10-18",
+  "scope": "local-only review of parent-collected followup evidence; only this JSON and companion Markdown updated; previous reports unchanged",
+  "official_openpilot_commit": "35e78a9d9518855ec0dacec919e719624a28131f",
+  "device_connection_performed": false,
+  "system_or_firmware_modified": false,
+  "driver_monitoring_policy_modified": false,
+  "profile": {
+    "user_product_name": "Mr One C3XL",
+    "working_configuration": "按用户确认，本机不含驾驶员相机和电话卡功能；以此作为后续规划配置，不再把第三路无图像默认当硬件故障。",
+    "exact_manufacturer_sku": null,
+    "pcb_revision": null,
+    "som_revision": null,
+    "physical_bom_verified": false,
+    "cellular_service_available": false,
+    "cellular_service_value_basis": "user_reported_product_function_not_a_live_registration_test",
+    "driver_camera_fitted": false,
+    "driver_camera_value_basis": "user_confirmed_product_configuration_supported_by_manufacturer_family_description_not_physical_inspection"
+  },
+  "evidence_layers": [
+    {
+      "layer": 1,
+      "name": "用户与厂家产品陈述",
+      "facts": [
+        "用户确认自己这台Mr One C3XL产品不含驾驶员相机及电话卡功能。",
+        "主任务读取的厂家C3X lite产品页明确移除DM/4G，标示两路OX03C10和185°/45°视角；当前页面表列SD845、8GB RAM、64GB UFS。"
+      ],
+      "limits": [
+        "用户陈述足以作为当前规划配置；厂家页面可支持系列特征，但尚未绑定这台机器的SKU/批次/PCB。",
+        "网页8GB与本机约4GB级软件证据不同，不据同名判断同一硬件；厂称视角不是本机实测标定。"
+      ]
+    },
+    {
+      "layer": 2,
+      "name": "静态软件配置与源码",
+      "facts": [
+        "归档SP098包含缺驾驶员相机时放宽相应检查的条件路径。",
+        "另一个名称3xl的源码归档采用19.7-c3xl-dev和custom SPI Panda路径；源码命名不等于本机硬件适配。",
+        "官方锁定版本维持Cabin相机、DM模型、监控状态与故障检查链。",
+        "本轮读取的设备树配置启用cam-sensor槽位0/1/2/3；这是通用平台配置，不是四颗物理传感器的探测结果。"
+      ],
+      "limits": [
+        "条件代码存在不证明本机当时/现在必然运行该分支。",
+        "源码声明和设备树标签不能代替原理图、PCB修订或真实接线。"
+      ]
+    },
+    {
+      "layer": 3,
+      "name": "系统报告的硬件与运行状态",
+      "facts": [
+        "已有实机只读证据：SDA845 rev2.1、Adreno630v2、设备树comma tici；MemTotal3699784kB（约3.53GiB），DT memory/reg区域4261019648字节。",
+        "已有新鲜Panda消息报告一块DOS；本轮USB bbaa:ddcc的bcdDevice=0600，匹配实机hash的旧Python API将高字节0x06解释为DOS，并把DOS归为F4。两条软件识别相互支持。",
+        "历史slot0/1成功ID0x5803并有1928x1208道路/广角编码器记录；sensor2历史失败；遗留DriverCameraHardwareMissing=1。",
+        "本轮USB 2c7c:0125、480Mbps，共5接口：4个绑定option，1个绑定qmi_wwan；sysfs可见ttyUSB0..3、cdc-wdm0、wwan0。采集未打开这些设备节点，不能证明卡槽、插卡联网或厂家对用户开放4G功能。",
+        "第1步相机和DM模型是shouldBeRunning=false的离车待机，未启动做相机测试。",
+        "本轮设备树cam-sensor@0..3均status=ok，且有四个cam-sensor-driver节点；这些是配置与驱动注册，不证明四颗相机物理存在，更不推翻已确认的无驾驶员相机配置。"
+      ],
+      "limits": [
+        "USB设备身份与手机卡服务、插槽物理存在分别判断，不能因USB枚举就否定用户无电话卡功能陈述。",
+        "内核可见内存、DT内存区都不能唯一确定具体DRAM器件和PCB批次。",
+        "软件DOS分类不是MCU裸片或PCB revision物理读取。",
+        "bcdDevice由USB固件报告，属于另一条软件枚举佐证，不是独立硬件鉴定或已安装固件字节校验。"
+      ]
+    },
+    {
+      "layer": 4,
+      "name": "物理证实",
+      "facts": [],
+      "limits": [
+        "目前未收到能绑定该机SKU/PCB/批次的外观铭牌或厂家板图。",
+        "用户已明确产品配置；补物理资料用于绑定具体批次和接口方案，不重复要求其证明有没有相机。",
+        "不要求拆机、不要求带电操作或尝试接外置电路板。"
+      ]
+    }
+  ],
+  "manufacturer_source": {
+    "url": "https://oneclone.net/product/c3x-lite/",
+    "accessed_date_by_parent": "2026-10-18",
+    "acquisition": "Primary manufacturer page browsed by parent task; supplied facts used here, no separate network request by this subtask",
+    "short_quote": "C3X lite=C3X-dm（Driver monitoring）-4G",
+    "summary": "厂家将该系列描述为去掉驾驶员监控和4G的C3X lite；两路OX03C10，视角185°与45°。页面当前规格为SD845、8GB RAM、64GB UFS。该页面未与本机SKU/PCB绑定，且内存规格与现有本机软件证据不同。",
+    "applicability": "series-level corroboration only; exact unit revision unresolved",
+    "summary_evidence": "hardware/step1/followup/vendor-sources.json",
+    "retrieved_at_utc": "2026-10-17T17:41:00.640571+00:00",
+    "html_sha256": "705f4d168c52cec330905190ffb44fd8c349afcbdb02f719eba28e1631964ebf"
+  },
+  "compatibility_assessment": {
+    "driver_monitoring": {
+      "status": "material_hardware_gap_for_unchanged_official_runtime",
+      "facts": [
+        "正式dmonitoringmodeld等待VISION_STREAM_CABIN；无Cabin帧便无法正常生成driverStateV2。",
+        "dmonitoringd按driverStateV2更新后发布driverMonitoringState；wheel-touch策略仍在此数据链中。",
+        "正常实机selfdrived检查cabinCameraState/driverMonitoringState；相机失活事件具有NO_ENTRY与SOFT_DISABLE。"
+      ],
+      "conclusion": "按已确认的无驾驶员相机配置，当前硬件不能原样满足锁定官方完整驾驶员监控链。这是产品配置差异，不能仅靠修驱动解决，也不能把旧分支忽略检查视为验收通过。",
+      "next_decision": "继续做被动协议、解码、主机/固件离线工程；进入目标完整辅助驾驶运行前，需要有经过设计和验证的驾驶员监控硬件方案，或重新确定可承诺的研究范围。当前不实施或建议禁用监控。"
+    },
+    "cellular": {
+      "status": "SIM_or_cellular_service_not_a_core_hardware_requirement",
+      "facts": [
+        "官方网络层支持Wi-Fi、Ethernet、cellular、none，SIM缺席也有明确状态；无网时上传任务等待。",
+        "更新检查/下载与联网服务仍需要网络；该基线在更新失败、累计onroad时间>27小时且route计数>84的条件组合下可设置ConnectivityNeeded并影响启动条件。"
+      ],
+      "conclusion": "没有电话卡功能本身不否决主机迁移；可经Wi-Fi等维护网络。不能据此承诺永久完全离线的原样官方运行，也不应改更新/监控策略来掩盖缺口。",
+      "separate_unknown": "本机2c7c:0125已确认4×option+1×qmi_wwan、ttyUSB0..3/cdc-wdm0/wwan0。模块具体业务用途、SIM卡槽、RF/天线与蜂窝服务仍未知；接口存在不等于厂家提供电话卡功能，不发送AT/QMI控制命令。"
+    },
+    "exact_board": {
+      "status": "not_bound_to_specific_pcb_or_sku",
+      "conclusion": "支持SDA845/Adreno630、DOS与两路历史OX03C10这一实际研究profile；不足以套用官方tici板图、厂家当前8GB产品或另一个custom SPI 3xl镜像。"
+    }
+  },
+  "high_value_user_materials": [
+    {
+      "priority": 1,
+      "request": "这台机器的厂家订单/包装型号与版本、购买时间或批次；可遮住姓名、订单号、地址、序列号、二维码。",
+      "purpose": "绑定用户本机与厂家C3X lite页面的具体SKU/代际，解释8GB与约4GB级证据差异。"
+    },
+    {
+      "priority": 2,
+      "request": "不拆机的屏幕侧、道路镜头侧、背面外观标签及端口标识照片；无需新增通电或插线操作。",
+      "purpose": "对应外露镜头、端口与外壳版本；外观照片仍不等于内部PCB证明。"
+    },
+    {
+      "priority": 3,
+      "request": "厂家针对该批次的硬件说明/已有PCB照片或修订号、原装系统与恢复loader适用列表；可发原始链接或现成资料。",
+      "purpose": "确认具体PCB/SOM、DOS/接口、相机扩展可能性和恢复适用边界，不要求用户拆机拍板。"
+    }
+  ],
+  "additional_readonly_checks_suggested": [
+    {
+      "path_or_source": "已有stage1 JSON、相机历史日志、厂家资料",
+      "action": "继续交叉绑定SKU/批次、内存和USB设备身份；历史/当前/厂家声明分开。",
+      "boundary": "无需再次连接或执行设备程序"
+    },
+    {
+      "path_or_source": "明确白名单的device-tree model/compatible/revision属性、soc0 ID、KGSL gpu_model",
+      "action": "本轮已读soc/DT平台标识及board-id，尚无具体厂家PCB映射；只在厂家资料能解释字段时继续交叉比对，不为缺字段扩大探测。",
+      "boundary": "不dump整个设备树，不调用恢复模式、I2C扫描或EEPROM探测",
+      "status": "platform_identity_read_completed_exact_revision_still_unknown"
+    },
+    {
+      "path_or_source": "/sys/bus/usb/devices中的2c7c:0125接口class/subclass/protocol/driver symlink；/sys/class/net的类型/operstate",
+      "action": "本轮接口与驱动链接已完成：4×option+1×qmi_wwan及关联节点。无需重复枚举；既有网络状态仅在后续明确需要时做字段白名单读取，不能由接口存在推断业务可用。",
+      "boundary": "不读序列号/IMEI/ICCID，不开串口，不发AT/QMI，不改网络配置",
+      "status": "usb_interface_driver_and_node_reads_completed"
+    },
+    {
+      "path_or_source": "既有deviceState白名单networkType、已有进程名称；预先审查的O_RDONLY共享内存快照",
+      "action": "判断实际联网通道的状态；无需证明蜂窝业务，缺字段就报告未知。",
+      "boundary": "不注册reader、不启动modemd/qcomgpsd、不打开相机、不变更USB角色；不将外置Panda接到运行中的C3XL，其pandad可能自动刷写"
+    }
+  ],
+  "official_source_anchors": [
+    {
+      "repository": "commaai/openpilot",
+      "commit": "35e78a9d9518855ec0dacec919e719624a28131f",
+      "path": "openpilot/system/camerad/cameras/hw.h",
+      "start_line": 60,
+      "end_line": 73,
+      "sha256": "13419d36bfc8f9d10ab44221003b4edb8b975afb59199e7046a3161cb19bab8e",
+      "url": "https://github.com/commaai/openpilot/blob/35e78a9d9518855ec0dacec919e719624a28131f/openpilot/system/camerad/cameras/hw.h#L60-L73",
+      "supports": "Cabin相机作为camera2、PHY2、BPS输入"
+    },
+    {
+      "repository": "commaai/openpilot",
+      "commit": "35e78a9d9518855ec0dacec919e719624a28131f",
+      "path": "openpilot/system/manager/process_config.py",
+      "start_line": 12,
+      "end_line": 13,
+      "sha256": "22f4e34c33034da326a2c6ca0563ea31aebfd703d3f158d290fc00b4ed177f56",
+      "url": "https://github.com/commaai/openpilot/blob/35e78a9d9518855ec0dacec919e719624a28131f/openpilot/system/manager/process_config.py#L12-L13",
+      "supports": "driverview在started或预览时运行"
+    },
+    {
+      "repository": "commaai/openpilot",
+      "commit": "35e78a9d9518855ec0dacec919e719624a28131f",
+      "path": "openpilot/system/manager/process_config.py",
+      "start_line": 81,
+      "end_line": 105,
+      "sha256": "22f4e34c33034da326a2c6ca0563ea31aebfd703d3f158d290fc00b4ed177f56",
+      "url": "https://github.com/commaai/openpilot/blob/35e78a9d9518855ec0dacec919e719624a28131f/openpilot/system/manager/process_config.py#L81-L105",
+      "supports": "正式相机/DM/声音进程"
+    },
+    {
+      "repository": "commaai/openpilot",
+      "commit": "35e78a9d9518855ec0dacec919e719624a28131f",
+      "path": "openpilot/selfdrive/modeld/dmonitoringmodeld.py",
+      "start_line": 111,
+      "end_line": 151,
+      "sha256": "d8b430e9f509b8f07183c94396b180537f43fc066b355f91f88363a6d58ca7cf",
+      "url": "https://github.com/commaai/openpilot/blob/35e78a9d9518855ec0dacec919e719624a28131f/openpilot/selfdrive/modeld/dmonitoringmodeld.py#L111-L151",
+      "supports": "等待CABIN流并生成driverStateV2"
+    },
+    {
+      "repository": "commaai/openpilot",
+      "commit": "35e78a9d9518855ec0dacec919e719624a28131f",
+      "path": "openpilot/selfdrive/monitoring/dmonitoringd.py",
+      "start_line": 12,
+      "end_line": 33,
+      "sha256": "ce93c11df47650704a88b3ef66cbd7dd56e4648afddc9ac4667db88f0899fa4e",
+      "url": "https://github.com/commaai/openpilot/blob/35e78a9d9518855ec0dacec919e719624a28131f/openpilot/selfdrive/monitoring/dmonitoringd.py#L12-L33",
+      "supports": "收到driverStateV2才生成driverMonitoringState"
+    },
+    {
+      "repository": "commaai/openpilot",
+      "commit": "35e78a9d9518855ec0dacec919e719624a28131f",
+      "path": "openpilot/selfdrive/selfdrived/selfdrived.py",
+      "start_line": 80,
+      "end_line": 98,
+      "sha256": "632ea5bc4c12247b55fbe7060e390fe7064fb8f3cfaa85df5bea37297e1c3c40",
+      "url": "https://github.com/commaai/openpilot/blob/35e78a9d9518855ec0dacec919e719624a28131f/openpilot/selfdrive/selfdrived/selfdrived.py#L80-L98",
+      "supports": "Cabin和DM消息被正常实时检查"
+    },
+    {
+      "repository": "commaai/openpilot",
+      "commit": "35e78a9d9518855ec0dacec919e719624a28131f",
+      "path": "openpilot/selfdrive/selfdrived/selfdrived.py",
+      "start_line": 349,
+      "end_line": 361,
+      "sha256": "632ea5bc4c12247b55fbe7060e390fe7064fb8f3cfaa85df5bea37297e1c3c40",
+      "url": "https://github.com/commaai/openpilot/blob/35e78a9d9518855ec0dacec919e719624a28131f/openpilot/selfdrive/selfdrived/selfdrived.py#L349-L361",
+      "supports": "进程与相机消息失活触发故障"
+    },
+    {
+      "repository": "commaai/openpilot",
+      "commit": "35e78a9d9518855ec0dacec919e719624a28131f",
+      "path": "openpilot/selfdrive/selfdrived/events.py",
+      "start_line": 632,
+      "end_line": 642,
+      "sha256": "dad4bd0aa3cfad107a52d6428bdc20e0ceee715ab2219925976caa0ab966ad8c",
+      "url": "https://github.com/commaai/openpilot/blob/35e78a9d9518855ec0dacec919e719624a28131f/openpilot/selfdrive/selfdrived/events.py#L632-L642",
+      "supports": "相机故障/低帧率NO_ENTRY和SOFT_DISABLE"
+    },
+    {
+      "repository": "commaai/openpilot",
+      "commit": "35e78a9d9518855ec0dacec919e719624a28131f",
+      "path": "openpilot/selfdrive/selfdrived/selfdrived.py",
+      "start_line": 470,
+      "end_line": 480,
+      "sha256": "632ea5bc4c12247b55fbe7060e390fe7064fb8f3cfaa85df5bea37297e1c3c40",
+      "url": "https://github.com/commaai/openpilot/blob/35e78a9d9518855ec0dacec919e719624a28131f/openpilot/selfdrive/selfdrived/selfdrived.py#L470-L480",
+      "supports": "初始化缺流处理仅涉及道路两流，不去除Cabin要求"
+    },
+    {
+      "repository": "commaai/openpilot",
+      "commit": "35e78a9d9518855ec0dacec919e719624a28131f",
+      "path": "openpilot/selfdrive/monitoring/policy.py",
+      "start_line": 301,
+      "end_line": 308,
+      "sha256": "329763523975ccfe6b6549a2d8f1601ade73320a66f26921fcb6c6698781299d",
+      "url": "https://github.com/commaai/openpilot/blob/35e78a9d9518855ec0dacec919e719624a28131f/openpilot/selfdrive/monitoring/policy.py#L301-L308",
+      "supports": "wheel-touch回退依赖监控模型状态，不是无相机入口"
+    },
+    {
+      "repository": "commaai/openpilot",
+      "commit": "35e78a9d9518855ec0dacec919e719624a28131f",
+      "path": "openpilot/common/hardware/comma/hardware.py",
+      "start_line": 123,
+      "end_line": 144,
+      "sha256": "e67f0d991e7bcda62735caec9e37ac4fd6a7c5cd97ef1ffd42da17c557cc29de",
+      "url": "https://github.com/commaai/openpilot/blob/35e78a9d9518855ec0dacec919e719624a28131f/openpilot/common/hardware/comma/hardware.py#L123-L144",
+      "supports": "Wi-Fi/Ethernet/cellular/none分别表示"
+    },
+    {
+      "repository": "commaai/openpilot",
+      "commit": "35e78a9d9518855ec0dacec919e719624a28131f",
+      "path": "openpilot/common/hardware/comma/hardware.py",
+      "start_line": 146,
+      "end_line": 155,
+      "sha256": "e67f0d991e7bcda62735caec9e37ac4fd6a7c5cd97ef1ffd42da17c557cc29de",
+      "url": "https://github.com/commaai/openpilot/blob/35e78a9d9518855ec0dacec919e719624a28131f/openpilot/common/hardware/comma/hardware.py#L146-L155",
+      "supports": "SIM缺席状态有明确表示"
+    },
+    {
+      "repository": "commaai/openpilot",
+      "commit": "35e78a9d9518855ec0dacec919e719624a28131f",
+      "path": "openpilot/system/loggerd/uploader.py",
+      "start_line": 245,
+      "end_line": 256,
+      "sha256": "fa0c29fadc823d7390cc78472feafc0f79bc442c407bc7bfdab7608c218f90e6",
+      "url": "https://github.com/commaai/openpilot/blob/35e78a9d9518855ec0dacec919e719624a28131f/openpilot/system/loggerd/uploader.py#L245-L256",
+      "supports": "无网时上传等待"
+    },
+    {
+      "repository": "commaai/openpilot",
+      "commit": "35e78a9d9518855ec0dacec919e719624a28131f",
+      "path": "openpilot/system/updated/updated.py",
+      "start_line": 33,
+      "end_line": 38,
+      "sha256": "3a530cd12922438631d120b398c308f3a1e2b45ff392f15fafa5e992b81d1a74",
+      "url": "https://github.com/commaai/openpilot/blob/35e78a9d9518855ec0dacec919e719624a28131f/openpilot/system/updated/updated.py#L33-L38",
+      "supports": "更新连接时间与路程次数门槛"
+    },
+    {
+      "repository": "commaai/openpilot",
+      "commit": "35e78a9d9518855ec0dacec919e719624a28131f",
+      "path": "openpilot/system/updated/updated.py",
+      "start_line": 325,
+      "end_line": 343,
+      "sha256": "3a530cd12922438631d120b398c308f3a1e2b45ff392f15fafa5e992b81d1a74",
+      "url": "https://github.com/commaai/openpilot/blob/35e78a9d9518855ec0dacec919e719624a28131f/openpilot/system/updated/updated.py#L325-L343",
+      "supports": "长时间更新失败可能设置ConnectivityNeeded"
+    },
+    {
+      "repository": "commaai/openpilot",
+      "commit": "35e78a9d9518855ec0dacec919e719624a28131f",
+      "path": "openpilot/system/hardware/hardwared.py",
+      "start_line": 352,
+      "end_line": 365,
+      "sha256": "5d94bd66a393e0abe150a626168fcc2ba697ed70c57675dd7b9d84735a1f590f",
+      "url": "https://github.com/commaai/openpilot/blob/35e78a9d9518855ec0dacec919e719624a28131f/openpilot/system/hardware/hardwared.py#L352-L365",
+      "supports": "ConnectivityNeeded进入启动条件"
+    },
+    {
+      "repository": "commaai/openpilot",
+      "commit": "35e78a9d9518855ec0dacec919e719624a28131f",
+      "path": "openpilot/common/hardware/comma/hardware.py",
+      "start_line": 34,
+      "end_line": 39,
+      "sha256": "e67f0d991e7bcda62735caec9e37ac4fd6a7c5cd97ef1ffd42da17c557cc29de",
+      "url": "https://github.com/commaai/openpilot/blob/35e78a9d9518855ec0dacec919e719624a28131f/openpilot/common/hardware/comma/hardware.py#L34-L39",
+      "supports": "tici名称取自设备树"
+    },
+    {
+      "repository": "commaai/openpilot",
+      "commit": "35e78a9d9518855ec0dacec919e719624a28131f",
+      "path": "openpilot/common/hardware/comma/hardware.py",
+      "start_line": 61,
+      "end_line": 70,
+      "sha256": "e67f0d991e7bcda62735caec9e37ac4fd6a7c5cd97ef1ffd42da17c557cc29de",
+      "url": "https://github.com/commaai/openpilot/blob/35e78a9d9518855ec0dacec919e719624a28131f/openpilot/common/hardware/comma/hardware.py#L61-L70",
+      "supports": "官方设备族定义"
+    }
+  ],
+  "existing_evidence": [
+    {
+      "path": "hardware/step1/evidence/live-system.json",
+      "sha256": "2c81b0ff07859a545d587bed8dde970e64a23af6082dbebf12f5514e9e709fc1"
+    },
+    {
+      "path": "hardware/step1/evidence/live-details.json",
+      "sha256": "07c3b866c43fa09108225f05af6f5df655bc35aff1e5f50d85fd27dce3d7713b"
+    },
+    {
+      "path": "hardware/step1/evidence/live-messages.json",
+      "sha256": "11ec92608506a522cd4b5f1ae1582dd14aa7797b8271c3efde6f2487b4cb8b2b"
+    },
+    {
+      "path": "hardware/step1/evidence/historical-camera-summary.json",
+      "sha256": "1a7be8ecd98773f71b0543ed0e457a42c665a12c38367e5338975296ad121bf6"
+    },
+    {
+      "path": "hardware/step1/evidence/installed-panda-api-summary.json",
+      "sha256": "ed6a480b44262d859ad8fb33b003b244d70d76ceaf1102aaa7ca06380424bd55"
+    },
+    {
+      "path": "hardware/step1/followup/live-evidence.json",
+      "sha256": "22da230dbb412a866f05bfe0583daad6703bd19b12f9873791c97e0e3f5a6611"
+    },
+    {
+      "path": "hardware/step1/followup/vendor-sources.json",
+      "sha256": "dc36a3874af7bc0463e223f95015f80084a4dbb935ac57750700ccb5c17cc359"
+    },
+    {
+      "path": "hardware/step1/followup/user-clarification.json",
+      "sha256": "c603b83666c5285882bffa46f07d87e9b271528922d1e7ed10620e0bcde4f4f8"
+    }
+  ],
+  "legacy_static_source": {
+    "archive_relative_to_original_workspace": "op_rootdir/data/openpilot/selfdrive/controls/controlsd.py",
+    "sha256": "6f6ade14c07963da7c488d9165a968eb2565b6190608947194673612990fa4a6",
+    "lines": [
+      98,
+      110
+    ],
+    "fact": "旧SP098归档源码在DriverCameraHardwareMissing且非registered条件成立时，从camera_packets移除driverCameraState并忽略监控进程/消息检查。",
+    "limitation": "只读静态源码；本补充未核当前实机该文件hash、分支是否激活或物理BOM，不建议移植该行为。",
+    "required_for_offline_validation": false
+  },
+  "other_3xl_archive_sources": [
+    {
+      "archive_relative_to_original_workspace": "migration-audit/full-3xl/openpilot-8fad06df0c4966d185f6c666ee4cbaaeee931b8f-8fad06df0c4966d185f6c666ee4cbaaeee931b8f/launch_env.sh",
+      "sha256": "996b197313ce6095f6f4018401b06b9f7430bfb827b60ee98814aa16bd4fb553",
+      "start_line": 18,
+      "end_line": 20,
+      "required_for_offline_validation": false
+    },
+    {
+      "archive_relative_to_original_workspace": "migration-audit/full-3xl/openpilot-8fad06df0c4966d185f6c666ee4cbaaeee931b8f-8fad06df0c4966d185f6c666ee4cbaaeee931b8f/openpilot/common/hardware/comma/hardware.py",
+      "sha256": "2edbc115be0d3a3aafd811fa06f4de57001d211dfb26dd03b9d58d5573a50f2b",
+      "start_line": 411,
+      "end_line": 422,
+      "required_for_offline_validation": false
+    }
+  ],
+  "not_done": [
+    "No device access by this reviewer",
+    "No image capture, model run, camera start, MCU probe, AT/QMI request, board attachment, system update or firmware flash",
+    "No change to monitoring or update policy",
+    "No modification of old step1 reports or evidence"
+  ],
+  "followup_observations": {
+    "evidence": "hardware/step1/followup/live-evidence.json",
+    "collected_utc": "2026-10-17T17:41:24.441208+00:00",
+    "method": "O_RDONLY file/sysfs reads and bounded GPT pread; no commands or device controls",
+    "communication_usb": {
+      "vid_pid": "2c7c:0125",
+      "speed_mbps": 480,
+      "interfaces": [
+        {
+          "number": 0,
+          "driver": "option",
+          "class_subclass_protocol": "ff/ff/ff"
+        },
+        {
+          "number": 1,
+          "driver": "option",
+          "class_subclass_protocol": "ff/00/00"
+        },
+        {
+          "number": 2,
+          "driver": "option",
+          "class_subclass_protocol": "ff/00/00"
+        },
+        {
+          "number": 3,
+          "driver": "option",
+          "class_subclass_protocol": "ff/00/00"
+        },
+        {
+          "number": 4,
+          "driver": "qmi_wwan",
+          "class_subclass_protocol": "ff/ff/ff"
+        }
+      ],
+      "sysfs_nodes": [
+        "ttyUSB0",
+        "ttyUSB1",
+        "ttyUSB2",
+        "ttyUSB3",
+        "cdc-wdm0",
+        "wwan0"
+      ],
+      "device_nodes_opened": false,
+      "proves": "USB enumeration, kernel-driver bindings and corresponding sysfs node registration only",
+      "does_not_prove": [
+        "physical SIM slot",
+        "SIM fitted or detected",
+        "RF or antenna configuration",
+        "network registration",
+        "working cellular data",
+        "availability of telephone-card service to the user"
+      ]
+    },
+    "camera_platform_configuration": {
+      "device_tree_sensor_slots": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "all_sensor_slot_status": "ok",
+      "sensor_driver_nodes": [
+        "v4l-subdev7",
+        "v4l-subdev8",
+        "v4l-subdev9",
+        "v4l-subdev10"
+      ],
+      "physical_camera_count_inferred": null,
+      "meaning": "Generic device-tree platform nodes and registered camera drivers; not a sensor probe or physical BOM. User-confirmed two-road-camera/no-driver-camera configuration remains the working profile."
+    },
+    "panda_usb": {
+      "vid_pid": "bbaa:ddcc",
+      "bcdDevice": "0600",
+      "speed_mbps": 12,
+      "legacy_api_interpretation": "0x0600 >> 8 == 0x06 == HW_TYPE_DOS; DOS is in F4_DEVICES",
+      "supports": "Separate passive USB-enumeration corroboration of the fresh existing-memory DOS message",
+      "limitations": [
+        "USB descriptor is firmware-supplied",
+        "not exact MCU die identification",
+        "not PCB revision or wiring identification",
+        "not attestation of installed firmware bytes"
+      ]
+    },
+    "board_identification": {
+      "soc_id": "341",
+      "soc_machine": "SDA845",
+      "soc_revision": "2.1",
+      "device_tree_model": "comma tici",
+      "device_tree_compatible": [
+        "qcom,sda845-mtp",
+        "qcom,sda845",
+        "qcom,mtp"
+      ],
+      "device_tree_board_id_u32": [
+        8,
+        0,
+        32,
+        0
+      ],
+      "meaning": "Software platform identifiers; no mapping to a specific Mr One PCB/SOM revision established."
+    }
+  },
+  "external_panda_connection_boundary": {
+    "direct_connection_to_running_c3xl_is_readonly": false,
+    "reason": "当前pandad运行；归档SP098包装器枚举Panda后逐个调用flash_panda，bootstub或签名不匹配会写固件，DFU路径还会recover。不能把外置Panda插到运行中C3XL视为被动核查。",
+    "source_binding_limit": "Panda Python API已与实机hash匹配；此处pandad.py自动刷写代码是归档静态证据，尚未在本补充中绑定当前实机包装器hash或确认本轮执行了该路径。",
+    "action": "本轮不接外置板、不停止服务、不改变连接或刷写。主任务单独给出连接前提清单；先收集现成外观/型号/资料，待具体非写入采集环境审查后再决定连接。"
+  },
+  "legacy_panda_source_anchors": [
+    {
+      "archive_relative_to_original_workspace": "op_rootdir/data/openpilot/panda/python/__init__.py",
+      "sha256": "c2df6b142adb4ae1a4163128760a8e03a4659eae349b3f7b062231cec7a762c7",
+      "line_ranges": [
+        [
+          164,
+          176
+        ],
+        [
+          303,
+          315
+        ],
+        [
+          411,
+          414
+        ],
+        [
+          713,
+          720
+        ]
+      ],
+      "live_hash_evidence": "hardware/step1/evidence/live-recovery.json",
+      "archived_copy_hash_matches_live": true,
+      "supports": "USB bcdDevice高字节解释；DOS=0x06与F4分类；descriptor为旧bootstub分类回退，非物理板型证明",
+      "required_for_offline_validation": false
+    },
+    {
+      "archive_relative_to_original_workspace": "op_rootdir/data/openpilot/selfdrive/pandad/pandad.py",
+      "sha256": "9a095c672dffb6cc492e307876d7a670f481ab3d0d22ee1c1a01190df986307a",
+      "line_ranges": [
+        [
+          24,
+          41
+        ],
+        [
+          91,
+          109
+        ]
+      ],
+      "archived_copy_hash_matches_live": null,
+      "supports": "归档SP098有枚举后自动比对签名、刷写以及DFU恢复路径，未经隔离审查的外置板插入不属于只读动作",
+      "required_for_offline_validation": false
+    }
+  ]
+}

@@ -1,0 +1,68 @@
+{
+  "retrieved_at_utc": "2026-10-17T17:41:00.640571+00:00",
+  "records": [
+    {
+      "key": "product",
+      "url": "https://oneclone.net/product/c3x-lite/",
+      "http_status": 200,
+      "sha256": "705f4d168c52cec330905190ffb44fd8c349afcbdb02f719eba28e1631964ebf",
+      "bytes": 312143,
+      "embedded_media": [],
+      "download_links": []
+    },
+    {
+      "key": "recovery40",
+      "url": "https://mr-one.cn/?post=40",
+      "http_status": 200,
+      "sha256": "2cfb77480c97d7b17675a4b9397885c43206170f57ce78c986718ea79c5cb230",
+      "bytes": 6667,
+      "embedded_media": [
+        "//player.bilibili.com/player.html?isOutside=true&amp;aid=113372305561182&amp;bvid=BV1521sYmEeJ&amp;cid=26469271819&amp;p=1"
+      ],
+      "download_links": []
+    },
+    {
+      "key": "recovery14",
+      "url": "https://mr-one.cn/?post=14",
+      "http_status": 200,
+      "sha256": "082444fe7d5db2ba363ab84bcf27f5b115b16f392c344b63b9ffa1953272afe7",
+      "bytes": 6611,
+      "embedded_media": [
+        "//player.bilibili.com/player.html?isOutside=true&amp;aid=113372305561182&amp;bvid=BV1521sYmEeJ&amp;cid=26469271819&amp;p=1"
+      ],
+      "download_links": []
+    },
+    {
+      "key": "recovery24",
+      "url": "https://mr-one.cn/?post=24",
+      "error": "HTTPError",
+      "reason": "HTTP Error 404: Not Found"
+    }
+  ],
+  "schema": "songplus-vendor-source-summary/v1",
+  "retrieval_method": "Public manufacturer HTML, read only; pages never executed on device",
+  "raw_html_in_repository": false,
+  "product_summary": {
+    "url": "https://oneclone.net/product/c3x-lite/",
+    "claims": {
+      "driver_monitoring": "removed from this product series",
+      "cellular_4g": "removed from this product series",
+      "road_cameras": "two OX03C10 cameras, claimed 185 and 45 degrees",
+      "memory": "8 GB LPDDR4X advertised on current page",
+      "storage": "64 GB UFS advertised on current page"
+    },
+    "limits": [
+      "Manufacturer series description; not a BOM or proof of this unit revision.",
+      "Advertised 8 GB differs from this unit kernel memory observation; physical identity remains unresolved.",
+      "Advertised lens angles are not calibration measurements.",
+      "No-4G does not establish absence of all USB communication hardware."
+    ]
+  },
+  "recovery_page_summary": {
+    "video_url": "https://www.bilibili.com/video/BV1521sYmEeJ/",
+    "video_contents_reviewed": false,
+    "reason": "Embedded video found in manufacturer HTML; video page inaccessible through web retrieval.",
+    "device_specific_loader_obtained": false,
+    "commands_executed": false
+  }
+}

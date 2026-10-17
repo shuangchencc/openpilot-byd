@@ -1,0 +1,18 @@
+{
+  "schema": "songplus-user-hardware-clarification/v1",
+  "reported_date": "2026-10-18",
+  "source": "Direct user statement in this task",
+  "product": "Mr One C3XL",
+  "claims": {
+    "driver_camera": "This purchased unit has no driver camera by product design.",
+    "telephone_card_function": "This purchased unit has no telephone/SIM-card functionality by product design."
+  },
+  "scope": "User-reported product configuration; not an inspection of PCB, modem silicon, connector pinout or exact manufacturing revision.",
+  "requested_boundary": {
+    "continue_readonly_inspection": true,
+    "list_photos_external_panda_and_vendor_materials_needed": true,
+    "system_changes": false,
+    "slot_switch": false,
+    "firmware_flash": false
+  }
+}

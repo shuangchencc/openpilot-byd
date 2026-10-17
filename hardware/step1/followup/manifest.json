@@ -1,0 +1,76 @@
+{
+  "schema": "songplus-step1-followup-manifest/v1",
+  "scope": "Supplementary evidence, reports and local verification; excludes private originals and raw vendor HTML",
+  "files": [
+    {
+      "path": "hardware/step1/followup/RESULT.json",
+      "bytes": 4173,
+      "sha256": "7b40c560c9ca5e8820e8edd588a4fb0971e88e8ab59dae6e2aed1a6d7f50431d"
+    },
+    {
+      "path": "hardware/step1/followup/RESULT.md",
+      "bytes": 5178,
+      "sha256": "57175a9df9035da983ad72e193e2b61198b9394c41ff87053f67e4aa687c044c"
+    },
+    {
+      "path": "hardware/step1/followup/USER-CHECKLIST.md",
+      "bytes": 4379,
+      "sha256": "f7a9234208d6fd0b1a30dd680d8ef89e7318ec2354e0cd82fe4b81a7375c24be"
+    },
+    {
+      "path": "hardware/step1/followup/collector.py",
+      "bytes": 9228,
+      "sha256": "2c82f8718195e20be38eed1b9ff0f10f29d1b2aa45222c3e0b16bad6456be29c"
+    },
+    {
+      "path": "hardware/step1/followup/hardware-profile.json",
+      "bytes": 28113,
+      "sha256": "4442758153934d366c6ccbed2c8ddf81552f9e28e81570a559e97aa173a7be66"
+    },
+    {
+      "path": "hardware/step1/followup/hardware-profile.md",
+      "bytes": 9926,
+      "sha256": "023a4dc75ca26de2d834c7fcc027b22ed8559ff7c928b80efbc2bf0eed380f5c"
+    },
+    {
+      "path": "hardware/step1/followup/live-evidence.json",
+      "bytes": 48228,
+      "sha256": "22da230dbb412a866f05bfe0583daad6703bd19b12f9873791c97e0e3f5a6611"
+    },
+    {
+      "path": "hardware/step1/followup/live-receipt.json",
+      "bytes": 574,
+      "sha256": "4ca23b8488983df60c668ee034f1a186bb1b4a8e356d71fcc6e3052a76c0f2a3"
+    },
+    {
+      "path": "hardware/step1/followup/recovery-findings.json",
+      "bytes": 31754,
+      "sha256": "a16c6a50e526f287b7ab94c03af292a3d1796246e2fee57cc73335926c476130"
+    },
+    {
+      "path": "hardware/step1/followup/recovery-findings.md",
+      "bytes": 11473,
+      "sha256": "7ca9db81ddceee5fc84f7aa0b7a196afd755dd4624ab9156ab577451e5ecc3a7"
+    },
+    {
+      "path": "hardware/step1/followup/tests/test_collector.py",
+      "bytes": 4784,
+      "sha256": "9715a3ac0137a8de4aa3f5be6baca4192ce97e753bb4f253c336f1992a4aafd2"
+    },
+    {
+      "path": "hardware/step1/followup/user-clarification.json",
+      "bytes": 750,
+      "sha256": "c603b83666c5285882bffa46f07d87e9b271528922d1e7ed10620e0bcde4f4f8"
+    },
+    {
+      "path": "hardware/step1/followup/vendor-sources.json",
+      "bytes": 2604,
+      "sha256": "dc36a3874af7bc0463e223f95015f80084a4dbb935ac57750700ccb5c17cc359"
+    },
+    {
+      "path": "hardware/step1/followup/verify.py",
+      "bytes": 12740,
+      "sha256": "bf452c3579fc7e2288afbb602703ea79bc8bd04988955a9355a787c4e326fb97"
+    }
+  ]
+}

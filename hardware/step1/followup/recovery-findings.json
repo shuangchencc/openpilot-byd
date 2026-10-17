@@ -1,0 +1,763 @@
+{
+  "schema": "songplus-step1-followup-recovery/v1",
+  "created_at": "2026-10-18T01:42:00.889709+08:00",
+  "scope": "Local static analysis plus comparison with parent-collected Step 1 follow-up passive device evidence and saved vendor-source metadata. This review itself made no device connection or target code execution.",
+  "user_statements": [
+    {
+      "claim": "The C3XL product has driver camera and phone/SIM functionality removed.",
+      "classification": "user_statement",
+      "implication": "Do not assume retaining an exposed modem USB interface proves usable 4G/SIM service or driver-monitoring hardware.",
+      "corroborating_source": "followup_vendor_sources product-series claims",
+      "unit_revision_limit": "Manufacturer page advertises 8 GB while this unit reported roughly 4 GB to the kernel. Series claims do not establish exact board revision."
+    }
+  ],
+  "sources": [
+    {
+      "id": "archived_fstab",
+      "path_relative_to_original_workspace": "op_rootdir/etc/fstab",
+      "sha256": "f27372e58c79b74cbfe19e2d82c46b3e453cc959fe48debbb784665ec1917605",
+      "bytes": 586
+    },
+    {
+      "id": "archived_ab_mount",
+      "path_relative_to_original_workspace": "op_rootdir/etc/initscripts/ab_mount.sh",
+      "sha256": "f67c4bdb6e07c5ff8b0b12501a2f2d7c778852f9af84fc2688f3ecb91bdf697e",
+      "bytes": 1921
+    },
+    {
+      "id": "archived_abctl",
+      "path_relative_to_original_workspace": "op_rootdir/usr/sbin/abctl",
+      "sha256": "499b2ce8b0de9b1bef13a58a6c467ac5a8700b5502efa6b31619906eacc0de53",
+      "bytes": 10496
+    },
+    {
+      "id": "archived_libabctl",
+      "path_relative_to_original_workspace": "op_rootdir/usr/lib/aarch64-linux-gnu/libabctl.so.0.0.0",
+      "sha256": "6516e1da564d22729ad3c4fad05edfaa9d810308d76cfe4f51b9eabf43e18843",
+      "bytes": 60160
+    },
+    {
+      "id": "archived_sde_entries",
+      "path_relative_to_original_workspace": "migration-audit/recovery-backup-20261017/gpt/sde-primary_entries.bin",
+      "sha256": "4f43d094ebcbcebdced44488a8b96070727f3c77e4ebf1c8ff434714b55d173b",
+      "bytes": 8192
+    },
+    {
+      "id": "platform_tools_provenance",
+      "path_relative_to_original_workspace": "migration-audit/recovery-tools/provenance.json",
+      "sha256": "10042be93210877728a75fa89e2497054aeb66989d6e01fb39dfc826e57a0328",
+      "bytes": 335
+    },
+    {
+      "id": "factory_verification",
+      "path_relative_to_original_workspace": "migration-audit/sp2027-review-20261017/factory-download-verification.json",
+      "sha256": "459b0254c0038c3237b828fbf10d4a64638045a2f57013e2b994bd49cf83b96d",
+      "bytes": 6293
+    },
+    {
+      "id": "factory_summary",
+      "path_relative_to_original_workspace": "migration-audit/sp2027-review-20261017/factory-evidence/factory-inspection-summary.json",
+      "sha256": "3674d5f77589f63bc20c4de3d3a9a0bf14706e6d923919f2a48fcc08c63ee58e",
+      "bytes": 2244
+    },
+    {
+      "id": "old_recovery_matrix",
+      "path_relative_to_original_workspace": "migration-audit/recovery-backup-20261017/recovery-decision-matrix.json",
+      "sha256": "d4692388918dbf99ad24d2c8006cb99043b3625e40589a31522727e86b56f03a",
+      "bytes": 2325
+    },
+    {
+      "id": "official_panda_recovery_docs",
+      "path_relative_to_original_workspace": "songplus-port-lab/upstream-openpilot/panda/board/README.md",
+      "sha256": "6e0d92688fa903d0cf2168f789905b5cf2ecdf5a49a4455c8fb2ae9584c91381",
+      "bytes": 607
+    },
+    {
+      "id": "official_panda_recover",
+      "path_relative_to_original_workspace": "songplus-port-lab/upstream-openpilot/panda/board/recover.py",
+      "sha256": "b174da677200dfde0ffbf09dd24935a529b38ed200d0cab006c8b3e542563f58",
+      "bytes": 737
+    },
+    {
+      "id": "official_internal_panda_reflash",
+      "path_relative_to_original_workspace": "songplus-port-lab/upstream-openpilot/panda/scripts/reflash_internal_panda.py",
+      "sha256": "bd470445b09808a034bfbed645dc22ef9ffebeb6a091ad3dab6581253a2b9528",
+      "bytes": 947
+    },
+    {
+      "id": "official_agnos_updater",
+      "path_relative_to_original_workspace": "songplus-port-lab/upstream-openpilot/openpilot/common/hardware/comma/agnos.py",
+      "sha256": "00f984081409417824f68c22b5d33d7239a8b123fb04a23e6dcd0a9553f866fc",
+      "bytes": 9127
+    },
+    {
+      "id": "original_live_system",
+      "path_relative_to_original_workspace": "songplus-port-lab/hardware/step1/evidence/live-system.json",
+      "sha256": "2c81b0ff07859a545d587bed8dde970e64a23af6082dbebf12f5514e9e709fc1",
+      "bytes": 17455
+    },
+    {
+      "id": "original_live_recovery",
+      "path_relative_to_original_workspace": "songplus-port-lab/hardware/step1/evidence/live-recovery.json",
+      "sha256": "04f47cff0f89158de9ec725c7ebc1cbab53bd32c7922cc22ff3ed6b9057b721e",
+      "bytes": 30791
+    },
+    {
+      "id": "followup_live_evidence",
+      "path_relative_to_repository": "hardware/step1/followup/live-evidence.json",
+      "sha256": "22da230dbb412a866f05bfe0583daad6703bd19b12f9873791c97e0e3f5a6611",
+      "bytes": 48228
+    },
+    {
+      "id": "followup_live_receipt",
+      "path_relative_to_repository": "hardware/step1/followup/live-receipt.json",
+      "sha256": "4ca23b8488983df60c668ee034f1a186bb1b4a8e356d71fcc6e3052a76c0f2a3",
+      "bytes": 574
+    },
+    {
+      "id": "followup_vendor_sources",
+      "path_relative_to_repository": "hardware/step1/followup/vendor-sources.json",
+      "sha256": "dc36a3874af7bc0463e223f95015f80084a4dbb935ac57750700ccb5c17cc359",
+      "bytes": 2604
+    },
+    {
+      "id": "backup_preparation",
+      "path_relative_to_original_workspace": "migration-audit/recovery-backup-20261017/preparation-result.json",
+      "sha256": "4e2fafb4bf633acaf0d697656d6a49d010fafadadc0cc9480cf733895be1d593",
+      "bytes": 1491
+    },
+    {
+      "id": "prior_recovery_prerequisites",
+      "path_relative_to_original_workspace": "songplus-port-lab/hardware/step1/recovery-prerequisites.json",
+      "sha256": "9832bea37fc397442424d9c616cd2b39dccacc5f134eba2b064d7fac4f2e6bcb",
+      "bytes": 47825
+    }
+  ],
+  "observations": [
+    {
+      "id": "fixed_mounts_archived",
+      "classification": "observation",
+      "sources": [
+        "archived_fstab",
+        "followup_live_evidence"
+      ],
+      "facts": {
+        "dsp": "/dev/disk/by-label/dsp /dsp auto ro",
+        "firmware": "/dev/disk/by-partlabel/modem_a /firmware auto ro"
+      },
+      "limit": "New live fstab SHA256 and size match the archive; selected rows match exactly."
+    },
+    {
+      "id": "ab_mount_archived",
+      "classification": "observation",
+      "sources": [
+        "archived_ab_mount",
+        "followup_live_evidence"
+      ],
+      "facts": "ab_mount.sh calls getslotsuffix, appends suffix to its third argument, waits for the symlink then invokes mount. This helper is slot-aware; its existence does not prove that it handles /dsp or /firmware.",
+      "limit": "The new live helper hash matches the saved file. Its use for /dsp or /firmware is still not established; no script was run."
+    },
+    {
+      "id": "selected_boot_metadata_binary",
+      "classification": "static_binary_observation",
+      "sources": [
+        "archived_libabctl",
+        "archived_sde_entries",
+        "followup_live_evidence"
+      ],
+      "facts": "Named status functions read boot_a/boot_b entries on /dev/sde; entry attribute address is 48 bytes after the returned GPT entry. Active is bit 50; success bit 54. The named setUnbootable writer sets bit 55; SetBootSuccess clears bit 55 and sets bit 54.",
+      "limit": "New live libabctl SHA256/size match exactly, binding the three-bit interpretation to this installed library. This is not a full boot selection algorithm and no status function was executed."
+    },
+    {
+      "id": "mounts_explained_live",
+      "classification": "observation_and_configuration_consistency",
+      "sources": [
+        "archived_fstab",
+        "followup_live_evidence"
+      ],
+      "facts": "Current fstab matches archive. by-label/dsp resolves to sde9=dsp_a; modem_a resolves to sde4. Both match mounted devices while current root is sda7=system_b. Fixed/label-based mount selection explains the suffix difference.",
+      "limit": "This establishes configuration consistency, not AGNOS 19.9 compatibility or a restore test."
+    }
+  ],
+  "inferences": [
+    {
+      "id": "mount_suffixes_not_fault_proof",
+      "classification": "inference",
+      "sources": [
+        "archived_fstab",
+        "original_live_recovery",
+        "followup_live_evidence"
+      ],
+      "claim": "Current fstab and link resolution explain the observed root system_b with dsp_a/modem_a mounts. /firmware is explicitly fixed to modem_a and /dsp resolves the label dsp to dsp_a. Different suffixes are not by themselves a fault or reason to repair GPT."
+    },
+    {
+      "id": "misc_not_required",
+      "classification": "inference_from_static_binary",
+      "sources": [
+        "archived_libabctl"
+      ],
+      "claim": "The audited libabctl implementation uses GPT entries for selected slot flags and /proc/cmdline for the booted suffix. No evidence justifies reading an assumed AOSP bootloader_control structure at misc+2048 in this pass.",
+      "recommended_misc_read": false
+    }
+  ],
+  "flag_decoder": {
+    "basis": "static disassembly of one saved AArch64 ELF; no target code executed",
+    "library_sha256": "6516e1da564d22729ad3c4fad05edfaa9d810308d76cfe4f51b9eabf43e18843",
+    "function_instructions": [
+      "28b4: 9248f843     \tand\tx3, x2, #0xff7fffffffffffff",
+      "28b8: b24a0062     \torr\tx2, x3, #0x40000000000000",
+      "2980: d372ca73     \tubfx\tx19, x19, #50, #1",
+      "2fd0: d376da73     \tubfx\tx19, x19, #54, #1",
+      "3084: 9249e043     \tand\tx3, x2, #0xff80ffffffffffff",
+      "3088: b2490062     \torr\tx2, x3, #0x80000000000000"
+    ],
+    "literal_addresses": {
+      "0x77d8": "UTF-16LE boot_a",
+      "0x77e8": "UTF-16LE boot_b",
+      "0x7a58": "ASCII /dev/sde"
+    },
+    "scope": "boot_a and boot_b GPT entry attributes only; unknown bits retain raw hex",
+    "python_expression": {
+      "active": "(attributes >> 50) & 1",
+      "success": "(attributes >> 54) & 1",
+      "unbootable": "(attributes >> 55) & 1"
+    },
+    "priority_retry_decoded": false,
+    "historical_20261017_values": [
+      {
+        "partition": "boot_a",
+        "attributes_hex": "0x0071000000000000",
+        "active_bit50": 0,
+        "success_bit54": 1,
+        "unbootable_bit55": 0,
+        "other_bits_not_decoded": "0x0031000000000000"
+      },
+      {
+        "partition": "boot_b",
+        "attributes_hex": "0x0077000000000000",
+        "active_bit50": 1,
+        "success_bit54": 1,
+        "unbootable_bit55": 0,
+        "other_bits_not_decoded": "0x0033000000000000"
+      }
+    ],
+    "success_flag_limit": "A stored success bit is not a new successful boot test or recovery rehearsal.",
+    "live_library_hash_matches": true,
+    "current_values": [
+      {
+        "partition": "boot_a",
+        "attributes_hex": "0x0071000000000000",
+        "active_bit50": 0,
+        "success_bit54": 1,
+        "unbootable_bit55": 0,
+        "matches_historical_attribute_hex": true
+      },
+      {
+        "partition": "boot_b",
+        "attributes_hex": "0x0077000000000000",
+        "active_bit50": 1,
+        "success_bit54": 1,
+        "unbootable_bit55": 0,
+        "matches_historical_attribute_hex": true
+      }
+    ],
+    "target_program_or_library_executed": false,
+    "symbols": [
+      {
+        "name": "_Z24libabctl_getActiveStatusj",
+        "start_virtual_address": "0x2938",
+        "attribute_load": "0x297c: ldr x19, [sp, #0x58] after entry output at sp+0x28",
+        "extraction_virtual_address": "0x2980"
+      },
+      {
+        "name": "_Z25libabctl_getSuccessStatusj",
+        "start_virtual_address": "0x2f88",
+        "extraction_virtual_address": "0x2fd0"
+      },
+      {
+        "name": "_Z23libabctl_SetBootSuccessv",
+        "start_virtual_address": "0x2850",
+        "mask_virtual_addresses": [
+          "0x28b4",
+          "0x28b8"
+        ]
+      },
+      {
+        "name": "_Z22libabctl_setUnbootablej",
+        "start_virtual_address": "0x3020",
+        "mask_virtual_addresses": [
+          "0x3084",
+          "0x3088"
+        ]
+      }
+    ],
+    "elf_address_mapping": {
+      "format": "ELF64 little-endian AArch64",
+      "text_virtual_address": "0x2560",
+      "text_file_offset": "0x2560",
+      "rodata_virtual_address": "0x7770",
+      "rodata_file_offset": "0x7770"
+    },
+    "reproduction_command_argv": [
+      "/usr/bin/objdump",
+      "-d",
+      "--disassemble-symbols=_Z24libabctl_getActiveStatusj,_Z25libabctl_getSuccessStatusj,_Z22libabctl_setUnbootablej,_Z23libabctl_SetBootSuccessv",
+      "op_rootdir/usr/lib/aarch64-linux-gnu/libabctl.so.0.0.0"
+    ],
+    "limits": [
+      "Exact installed library matched to saved ELF, not a recovered complete bootloader source tree.",
+      "The get-status functions identify boot_a and boot_b; do not apply these names to arbitrary partitions automatically.",
+      "Priority/retry, vendor-reserved bits and full boot selection order are not decoded.",
+      "Success flags can be stored/set and are not proof of a new boot or restoration rehearsal.",
+      "Both primary and secondary GPT views should be retained because the existing sde backup entry CRC anomaly remains."
+    ]
+  },
+  "recovery_material_inventory": {
+    "scanned_roots_relative_to_original_workspace": [
+      "op_rootdir",
+      "migration-audit/recovery-tools",
+      "migration-audit/rollback",
+      "migration-audit/recovery-backup-20261017",
+      "migration-audit/sp2027-review-20261017",
+      "songplus-port-lab/upstream-openpilot/panda",
+      "songplus-port-lab/upstream-openpilot/openpilot/common/hardware/comma"
+    ],
+    "filename_count": 135977,
+    "filename_patterns": [
+      "(^|/)qdl(?:\\.[^/]*)?$",
+      "(^|/)edl(?:\\.[^/]*)?$",
+      "(^|/)prog[_-]?firehose[^/]*$",
+      "(^|/)[^/]*loader[^/]*\\.(?:elf|mbn)$",
+      "(^|/)rawprogram[^/]*\\.xml$",
+      "(^|/)patch\\d[^/]*\\.xml$"
+    ],
+    "qdl_edl_loader_rawprogram_matches": [],
+    "negative_result_limit": "No matching filenames in these extracted trees; not a forensic scan of all archive contents or proof that a differently named loader cannot exist. UI Firehose upload assets are unrelated to Qualcomm recovery loaders.",
+    "platform_tools": "Google Android platform-tools archive and extracted fastboot/adb are saved with provenance. This proves tools exist, not C3XL recovery-mode compatibility.",
+    "factory_archive": {
+      "declared_saved_path": "/tmp/sp2027-inspect/op_full_c3sp_factory.tar.gz",
+      "present_now": true,
+      "current_bytes": 252010377,
+      "historical_sha256": "71b22356c7444d077d7011c489c08d2fa7faf6d51da06495fe936e9a7ca62fff",
+      "rehash_this_review": false,
+      "meaning": "SP2027 openpilot application factory package; not a proven complete C3XL AGNOS/boot/loader factory restore set."
+    },
+    "official_panda_instructions": "README and recover/reflash code are present, but they build/flash/reset and sometimes write GPIO. They are not read-only checks and have not been executed.",
+    "vendor_restore_procedure_verified": false,
+    "complete_device_factory_restore_bundle_verified": false,
+    "vendor_video_entry_obtained": true,
+    "vendor_video_contents_reviewed": false,
+    "vendor_source_summary": {
+      "source_id": "followup_vendor_sources",
+      "recovery_urls": [
+        "https://mr-one.cn/?post=40",
+        "https://mr-one.cn/?post=14"
+      ],
+      "embedded_video_url": "https://www.bilibili.com/video/BV1521sYmEeJ/",
+      "old_post_24_status": 404,
+      "download_links_found_in_retrieved_html": [],
+      "video_retrieval": "inaccessible; not reviewed",
+      "meaning": "Manufacturer video entry exists. Whether it covers low-level EDL, a board-compatible loader or this exact unit is unverified; do not describe the page as having no recovery content."
+    },
+    "backup_coverage": {
+      "basis": "Historical capture metadata plus partition names in the current GPT; Step 1 documented that current entry arrays match the historical saved arrays. No partition contents or large image hashes were reread.",
+      "image_count": 13,
+      "per_image_metadata": [
+        {
+          "backup": "system_a",
+          "metadata_path_relative_to_original_workspace": "migration-audit/recovery-backup-20261017/system_a.json",
+          "metadata_sha256": "db2d6b71a8035d94e1d2cca8fc716bd253d1835b54180951a957c94e5515436a",
+          "source_at_capture": "/dev/disk/by-partlabel/system_a",
+          "raw_bytes": 12437225472,
+          "gzip_bytes": 1504245351,
+          "captured_at": "2026-10-17T20:02:52+0800",
+          "payload_rehashed_this_review": false
+        },
+        {
+          "backup": "system_b",
+          "metadata_path_relative_to_original_workspace": "migration-audit/recovery-backup-20261017/system_b.json",
+          "metadata_sha256": "35823770c5b8ccd9f95df815842c3500d254c48628f8d4c996e00fba06a868e8",
+          "source_at_capture": "/dev/disk/by-partlabel/system_b",
+          "raw_bytes": 12437225472,
+          "gzip_bytes": 1530078930,
+          "captured_at": "2026-10-17T19:53:21+0800",
+          "payload_rehashed_this_review": false
+        },
+        {
+          "backup": "persist",
+          "metadata_path_relative_to_original_workspace": "migration-audit/recovery-backup-20261017/persist.json",
+          "metadata_sha256": "798370fd59cb33f8a207b93148fdcf1ac9671a098ca7cf929ad88ee1d460cd37",
+          "source_at_capture": "/dev/disk/by-partlabel/persist",
+          "raw_bytes": 33554432,
+          "gzip_bytes": 158673,
+          "captured_at": "2026-10-17T20:02:55+0800",
+          "payload_rehashed_this_review": false
+        },
+        {
+          "backup": "misc",
+          "metadata_path_relative_to_original_workspace": "migration-audit/recovery-backup-20261017/misc.json",
+          "metadata_sha256": "939cdf6ae12a96d45f172e30a918958a9fe1d8ff7e1e774d029e11d26735312d",
+          "source_at_capture": "/dev/disk/by-partlabel/misc",
+          "raw_bytes": 1048576,
+          "gzip_bytes": 4608,
+          "captured_at": "2026-10-17T20:02:56+0800",
+          "payload_rehashed_this_review": false
+        },
+        {
+          "backup": "keystore",
+          "metadata_path_relative_to_original_workspace": "migration-audit/recovery-backup-20261017/keystore.json",
+          "metadata_sha256": "31a204a2a78d30112b063bfec5a8e70fe6e89026812813696d7e768d7998bd69",
+          "source_at_capture": "/dev/disk/by-partlabel/keystore",
+          "raw_bytes": 524288,
+          "gzip_bytes": 2322,
+          "captured_at": "2026-10-17T20:02:57+0800",
+          "payload_rehashed_this_review": false
+        },
+        {
+          "backup": "frp",
+          "metadata_path_relative_to_original_workspace": "migration-audit/recovery-backup-20261017/frp.json",
+          "metadata_sha256": "2944f55cff7b51e16e50820b8b213a8877a8561ffda143c2340623db18bff633",
+          "source_at_capture": "/dev/disk/by-partlabel/frp",
+          "raw_bytes": 524288,
+          "gzip_bytes": 2322,
+          "captured_at": "2026-10-17T20:02:58+0800",
+          "payload_rehashed_this_review": false
+        },
+        {
+          "backup": "ssd",
+          "metadata_path_relative_to_original_workspace": "migration-audit/recovery-backup-20261017/ssd.json",
+          "metadata_sha256": "7697e8dfbc0882f18672e63c033df6a2371326b1142471aa2c2782ac1781ba74",
+          "source_at_capture": "/dev/disk/by-partlabel/ssd",
+          "raw_bytes": 8192,
+          "gzip_bytes": 97,
+          "captured_at": "2026-10-17T20:02:58+0800",
+          "payload_rehashed_this_review": false
+        },
+        {
+          "backup": "systemrw",
+          "metadata_path_relative_to_original_workspace": "migration-audit/recovery-backup-20261017/systemrw.json",
+          "metadata_sha256": "a5243ec356a831c4e09b01fe3c9a277f4ff56b64389dcf444af698baf0fc33de",
+          "source_at_capture": "/dev/disk/by-partlabel/systemrw",
+          "raw_bytes": 16777216,
+          "gzip_bytes": 73915,
+          "captured_at": "2026-10-17T20:03:00+0800",
+          "payload_rehashed_this_review": false
+        },
+        {
+          "backup": "sdb",
+          "metadata_path_relative_to_original_workspace": "migration-audit/recovery-backup-20261017/sdb.json",
+          "metadata_sha256": "e73cabc9d7847c85892478646c2e9af751620c7c8cbc706e36ec0616ae09b057",
+          "source_at_capture": "/dev/sdb",
+          "raw_bytes": 4194304,
+          "gzip_bytes": 2155290,
+          "captured_at": "2026-10-17T20:03:02+0800",
+          "payload_rehashed_this_review": false
+        },
+        {
+          "backup": "sdc",
+          "metadata_path_relative_to_original_workspace": "migration-audit/recovery-backup-20261017/sdc.json",
+          "metadata_sha256": "0714ecf95bf617eb66d48172bef3f3289a430f357ce7170fed7564ff54687f89",
+          "source_at_capture": "/dev/sdc",
+          "raw_bytes": 4194304,
+          "gzip_bytes": 2156929,
+          "captured_at": "2026-10-17T20:03:04+0800",
+          "payload_rehashed_this_review": false
+        },
+        {
+          "backup": "sdd",
+          "metadata_path_relative_to_original_workspace": "migration-audit/recovery-backup-20261017/sdd.json",
+          "metadata_sha256": "dc378ea4271f7e10d03b948315d849ed820f685dab0e084ca508b813075e46be",
+          "source_at_capture": "/dev/sdd",
+          "raw_bytes": 134217728,
+          "gzip_bytes": 587616,
+          "captured_at": "2026-10-17T20:03:07+0800",
+          "payload_rehashed_this_review": false
+        },
+        {
+          "backup": "sde",
+          "metadata_path_relative_to_original_workspace": "migration-audit/recovery-backup-20261017/sde.json",
+          "metadata_sha256": "12216eb982ede514dc1a18f477dba65093744f94823ba11e95cd0eaa3a1ddadf",
+          "source_at_capture": "/dev/sde",
+          "raw_bytes": 4294967296,
+          "gzip_bytes": 113233346,
+          "captured_at": "2026-10-17T20:04:40+0800",
+          "payload_rehashed_this_review": false
+        },
+        {
+          "backup": "sdf",
+          "metadata_path_relative_to_original_workspace": "migration-audit/recovery-backup-20261017/sdf.json",
+          "metadata_sha256": "d9c453388d0431ebfa779d3c1202e299d2fee063aa697645a5f96c14207f7d11",
+          "source_at_capture": "/dev/sdf",
+          "raw_bytes": 1610612736,
+          "gzip_bytes": 11206015,
+          "captured_at": "2026-10-17T20:05:03+0800",
+          "payload_rehashed_this_review": false
+        }
+      ],
+      "full_logical_units": [
+        {
+          "backup": "sdb",
+          "raw_bytes": 4194304,
+          "partition_names": [
+            "xbl_a",
+            "xbl_config_a"
+          ]
+        },
+        {
+          "backup": "sdc",
+          "raw_bytes": 4194304,
+          "partition_names": [
+            "xbl_b",
+            "xbl_config_b"
+          ]
+        },
+        {
+          "backup": "sdd",
+          "raw_bytes": 134217728,
+          "partition_names": [
+            "ALIGN_TO_128K_1",
+            "cdt",
+            "ddr"
+          ]
+        },
+        {
+          "backup": "sde",
+          "raw_bytes": 4294967296,
+          "partition_names": [
+            "aop_a",
+            "tz_a",
+            "hyp_a",
+            "modem_a",
+            "bluetooth_a",
+            "mdtpsecapp_a",
+            "mdtp_a",
+            "abl_a",
+            "dsp_a",
+            "keymaster_a",
+            "boot_a",
+            "cmnlib_a",
+            "cmnlib64_a",
+            "devcfg_a",
+            "qupfw_a",
+            "storsec_a",
+            "ImageFv_a",
+            "aop_b",
+            "tz_b",
+            "hyp_b",
+            "modem_b",
+            "bluetooth_b",
+            "mdtpsecapp_b",
+            "mdtp_b",
+            "abl_b",
+            "dsp_b",
+            "keymaster_b",
+            "boot_b",
+            "cmnlib_b",
+            "cmnlib64_b",
+            "devcfg_b",
+            "qupfw_b",
+            "storsec_b",
+            "ImageFv_b",
+            "sec",
+            "devinfo",
+            "dip",
+            "fdemeta",
+            "apdp",
+            "msadp",
+            "spunvm",
+            "splash",
+            "limits",
+            "toolsfv",
+            "logfs",
+            "sti",
+            "rawdump",
+            "logdump"
+          ]
+        },
+        {
+          "backup": "sdf",
+          "raw_bytes": 1610612736,
+          "partition_names": [
+            "ALIGN_TO_128K_2",
+            "modemst1",
+            "modemst2",
+            "fsg",
+            "fsc"
+          ]
+        }
+      ],
+      "boot_chain_covered_at_capture": {
+        "xbl_a_xbl_config_a": "full sdb raw image",
+        "xbl_b_xbl_config_b": "full sdc raw image",
+        "cdt_and_other_sdd_partitions": "full sdd raw image",
+        "boot_a_boot_b_abl_a_abl_b_aop_a_aop_b_devcfg_a_devcfg_b_and_other_sde_partitions": "full sde raw image",
+        "system_a": "full named system_a partition image",
+        "system_b": "full named system_b partition image"
+      },
+      "separate_shared_partition_images": [
+        "persist",
+        "misc",
+        "keystore",
+        "frp",
+        "ssd",
+        "systemrw"
+      ],
+      "not_full_raw_images": [
+        "whole sda logical unit",
+        "userdata (/data)",
+        "cache"
+      ],
+      "data_coverage_limit": "Selected software/configuration archives cover some /data content but exclude recordings, logs and selected transient data; they are not an atomic complete userdata image.",
+      "mcu_coverage_limit": "The five Panda files are preserved application/bootstub/version artifacts. No live MCU flash/bootstub/OTP/provisioning dump, DFU access or physical MCU recovery proof is established.",
+      "bootability_limit": "Raw boot/system partition coverage and hash integrity do not prove that a restore procedure or restored system will boot."
+    }
+  },
+  "suggested_readonly_live_collection": [
+    {
+      "path": "/etc/fstab",
+      "operation": "Hash file and emit only /dsp, /firmware, /persist and /data rows."
+    },
+    {
+      "path": "/etc/initscripts/ab_mount.sh",
+      "operation": "Hash whole public startup script; emit slot/mount logic only; do not execute."
+    },
+    {
+      "path": "/dev/disk/by-label/dsp and /dev/disk/by-partlabel/{dsp_a,dsp_b,modem_a,modem_b}",
+      "operation": "Read symlink targets only."
+    },
+    {
+      "path": "/proc/mounts and /proc/cmdline",
+      "operation": "Emit only selected mount points, root and androidboot.slot_suffix."
+    },
+    {
+      "path": "GPT metadata on /dev/sda through /dev/sdf",
+      "operation": "O_RDONLY bounded primary/backup GPT headers and entries. Emit selected A/B partition names/LBAs and 64-bit attribute hex, never GUIDs or unrelated raw bytes."
+    },
+    {
+      "path": "/usr/sbin/abctl and /usr/lib/aarch64-linux-gnu/libabctl.so.0.0.0",
+      "operation": "SHA256 and length only, no execution or loading."
+    }
+  ],
+  "new_live_evidence": {
+    "status": "integrated",
+    "collected_utc": "2026-10-17T17:41:24.441208+00:00",
+    "parent_collector_receipt_sha256": "4ca23b8488983df60c668ee034f1a186bb1b4a8e356d71fcc6e3052a76c0f2a3",
+    "device_connected_by_this_review": false,
+    "library_and_mount_file_comparisons": {
+      "/etc/fstab": {
+        "current_sha256": "f27372e58c79b74cbfe19e2d82c46b3e453cc959fe48debbb784665ec1917605",
+        "current_bytes": 586,
+        "matches_archived_sha256_and_bytes": true
+      },
+      "/etc/initscripts/ab_mount.sh": {
+        "current_sha256": "f67c4bdb6e07c5ff8b0b12501a2f2d7c778852f9af84fc2688f3ecb91bdf697e",
+        "current_bytes": 1921,
+        "matches_archived_sha256_and_bytes": true
+      },
+      "/usr/sbin/abctl": {
+        "current_sha256": "499b2ce8b0de9b1bef13a58a6c467ac5a8700b5502efa6b31619906eacc0de53",
+        "current_bytes": 10496,
+        "matches_archived_sha256_and_bytes": true
+      },
+      "/usr/lib/aarch64-linux-gnu/libabctl.so.0.0.0": {
+        "current_sha256": "6516e1da564d22729ad3c4fad05edfaa9d810308d76cfe4f51b9eabf43e18843",
+        "current_bytes": 60160,
+        "matches_archived_sha256_and_bytes": true
+      }
+    },
+    "boot_parameters": [
+      "root=/dev/sda7",
+      "androidboot.slot_suffix=_b"
+    ],
+    "fstab_selected_lines": [
+      {
+        "line": 1,
+        "text": "/dev/disk/by-label/dsp /dsp auto ro"
+      },
+      {
+        "line": 2,
+        "text": "/dev/disk/by-partlabel/modem_a /firmware auto ro"
+      },
+      {
+        "line": 3,
+        "text": "/dev/disk/by-partlabel/persist /persist auto ro,discard,nosuid,nodev,noexec"
+      },
+      {
+        "line": 4,
+        "text": "/dev/disk/by-partlabel/userdata /data auto discard,noatime,nodiratime,nosuid,nodev,nofail 0 0"
+      }
+    ],
+    "partition_links": {
+      "/dev/disk/by-label/dsp": "/dev/sde9",
+      "/dev/disk/by-partlabel/dsp_a": "/dev/sde9",
+      "/dev/disk/by-partlabel/dsp_b": "/dev/sde26",
+      "/dev/disk/by-partlabel/modem_a": "/dev/sde4",
+      "/dev/disk/by-partlabel/modem_b": "/dev/sde21",
+      "/dev/disk/by-partlabel/system_a": "/dev/sda6",
+      "/dev/disk/by-partlabel/system_b": "/dev/sda7",
+      "/dev/disk/by-partlabel/boot_a": "/dev/sde11",
+      "/dev/disk/by-partlabel/boot_b": "/dev/sde28"
+    },
+    "current_boot_attributes_decoded": [
+      {
+        "partition": "boot_a",
+        "attributes_hex": "0x0071000000000000",
+        "active_bit50": 0,
+        "success_bit54": 1,
+        "unbootable_bit55": 0,
+        "matches_historical_attribute_hex": true
+      },
+      {
+        "partition": "boot_b",
+        "attributes_hex": "0x0077000000000000",
+        "active_bit50": 1,
+        "success_bit54": 1,
+        "unbootable_bit55": 0,
+        "matches_historical_attribute_hex": true
+      }
+    ],
+    "usb_roles": {
+      "otg_default": {
+        "mode": "ufp",
+        "data_role": "device",
+        "power_role": "sink",
+        "supported_modes": "ufp dfp"
+      }
+    },
+    "udc": {
+      "a600000.dwc3": {
+        "state": "not attached",
+        "current_speed": "UNKNOWN",
+        "maximum_speed": "super-speed"
+      }
+    },
+    "gadget_bindings": {
+      "/sys/kernel/config/usb_gadget/g1/UDC": ""
+    },
+    "usb_role_change_interpretation": "Earlier snapshot reported none; this snapshot reports ufp/device/sink. UDC is still not attached and gadget UDC binding is empty. This change alone does not identify a physical port or prove working recovery connectivity.",
+    "collector_controls_called": false,
+    "collector_files_written": false,
+    "session_effects_limit": "SSH and already-running system services may produce normal logs.",
+    "misc_read": false
+  },
+  "remaining_gaps": [
+    "Physical recovery data port and stable power arrangement still not demonstrated.",
+    "No board-compatible EDL/Fastboot protocol/loader has been exercised.",
+    "No A/B slot switch, new boot or restore rehearsal has occurred.",
+    "Saved Panda files do not prove actual bootstub, ROM recovery access or provisioning preservation.",
+    "Official AGNOS 19.9 boot and peripheral compatibility remain unvalidated."
+  ],
+  "prohibited_actions_not_performed": [
+    "abctl/bootctl execution",
+    "misc speculative read",
+    "mount or remount",
+    "USB role switch",
+    "Panda reset or firmware flash",
+    "GPIO write",
+    "recovery mode entry",
+    "target library loading"
+  ],
+  "privacy": "No device identifiers, IP, serials, IMEI, keys, raw provisioning or complete private configuration are emitted.",
+  "updated_at": "2026-10-18T01:42:55.335336+08:00",
+  "suggested_readonly_live_collection_status": "All listed filesystem, link, GPT attribute and binary-hash checks have now been supplied by the parent; no additional device access needed for these questions."
+}
