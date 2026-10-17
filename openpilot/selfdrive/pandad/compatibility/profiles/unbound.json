@@ -1,0 +1,20 @@
+{
+  "schema": "songplus-dual-panda-offline-profile/v1",
+  "purpose": "offline_fixture",
+  "binding_status": "UNBOUND",
+  "device_access_enabled": false,
+  "can_tx_enabled": false,
+  "firmware_install_enabled": false,
+  "expected_board_count": 2,
+  "required_slots": [0, 1],
+  "bus_stride": 4,
+  "ordinary_local_can_buses": [0, 1, 2],
+  "slots": [
+    {"slot": 0, "identity_binding": null, "expected_board_type": null, "mcu_family": null, "exact_mcu": null,
+     "transport": null, "protocol_profile": null, "capabilities": null, "application_signature": null, "safety_config_semantics": null},
+    {"slot": 1, "identity_binding": null, "expected_board_type": null, "mcu_family": null, "exact_mcu": null,
+     "transport": null, "protocol_profile": null, "capabilities": null, "application_signature": null, "safety_config_semantics": null}
+  ],
+  "roles": {"vehicle_can": null, "diagnostic": null, "harness": null, "ignition_sources": null,
+            "fan_control": null, "power_monitor": null, "ir_control": null}
+}
