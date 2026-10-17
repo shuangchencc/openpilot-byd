@@ -1,0 +1,1163 @@
+{
+  "collected_utc": "2026-10-17T17:28:46.165711+00:00",
+  "method": "O_RDONLY bounded GPT metadata and installed software hashes; no mount, repair, ioctl, abctl or updater",
+  "disks": {
+    "sda": {
+      "bytes": 57948504064,
+      "sector_bytes": 4096,
+      "primary": {
+        "lba": 1,
+        "signature_valid": true,
+        "current_lba": 1,
+        "alternate_lba": 14147583,
+        "first_usable_lba": 6,
+        "last_usable_lba": 14147578,
+        "header_crc_valid": true,
+        "entries_lba": 2,
+        "entry_count": 32,
+        "entry_size": 128,
+        "entries_crc_valid": true,
+        "stored_entries_crc32": 4224956669,
+        "actual_entries_crc32": 4224956669,
+        "entries_sha256": "57f01b9b1f9b01cd7860073451f2bf234d96283883e5bd8b87cec4b300ca954b",
+        "partitions": [
+          {
+            "partition": 1,
+            "name": "ssd",
+            "first_lba": 6,
+            "last_lba": 7
+          },
+          {
+            "partition": 2,
+            "name": "persist",
+            "first_lba": 8,
+            "last_lba": 8199
+          },
+          {
+            "partition": 3,
+            "name": "misc",
+            "first_lba": 8200,
+            "last_lba": 8455
+          },
+          {
+            "partition": 4,
+            "name": "keystore",
+            "first_lba": 8456,
+            "last_lba": 8583
+          },
+          {
+            "partition": 5,
+            "name": "frp",
+            "first_lba": 8584,
+            "last_lba": 8711
+          },
+          {
+            "partition": 6,
+            "name": "system_a",
+            "first_lba": 8712,
+            "last_lba": 3045143
+          },
+          {
+            "partition": 7,
+            "name": "system_b",
+            "first_lba": 3045144,
+            "last_lba": 6081575
+          },
+          {
+            "partition": 8,
+            "name": "systemrw",
+            "first_lba": 6081576,
+            "last_lba": 6085671
+          },
+          {
+            "partition": 9,
+            "name": "cache",
+            "first_lba": 6085672,
+            "last_lba": 6118439
+          },
+          {
+            "partition": 10,
+            "name": "userdata",
+            "first_lba": 6118440,
+            "last_lba": 14147578
+          }
+        ]
+      },
+      "secondary": {
+        "lba": 14147583,
+        "signature_valid": true,
+        "current_lba": 14147583,
+        "alternate_lba": 1,
+        "first_usable_lba": 6,
+        "last_usable_lba": 14147578,
+        "header_crc_valid": true,
+        "entries_lba": 14147579,
+        "entry_count": 32,
+        "entry_size": 128,
+        "entries_crc_valid": true,
+        "stored_entries_crc32": 4224956669,
+        "actual_entries_crc32": 4224956669,
+        "entries_sha256": "57f01b9b1f9b01cd7860073451f2bf234d96283883e5bd8b87cec4b300ca954b",
+        "partitions": [
+          {
+            "partition": 1,
+            "name": "ssd",
+            "first_lba": 6,
+            "last_lba": 7
+          },
+          {
+            "partition": 2,
+            "name": "persist",
+            "first_lba": 8,
+            "last_lba": 8199
+          },
+          {
+            "partition": 3,
+            "name": "misc",
+            "first_lba": 8200,
+            "last_lba": 8455
+          },
+          {
+            "partition": 4,
+            "name": "keystore",
+            "first_lba": 8456,
+            "last_lba": 8583
+          },
+          {
+            "partition": 5,
+            "name": "frp",
+            "first_lba": 8584,
+            "last_lba": 8711
+          },
+          {
+            "partition": 6,
+            "name": "system_a",
+            "first_lba": 8712,
+            "last_lba": 3045143
+          },
+          {
+            "partition": 7,
+            "name": "system_b",
+            "first_lba": 3045144,
+            "last_lba": 6081575
+          },
+          {
+            "partition": 8,
+            "name": "systemrw",
+            "first_lba": 6081576,
+            "last_lba": 6085671
+          },
+          {
+            "partition": 9,
+            "name": "cache",
+            "first_lba": 6085672,
+            "last_lba": 6118439
+          },
+          {
+            "partition": 10,
+            "name": "userdata",
+            "first_lba": 6118440,
+            "last_lba": 14147578
+          }
+        ]
+      },
+      "tables_identical": true
+    },
+    "sdb": {
+      "bytes": 4194304,
+      "sector_bytes": 4096,
+      "primary": {
+        "lba": 1,
+        "signature_valid": true,
+        "current_lba": 1,
+        "alternate_lba": 1023,
+        "first_usable_lba": 6,
+        "last_usable_lba": 1018,
+        "header_crc_valid": true,
+        "entries_lba": 2,
+        "entry_count": 4,
+        "entry_size": 128,
+        "entries_crc_valid": true,
+        "stored_entries_crc32": 2524763545,
+        "actual_entries_crc32": 2524763545,
+        "entries_sha256": "80c0ad78683ca629e096cd92ad5e6e8576ff220ba1515510e6a7f24c62c2c466",
+        "partitions": [
+          {
+            "partition": 1,
+            "name": "xbl_a",
+            "first_lba": 6,
+            "last_lba": 901
+          },
+          {
+            "partition": 2,
+            "name": "xbl_config_a",
+            "first_lba": 902,
+            "last_lba": 990
+          }
+        ]
+      },
+      "secondary": {
+        "lba": 1023,
+        "signature_valid": true,
+        "current_lba": 1023,
+        "alternate_lba": 1,
+        "first_usable_lba": 6,
+        "last_usable_lba": 1018,
+        "header_crc_valid": true,
+        "entries_lba": 1019,
+        "entry_count": 4,
+        "entry_size": 128,
+        "entries_crc_valid": true,
+        "stored_entries_crc32": 2524763545,
+        "actual_entries_crc32": 2524763545,
+        "entries_sha256": "80c0ad78683ca629e096cd92ad5e6e8576ff220ba1515510e6a7f24c62c2c466",
+        "partitions": [
+          {
+            "partition": 1,
+            "name": "xbl_a",
+            "first_lba": 6,
+            "last_lba": 901
+          },
+          {
+            "partition": 2,
+            "name": "xbl_config_a",
+            "first_lba": 902,
+            "last_lba": 990
+          }
+        ]
+      },
+      "tables_identical": true
+    },
+    "sdc": {
+      "bytes": 4194304,
+      "sector_bytes": 4096,
+      "primary": {
+        "lba": 1,
+        "signature_valid": true,
+        "current_lba": 1,
+        "alternate_lba": 1023,
+        "first_usable_lba": 6,
+        "last_usable_lba": 1018,
+        "header_crc_valid": true,
+        "entries_lba": 2,
+        "entry_count": 4,
+        "entry_size": 128,
+        "entries_crc_valid": true,
+        "stored_entries_crc32": 2647865956,
+        "actual_entries_crc32": 2647865956,
+        "entries_sha256": "1f5f1ef2ed88176d3a0a1e7943963c8d6f7b8016a2cf674438e2948305a3850c",
+        "partitions": [
+          {
+            "partition": 1,
+            "name": "xbl_b",
+            "first_lba": 6,
+            "last_lba": 901
+          },
+          {
+            "partition": 2,
+            "name": "xbl_config_b",
+            "first_lba": 902,
+            "last_lba": 990
+          }
+        ]
+      },
+      "secondary": {
+        "lba": 1023,
+        "signature_valid": true,
+        "current_lba": 1023,
+        "alternate_lba": 1,
+        "first_usable_lba": 6,
+        "last_usable_lba": 1018,
+        "header_crc_valid": true,
+        "entries_lba": 1019,
+        "entry_count": 4,
+        "entry_size": 128,
+        "entries_crc_valid": true,
+        "stored_entries_crc32": 2647865956,
+        "actual_entries_crc32": 2647865956,
+        "entries_sha256": "1f5f1ef2ed88176d3a0a1e7943963c8d6f7b8016a2cf674438e2948305a3850c",
+        "partitions": [
+          {
+            "partition": 1,
+            "name": "xbl_b",
+            "first_lba": 6,
+            "last_lba": 901
+          },
+          {
+            "partition": 2,
+            "name": "xbl_config_b",
+            "first_lba": 902,
+            "last_lba": 990
+          }
+        ]
+      },
+      "tables_identical": true
+    },
+    "sdd": {
+      "bytes": 134217728,
+      "sector_bytes": 4096,
+      "primary": {
+        "lba": 1,
+        "signature_valid": true,
+        "current_lba": 1,
+        "alternate_lba": 32767,
+        "first_usable_lba": 6,
+        "last_usable_lba": 32762,
+        "header_crc_valid": true,
+        "entries_lba": 2,
+        "entry_count": 32,
+        "entry_size": 128,
+        "entries_crc_valid": true,
+        "stored_entries_crc32": 4182005169,
+        "actual_entries_crc32": 4182005169,
+        "entries_sha256": "3553f8730f5c5ca9db454df3719fbbb19992f1a6e85ef913b7c66eadd6ed0bc4",
+        "partitions": [
+          {
+            "partition": 1,
+            "name": "ALIGN_TO_128K_1",
+            "first_lba": 6,
+            "last_lba": 31
+          },
+          {
+            "partition": 2,
+            "name": "cdt",
+            "first_lba": 32,
+            "last_lba": 63
+          },
+          {
+            "partition": 3,
+            "name": "ddr",
+            "first_lba": 64,
+            "last_lba": 319
+          }
+        ]
+      },
+      "secondary": {
+        "lba": 32767,
+        "signature_valid": true,
+        "current_lba": 32767,
+        "alternate_lba": 1,
+        "first_usable_lba": 6,
+        "last_usable_lba": 32762,
+        "header_crc_valid": true,
+        "entries_lba": 32763,
+        "entry_count": 32,
+        "entry_size": 128,
+        "entries_crc_valid": true,
+        "stored_entries_crc32": 4182005169,
+        "actual_entries_crc32": 4182005169,
+        "entries_sha256": "3553f8730f5c5ca9db454df3719fbbb19992f1a6e85ef913b7c66eadd6ed0bc4",
+        "partitions": [
+          {
+            "partition": 1,
+            "name": "ALIGN_TO_128K_1",
+            "first_lba": 6,
+            "last_lba": 31
+          },
+          {
+            "partition": 2,
+            "name": "cdt",
+            "first_lba": 32,
+            "last_lba": 63
+          },
+          {
+            "partition": 3,
+            "name": "ddr",
+            "first_lba": 64,
+            "last_lba": 319
+          }
+        ]
+      },
+      "tables_identical": true
+    },
+    "sde": {
+      "bytes": 4294967296,
+      "sector_bytes": 4096,
+      "primary": {
+        "lba": 1,
+        "signature_valid": true,
+        "current_lba": 1,
+        "alternate_lba": 1048575,
+        "first_usable_lba": 6,
+        "last_usable_lba": 1048570,
+        "header_crc_valid": true,
+        "entries_lba": 2,
+        "entry_count": 64,
+        "entry_size": 128,
+        "entries_crc_valid": true,
+        "stored_entries_crc32": 1798094222,
+        "actual_entries_crc32": 1798094222,
+        "entries_sha256": "4f43d094ebcbcebdced44488a8b96070727f3c77e4ebf1c8ff434714b55d173b",
+        "partitions": [
+          {
+            "partition": 1,
+            "name": "aop_a",
+            "first_lba": 6,
+            "last_lba": 133
+          },
+          {
+            "partition": 2,
+            "name": "tz_a",
+            "first_lba": 134,
+            "last_lba": 645
+          },
+          {
+            "partition": 3,
+            "name": "hyp_a",
+            "first_lba": 646,
+            "last_lba": 773
+          },
+          {
+            "partition": 4,
+            "name": "modem_a",
+            "first_lba": 774,
+            "last_lba": 31493
+          },
+          {
+            "partition": 5,
+            "name": "bluetooth_a",
+            "first_lba": 31494,
+            "last_lba": 31749
+          },
+          {
+            "partition": 6,
+            "name": "mdtpsecapp_a",
+            "first_lba": 31750,
+            "last_lba": 32773
+          },
+          {
+            "partition": 7,
+            "name": "mdtp_a",
+            "first_lba": 32774,
+            "last_lba": 40965
+          },
+          {
+            "partition": 8,
+            "name": "abl_a",
+            "first_lba": 40966,
+            "last_lba": 41221
+          },
+          {
+            "partition": 9,
+            "name": "dsp_a",
+            "first_lba": 41222,
+            "last_lba": 49413
+          },
+          {
+            "partition": 10,
+            "name": "keymaster_a",
+            "first_lba": 49414,
+            "last_lba": 49541
+          },
+          {
+            "partition": 11,
+            "name": "boot_a",
+            "first_lba": 49542,
+            "last_lba": 65925
+          },
+          {
+            "partition": 12,
+            "name": "cmnlib_a",
+            "first_lba": 65926,
+            "last_lba": 66053
+          },
+          {
+            "partition": 13,
+            "name": "cmnlib64_a",
+            "first_lba": 66054,
+            "last_lba": 66181
+          },
+          {
+            "partition": 14,
+            "name": "devcfg_a",
+            "first_lba": 66182,
+            "last_lba": 66213
+          },
+          {
+            "partition": 15,
+            "name": "qupfw_a",
+            "first_lba": 66214,
+            "last_lba": 66229
+          },
+          {
+            "partition": 16,
+            "name": "storsec_a",
+            "first_lba": 66230,
+            "last_lba": 66261
+          },
+          {
+            "partition": 17,
+            "name": "ImageFv_a",
+            "first_lba": 66262,
+            "last_lba": 66517
+          },
+          {
+            "partition": 18,
+            "name": "aop_b",
+            "first_lba": 66518,
+            "last_lba": 66645
+          },
+          {
+            "partition": 19,
+            "name": "tz_b",
+            "first_lba": 66646,
+            "last_lba": 67157
+          },
+          {
+            "partition": 20,
+            "name": "hyp_b",
+            "first_lba": 67158,
+            "last_lba": 67285
+          },
+          {
+            "partition": 21,
+            "name": "modem_b",
+            "first_lba": 67286,
+            "last_lba": 98005
+          },
+          {
+            "partition": 22,
+            "name": "bluetooth_b",
+            "first_lba": 98006,
+            "last_lba": 98261
+          },
+          {
+            "partition": 23,
+            "name": "mdtpsecapp_b",
+            "first_lba": 98262,
+            "last_lba": 99285
+          },
+          {
+            "partition": 24,
+            "name": "mdtp_b",
+            "first_lba": 99286,
+            "last_lba": 107477
+          },
+          {
+            "partition": 25,
+            "name": "abl_b",
+            "first_lba": 107478,
+            "last_lba": 107733
+          },
+          {
+            "partition": 26,
+            "name": "dsp_b",
+            "first_lba": 107734,
+            "last_lba": 115925
+          },
+          {
+            "partition": 27,
+            "name": "keymaster_b",
+            "first_lba": 115926,
+            "last_lba": 116053
+          },
+          {
+            "partition": 28,
+            "name": "boot_b",
+            "first_lba": 116054,
+            "last_lba": 132437
+          },
+          {
+            "partition": 29,
+            "name": "cmnlib_b",
+            "first_lba": 132438,
+            "last_lba": 132565
+          },
+          {
+            "partition": 30,
+            "name": "cmnlib64_b",
+            "first_lba": 132566,
+            "last_lba": 132693
+          },
+          {
+            "partition": 31,
+            "name": "devcfg_b",
+            "first_lba": 132694,
+            "last_lba": 132725
+          },
+          {
+            "partition": 32,
+            "name": "qupfw_b",
+            "first_lba": 132726,
+            "last_lba": 132741
+          },
+          {
+            "partition": 33,
+            "name": "storsec_b",
+            "first_lba": 132742,
+            "last_lba": 132773
+          },
+          {
+            "partition": 34,
+            "name": "ImageFv_b",
+            "first_lba": 132774,
+            "last_lba": 133029
+          },
+          {
+            "partition": 35,
+            "name": "sec",
+            "first_lba": 133030,
+            "last_lba": 133033
+          },
+          {
+            "partition": 36,
+            "name": "devinfo",
+            "first_lba": 133034,
+            "last_lba": 133034
+          },
+          {
+            "partition": 37,
+            "name": "dip",
+            "first_lba": 133035,
+            "last_lba": 133290
+          },
+          {
+            "partition": 38,
+            "name": "fdemeta",
+            "first_lba": 133291,
+            "last_lba": 133418
+          },
+          {
+            "partition": 39,
+            "name": "apdp",
+            "first_lba": 133419,
+            "last_lba": 133482
+          },
+          {
+            "partition": 40,
+            "name": "msadp",
+            "first_lba": 133483,
+            "last_lba": 133546
+          },
+          {
+            "partition": 41,
+            "name": "spunvm",
+            "first_lba": 133547,
+            "last_lba": 135594
+          },
+          {
+            "partition": 42,
+            "name": "splash",
+            "first_lba": 135595,
+            "last_lba": 143950
+          },
+          {
+            "partition": 43,
+            "name": "limits",
+            "first_lba": 143951,
+            "last_lba": 143951
+          },
+          {
+            "partition": 44,
+            "name": "toolsfv",
+            "first_lba": 143952,
+            "last_lba": 144207
+          },
+          {
+            "partition": 45,
+            "name": "logfs",
+            "first_lba": 144208,
+            "last_lba": 146255
+          },
+          {
+            "partition": 46,
+            "name": "sti",
+            "first_lba": 146256,
+            "last_lba": 146767
+          },
+          {
+            "partition": 47,
+            "name": "rawdump",
+            "first_lba": 146768,
+            "last_lba": 179535
+          },
+          {
+            "partition": 48,
+            "name": "logdump",
+            "first_lba": 179536,
+            "last_lba": 195919
+          }
+        ]
+      },
+      "secondary": {
+        "lba": 1048575,
+        "signature_valid": true,
+        "current_lba": 1048575,
+        "alternate_lba": 1,
+        "first_usable_lba": 6,
+        "last_usable_lba": 1048570,
+        "header_crc_valid": true,
+        "entries_lba": 1048571,
+        "entry_count": 64,
+        "entry_size": 128,
+        "entries_crc_valid": false,
+        "stored_entries_crc32": 2389306033,
+        "actual_entries_crc32": 1798094222,
+        "entries_sha256": "4f43d094ebcbcebdced44488a8b96070727f3c77e4ebf1c8ff434714b55d173b",
+        "partitions": [
+          {
+            "partition": 1,
+            "name": "aop_a",
+            "first_lba": 6,
+            "last_lba": 133
+          },
+          {
+            "partition": 2,
+            "name": "tz_a",
+            "first_lba": 134,
+            "last_lba": 645
+          },
+          {
+            "partition": 3,
+            "name": "hyp_a",
+            "first_lba": 646,
+            "last_lba": 773
+          },
+          {
+            "partition": 4,
+            "name": "modem_a",
+            "first_lba": 774,
+            "last_lba": 31493
+          },
+          {
+            "partition": 5,
+            "name": "bluetooth_a",
+            "first_lba": 31494,
+            "last_lba": 31749
+          },
+          {
+            "partition": 6,
+            "name": "mdtpsecapp_a",
+            "first_lba": 31750,
+            "last_lba": 32773
+          },
+          {
+            "partition": 7,
+            "name": "mdtp_a",
+            "first_lba": 32774,
+            "last_lba": 40965
+          },
+          {
+            "partition": 8,
+            "name": "abl_a",
+            "first_lba": 40966,
+            "last_lba": 41221
+          },
+          {
+            "partition": 9,
+            "name": "dsp_a",
+            "first_lba": 41222,
+            "last_lba": 49413
+          },
+          {
+            "partition": 10,
+            "name": "keymaster_a",
+            "first_lba": 49414,
+            "last_lba": 49541
+          },
+          {
+            "partition": 11,
+            "name": "boot_a",
+            "first_lba": 49542,
+            "last_lba": 65925
+          },
+          {
+            "partition": 12,
+            "name": "cmnlib_a",
+            "first_lba": 65926,
+            "last_lba": 66053
+          },
+          {
+            "partition": 13,
+            "name": "cmnlib64_a",
+            "first_lba": 66054,
+            "last_lba": 66181
+          },
+          {
+            "partition": 14,
+            "name": "devcfg_a",
+            "first_lba": 66182,
+            "last_lba": 66213
+          },
+          {
+            "partition": 15,
+            "name": "qupfw_a",
+            "first_lba": 66214,
+            "last_lba": 66229
+          },
+          {
+            "partition": 16,
+            "name": "storsec_a",
+            "first_lba": 66230,
+            "last_lba": 66261
+          },
+          {
+            "partition": 17,
+            "name": "ImageFv_a",
+            "first_lba": 66262,
+            "last_lba": 66517
+          },
+          {
+            "partition": 18,
+            "name": "aop_b",
+            "first_lba": 66518,
+            "last_lba": 66645
+          },
+          {
+            "partition": 19,
+            "name": "tz_b",
+            "first_lba": 66646,
+            "last_lba": 67157
+          },
+          {
+            "partition": 20,
+            "name": "hyp_b",
+            "first_lba": 67158,
+            "last_lba": 67285
+          },
+          {
+            "partition": 21,
+            "name": "modem_b",
+            "first_lba": 67286,
+            "last_lba": 98005
+          },
+          {
+            "partition": 22,
+            "name": "bluetooth_b",
+            "first_lba": 98006,
+            "last_lba": 98261
+          },
+          {
+            "partition": 23,
+            "name": "mdtpsecapp_b",
+            "first_lba": 98262,
+            "last_lba": 99285
+          },
+          {
+            "partition": 24,
+            "name": "mdtp_b",
+            "first_lba": 99286,
+            "last_lba": 107477
+          },
+          {
+            "partition": 25,
+            "name": "abl_b",
+            "first_lba": 107478,
+            "last_lba": 107733
+          },
+          {
+            "partition": 26,
+            "name": "dsp_b",
+            "first_lba": 107734,
+            "last_lba": 115925
+          },
+          {
+            "partition": 27,
+            "name": "keymaster_b",
+            "first_lba": 115926,
+            "last_lba": 116053
+          },
+          {
+            "partition": 28,
+            "name": "boot_b",
+            "first_lba": 116054,
+            "last_lba": 132437
+          },
+          {
+            "partition": 29,
+            "name": "cmnlib_b",
+            "first_lba": 132438,
+            "last_lba": 132565
+          },
+          {
+            "partition": 30,
+            "name": "cmnlib64_b",
+            "first_lba": 132566,
+            "last_lba": 132693
+          },
+          {
+            "partition": 31,
+            "name": "devcfg_b",
+            "first_lba": 132694,
+            "last_lba": 132725
+          },
+          {
+            "partition": 32,
+            "name": "qupfw_b",
+            "first_lba": 132726,
+            "last_lba": 132741
+          },
+          {
+            "partition": 33,
+            "name": "storsec_b",
+            "first_lba": 132742,
+            "last_lba": 132773
+          },
+          {
+            "partition": 34,
+            "name": "ImageFv_b",
+            "first_lba": 132774,
+            "last_lba": 133029
+          },
+          {
+            "partition": 35,
+            "name": "sec",
+            "first_lba": 133030,
+            "last_lba": 133033
+          },
+          {
+            "partition": 36,
+            "name": "devinfo",
+            "first_lba": 133034,
+            "last_lba": 133034
+          },
+          {
+            "partition": 37,
+            "name": "dip",
+            "first_lba": 133035,
+            "last_lba": 133290
+          },
+          {
+            "partition": 38,
+            "name": "fdemeta",
+            "first_lba": 133291,
+            "last_lba": 133418
+          },
+          {
+            "partition": 39,
+            "name": "apdp",
+            "first_lba": 133419,
+            "last_lba": 133482
+          },
+          {
+            "partition": 40,
+            "name": "msadp",
+            "first_lba": 133483,
+            "last_lba": 133546
+          },
+          {
+            "partition": 41,
+            "name": "spunvm",
+            "first_lba": 133547,
+            "last_lba": 135594
+          },
+          {
+            "partition": 42,
+            "name": "splash",
+            "first_lba": 135595,
+            "last_lba": 143950
+          },
+          {
+            "partition": 43,
+            "name": "limits",
+            "first_lba": 143951,
+            "last_lba": 143951
+          },
+          {
+            "partition": 44,
+            "name": "toolsfv",
+            "first_lba": 143952,
+            "last_lba": 144207
+          },
+          {
+            "partition": 45,
+            "name": "logfs",
+            "first_lba": 144208,
+            "last_lba": 146255
+          },
+          {
+            "partition": 46,
+            "name": "sti",
+            "first_lba": 146256,
+            "last_lba": 146767
+          },
+          {
+            "partition": 47,
+            "name": "rawdump",
+            "first_lba": 146768,
+            "last_lba": 179535
+          },
+          {
+            "partition": 48,
+            "name": "logdump",
+            "first_lba": 179536,
+            "last_lba": 195919
+          }
+        ]
+      },
+      "tables_identical": true
+    },
+    "sdf": {
+      "bytes": 1610612736,
+      "sector_bytes": 4096,
+      "primary": {
+        "lba": 1,
+        "signature_valid": true,
+        "current_lba": 1,
+        "alternate_lba": 393215,
+        "first_usable_lba": 6,
+        "last_usable_lba": 393210,
+        "header_crc_valid": true,
+        "entries_lba": 2,
+        "entry_count": 32,
+        "entry_size": 128,
+        "entries_crc_valid": true,
+        "stored_entries_crc32": 1576470055,
+        "actual_entries_crc32": 1576470055,
+        "entries_sha256": "8f0528d3b9d838ef4fc5f266b96050c74fe2909c087a55472cf0734ec42cfc4a",
+        "partitions": [
+          {
+            "partition": 1,
+            "name": "ALIGN_TO_128K_2",
+            "first_lba": 6,
+            "last_lba": 31
+          },
+          {
+            "partition": 2,
+            "name": "modemst1",
+            "first_lba": 32,
+            "last_lba": 543
+          },
+          {
+            "partition": 3,
+            "name": "modemst2",
+            "first_lba": 544,
+            "last_lba": 1055
+          },
+          {
+            "partition": 4,
+            "name": "fsg",
+            "first_lba": 1056,
+            "last_lba": 1567
+          },
+          {
+            "partition": 5,
+            "name": "fsc",
+            "first_lba": 1568,
+            "last_lba": 1599
+          }
+        ]
+      },
+      "secondary": {
+        "lba": 393215,
+        "signature_valid": true,
+        "current_lba": 393215,
+        "alternate_lba": 1,
+        "first_usable_lba": 6,
+        "last_usable_lba": 393210,
+        "header_crc_valid": true,
+        "entries_lba": 393211,
+        "entry_count": 32,
+        "entry_size": 128,
+        "entries_crc_valid": true,
+        "stored_entries_crc32": 1576470055,
+        "actual_entries_crc32": 1576470055,
+        "entries_sha256": "8f0528d3b9d838ef4fc5f266b96050c74fe2909c087a55472cf0734ec42cfc4a",
+        "partitions": [
+          {
+            "partition": 1,
+            "name": "ALIGN_TO_128K_2",
+            "first_lba": 6,
+            "last_lba": 31
+          },
+          {
+            "partition": 2,
+            "name": "modemst1",
+            "first_lba": 32,
+            "last_lba": 543
+          },
+          {
+            "partition": 3,
+            "name": "modemst2",
+            "first_lba": 544,
+            "last_lba": 1055
+          },
+          {
+            "partition": 4,
+            "name": "fsg",
+            "first_lba": 1056,
+            "last_lba": 1567
+          },
+          {
+            "partition": 5,
+            "name": "fsc",
+            "first_lba": 1568,
+            "last_lba": 1599
+          }
+        ]
+      },
+      "tables_identical": true
+    }
+  },
+  "files": {
+    "build.json": {
+      "bytes": 392,
+      "sha256": "fd30a7f561e087cc707617002233163737ce10ecd4f42392d133961c6378e19b"
+    },
+    "common/version.h": {
+      "bytes": 32,
+      "sha256": "cb988a375ba4805b53cfa819706b0c8e32092e5c478219beca6e7769570818ef",
+      "declared_text": "#define COMMA_VERSION \"0.9.8.0\""
+    },
+    "launch_env.sh": {
+      "bytes": 267,
+      "sha256": "3b8fe7ca8235436d889c96d04780c099dd865332a8695d221821aa1b1b83803f"
+    },
+    "panda/board/obj/version": {
+      "bytes": 18,
+      "sha256": "309a7ebe0e0b4a1f3f9ba49eb4732c43409a01e1b2d4c9c5a266a75120f25945",
+      "declared_text": "DEV-e26a80db-DEBUG"
+    },
+    "panda/board/obj/panda.bin.signed": {
+      "bytes": 71340,
+      "sha256": "ee84e94f177d75fc520af0fbafc922d7abac08c75d9127809a1d7bbf3b5ffd79"
+    },
+    "panda/board/obj/panda_h7.bin.signed": {
+      "bytes": 79856,
+      "sha256": "56b09af04cbd233729e467f3883af2cbc93582404ac0a3da0dded431e215a3e1"
+    },
+    "panda/board/obj/bootstub.panda.bin": {
+      "bytes": 14884,
+      "sha256": "0a4e59b8c7055688c401d107719030420fadc9c9576ef481c6494fba250335cd"
+    },
+    "panda/board/obj/bootstub.panda_h7.bin": {
+      "bytes": 16952,
+      "sha256": "e5cd376f69b99d8a19cfa699365200c2f9cea2f055a207ecd1cc6100b280f8f1"
+    },
+    "panda/python/__init__.py": {
+      "bytes": 30385,
+      "sha256": "c2df6b142adb4ae1a4163128760a8e03a4659eae349b3f7b062231cec7a762c7"
+    },
+    "system/hardware/tici/agnos.json": {
+      "bytes": 3184,
+      "sha256": "f3ac2e256bd85a818874e15f3fee095e76c361cd93ab7f92fa22e47b337f4e45"
+    },
+    "system/camerad/camerad": {
+      "bytes": 9582224,
+      "sha256": "7c102faa584829b46cee8c1e39d2f1063a429a7d140e3a8b114116aa36a219d8"
+    }
+  },
+  "space": {
+    "/": {
+      "total_bytes": 10501771264,
+      "available_bytes": 5426069504
+    },
+    "/data": {
+      "total_bytes": 32236990464,
+      "available_bytes": 5377658880
+    },
+    "/persist": {
+      "total_bytes": 28295168,
+      "available_bytes": 25874432
+    }
+  },
+  "mounts": [
+    "/dev/root / ext4 ro,relatime,data=ordered 0 0",
+    "/dev/sda2 /persist ext4 ro,nosuid,nodev,noexec,relatime,discard,stripe=192,data=ordered 0 0",
+    "/dev/sda8 /systemrw ext4 rw,nodev,noexec,relatime,discard,noauto_da_alloc,stripe=192,data=ordered 0 0",
+    "/dev/sda10 /data ext4 rw,nosuid,nodev,noatime,nodiratime,discard,stripe=2,data=ordered 0 0",
+    "/dev/sde9 /dsp ext4 ro,relatime,data=ordered 0 0",
+    "/dev/sde4 /firmware vfat ro,relatime,fmask=0022,dmask=0022,codepage=437,iocharset=iso8859-1,shortname=mixed,errors=remount-ro 0 0"
+  ],
+  "installed_tree_has_git_metadata": false
+}

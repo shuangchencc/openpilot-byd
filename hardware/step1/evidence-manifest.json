@@ -1,0 +1,74 @@
+{
+  "schema": "songplus-step1-evidence/v1",
+  "files": [
+    {
+      "path": "hardware/step1/evidence/live-system.json",
+      "sha256": "2c81b0ff07859a545d587bed8dde970e64a23af6082dbebf12f5514e9e709fc1",
+      "bytes": 17455,
+      "source_local_path": "results/step1-system-20261017T172841Z-387f5933/stdout.json",
+      "content_kind": "exact_readonly_result"
+    },
+    {
+      "path": "hardware/step1/evidence/live-system-receipt.json",
+      "sha256": "2d44e169646d27b017a89942a6a3b90b8330f7fecc4f4a8439e15e382edea629",
+      "bytes": 583,
+      "source_local_path": "results/step1-system-20261017T172841Z-387f5933/receipt.json",
+      "content_kind": "exact_readonly_result"
+    },
+    {
+      "path": "hardware/step1/evidence/live-details.json",
+      "sha256": "07c3b866c43fa09108225f05af6f5df655bc35aff1e5f50d85fd27dce3d7713b",
+      "bytes": 3559,
+      "source_local_path": "results/step1-details-20261017T172844Z-0ccfeea0/stdout.json",
+      "content_kind": "exact_readonly_result"
+    },
+    {
+      "path": "hardware/step1/evidence/live-details-receipt.json",
+      "sha256": "c72e8a7b35d3d213ab924da2f5fc81effb40d6361c8e8f71334ff140b5f5c8ac",
+      "bytes": 584,
+      "source_local_path": "results/step1-details-20261017T172844Z-0ccfeea0/receipt.json",
+      "content_kind": "exact_readonly_result"
+    },
+    {
+      "path": "hardware/step1/evidence/live-recovery.json",
+      "sha256": "04f47cff0f89158de9ec725c7ebc1cbab53bd32c7922cc22ff3ed6b9057b721e",
+      "bytes": 30791,
+      "source_local_path": "results/step1-recovery-20261017T172845Z-13287ad3/stdout.json",
+      "content_kind": "exact_readonly_result"
+    },
+    {
+      "path": "hardware/step1/evidence/live-recovery-receipt.json",
+      "sha256": "12fec47738e0a2cfff2facce78178d55cffc1c2f11b699f1a58cdecb33dc91cb",
+      "bytes": 585,
+      "source_local_path": "results/step1-recovery-20261017T172845Z-13287ad3/receipt.json",
+      "content_kind": "exact_readonly_result"
+    },
+    {
+      "path": "hardware/step1/evidence/historical-camera-summary.json",
+      "sha256": "1a7be8ecd98773f71b0543ed0e457a42c665a12c38367e5338975296ad121bf6",
+      "bytes": 2302,
+      "content_kind": "derived_scoped_summary"
+    },
+    {
+      "path": "hardware/step1/evidence/installed-panda-api-summary.json",
+      "sha256": "ed6a480b44262d859ad8fb33b003b244d70d76ceaf1102aaa7ca06380424bd55",
+      "bytes": 1155,
+      "content_kind": "derived_scoped_summary"
+    },
+    {
+      "path": "hardware/step1/evidence/live-messages.json",
+      "sha256": "11ec92608506a522cd4b5f1ae1582dd14aa7797b8271c3efde6f2487b4cb8b2b",
+      "bytes": 19802,
+      "source_local_path": "results/step1-messages-20261017T173426Z-bb2f56ca/decoded.json",
+      "content_kind": "whitelisted_host_decode_of_raw_snapshot"
+    },
+    {
+      "path": "hardware/step1/evidence/live-messages-receipt.json",
+      "sha256": "e62a1788c941c149b0dec870cc5c35b0cc20ffd5b8ef087c23c4b53e9527f67a",
+      "bytes": 585,
+      "source_local_path": "results/step1-messages-20261017T173426Z-bb2f56ca/receipt.json",
+      "content_kind": "exact_readonly_result"
+    }
+  ],
+  "external_files_required_for_integrity_verification": false
+}

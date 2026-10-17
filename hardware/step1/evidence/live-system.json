@@ -1,0 +1,748 @@
+{
+  "collected_utc": "2026-10-17T17:28:42.123983+00:00",
+  "method": "passive OS/file reads; no hardware control libraries",
+  "system": {
+    "uname": {
+      "returncode": 0,
+      "stdout": "Linux 4.9.103+ aarch64 GNU/Linux",
+      "stderr": ""
+    },
+    "version": "10.1",
+    "uptime": "2424.49 7131.27",
+    "os_release": "NAME=\"Ubuntu\"\nVERSION=\"20.04.6 LTS (Focal Fossa)\"\nID=ubuntu\nID_LIKE=debian\nPRETTY_NAME=\"Ubuntu 20.04.6 LTS\"\nVERSION_ID=\"20.04\"\nHOME_URL=\"https://www.ubuntu.com/\"\nSUPPORT_URL=\"https://help.ubuntu.com/\"\nBUG_REPORT_URL=\"https://bugs.launchpad.net/ubuntu/\"\nPRIVACY_POLICY_URL=\"https://www.ubuntu.com/legal/terms-and-policies/privacy-policy\"\nVERSION_CODENAME=focal\nUBUNTU_CODENAME=focal",
+    "python": {
+      "returncode": 0,
+      "stdout": "Python 3.8.10",
+      "stderr": ""
+    }
+  },
+  "boot_parameters": [
+    "androidboot.hardware=qcom",
+    "root=/dev/sda7",
+    "androidboot.bootdevice=1d84000.ufshc",
+    "androidboot.slot_suffix=_b",
+    "rootwait",
+    "ro"
+  ],
+  "soc": {
+    "soc_id": "341",
+    "family": "Snapdragon",
+    "machine": "SDA845",
+    "revision": "2.1"
+  },
+  "device_tree": {
+    "model": "comma tici",
+    "compatible": "qcom,sda845-mtp\u0000qcom,sda845\u0000qcom,mtp"
+  },
+  "memory": {
+    "MemTotal": "3699784 kB",
+    "MemAvailable": "2504232 kB",
+    "SwapTotal": "0 kB",
+    "SwapFree": "0 kB"
+  },
+  "usb": [
+    {
+      "name": "1-1",
+      "path": "/sys/devices/platform/soc/a800000.ssusb/a800000.dwc3/xhci-hcd.0.auto/usb1/1-1",
+      "idVendor": "0000",
+      "idProduct": "0000",
+      "speed": "480",
+      "busnum": "1",
+      "devpath": "1",
+      "version": " 2.00",
+      "bMaxPower": "0mA",
+      "bConfigurationValue": "1",
+      "authorized": "1",
+      "power/runtime_status": "active"
+    },
+    {
+      "name": "1-1.1",
+      "path": "/sys/devices/platform/soc/a800000.ssusb/a800000.dwc3/xhci-hcd.0.auto/usb1/1-1/1-1.1",
+      "idVendor": "2c7c",
+      "idProduct": "0125",
+      "product": "Android",
+      "manufacturer": "Android",
+      "speed": "480",
+      "busnum": "1",
+      "devpath": "1.1",
+      "version": " 2.00",
+      "bMaxPower": "500mA",
+      "bConfigurationValue": "1",
+      "authorized": "1",
+      "power/runtime_status": "active"
+    },
+    {
+      "name": "1-1.2",
+      "path": "/sys/devices/platform/soc/a800000.ssusb/a800000.dwc3/xhci-hcd.0.auto/usb1/1-1/1-1.2",
+      "idVendor": "bbaa",
+      "idProduct": "ddcc",
+      "product": "panda",
+      "manufacturer": "comma.ai",
+      "speed": "12",
+      "busnum": "1",
+      "devpath": "1.2",
+      "version": " 2.10",
+      "bMaxPower": "100mA",
+      "bConfigurationValue": "1",
+      "authorized": "1",
+      "power/runtime_status": "active"
+    },
+    {
+      "name": "usb1",
+      "path": "/sys/devices/platform/soc/a800000.ssusb/a800000.dwc3/xhci-hcd.0.auto/usb1",
+      "idVendor": "1d6b",
+      "idProduct": "0002",
+      "product": "xHCI Host Controller",
+      "manufacturer": "Linux 4.9.103+ xhci-hcd",
+      "speed": "480",
+      "busnum": "1",
+      "devpath": "0",
+      "version": " 2.00",
+      "bMaxPower": "0mA",
+      "bConfigurationValue": "1",
+      "authorized": "1",
+      "power/runtime_status": "active"
+    },
+    {
+      "name": "usb2",
+      "path": "/sys/devices/platform/soc/a800000.ssusb/a800000.dwc3/xhci-hcd.0.auto/usb2",
+      "idVendor": "1d6b",
+      "idProduct": "0003",
+      "product": "xHCI Host Controller",
+      "manufacturer": "Linux 4.9.103+ xhci-hcd",
+      "speed": "5000",
+      "busnum": "2",
+      "devpath": "0",
+      "version": " 3.00",
+      "bMaxPower": "0mA",
+      "bConfigurationValue": "1",
+      "authorized": "1",
+      "power/runtime_status": "suspended"
+    }
+  ],
+  "roles": {
+    "/sys/class/dual_role_usb/otg_default": {
+      "mode": "none",
+      "power_role": "none",
+      "data_role": "none",
+      "supported_modes": "ufp dfp"
+    }
+  },
+  "udc": {
+    "a600000.dwc3": {
+      "state": "not attached",
+      "current_speed": "UNKNOWN",
+      "maximum_speed": "super-speed"
+    }
+  },
+  "gadget_bindings": {},
+  "usb_dt": [
+    {
+      "path": "/sys/firmware/devicetree/base/soc/ssusb@a800000",
+      "compatible": "qcom,dwc-usb3-msm",
+      "status": "okay",
+      "reg_u32": [
+        176160768,
+        1018880,
+        143581184,
+        1024
+      ]
+    },
+    {
+      "path": "/sys/firmware/devicetree/base/soc/ssusb@a800000/dwc3@a800000",
+      "compatible": "snps,dwc3",
+      "dr_mode": "host",
+      "reg_u32": [
+        176160768,
+        52480
+      ]
+    },
+    {
+      "path": "/sys/firmware/devicetree/base/soc/ssusb@a600000",
+      "compatible": "qcom,dwc-usb3-msm",
+      "reg_u32": [
+        174063616,
+        1018880,
+        143581184,
+        1024
+      ]
+    },
+    {
+      "path": "/sys/firmware/devicetree/base/soc/ssusb@a600000/dwc3@a600000",
+      "compatible": "snps,dwc3",
+      "reg_u32": [
+        174063616,
+        52480
+      ]
+    },
+    {
+      "path": "/sys/firmware/devicetree/base/soc/ssusb@a600000/qcom,usbbam@a704000",
+      "compatible": "qcom,usb-bam-msm",
+      "reg_u32": [
+        175128576,
+        94208
+      ]
+    },
+    {
+      "path": "/sys/firmware/devicetree/base/soc/ssusb@a800000/dwc3@a800000",
+      "compatible": "snps,dwc3",
+      "dr_mode": "host",
+      "reg_u32": [
+        176160768,
+        52480
+      ]
+    },
+    {
+      "path": "/sys/firmware/devicetree/base/soc/ssusb@a600000/dwc3@a600000",
+      "compatible": "snps,dwc3",
+      "reg_u32": [
+        174063616,
+        52480
+      ]
+    }
+  ],
+  "power_supply_names": [
+    "pc_port",
+    "dc",
+    "bms",
+    "main",
+    "usb",
+    "battery"
+  ],
+  "power_cached_metadata": {
+    "pc_port": {
+      "type": "USB"
+    },
+    "dc": {
+      "type": "Wireless"
+    },
+    "bms": {
+      "type": "BMS"
+    },
+    "main": {
+      "type": "Main"
+    },
+    "usb": {
+      "type": "USB_PD"
+    },
+    "battery": {
+      "type": "Battery"
+    }
+  },
+  "thermal": {
+    "thermal_zone61": {
+      "type": "vbat_low",
+      "temp": "4290"
+    },
+    "thermal_zone23": {
+      "type": "gold-virt-max-step",
+      "temp": "48100"
+    },
+    "thermal_zone51": {
+      "type": "mdm-dsp-lowf",
+      "temp": "46300"
+    },
+    "thermal_zone13": {
+      "type": "aoss1-usr",
+      "temp": "46900"
+    },
+    "thermal_zone41": {
+      "type": "cpu3-silver-lowf",
+      "temp": "48700"
+    },
+    "thermal_zone3": {
+      "type": "cpu2-silver-usr",
+      "temp": "49100"
+    },
+    "thermal_zone31": {
+      "type": "cpu2-gold-step",
+      "temp": "47100"
+    },
+    "thermal_zone21": {
+      "type": "gpu-virt-max-step",
+      "temp": "46400"
+    },
+    "thermal_zone11": {
+      "type": "gpu0-usr",
+      "temp": "45100"
+    },
+    "thermal_zone1": {
+      "type": "cpu0-silver-usr",
+      "temp": "51100"
+    },
+    "thermal_zone68": {
+      "type": "quiet-therm-adc",
+      "temp": "42732"
+    },
+    "thermal_zone58": {
+      "type": "ibat-high",
+      "temp": "720"
+    },
+    "thermal_zone48": {
+      "type": "gpu0-lowf",
+      "temp": "45100"
+    },
+    "thermal_zone38": {
+      "type": "cpu0-silver-lowf",
+      "temp": "51100"
+    },
+    "thermal_zone66": {
+      "type": "msm-therm-adc",
+      "temp": "43197"
+    },
+    "thermal_zone28": {
+      "type": "cpu3-silver-step",
+      "temp": "48700"
+    },
+    "thermal_zone56": {
+      "type": "mmss-lowf",
+      "temp": "45000"
+    },
+    "thermal_zone18": {
+      "type": "camera-usr",
+      "temp": "47600"
+    },
+    "thermal_zone46": {
+      "type": "cpu2-gold-lowf",
+      "temp": "46800"
+    },
+    "thermal_zone8": {
+      "type": "cpu1-gold-usr",
+      "temp": "47800"
+    },
+    "thermal_zone36": {
+      "type": "pm8005_tz",
+      "temp": "37000"
+    },
+    "thermal_zone64": {
+      "type": "pmi8998_tz",
+      "temp": "41682"
+    },
+    "thermal_zone26": {
+      "type": "cpu1-silver-step",
+      "temp": "51100"
+    },
+    "thermal_zone54": {
+      "type": "compute-hvx-lowf",
+      "temp": "46600"
+    },
+    "thermal_zone16": {
+      "type": "wlan-usr",
+      "temp": "47300"
+    },
+    "thermal_zone44": {
+      "type": "cpu0-gold-lowf",
+      "temp": "48400"
+    },
+    "thermal_zone6": {
+      "type": "kryo-l3-1-usr",
+      "temp": "50400"
+    },
+    "thermal_zone34": {
+      "type": "lmh-dcvs-00",
+      "temp": "75000"
+    },
+    "thermal_zone62": {
+      "type": "vbat_too_low",
+      "temp": "4368"
+    },
+    "thermal_zone24": {
+      "type": "pop-mem-step",
+      "temp": "46300"
+    },
+    "thermal_zone52": {
+      "type": "ddr-lowf",
+      "temp": "46300"
+    },
+    "thermal_zone14": {
+      "type": "mdm-dsp-usr",
+      "temp": "46300"
+    },
+    "thermal_zone42": {
+      "type": "kryo-l3-0-lowf",
+      "temp": "49700"
+    },
+    "thermal_zone4": {
+      "type": "cpu3-silver-usr",
+      "temp": "49100"
+    },
+    "thermal_zone70": {
+      "type": "bms",
+      "temp": "26000"
+    },
+    "thermal_zone32": {
+      "type": "cpu3-gold-step",
+      "temp": "47400"
+    },
+    "thermal_zone60": {
+      "type": "vbat",
+      "temp": "4368"
+    },
+    "thermal_zone22": {
+      "type": "silv-virt-max-step",
+      "temp": "51400"
+    },
+    "thermal_zone50": {
+      "type": "aoss1-lowf",
+      "temp": "46900"
+    },
+    "thermal_zone12": {
+      "type": "gpu1-usr",
+      "temp": "46100"
+    },
+    "thermal_zone40": {
+      "type": "cpu2-silver-lowf",
+      "temp": "49100"
+    },
+    "thermal_zone2": {
+      "type": "cpu1-silver-usr",
+      "temp": "51400"
+    },
+    "thermal_zone69": {
+      "type": "battery",
+      "temp": "26000"
+    },
+    "thermal_zone30": {
+      "type": "cpu1-gold-step",
+      "temp": "47800"
+    },
+    "thermal_zone59": {
+      "type": "ibat-vhigh",
+      "temp": "480"
+    },
+    "thermal_zone20": {
+      "type": "mdm-core-usr",
+      "temp": "46600"
+    },
+    "thermal_zone49": {
+      "type": "gpu1-lowf",
+      "temp": "46400"
+    },
+    "thermal_zone10": {
+      "type": "cpu3-gold-usr",
+      "temp": "47400"
+    },
+    "thermal_zone39": {
+      "type": "cpu1-silver-lowf",
+      "temp": "51100"
+    },
+    "thermal_zone0": {
+      "type": "aoss0-usr",
+      "temp": "47100"
+    },
+    "thermal_zone67": {
+      "type": "pa-therm1-adc",
+      "temp": "-40000"
+    },
+    "thermal_zone29": {
+      "type": "cpu0-gold-step",
+      "temp": "48400"
+    },
+    "thermal_zone57": {
+      "type": "mdm-core-lowf",
+      "temp": "46600"
+    },
+    "thermal_zone19": {
+      "type": "mmss-usr",
+      "temp": "45000"
+    },
+    "thermal_zone47": {
+      "type": "cpu3-gold-lowf",
+      "temp": "47100"
+    },
+    "thermal_zone9": {
+      "type": "cpu2-gold-usr",
+      "temp": "47100"
+    },
+    "thermal_zone37": {
+      "type": "aoss0-lowf",
+      "temp": "47100"
+    },
+    "thermal_zone65": {
+      "type": "xo-therm-adc",
+      "temp": "42732"
+    },
+    "thermal_zone27": {
+      "type": "cpu2-silver-step",
+      "temp": "48700"
+    },
+    "thermal_zone55": {
+      "type": "camera-lowf",
+      "temp": "47600"
+    },
+    "thermal_zone17": {
+      "type": "compute-hvx-usr",
+      "temp": "46600"
+    },
+    "thermal_zone45": {
+      "type": "cpu1-gold-lowf",
+      "temp": "47400"
+    },
+    "thermal_zone7": {
+      "type": "cpu0-gold-usr",
+      "temp": "48400"
+    },
+    "thermal_zone35": {
+      "type": "pm8998_tz",
+      "temp": "45958"
+    },
+    "thermal_zone63": {
+      "type": "soc",
+      "temp": "100"
+    },
+    "thermal_zone25": {
+      "type": "cpu0-silver-step",
+      "temp": "51100"
+    },
+    "thermal_zone53": {
+      "type": "wlan-lowf",
+      "temp": "47300"
+    },
+    "thermal_zone15": {
+      "type": "ddr-usr",
+      "temp": "46300"
+    },
+    "thermal_zone43": {
+      "type": "kryo-l3-1-lowf",
+      "temp": "50400"
+    },
+    "thermal_zone5": {
+      "type": "kryo-l3-0-usr",
+      "temp": "49700"
+    },
+    "thermal_zone33": {
+      "type": "lmh-dcvs-01",
+      "temp": "75000"
+    }
+  },
+  "processes": [
+    {
+      "pid": "2955",
+      "comm": "python",
+      "status": [
+        "State:\tS (sleeping)",
+        "VmSize:\t   16524 kB",
+        "VmRSS:\t    8532 kB",
+        "Threads:\t1"
+      ],
+      "exe": "/proc/2955/exe"
+    },
+    {
+      "pid": "7377",
+      "comm": "python",
+      "status": [
+        "State:\tS (sleeping)",
+        "VmSize:\t   28280 kB",
+        "VmRSS:\t   16396 kB",
+        "Threads:\t1"
+      ],
+      "exe": "/usr/local/pyenv/versions/3.11.4/bin/python3.11"
+    },
+    {
+      "pid": "7383",
+      "comm": "python",
+      "status": [
+        "State:\tS (sleeping)",
+        "VmSize:\t   18232 kB",
+        "VmRSS:\t   10276 kB",
+        "Threads:\t1"
+      ],
+      "exe": "/proc/7383/exe"
+    },
+    {
+      "pid": "15975",
+      "comm": "python3",
+      "status": [
+        "State:\tS (sleeping)",
+        "VmSize:\t  115328 kB",
+        "VmRSS:\t   51668 kB",
+        "Threads:\t1"
+      ],
+      "exe": "/usr/local/pyenv/versions/3.11.4/bin/python3.11"
+    },
+    {
+      "pid": "18526",
+      "comm": "python3",
+      "status": [
+        "State:\tS (sleeping)",
+        "VmSize:\t  533380 kB",
+        "VmRSS:\t   84776 kB",
+        "Threads:\t5"
+      ],
+      "exe": "/usr/local/pyenv/versions/3.11.4/bin/python3.11"
+    },
+    {
+      "pid": "24206",
+      "comm": "python",
+      "status": [
+        "State:\tS (sleeping)",
+        "VmSize:\t  196304 kB",
+        "VmRSS:\t   51292 kB",
+        "Threads:\t3"
+      ],
+      "exe": "/usr/local/pyenv/versions/3.11.4/bin/python3.11"
+    },
+    {
+      "pid": "24317",
+      "comm": "ui",
+      "status": [
+        "State:\tS (sleeping)",
+        "VmSize:\t 1100096 kB",
+        "VmRSS:\t  112556 kB",
+        "Threads:\t7"
+      ],
+      "exe": "/data/openpilot/selfdrive/ui/ui"
+    },
+    {
+      "pid": "24331",
+      "comm": "e.pandad.pandad",
+      "status": [
+        "State:\tS (sleeping)",
+        "VmSize:\t  533244 kB",
+        "VmRSS:\t   66432 kB",
+        "Threads:\t3"
+      ],
+      "exe": "/usr/local/pyenv/versions/3.11.4/bin/python3.11"
+    },
+    {
+      "pid": "24336",
+      "comm": "loggerd.deleter",
+      "status": [
+        "State:\tS (sleeping)",
+        "VmSize:\t  534292 kB",
+        "VmRSS:\t   65412 kB",
+        "Threads:\t3"
+      ],
+      "exe": "/usr/local/pyenv/versions/3.11.4/bin/python3.11"
+    },
+    {
+      "pid": "24344",
+      "comm": "dware.hardwared",
+      "status": [
+        "State:\tS (sleeping)",
+        "VmSize:\t  751072 kB",
+        "VmRSS:\t   79416 kB",
+        "Threads:\t7"
+      ],
+      "exe": "/usr/local/pyenv/versions/3.11.4/bin/python3.11"
+    },
+    {
+      "pid": "24400",
+      "comm": "em.mapd_manager",
+      "status": [
+        "State:\tS (sleeping)",
+        "VmSize:\t  563844 kB",
+        "VmRSS:\t   64996 kB",
+        "Threads:\t1"
+      ],
+      "exe": "/usr/local/pyenv/versions/3.11.4/bin/python3.11"
+    },
+    {
+      "pid": "24427",
+      "comm": "r.fleet_manager",
+      "status": [
+        "State:\tS (sleeping)",
+        "VmSize:\t  533284 kB",
+        "VmRSS:\t   65184 kB",
+        "Threads:\t2"
+      ],
+      "exe": "/usr/local/pyenv/versions/3.11.4/bin/python3.11"
+    },
+    {
+      "pid": "24444",
+      "comm": "python",
+      "status": [
+        "State:\tS (sleeping)",
+        "VmSize:\t  196308 kB",
+        "VmRSS:\t   51308 kB",
+        "Threads:\t3"
+      ],
+      "exe": "/usr/local/pyenv/versions/3.11.4/bin/python3.11"
+    },
+    {
+      "pid": "47030",
+      "comm": "pandad",
+      "status": [
+        "State:\tS (sleeping)",
+        "VmSize:\t  469108 kB",
+        "VmRSS:\t   24588 kB",
+        "Threads:\t8"
+      ],
+      "exe": "/data/openpilot/selfdrive/pandad/pandad"
+    },
+    {
+      "pid": "70244",
+      "comm": "python3.11",
+      "status": [
+        "State:\tS (sleeping)",
+        "VmSize:\t   18664 kB",
+        "VmRSS:\t   10008 kB",
+        "Threads:\t1"
+      ],
+      "exe": "/proc/70244/exe"
+    },
+    {
+      "pid": "70247",
+      "comm": "python3.11",
+      "status": [
+        "State:\tR (running)",
+        "VmSize:\t  423504 kB",
+        "VmRSS:\t  242712 kB",
+        "Threads:\t1"
+      ],
+      "exe": "/proc/70247/exe"
+    },
+    {
+      "pid": "70293",
+      "comm": "python3",
+      "status": [
+        "State:\tR (running)",
+        "VmSize:\t   23864 kB",
+        "VmRSS:\t   16092 kB",
+        "Threads:\t1"
+      ],
+      "exe": "/usr/bin/python3.8"
+    }
+  ],
+  "params": {
+    "DriverCameraHardwareMissing": "1",
+    "IsOnroad": "0",
+    "IsOffroad": "1"
+  },
+  "nodes": [
+    "/dev/video2",
+    "/dev/video1",
+    "/dev/video0",
+    "/dev/video33",
+    "/dev/video32",
+    "/dev/media1",
+    "/dev/media0",
+    "/dev/v4l-subdev14",
+    "/dev/v4l-subdev13",
+    "/dev/v4l-subdev12",
+    "/dev/v4l-subdev11",
+    "/dev/v4l-subdev10",
+    "/dev/v4l-subdev9",
+    "/dev/v4l-subdev8",
+    "/dev/v4l-subdev7",
+    "/dev/v4l-subdev6",
+    "/dev/v4l-subdev5",
+    "/dev/v4l-subdev4",
+    "/dev/v4l-subdev3",
+    "/dev/v4l-subdev2",
+    "/dev/v4l-subdev1",
+    "/dev/v4l-subdev0",
+    "/dev/spidev0.0",
+    "/dev/kgsl-3d0"
+  ],
+  "libraries": {
+    "returncode": 2,
+    "stdout": "",
+    "stderr": "dpkg-query: error: cannot scan updates directory '/var/lib/dpkg/updates/': No such file or directory"
+  },
+  "current_kernel_camera_usb": {
+    "returncode": 0,
+    "stdout": "[    7.420165] usb 1-1: new high-speed USB device number 2 using xhci-hcd\n[    7.900239] usb 1-1.2: new full-speed USB device number 3 using xhci-hcd\n[   19.190200] usb 1-1.1: new high-speed USB device number 4 using xhci-hcd\n[   28.490094] usb 1-1.2: new full-speed USB device number 5 using xhci-hcd",
+    "stderr": ""
+  }
+}

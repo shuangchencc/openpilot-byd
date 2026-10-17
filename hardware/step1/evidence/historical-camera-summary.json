@@ -1,0 +1,60 @@
+{
+  "schema": "songplus-historical-camera-summary/v1",
+  "prepared_date": "2026-10-18",
+  "classification": "redacted historical summary; not current-camera test",
+  "interpretation": "Historical slot 0 and 1 IDs 0x5803 match OX03C10 and road/wide encoders initialized 1928x1208. Sensor 2 failed in that historical run. AR0231 or OS04C10 mismatches are failed probes, not installed-sensor evidence.",
+  "sources": [
+    {
+      "archive_relative_to_original_workspace": "op_rootdir/var/log/kern.log",
+      "sha256": "5b5e7f8e744bb7cfc67363ac77ab1056cf84b5dd62e71cb223f2b989978397e7",
+      "required_for_offline_validation": false
+    },
+    {
+      "archive_relative_to_original_workspace": "op_rootdir/data/log/swaglog.0000029550",
+      "sha256": "980907c4afde966e16361d5a29999dbb006f37a12306f16bc77b6d3d7f6e19e8",
+      "required_for_offline_validation": false
+    }
+  ],
+  "kernel_excerpts": [
+    {
+      "source_line": 4261,
+      "kernel_monotonic_seconds": "9752.351187",
+      "message": "CAM_INFO: CAM-SENSOR: cam_sensor_driver_cmd: 768 Probe success,slot:1,slave_addr:0x20,sensor_id:0x5803"
+    },
+    {
+      "source_line": 4322,
+      "kernel_monotonic_seconds": "9752.600493",
+      "message": "CAM_INFO: CAM-SENSOR: cam_sensor_driver_cmd: 768 Probe success,slot:0,slave_addr:0x6c,sensor_id:0x5803"
+    },
+    {
+      "source_line": 4324,
+      "kernel_monotonic_seconds": "9752.660308",
+      "message": "CAM_INFO: CAM-SENSOR: cam_sensor_driver_cmd: 841 CAM_ACQUIRE_DEV Success, sensor_id:0x5803,sensor_slave_addr:0x6c"
+    }
+  ],
+  "application_excerpts": [
+    {
+      "source_line": 44,
+      "timestamp_utc": "2026-05-17T06:19:47.800225+00:00",
+      "message": "** sensor 2 FAILED bringup, disabling"
+    },
+    {
+      "source_line": 61,
+      "timestamp_utc": "2026-05-17T06:19:49.097566+00:00",
+      "message": "encoder road_cam_encoder init 1928x1208"
+    },
+    {
+      "source_line": 62,
+      "timestamp_utc": "2026-05-17T06:19:49.126782+00:00",
+      "message": "encoder wide_road_cam_encoder init 1928x1208"
+    }
+  ],
+  "sensor_2_failure_count_in_application_file": 1,
+  "not_proven": [
+    "current sensor operation",
+    "physical cabin camera presence",
+    "lens calibration",
+    "target AGNOS compatibility",
+    "current FPS/synchronization/image quality"
+  ]
+}

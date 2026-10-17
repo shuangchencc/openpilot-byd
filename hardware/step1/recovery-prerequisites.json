@@ -1,0 +1,1066 @@
+{
+  "schema": "songplus-step1-recovery-prerequisites/v1",
+  "created_at": "2026-10-18T01:27:51.245916+08:00",
+  "scope": "Historical local recovery evidence review plus comparison with the parent task's current Step 1 passive device observations; this review itself made no device connection.",
+  "device_connected_by_this_review": false,
+  "large_payloads_rehashed_this_review": false,
+  "archives_extracted_this_review": false,
+  "device_actions_performed": [],
+  "overall": "BACKUP_ARTIFACTS_AVAILABLE_RECOVERY_NOT_PROVEN",
+  "live_device_comparison": {
+    "state": "current_passive_observations_compared_to_historical_records",
+    "system_collected_utc": "2026-10-17T17:28:42.123983+00:00",
+    "recovery_collected_utc": "2026-10-17T17:28:46.165711+00:00",
+    "methods": [
+      "passive OS/file reads; no hardware control libraries",
+      "O_RDONLY bounded GPT metadata and installed software hashes; no mount, repair, ioctl, abctl or updater"
+    ],
+    "current_agnos": "10.1",
+    "kernel": "Linux 4.9.103+ aarch64 GNU/Linux",
+    "current_slot": "_b",
+    "current_root": "/dev/sda7",
+    "root_mount_readonly": true,
+    "inactive_slot_version_rechecked_this_pass": false,
+    "inactive_slot_12_4_claim_is_historical_only": true,
+    "gpt_disk_count": 6,
+    "gpt_header_count": 12,
+    "gpt_headers": [
+      {
+        "disk": "sda",
+        "header": "primary",
+        "signature_valid": true,
+        "header_crc_valid": true,
+        "entries_crc_valid": true,
+        "entries_sha256": "57f01b9b1f9b01cd7860073451f2bf234d96283883e5bd8b87cec4b300ca954b",
+        "entries_match_archived_20261017": true
+      },
+      {
+        "disk": "sda",
+        "header": "secondary",
+        "signature_valid": true,
+        "header_crc_valid": true,
+        "entries_crc_valid": true,
+        "entries_sha256": "57f01b9b1f9b01cd7860073451f2bf234d96283883e5bd8b87cec4b300ca954b",
+        "entries_match_archived_20261017": true
+      },
+      {
+        "disk": "sdb",
+        "header": "primary",
+        "signature_valid": true,
+        "header_crc_valid": true,
+        "entries_crc_valid": true,
+        "entries_sha256": "80c0ad78683ca629e096cd92ad5e6e8576ff220ba1515510e6a7f24c62c2c466",
+        "entries_match_archived_20261017": true
+      },
+      {
+        "disk": "sdb",
+        "header": "secondary",
+        "signature_valid": true,
+        "header_crc_valid": true,
+        "entries_crc_valid": true,
+        "entries_sha256": "80c0ad78683ca629e096cd92ad5e6e8576ff220ba1515510e6a7f24c62c2c466",
+        "entries_match_archived_20261017": true
+      },
+      {
+        "disk": "sdc",
+        "header": "primary",
+        "signature_valid": true,
+        "header_crc_valid": true,
+        "entries_crc_valid": true,
+        "entries_sha256": "1f5f1ef2ed88176d3a0a1e7943963c8d6f7b8016a2cf674438e2948305a3850c",
+        "entries_match_archived_20261017": true
+      },
+      {
+        "disk": "sdc",
+        "header": "secondary",
+        "signature_valid": true,
+        "header_crc_valid": true,
+        "entries_crc_valid": true,
+        "entries_sha256": "1f5f1ef2ed88176d3a0a1e7943963c8d6f7b8016a2cf674438e2948305a3850c",
+        "entries_match_archived_20261017": true
+      },
+      {
+        "disk": "sdd",
+        "header": "primary",
+        "signature_valid": true,
+        "header_crc_valid": true,
+        "entries_crc_valid": true,
+        "entries_sha256": "3553f8730f5c5ca9db454df3719fbbb19992f1a6e85ef913b7c66eadd6ed0bc4",
+        "entries_match_archived_20261017": true
+      },
+      {
+        "disk": "sdd",
+        "header": "secondary",
+        "signature_valid": true,
+        "header_crc_valid": true,
+        "entries_crc_valid": true,
+        "entries_sha256": "3553f8730f5c5ca9db454df3719fbbb19992f1a6e85ef913b7c66eadd6ed0bc4",
+        "entries_match_archived_20261017": true
+      },
+      {
+        "disk": "sde",
+        "header": "primary",
+        "signature_valid": true,
+        "header_crc_valid": true,
+        "entries_crc_valid": true,
+        "entries_sha256": "4f43d094ebcbcebdced44488a8b96070727f3c77e4ebf1c8ff434714b55d173b",
+        "entries_match_archived_20261017": true
+      },
+      {
+        "disk": "sde",
+        "header": "secondary",
+        "signature_valid": true,
+        "header_crc_valid": true,
+        "entries_crc_valid": false,
+        "entries_sha256": "4f43d094ebcbcebdced44488a8b96070727f3c77e4ebf1c8ff434714b55d173b",
+        "entries_match_archived_20261017": true
+      },
+      {
+        "disk": "sdf",
+        "header": "primary",
+        "signature_valid": true,
+        "header_crc_valid": true,
+        "entries_crc_valid": true,
+        "entries_sha256": "8f0528d3b9d838ef4fc5f266b96050c74fe2909c087a55472cf0734ec42cfc4a",
+        "entries_match_archived_20261017": true
+      },
+      {
+        "disk": "sdf",
+        "header": "secondary",
+        "signature_valid": true,
+        "header_crc_valid": true,
+        "entries_crc_valid": true,
+        "entries_sha256": "8f0528d3b9d838ef4fc5f266b96050c74fe2909c087a55472cf0734ec42cfc4a",
+        "entries_match_archived_20261017": true
+      }
+    ],
+    "all_primary_secondary_tables_identical": true,
+    "gpt_repaired": false,
+    "selected_software_file_comparisons": [
+      {
+        "installed_path_relative_to_openpilot": "panda/board/obj/panda.bin.signed",
+        "sha256": "ee84e94f177d75fc520af0fbafc922d7abac08c75d9127809a1d7bbf3b5ffd79",
+        "bytes": 71340,
+        "historical_manifest_sha256": "ee84e94f177d75fc520af0fbafc922d7abac08c75d9127809a1d7bbf3b5ffd79",
+        "matches_history": true,
+        "scope": "installed software file only; not a live MCU dump"
+      },
+      {
+        "installed_path_relative_to_openpilot": "panda/board/obj/panda_h7.bin.signed",
+        "sha256": "56b09af04cbd233729e467f3883af2cbc93582404ac0a3da0dded431e215a3e1",
+        "bytes": 79856,
+        "historical_manifest_sha256": "56b09af04cbd233729e467f3883af2cbc93582404ac0a3da0dded431e215a3e1",
+        "matches_history": true,
+        "scope": "installed software file only; not a live MCU dump"
+      },
+      {
+        "installed_path_relative_to_openpilot": "panda/board/obj/bootstub.panda.bin",
+        "sha256": "0a4e59b8c7055688c401d107719030420fadc9c9576ef481c6494fba250335cd",
+        "bytes": 14884,
+        "historical_manifest_sha256": "0a4e59b8c7055688c401d107719030420fadc9c9576ef481c6494fba250335cd",
+        "matches_history": true,
+        "scope": "installed software file only; not a live MCU dump"
+      },
+      {
+        "installed_path_relative_to_openpilot": "panda/board/obj/bootstub.panda_h7.bin",
+        "sha256": "e5cd376f69b99d8a19cfa699365200c2f9cea2f055a207ecd1cc6100b280f8f1",
+        "bytes": 16952,
+        "historical_manifest_sha256": "e5cd376f69b99d8a19cfa699365200c2f9cea2f055a207ecd1cc6100b280f8f1",
+        "matches_history": true,
+        "scope": "installed software file only; not a live MCU dump"
+      },
+      {
+        "installed_path_relative_to_openpilot": "panda/board/obj/version",
+        "sha256": "309a7ebe0e0b4a1f3f9ba49eb4732c43409a01e1b2d4c9c5a266a75120f25945",
+        "bytes": 18,
+        "historical_manifest_sha256": "309a7ebe0e0b4a1f3f9ba49eb4732c43409a01e1b2d4c9c5a266a75120f25945",
+        "matches_history": true,
+        "scope": "installed software file only; not a live MCU dump"
+      },
+      {
+        "installed_path_relative_to_openpilot": "build.json",
+        "sha256": "fd30a7f561e087cc707617002233163737ce10ecd4f42392d133961c6378e19b",
+        "bytes": 392,
+        "historical_manifest_sha256": "fd30a7f561e087cc707617002233163737ce10ecd4f42392d133961c6378e19b",
+        "matches_history": true,
+        "scope": "selected installed file only; does not verify whole application tree or runtime behavior"
+      },
+      {
+        "installed_path_relative_to_openpilot": "system/camerad/camerad",
+        "sha256": "7c102faa584829b46cee8c1e39d2f1063a429a7d140e3a8b114116aa36a219d8",
+        "bytes": 9582224,
+        "historical_manifest_sha256": "7c102faa584829b46cee8c1e39d2f1063a429a7d140e3a8b114116aa36a219d8",
+        "matches_history": true,
+        "scope": "selected installed file only; does not verify whole application tree or runtime behavior"
+      }
+    ],
+    "usb_recovery_observation": {
+      "roles": {
+        "/sys/class/dual_role_usb/otg_default": {
+          "mode": "none",
+          "power_role": "none",
+          "data_role": "none",
+          "supported_modes": "ufp dfp"
+        }
+      },
+      "udc": {
+        "a600000.dwc3": {
+          "state": "not attached",
+          "current_speed": "UNKNOWN",
+          "maximum_speed": "super-speed"
+        }
+      },
+      "gadget_bindings": {},
+      "interpretation": "Linux UDC is present but not attached, USB role is none and no bound gadget is reported; physical recovery port, EDL/fastboot and loader remain unverified."
+    },
+    "mount_pairing_observation": {
+      "root_partition": "system_b",
+      "dsp_partition": "dsp_a",
+      "firmware_partition": "modem_a",
+      "mounts": [
+        "/dev/root / ext4 ro,relatime,data=ordered 0 0",
+        "/dev/sda2 /persist ext4 ro,nosuid,nodev,noexec,relatime,discard,stripe=192,data=ordered 0 0",
+        "/dev/sda8 /systemrw ext4 rw,nodev,noexec,relatime,discard,noauto_da_alloc,stripe=192,data=ordered 0 0",
+        "/dev/sda10 /data ext4 rw,nosuid,nodev,noatime,nodiratime,discard,stripe=2,data=ordered 0 0",
+        "/dev/sde9 /dsp ext4 ro,relatime,data=ordered 0 0",
+        "/dev/sde4 /firmware vfat ro,relatime,fmask=0022,dmask=0022,codepage=437,iocharset=iso8859-1,shortname=mixed,errors=remount-ro 0 0"
+      ],
+      "interpretation": "Observed filesystem mounts span slot suffixes. Do not assume root slot suffix proves a complete matched runtime firmware set; investigate the board boot and mount design before proposing slot switching."
+    },
+    "current_data_available_bytes": 5377658880,
+    "limits": [
+      "No slot was switched or boot-tested.",
+      "No inactive system filesystem contents were read in this pass.",
+      "No full system/application/configuration snapshot or full image hash was captured.",
+      "No actual MCU firmware or bootstub dump was made.",
+      "No USB role change, recovery enumeration test, loader execution, GPT repair or firmware write was performed."
+    ]
+  },
+  "sources": [
+    {
+      "id": "preparation",
+      "path_relative_to_original_workspace": "migration-audit/recovery-backup-20261017/preparation-result.json",
+      "sha256": "4e2fafb4bf633acaf0d697656d6a49d010fafadadc0cc9480cf733895be1d593",
+      "bytes": 1491,
+      "evidence_class": "historical_local_evidence",
+      "required_for_repository_offline_validation": false
+    },
+    {
+      "id": "decision_matrix",
+      "path_relative_to_original_workspace": "migration-audit/recovery-backup-20261017/recovery-decision-matrix.json",
+      "sha256": "d4692388918dbf99ad24d2c8006cb99043b3625e40589a31522727e86b56f03a",
+      "bytes": 2325,
+      "evidence_class": "historical_local_evidence",
+      "required_for_repository_offline_validation": false
+    },
+    {
+      "id": "bundle_verification",
+      "path_relative_to_original_workspace": "migration-audit/recovery-backup-20261017/bundle-verification.json",
+      "sha256": "ec34222d10756e242683e59a99d55fb0b7595a75b5879cbddce18bd8f59dabed",
+      "bytes": 5382,
+      "evidence_class": "historical_local_evidence",
+      "required_for_repository_offline_validation": false
+    },
+    {
+      "id": "configuration_verification",
+      "path_relative_to_original_workspace": "migration-audit/recovery-backup-20261017/latest-configuration-verification.json",
+      "sha256": "499f0c77b5f975cce4196254e4be2375e55728dfa09a6ac76c1f400781c0d5ad",
+      "bytes": 124,
+      "evidence_class": "historical_local_evidence",
+      "required_for_repository_offline_validation": false
+    },
+    {
+      "id": "gpt_analysis",
+      "path_relative_to_original_workspace": "migration-audit/recovery-backup-20261017/gpt/gpt-analysis.json",
+      "sha256": "3cad7869251765ef06fecfcdfc8a5bec0a02f8049560c77e1898a005d486e7b0",
+      "bytes": 4214,
+      "evidence_class": "historical_local_evidence",
+      "required_for_repository_offline_validation": false
+    },
+    {
+      "id": "gpt_candidate",
+      "path_relative_to_original_workspace": "migration-audit/recovery-backup-20261017/gpt/sde-offline-repair-analysis.json",
+      "sha256": "7168c2fc44ff2352750ee976ac71e1065c32fb0de5d1b33f6b99c512b4aad347",
+      "bytes": 704,
+      "evidence_class": "historical_local_evidence",
+      "required_for_repository_offline_validation": false
+    },
+    {
+      "id": "panda_manifest",
+      "path_relative_to_original_workspace": "migration-audit/recovery-backup-20261017/panda-original/manifest.json",
+      "sha256": "36f588403552a23ed55a29ddd6e6bbcc8e598716843d2d97538d0cc12d7c085c",
+      "bytes": 881,
+      "evidence_class": "historical_local_evidence",
+      "required_for_repository_offline_validation": false
+    },
+    {
+      "id": "early_audit",
+      "path_relative_to_original_workspace": "migration-audit/rollback/audit-result.json",
+      "sha256": "1b70a8511ea39f1c58f5c82e4ea942a8a9f2688c5e6546b6a5e0af16cbe08b64",
+      "bytes": 7768,
+      "evidence_class": "historical_local_evidence",
+      "required_for_repository_offline_validation": false
+    },
+    {
+      "id": "slot_images",
+      "path_relative_to_original_workspace": "migration-audit/rollback/inactive-slot-verification.json",
+      "sha256": "a2590b1cb5894a803f607ba867db1795028b58a0d0a5fc59514dde6774b71673",
+      "bytes": 1386,
+      "evidence_class": "historical_local_evidence",
+      "required_for_repository_offline_validation": false
+    },
+    {
+      "id": "slot_layout",
+      "path_relative_to_original_workspace": "migration-audit/rollback/device-layout.txt",
+      "sha256": "9a2b8a21d52c6cdd4aca949ccc02b8ca6592158c7da4ee2cc22867929f921c8d",
+      "bytes": 9621,
+      "evidence_class": "historical_local_evidence",
+      "required_for_repository_offline_validation": false
+    },
+    {
+      "id": "usb_mapping",
+      "path_relative_to_original_workspace": "migration-audit/rollback/usb-controller-mapping.txt",
+      "sha256": "18156ddd5eee62b02ab613f74e0503b8e100d0dffddcba2ac809c85032554a5a",
+      "bytes": 727,
+      "evidence_class": "historical_local_evidence",
+      "required_for_repository_offline_validation": false
+    },
+    {
+      "id": "old_image_availability",
+      "path_relative_to_original_workspace": "migration-audit/rollback/old-image-availability.json",
+      "sha256": "aacfd5d41149de5cdf0f78275fec6c93e6605dd91f75e9d2b4e30fe698a4f743",
+      "bytes": 1461,
+      "evidence_class": "historical_local_evidence",
+      "required_for_repository_offline_validation": false
+    },
+    {
+      "id": "factory_inspection",
+      "path_relative_to_original_workspace": "migration-audit/sp2027-review-20261017/factory-evidence/factory-inspection-summary.json",
+      "sha256": "3674d5f77589f63bc20c4de3d3a9a0bf14706e6d923919f2a48fcc08c63ee58e",
+      "bytes": 2244,
+      "evidence_class": "historical_local_evidence",
+      "required_for_repository_offline_validation": false
+    },
+    {
+      "id": "research_summary",
+      "path_relative_to_original_workspace": "songplus-port-lab/research/evidence/summaries/recovery-backup.json",
+      "sha256": "8d7dd5299850580aa8953b0b96ac0970b309ac330f2aac85f06da97527fc9ccf",
+      "bytes": 2020,
+      "evidence_class": "historical_local_evidence",
+      "required_for_repository_offline_validation": false
+    },
+    {
+      "id": "official_lock",
+      "path_relative_to_original_workspace": "songplus-port-lab/upstream-lock.json",
+      "sha256": "8ddb483e54d83a80490671cbcf4cd92a6af93a36e8c7f4b27d053e32eb012947",
+      "bytes": 133337,
+      "evidence_class": "locked_official_source",
+      "required_for_repository_offline_validation": false
+    },
+    {
+      "id": "live_system",
+      "path_relative_to_repository": "hardware/step1/evidence/live-system.json",
+      "sha256": "2c81b0ff07859a545d587bed8dde970e64a23af6082dbebf12f5514e9e709fc1",
+      "bytes": 17455,
+      "evidence_class": "current_step1_live_readonly_collection",
+      "collected_utc": "2026-10-17T17:28:42.123983+00:00",
+      "required_for_repository_offline_validation": true
+    },
+    {
+      "id": "live_recovery",
+      "path_relative_to_repository": "hardware/step1/evidence/live-recovery.json",
+      "sha256": "04f47cff0f89158de9ec725c7ebc1cbab53bd32c7922cc22ff3ed6b9057b721e",
+      "bytes": 30791,
+      "evidence_class": "current_step1_live_readonly_collection",
+      "collected_utc": "2026-10-17T17:28:46.165711+00:00",
+      "required_for_repository_offline_validation": true
+    },
+    {
+      "id": "historical_software_comparison",
+      "path_relative_to_original_workspace": "migration-audit/source-comparison.json",
+      "sha256": "f67f6664b3c6cb9c7258fb9176071070d1ab9935e298744ba42cb3a3707870ea",
+      "bytes": 4781,
+      "evidence_class": "historical_local_evidence",
+      "required_for_repository_offline_validation": false
+    }
+  ],
+  "historical_verified": {
+    "as_of": "2026-10-17T20:06:24.411275+08:00",
+    "block_image_count": 13,
+    "block_raw_bytes": 30975074304,
+    "block_compressed_bytes": 3163905414,
+    "transport_integrity_passed": true,
+    "software_archive_members": 7503,
+    "configuration_files_verified": 182,
+    "configuration_atomic": false,
+    "full_userdata_block_image": false,
+    "active_slot_at_early_audit": "_b",
+    "active_agnos_at_early_audit": "10.1",
+    "inactive_slot_at_early_audit": "_a",
+    "inactive_agnos_at_early_audit": "12.4",
+    "inactive_bootchain_manifest_match_count": 6,
+    "inactive_system_manifest_match": false,
+    "inactive_system_checked_bytes": 5368709120,
+    "panda_file_version_label": "DEV-e26a80db-DEBUG",
+    "panda_files_are_live_mcu_dump": false,
+    "restore_rehearsal": false
+  },
+  "interpretation": [
+    "The later completed raw-image backup supersedes the earlier audit statement that active system and critical partitions had not been backed up.",
+    "The earlier inactive system_a hash covered the manifest-sized 5 GiB prefix, while the later raw backup covers the full 12,437,225,472-byte partition; these hashes are not directly comparable.",
+    "Both historical system partitions and boot/firmware logical units were captured, but userdata and cache were not preserved as complete block images. Selected software/configuration archives exclude recordings, logs and transient data.",
+    "Initial software/configuration tar had changed-file warnings. The subsequent 182-file configuration check passed but remained non-atomic.",
+    "The old AGNOS image URL checks were historical HTTP availability only. They are not proof of current availability, a locally cached exact C3XL factory image or compatible recovery loader.",
+    "The later SP2027 factory package is a different inspected application package (0.10.1, declared AGNOS 12.4 and Panda DEV-b0cd5291-RELEASE), not proof of an exact restore path for the current SP098 installation.",
+    "USB gadget configuration and a UDC in Linux do not establish a physically accessible recovery port, EDL/fastboot operation, or a compatible loader.",
+    "Running application, saved bootstub files, MCU contents, and provisioning are distinct evidence layers."
+  ],
+  "small_local_verifications": {
+    "summary_matches_latest_preparation": {
+      "block_image_count": true,
+      "block_raw_bytes": true,
+      "block_compressed_bytes": true,
+      "bundle_transport_integrity_passed": true,
+      "software_archive_members": true,
+      "gpt_finding": true,
+      "configuration_file_count": true,
+      "configuration_atomicity": true
+    },
+    "block_archives_presence_and_size_only": [
+      {
+        "name": "frp.img.gz",
+        "metadata_path_relative_to_original_workspace": "migration-audit/recovery-backup-20261017/frp.json",
+        "metadata_sha256": "2944f55cff7b51e16e50820b8b213a8877a8561ffda143c2340623db18bff633",
+        "present_now": true,
+        "current_compressed_bytes": 2322,
+        "size_matches_historical_metadata": true,
+        "raw_sha256_recorded_at_capture": "07854d2fef297a06ba81685e660c332de36d5d18d546927d30daad6d7fda1541",
+        "compressed_sha256_recorded_at_capture": "eaf4b3421fe979deff247b325eac7fce75493ab09e5971e0975616bba38d5316",
+        "raw_bytes_recorded_at_capture": 524288,
+        "captured_at": "2026-10-17T20:02:58+0800",
+        "payload_hash_recomputed_this_review": false
+      },
+      {
+        "name": "keystore.img.gz",
+        "metadata_path_relative_to_original_workspace": "migration-audit/recovery-backup-20261017/keystore.json",
+        "metadata_sha256": "31a204a2a78d30112b063bfec5a8e70fe6e89026812813696d7e768d7998bd69",
+        "present_now": true,
+        "current_compressed_bytes": 2322,
+        "size_matches_historical_metadata": true,
+        "raw_sha256_recorded_at_capture": "07854d2fef297a06ba81685e660c332de36d5d18d546927d30daad6d7fda1541",
+        "compressed_sha256_recorded_at_capture": "eaf4b3421fe979deff247b325eac7fce75493ab09e5971e0975616bba38d5316",
+        "raw_bytes_recorded_at_capture": 524288,
+        "captured_at": "2026-10-17T20:02:57+0800",
+        "payload_hash_recomputed_this_review": false
+      },
+      {
+        "name": "misc.img.gz",
+        "metadata_path_relative_to_original_workspace": "migration-audit/recovery-backup-20261017/misc.json",
+        "metadata_sha256": "939cdf6ae12a96d45f172e30a918958a9fe1d8ff7e1e774d029e11d26735312d",
+        "present_now": true,
+        "current_compressed_bytes": 4608,
+        "size_matches_historical_metadata": true,
+        "raw_sha256_recorded_at_capture": "30e14955ebf1352266dc2ff8067e68104607e750abb9d3b36582b8af909fcb58",
+        "compressed_sha256_recorded_at_capture": "e8e0eedcbc21a4e2dbe99e9fe2f1301f63ae5e64a51e793cb123d3229cc49ded",
+        "raw_bytes_recorded_at_capture": 1048576,
+        "captured_at": "2026-10-17T20:02:56+0800",
+        "payload_hash_recomputed_this_review": false
+      },
+      {
+        "name": "persist.img.gz",
+        "metadata_path_relative_to_original_workspace": "migration-audit/recovery-backup-20261017/persist.json",
+        "metadata_sha256": "798370fd59cb33f8a207b93148fdcf1ac9671a098ca7cf929ad88ee1d460cd37",
+        "present_now": true,
+        "current_compressed_bytes": 158673,
+        "size_matches_historical_metadata": true,
+        "raw_sha256_recorded_at_capture": "16f385755c262040833cc2949c997e2b2baf020d56d0ff33e8d1160ef96a7994",
+        "compressed_sha256_recorded_at_capture": "3c53e82c1ccabc921c4fc5b2160320bb9fdabd6ecff0413825c1245009dbc4ba",
+        "raw_bytes_recorded_at_capture": 33554432,
+        "captured_at": "2026-10-17T20:02:55+0800",
+        "payload_hash_recomputed_this_review": false
+      },
+      {
+        "name": "sdb.img.gz",
+        "metadata_path_relative_to_original_workspace": "migration-audit/recovery-backup-20261017/sdb.json",
+        "metadata_sha256": "e73cabc9d7847c85892478646c2e9af751620c7c8cbc706e36ec0616ae09b057",
+        "present_now": true,
+        "current_compressed_bytes": 2155290,
+        "size_matches_historical_metadata": true,
+        "raw_sha256_recorded_at_capture": "4366762af618f17c6c2e43033dd27c20029b3682d25e756fd8e86f84ee4672fb",
+        "compressed_sha256_recorded_at_capture": "d909c12429156694fd7cef05e26af8d8cee93f17f1e833dabe639fb77d7a84fa",
+        "raw_bytes_recorded_at_capture": 4194304,
+        "captured_at": "2026-10-17T20:03:02+0800",
+        "payload_hash_recomputed_this_review": false
+      },
+      {
+        "name": "sdc.img.gz",
+        "metadata_path_relative_to_original_workspace": "migration-audit/recovery-backup-20261017/sdc.json",
+        "metadata_sha256": "0714ecf95bf617eb66d48172bef3f3289a430f357ce7170fed7564ff54687f89",
+        "present_now": true,
+        "current_compressed_bytes": 2156929,
+        "size_matches_historical_metadata": true,
+        "raw_sha256_recorded_at_capture": "9a406a838c7116c14df77ef6a1a041fb8ea85cdad62feefac37cee53579f8624",
+        "compressed_sha256_recorded_at_capture": "c45c05576aba4dfbb7477216f3c4833324560ffcb1071215a3f2c9b308af8bdc",
+        "raw_bytes_recorded_at_capture": 4194304,
+        "captured_at": "2026-10-17T20:03:04+0800",
+        "payload_hash_recomputed_this_review": false
+      },
+      {
+        "name": "sdd.img.gz",
+        "metadata_path_relative_to_original_workspace": "migration-audit/recovery-backup-20261017/sdd.json",
+        "metadata_sha256": "dc378ea4271f7e10d03b948315d849ed820f685dab0e084ca508b813075e46be",
+        "present_now": true,
+        "current_compressed_bytes": 587616,
+        "size_matches_historical_metadata": true,
+        "raw_sha256_recorded_at_capture": "989a7f7cacaf3a82c693d3af78582d6d9069af323759abf2db982a748fb6352b",
+        "compressed_sha256_recorded_at_capture": "0878957880ad5d90bd6266d56b06e596f82b87e54571ab44422e15a6c3a9eae0",
+        "raw_bytes_recorded_at_capture": 134217728,
+        "captured_at": "2026-10-17T20:03:07+0800",
+        "payload_hash_recomputed_this_review": false
+      },
+      {
+        "name": "sde.img.gz",
+        "metadata_path_relative_to_original_workspace": "migration-audit/recovery-backup-20261017/sde.json",
+        "metadata_sha256": "12216eb982ede514dc1a18f477dba65093744f94823ba11e95cd0eaa3a1ddadf",
+        "present_now": true,
+        "current_compressed_bytes": 113233346,
+        "size_matches_historical_metadata": true,
+        "raw_sha256_recorded_at_capture": "6375da03821600c22a2cd1018c4155c5f5eae08e721806fdac925850d7bbd9d2",
+        "compressed_sha256_recorded_at_capture": "b691a7ad4b7f82b6ebcb18dc010500590ba797a93c6b968fa56d8a03c90866d2",
+        "raw_bytes_recorded_at_capture": 4294967296,
+        "captured_at": "2026-10-17T20:04:40+0800",
+        "payload_hash_recomputed_this_review": false
+      },
+      {
+        "name": "sdf.img.gz",
+        "metadata_path_relative_to_original_workspace": "migration-audit/recovery-backup-20261017/sdf.json",
+        "metadata_sha256": "d9c453388d0431ebfa779d3c1202e299d2fee063aa697645a5f96c14207f7d11",
+        "present_now": true,
+        "current_compressed_bytes": 11206015,
+        "size_matches_historical_metadata": true,
+        "raw_sha256_recorded_at_capture": "a324c3c96d6a29f85c16fdfa1e3408f58f83a71df6a0dea8ea1a8d1a64a56d55",
+        "compressed_sha256_recorded_at_capture": "bcb0576c0d9a950a3947677c80b7ab3f12097820f3a633901f3ceef0108bdad1",
+        "raw_bytes_recorded_at_capture": 1610612736,
+        "captured_at": "2026-10-17T20:05:03+0800",
+        "payload_hash_recomputed_this_review": false
+      },
+      {
+        "name": "ssd.img.gz",
+        "metadata_path_relative_to_original_workspace": "migration-audit/recovery-backup-20261017/ssd.json",
+        "metadata_sha256": "7697e8dfbc0882f18672e63c033df6a2371326b1142471aa2c2782ac1781ba74",
+        "present_now": true,
+        "current_compressed_bytes": 97,
+        "size_matches_historical_metadata": true,
+        "raw_sha256_recorded_at_capture": "55b041927239bb6d5ce1429affe738629c48bd8582fbce03889dcc597e93dae6",
+        "compressed_sha256_recorded_at_capture": "192b25e22cb6b47a98d110ffdf39309fd73bb7f91ef163c5b181d97689878fbf",
+        "raw_bytes_recorded_at_capture": 8192,
+        "captured_at": "2026-10-17T20:02:58+0800",
+        "payload_hash_recomputed_this_review": false
+      },
+      {
+        "name": "system_a.img.gz",
+        "metadata_path_relative_to_original_workspace": "migration-audit/recovery-backup-20261017/system_a.json",
+        "metadata_sha256": "db2d6b71a8035d94e1d2cca8fc716bd253d1835b54180951a957c94e5515436a",
+        "present_now": true,
+        "current_compressed_bytes": 1504245351,
+        "size_matches_historical_metadata": true,
+        "raw_sha256_recorded_at_capture": "324069f658c1d8012fadf21cd2d933f94dbc07fe21e4cb5b100884c5b8e6b7b9",
+        "compressed_sha256_recorded_at_capture": "390584dad330c72637022b925d47fe1ec5501ec4f1d92eea7cdc9c2ab5a7576b",
+        "raw_bytes_recorded_at_capture": 12437225472,
+        "captured_at": "2026-10-17T20:02:52+0800",
+        "payload_hash_recomputed_this_review": false
+      },
+      {
+        "name": "system_b.img.gz",
+        "metadata_path_relative_to_original_workspace": "migration-audit/recovery-backup-20261017/system_b.json",
+        "metadata_sha256": "35823770c5b8ccd9f95df815842c3500d254c48628f8d4c996e00fba06a868e8",
+        "present_now": true,
+        "current_compressed_bytes": 1530078930,
+        "size_matches_historical_metadata": true,
+        "raw_sha256_recorded_at_capture": "2f8ac5651352e08b8d79d7840564d93f89f8e01a65a3c309894f1b35898fbbba",
+        "compressed_sha256_recorded_at_capture": "b8c779aecf55726e1c55d685d39be0226b78ffa4a05392b89c67d67ce82a0408",
+        "raw_bytes_recorded_at_capture": 12437225472,
+        "captured_at": "2026-10-17T19:53:21+0800",
+        "payload_hash_recomputed_this_review": false
+      },
+      {
+        "name": "systemrw.img.gz",
+        "metadata_path_relative_to_original_workspace": "migration-audit/recovery-backup-20261017/systemrw.json",
+        "metadata_sha256": "a5243ec356a831c4e09b01fe3c9a277f4ff56b64389dcf444af698baf0fc33de",
+        "present_now": true,
+        "current_compressed_bytes": 73915,
+        "size_matches_historical_metadata": true,
+        "raw_sha256_recorded_at_capture": "6ed872964859d56f2a0671d94297f01126902a4623d8b957456f44deea6e0566",
+        "compressed_sha256_recorded_at_capture": "69d33adc9228bbdb390128a7408534d921464eb6e0c10358088fec6442325f17",
+        "raw_bytes_recorded_at_capture": 16777216,
+        "captured_at": "2026-10-17T20:03:00+0800",
+        "payload_hash_recomputed_this_review": false
+      }
+    ],
+    "panda_preserved_files_sha256": [
+      {
+        "name": "panda.bin.signed",
+        "bytes": 71340,
+        "sha256": "ee84e94f177d75fc520af0fbafc922d7abac08c75d9127809a1d7bbf3b5ffd79",
+        "matches_historical_manifest": true
+      },
+      {
+        "name": "panda_h7.bin.signed",
+        "bytes": 79856,
+        "sha256": "56b09af04cbd233729e467f3883af2cbc93582404ac0a3da0dded431e215a3e1",
+        "matches_historical_manifest": true
+      },
+      {
+        "name": "bootstub.panda.bin",
+        "bytes": 14884,
+        "sha256": "0a4e59b8c7055688c401d107719030420fadc9c9576ef481c6494fba250335cd",
+        "matches_historical_manifest": true
+      },
+      {
+        "name": "bootstub.panda_h7.bin",
+        "bytes": 16952,
+        "sha256": "e5cd376f69b99d8a19cfa699365200c2f9cea2f055a207ecd1cc6100b280f8f1",
+        "matches_historical_manifest": true
+      },
+      {
+        "name": "version",
+        "bytes": 18,
+        "sha256": "309a7ebe0e0b4a1f3f9ba49eb4732c43409a01e1b2d4c9c5a266a75120f25945",
+        "matches_historical_manifest": true
+      }
+    ],
+    "stored_historical_gpt_checks": [
+      {
+        "disk": "sda",
+        "header": "primary",
+        "header_sha256": "8a357b8181174515bc3586883de6e04249907b50bdec5e6c379fca2cc2fc1685",
+        "entries_sha256": "57f01b9b1f9b01cd7860073451f2bf234d96283883e5bd8b87cec4b300ca954b",
+        "signature_ok": true,
+        "header_crc_ok": true,
+        "entry_crc_ok": true
+      },
+      {
+        "disk": "sda",
+        "header": "physical_end",
+        "header_sha256": "520d1f2a5d6286f56faa96599a7bbfefe1ff28b5f8ca4cb84df33cfa8d0de2ad",
+        "entries_sha256": "57f01b9b1f9b01cd7860073451f2bf234d96283883e5bd8b87cec4b300ca954b",
+        "signature_ok": true,
+        "header_crc_ok": true,
+        "entry_crc_ok": true
+      },
+      {
+        "disk": "sda",
+        "header": "declared_backup",
+        "header_sha256": "520d1f2a5d6286f56faa96599a7bbfefe1ff28b5f8ca4cb84df33cfa8d0de2ad",
+        "entries_sha256": "57f01b9b1f9b01cd7860073451f2bf234d96283883e5bd8b87cec4b300ca954b",
+        "signature_ok": true,
+        "header_crc_ok": true,
+        "entry_crc_ok": true
+      },
+      {
+        "disk": "sdb",
+        "header": "primary",
+        "header_sha256": "a95964ed248b3d684c44d422b9da6abfcdbc38e995eb98a71b1143992d5afbaf",
+        "entries_sha256": "80c0ad78683ca629e096cd92ad5e6e8576ff220ba1515510e6a7f24c62c2c466",
+        "signature_ok": true,
+        "header_crc_ok": true,
+        "entry_crc_ok": true
+      },
+      {
+        "disk": "sdb",
+        "header": "physical_end",
+        "header_sha256": "f99e2a7deacc5e10a184948cef7fca5f15c17283338e3eb2d6b53a2f91ca3dcd",
+        "entries_sha256": "80c0ad78683ca629e096cd92ad5e6e8576ff220ba1515510e6a7f24c62c2c466",
+        "signature_ok": true,
+        "header_crc_ok": true,
+        "entry_crc_ok": true
+      },
+      {
+        "disk": "sdb",
+        "header": "declared_backup",
+        "header_sha256": "f99e2a7deacc5e10a184948cef7fca5f15c17283338e3eb2d6b53a2f91ca3dcd",
+        "entries_sha256": "80c0ad78683ca629e096cd92ad5e6e8576ff220ba1515510e6a7f24c62c2c466",
+        "signature_ok": true,
+        "header_crc_ok": true,
+        "entry_crc_ok": true
+      },
+      {
+        "disk": "sdc",
+        "header": "primary",
+        "header_sha256": "e129c03dfcc23b1998a204cc3895de93e035104a573c2d30b3acd55cf67222ce",
+        "entries_sha256": "1f5f1ef2ed88176d3a0a1e7943963c8d6f7b8016a2cf674438e2948305a3850c",
+        "signature_ok": true,
+        "header_crc_ok": true,
+        "entry_crc_ok": true
+      },
+      {
+        "disk": "sdc",
+        "header": "physical_end",
+        "header_sha256": "733200d3903fe43cfa1c0f894b51199481b118ad8ff9e6741fdcf0bf686b267e",
+        "entries_sha256": "1f5f1ef2ed88176d3a0a1e7943963c8d6f7b8016a2cf674438e2948305a3850c",
+        "signature_ok": true,
+        "header_crc_ok": true,
+        "entry_crc_ok": true
+      },
+      {
+        "disk": "sdc",
+        "header": "declared_backup",
+        "header_sha256": "733200d3903fe43cfa1c0f894b51199481b118ad8ff9e6741fdcf0bf686b267e",
+        "entries_sha256": "1f5f1ef2ed88176d3a0a1e7943963c8d6f7b8016a2cf674438e2948305a3850c",
+        "signature_ok": true,
+        "header_crc_ok": true,
+        "entry_crc_ok": true
+      },
+      {
+        "disk": "sdd",
+        "header": "primary",
+        "header_sha256": "58b2cae37dd6463fc00229c537b60c61cf949cbc5de9afc68d78b5baf404414f",
+        "entries_sha256": "3553f8730f5c5ca9db454df3719fbbb19992f1a6e85ef913b7c66eadd6ed0bc4",
+        "signature_ok": true,
+        "header_crc_ok": true,
+        "entry_crc_ok": true
+      },
+      {
+        "disk": "sdd",
+        "header": "physical_end",
+        "header_sha256": "d9564913f149454588cb6ade926d73930e986c642a072570e134cd123d8598f1",
+        "entries_sha256": "3553f8730f5c5ca9db454df3719fbbb19992f1a6e85ef913b7c66eadd6ed0bc4",
+        "signature_ok": true,
+        "header_crc_ok": true,
+        "entry_crc_ok": true
+      },
+      {
+        "disk": "sdd",
+        "header": "declared_backup",
+        "header_sha256": "d9564913f149454588cb6ade926d73930e986c642a072570e134cd123d8598f1",
+        "entries_sha256": "3553f8730f5c5ca9db454df3719fbbb19992f1a6e85ef913b7c66eadd6ed0bc4",
+        "signature_ok": true,
+        "header_crc_ok": true,
+        "entry_crc_ok": true
+      },
+      {
+        "disk": "sde",
+        "header": "primary",
+        "header_sha256": "d39aaa4edff5023eaf7ac6d00e1f1ff18e5cc6fb1130962ccffd122dda3e2d7c",
+        "entries_sha256": "4f43d094ebcbcebdced44488a8b96070727f3c77e4ebf1c8ff434714b55d173b",
+        "signature_ok": true,
+        "header_crc_ok": true,
+        "entry_crc_ok": true
+      },
+      {
+        "disk": "sde",
+        "header": "physical_end",
+        "header_sha256": "96f40f7d7addd094dd968777c6cdaed8119d1c3c165f504bd1ad1c157e7d9fb1",
+        "entries_sha256": "4f43d094ebcbcebdced44488a8b96070727f3c77e4ebf1c8ff434714b55d173b",
+        "signature_ok": true,
+        "header_crc_ok": true,
+        "entry_crc_ok": false
+      },
+      {
+        "disk": "sde",
+        "header": "declared_backup",
+        "header_sha256": "96f40f7d7addd094dd968777c6cdaed8119d1c3c165f504bd1ad1c157e7d9fb1",
+        "entries_sha256": "4f43d094ebcbcebdced44488a8b96070727f3c77e4ebf1c8ff434714b55d173b",
+        "signature_ok": true,
+        "header_crc_ok": true,
+        "entry_crc_ok": false
+      },
+      {
+        "disk": "sdf",
+        "header": "primary",
+        "header_sha256": "279f79724f4f9393602ba68c28f3629e6165313af5edbbfb35ee6c5746e94e18",
+        "entries_sha256": "8f0528d3b9d838ef4fc5f266b96050c74fe2909c087a55472cf0734ec42cfc4a",
+        "signature_ok": true,
+        "header_crc_ok": true,
+        "entry_crc_ok": true
+      },
+      {
+        "disk": "sdf",
+        "header": "physical_end",
+        "header_sha256": "5fdaabb4f28b984a4cd047ecdefb7159e003618123d79ab3f9bff4428340115c",
+        "entries_sha256": "8f0528d3b9d838ef4fc5f266b96050c74fe2909c087a55472cf0734ec42cfc4a",
+        "signature_ok": true,
+        "header_crc_ok": true,
+        "entry_crc_ok": true
+      },
+      {
+        "disk": "sdf",
+        "header": "declared_backup",
+        "header_sha256": "5fdaabb4f28b984a4cd047ecdefb7159e003618123d79ab3f9bff4428340115c",
+        "entries_sha256": "8f0528d3b9d838ef4fc5f266b96050c74fe2909c087a55472cf0734ec42cfc4a",
+        "signature_ok": true,
+        "header_crc_ok": true,
+        "entry_crc_ok": true
+      }
+    ],
+    "sde_primary_backup_entry_arrays_equal": true,
+    "method": "SHA-256 for listed small evidence files and Panda files; stat only for large archives; GPT signature plus zlib.crc32 of header with CRC field zeroed and declared entry array. No old collection/recovery script executed."
+  },
+  "official_baseline_comparison": {
+    "openpilot_commit": "35e78a9d9518855ec0dacec919e719624a28131f",
+    "agnos_required": "19.9",
+    "official_agnos_partition_images_downloaded": false,
+    "c3xl_restore_compatibility_verified": false,
+    "gap": "Current read-only observations confirm AGNOS 10.1 in B. AGNOS 12.4 in A is historical only, not rechecked. The pinned upstream expects AGNOS 19.9. Its seven A/B update image sizes fit the current fourteen target partitions, but firmware pairing, board boot compatibility and recovery remain unverified.",
+    "current_agnos": "10.1",
+    "historical_inactive_agnos": "12.4",
+    "partition_capacity_comparison": {
+      "scope": "Seven A/B update items from pinned agnos.json only; not a full all-partitions factory layout compatibility test.",
+      "formula": "(last_lba - first_lba + 1) * sector_bytes",
+      "items": [
+        {
+          "partition": "xbl_a",
+          "disk": "sdb",
+          "first_lba": 6,
+          "last_lba": 901,
+          "sector_bytes": 4096,
+          "bytes": 3670016,
+          "official_manifest_image_bytes": 3282256,
+          "capacity_sufficient": true,
+          "spare_bytes": 387760
+        },
+        {
+          "partition": "xbl_b",
+          "disk": "sdc",
+          "first_lba": 6,
+          "last_lba": 901,
+          "sector_bytes": 4096,
+          "bytes": 3670016,
+          "official_manifest_image_bytes": 3282256,
+          "capacity_sufficient": true,
+          "spare_bytes": 387760
+        },
+        {
+          "partition": "xbl_config_a",
+          "disk": "sdb",
+          "first_lba": 902,
+          "last_lba": 990,
+          "sector_bytes": 4096,
+          "bytes": 364544,
+          "official_manifest_image_bytes": 98124,
+          "capacity_sufficient": true,
+          "spare_bytes": 266420
+        },
+        {
+          "partition": "xbl_config_b",
+          "disk": "sdc",
+          "first_lba": 902,
+          "last_lba": 990,
+          "sector_bytes": 4096,
+          "bytes": 364544,
+          "official_manifest_image_bytes": 98124,
+          "capacity_sufficient": true,
+          "spare_bytes": 266420
+        },
+        {
+          "partition": "abl_a",
+          "disk": "sde",
+          "first_lba": 40966,
+          "last_lba": 41221,
+          "sector_bytes": 4096,
+          "bytes": 1048576,
+          "official_manifest_image_bytes": 274432,
+          "capacity_sufficient": true,
+          "spare_bytes": 774144
+        },
+        {
+          "partition": "abl_b",
+          "disk": "sde",
+          "first_lba": 107478,
+          "last_lba": 107733,
+          "sector_bytes": 4096,
+          "bytes": 1048576,
+          "official_manifest_image_bytes": 274432,
+          "capacity_sufficient": true,
+          "spare_bytes": 774144
+        },
+        {
+          "partition": "aop_a",
+          "disk": "sde",
+          "first_lba": 6,
+          "last_lba": 133,
+          "sector_bytes": 4096,
+          "bytes": 524288,
+          "official_manifest_image_bytes": 184364,
+          "capacity_sufficient": true,
+          "spare_bytes": 339924
+        },
+        {
+          "partition": "aop_b",
+          "disk": "sde",
+          "first_lba": 66518,
+          "last_lba": 66645,
+          "sector_bytes": 4096,
+          "bytes": 524288,
+          "official_manifest_image_bytes": 184364,
+          "capacity_sufficient": true,
+          "spare_bytes": 339924
+        },
+        {
+          "partition": "devcfg_a",
+          "disk": "sde",
+          "first_lba": 66182,
+          "last_lba": 66213,
+          "sector_bytes": 4096,
+          "bytes": 131072,
+          "official_manifest_image_bytes": 40336,
+          "capacity_sufficient": true,
+          "spare_bytes": 90736
+        },
+        {
+          "partition": "devcfg_b",
+          "disk": "sde",
+          "first_lba": 132694,
+          "last_lba": 132725,
+          "sector_bytes": 4096,
+          "bytes": 131072,
+          "official_manifest_image_bytes": 40336,
+          "capacity_sufficient": true,
+          "spare_bytes": 90736
+        },
+        {
+          "partition": "boot_a",
+          "disk": "sde",
+          "first_lba": 49542,
+          "last_lba": 65925,
+          "sector_bytes": 4096,
+          "bytes": 67108864,
+          "official_manifest_image_bytes": 46962688,
+          "capacity_sufficient": true,
+          "spare_bytes": 20146176
+        },
+        {
+          "partition": "boot_b",
+          "disk": "sde",
+          "first_lba": 116054,
+          "last_lba": 132437,
+          "sector_bytes": 4096,
+          "bytes": 67108864,
+          "official_manifest_image_bytes": 46962688,
+          "capacity_sufficient": true,
+          "spare_bytes": 20146176
+        },
+        {
+          "partition": "system_a",
+          "disk": "sda",
+          "first_lba": 8712,
+          "last_lba": 3045143,
+          "sector_bytes": 4096,
+          "bytes": 12437225472,
+          "official_manifest_image_bytes": 4718592000,
+          "capacity_sufficient": true,
+          "spare_bytes": 7718633472
+        },
+        {
+          "partition": "system_b",
+          "disk": "sda",
+          "first_lba": 3045144,
+          "last_lba": 6081575,
+          "sector_bytes": 4096,
+          "bytes": 12437225472,
+          "official_manifest_image_bytes": 4718592000,
+          "capacity_sufficient": true,
+          "spare_bytes": 7718633472
+        }
+      ],
+      "all_14_capacity_checks_passed": true,
+      "limitations": [
+        "Capacity sufficient does not establish bootloader, kernel, device-tree, camera, GPU/DSP or other board compatibility.",
+        "No official AGNOS partition image was downloaded, written or booted.",
+        "Free space in /data is separate from raw target partition capacity."
+      ]
+    }
+  },
+  "prerequisites": [
+    {
+      "id": "R1",
+      "topic": "exact_current_backup_set",
+      "state": "selected_current_files_match_history_full_snapshot_drift_unknown",
+      "historical_evidence": [
+        "preparation",
+        "bundle_verification",
+        "configuration_verification"
+      ],
+      "required_evidence": "Associate a fresh read-only software/OS/firmware inventory with this backup set; before a later authorized change, preserve changed configuration and exact software revisions without treating a live multi-file capture as atomic.",
+      "accepted_now": false,
+      "current_evidence": [
+        "live_system",
+        "live_recovery"
+      ],
+      "verified_this_pass": "Current OS/slot and seven selected software files compared; all five Panda-directory files, build.json and camerad match historical hashes. This is not a full-tree or configuration verification."
+    },
+    {
+      "id": "R2",
+      "topic": "host_recovery_transport_and_loader",
+      "state": "unverified",
+      "historical_evidence": [
+        "decision_matrix",
+        "usb_mapping"
+      ],
+      "required_evidence": "Identify the physical data-capable port and stable independent power arrangement. Record the protocol actually available on this board, compatible loader provenance and hash if required, host tools, partition mapping and preservation behavior. Enumeration/reboot/role-switch/recovery tests are outside this read-only pass.",
+      "accepted_now": false
+    },
+    {
+      "id": "R3",
+      "topic": "ab_slot_boot_and_shared_state",
+      "state": "current_partition_mapping_known_boot_fallback_unverified",
+      "historical_evidence": [
+        "early_audit",
+        "slot_images",
+        "slot_layout"
+      ],
+      "required_evidence": "Document current slot metadata and exact paired boot/system/firmware set. A later explicitly authorized test must establish boot success and recovery; switching slots cannot undo shared /data, persist, systemrw or Panda firmware.",
+      "accepted_now": false,
+      "current_evidence": [
+        "live_system",
+        "live_recovery"
+      ],
+      "verified_this_pass": "Current root is system_b; partition capacity map is known. dsp_a and modem_a filesystem mounts coexist with system_b; inactive version, boot success and paired firmware behavior not verified."
+    },
+    {
+      "id": "R4",
+      "topic": "gpt_before_any_write",
+      "state": "current_sde_backup_header_entry_crc_inconsistency_confirmed",
+      "historical_evidence": [
+        "gpt_analysis",
+        "gpt_candidate"
+      ],
+      "required_evidence": "The read-only comparison is complete and the anomaly remains. Before any later write, review current slot metadata and the specific effect of any proposed updater or repair; an old offline candidate is not authorization or a validated remedy.",
+      "accepted_now": false,
+      "current_evidence": [
+        "live_recovery"
+      ],
+      "verified_this_pass": "All twelve current entry-array hashes match corresponding historical arrays. sde secondary header CRC is valid but entry CRC is stale; all other header and entry CRCs pass. No repair."
+    },
+    {
+      "id": "R5",
+      "topic": "panda_dos_recovery",
+      "state": "files_preserved_transport_and_running_bootstub_unverified",
+      "historical_evidence": [
+        "panda_manifest",
+        "decision_matrix",
+        "early_audit"
+      ],
+      "required_evidence": "Map each actual board/MCU and connection to the proper application and bootstub; verify recovery access and provisioning preservation on that board before any later authorized firmware change. Source-directory firmware files and version strings do not prove the bytes installed on the MCU.",
+      "accepted_now": false,
+      "current_evidence": [
+        "live_recovery"
+      ],
+      "verified_this_pass": "All five installed Panda-directory file hashes match the stored manifest, without proving actual running MCU application or bootstub bytes."
+    },
+    {
+      "id": "R6",
+      "topic": "end_to_end_restore",
+      "state": "never_rehearsed",
+      "historical_evidence": [
+        "preparation",
+        "decision_matrix"
+      ],
+      "required_evidence": "A separately authorized recovery rehearsal must demonstrate boot, original application and parameters, cameras/driver monitoring, audible alerts, Panda identification and communication. Hash integrity alone is not restoration proof.",
+      "accepted_now": false
+    }
+  ],
+  "privacy": "No keys, raw configuration, device identifiers, network address, firmware payload, block image or recovery loader copied into this report.",
+  "updated_at": "2026-10-18T01:30:36.751558+08:00",
+  "live_device_evidence_included": true
+}

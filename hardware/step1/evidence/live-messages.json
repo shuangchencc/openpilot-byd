@@ -1,0 +1,684 @@
+{
+  "schema": "songplus-readonly-state-summary/v1",
+  "collected_utc": "2026-10-17T17:34:29.957962+00:00",
+  "method": "O_RDONLY pread of existing queues; no reader registration or package imports",
+  "raw_snapshot_sha256": "53cd361e5976049b92a791c51eec5677f276c8243e3fa11bdb3d4c125bd23173",
+  "decoder_sha256": "0298e9151ade70c53a32f747f5bf6c9642d24b89fc6a6c7549ecb1336634e456",
+  "local_parser": {
+    "package": "pycapnp",
+    "version": "2.1.0"
+  },
+  "legacy_schema_sha256": {
+    "log.capnp": "5b2bcbf12be59203b9666b4d5193aecdb58e58852f713cfdf0cee1f7a4e8cdb0",
+    "car.capnp": "4d3e7321bc9d8dc4aa77816bfe882ebfdbf9a19f2b07de640d1b2c26f04434b8",
+    "custom.capnp": "d121160319662e953c34cc1458b361c002281b1a7ad628a2f60de29e932567fa",
+    "legacy.capnp": "4ab15bad593a3433dab2d3c8f9951fa4fbadea2074ca0ebb082139ed38f25131",
+    "include/c++.capnp": "fb306076cd38c27af1aed20fac6395e9a46fbe5b5df6a248b5f1b6845a079c44"
+  },
+  "freshness_verified": true,
+  "freshness_rule": "Two valid frames per service, increasing event.logMonoTime, each captured within 0..2 seconds of its device monotonic timestamp",
+  "services": {
+    "deviceState": {
+      "fresh_and_advancing": true,
+      "samples": [
+        {
+          "valid": true,
+          "event_monotonic_ns": 2769809668919,
+          "collected_monotonic_ns": 2769851090996,
+          "age_seconds": 0.041422,
+          "frame_sha256": "2b95388fcac5c1dadab8c9769ed08ef9e2c82c850706b6bc98a76c49f9a2fb88",
+          "fields": {
+            "deviceType": "tici",
+            "started": false,
+            "memoryUsagePercent": 30,
+            "gpuUsagePercent": 0,
+            "cpuTempC": [
+              46.400001525878906,
+              47.79999923706055,
+              48.099998474121094,
+              47.400001525878906,
+              45.400001525878906,
+              45.400001525878906,
+              45.099998474121094,
+              45.400001525878906
+            ],
+            "gpuTempC": [
+              43.79999923706055,
+              44.79999923706055
+            ],
+            "thermalStatus": "green"
+          }
+        },
+        {
+          "valid": true,
+          "event_monotonic_ns": 2770808643189,
+          "collected_monotonic_ns": 2771080118587,
+          "age_seconds": 0.271475,
+          "frame_sha256": "cebac8104d6ff86710136031405eb02a587415014789e3f651dcab202723732c",
+          "fields": {
+            "deviceType": "tici",
+            "started": false,
+            "memoryUsagePercent": 30,
+            "gpuUsagePercent": 0,
+            "cpuTempC": [
+              47.099998474121094,
+              47.400001525878906,
+              47.400001525878906,
+              47.79999923706055,
+              45.400001525878906,
+              45.400001525878906,
+              45.099998474121094,
+              45.400001525878906
+            ],
+            "gpuTempC": [
+              43.79999923706055,
+              44.79999923706055
+            ],
+            "thermalStatus": "green"
+          }
+        }
+      ]
+    },
+    "pandaStates": {
+      "fresh_and_advancing": true,
+      "samples": [
+        {
+          "valid": true,
+          "event_monotonic_ns": 2769806590945,
+          "collected_monotonic_ns": 2769898528816,
+          "age_seconds": 0.091938,
+          "frame_sha256": "9f634e7eef9e27d972ea4df5799d2e1af981047588238d04905802b32caf50f1",
+          "fields": [
+            {
+              "pandaType": "dos",
+              "ignitionLine": false,
+              "ignitionCan": false,
+              "uptime": 2869,
+              "harnessStatus": "notConnected",
+              "safetyModel": "noOutput",
+              "safetyParam": 0,
+              "controlsAllowed": false,
+              "heartbeatLost": false,
+              "faultStatus": "none"
+            }
+          ]
+        },
+        {
+          "valid": true,
+          "event_monotonic_ns": 2772105275531,
+          "collected_monotonic_ns": 2772191953326,
+          "age_seconds": 0.086678,
+          "frame_sha256": "d2547918b0d7a400579dbbaa3959822246604df557da07148fce7f9183337cbc",
+          "fields": [
+            {
+              "pandaType": "dos",
+              "ignitionLine": false,
+              "ignitionCan": false,
+              "uptime": 2872,
+              "harnessStatus": "notConnected",
+              "safetyModel": "noOutput",
+              "safetyParam": 0,
+              "controlsAllowed": false,
+              "heartbeatLost": false,
+              "faultStatus": "none"
+            }
+          ]
+        }
+      ]
+    },
+    "managerState": {
+      "fresh_and_advancing": true,
+      "samples": [
+        {
+          "valid": true,
+          "event_monotonic_ns": 2769824817646,
+          "collected_monotonic_ns": 2770045791313,
+          "age_seconds": 0.220974,
+          "frame_sha256": "6da02c0b5b474a7b8e585a052961d406cca3012844254afde6ba6d4ca4809d20",
+          "fields": [
+            {
+              "name": "manage_athenad",
+              "running": false,
+              "shouldBeRunning": false,
+              "exitCode": 0
+            },
+            {
+              "name": "camerad",
+              "running": false,
+              "shouldBeRunning": false,
+              "exitCode": 0
+            },
+            {
+              "name": "logcatd",
+              "running": false,
+              "shouldBeRunning": false,
+              "exitCode": 0
+            },
+            {
+              "name": "proclogd",
+              "running": false,
+              "shouldBeRunning": false,
+              "exitCode": 0
+            },
+            {
+              "name": "logmessaged",
+              "running": true,
+              "shouldBeRunning": true,
+              "exitCode": 0
+            },
+            {
+              "name": "micd",
+              "running": false,
+              "shouldBeRunning": false,
+              "exitCode": 0
+            },
+            {
+              "name": "timed",
+              "running": true,
+              "shouldBeRunning": true,
+              "exitCode": 0
+            },
+            {
+              "name": "dmonitoringmodeld",
+              "running": false,
+              "shouldBeRunning": false,
+              "exitCode": 0
+            },
+            {
+              "name": "encoderd",
+              "running": false,
+              "shouldBeRunning": false,
+              "exitCode": 0
+            },
+            {
+              "name": "stream_encoderd",
+              "running": false,
+              "shouldBeRunning": false,
+              "exitCode": 0
+            },
+            {
+              "name": "loggerd",
+              "running": false,
+              "shouldBeRunning": false,
+              "exitCode": 0
+            },
+            {
+              "name": "modeld",
+              "running": false,
+              "shouldBeRunning": false,
+              "exitCode": 0
+            },
+            {
+              "name": "mapsd",
+              "running": false,
+              "shouldBeRunning": false,
+              "exitCode": 0
+            },
+            {
+              "name": "navmodeld",
+              "running": false,
+              "shouldBeRunning": false,
+              "exitCode": 0
+            },
+            {
+              "name": "sensord",
+              "running": false,
+              "shouldBeRunning": false,
+              "exitCode": 0
+            },
+            {
+              "name": "ui",
+              "running": true,
+              "shouldBeRunning": true,
+              "exitCode": 0
+            },
+            {
+              "name": "soundd",
+              "running": false,
+              "shouldBeRunning": false,
+              "exitCode": 0
+            },
+            {
+              "name": "locationd",
+              "running": false,
+              "shouldBeRunning": false,
+              "exitCode": 0
+            },
+            {
+              "name": "pandad",
+              "running": true,
+              "shouldBeRunning": true,
+              "exitCode": 0
+            },
+            {
+              "name": "calibrationd",
+              "running": false,
+              "shouldBeRunning": false,
+              "exitCode": 0
+            },
+            {
+              "name": "torqued",
+              "running": false,
+              "shouldBeRunning": false,
+              "exitCode": 0
+            },
+            {
+              "name": "controlsd",
+              "running": false,
+              "shouldBeRunning": false,
+              "exitCode": 0
+            },
+            {
+              "name": "card",
+              "running": false,
+              "shouldBeRunning": false,
+              "exitCode": 0
+            },
+            {
+              "name": "deleter",
+              "running": true,
+              "shouldBeRunning": true,
+              "exitCode": 0
+            },
+            {
+              "name": "dmonitoringd",
+              "running": false,
+              "shouldBeRunning": false,
+              "exitCode": 0
+            },
+            {
+              "name": "paramsd",
+              "running": false,
+              "shouldBeRunning": false,
+              "exitCode": 0
+            },
+            {
+              "name": "ubloxd",
+              "running": false,
+              "shouldBeRunning": false,
+              "exitCode": 0
+            },
+            {
+              "name": "pigeond",
+              "running": false,
+              "shouldBeRunning": false,
+              "exitCode": 0
+            },
+            {
+              "name": "plannerd",
+              "running": false,
+              "shouldBeRunning": false,
+              "exitCode": 0
+            },
+            {
+              "name": "radard",
+              "running": false,
+              "shouldBeRunning": false,
+              "exitCode": 0
+            },
+            {
+              "name": "hardwared",
+              "running": true,
+              "shouldBeRunning": true,
+              "exitCode": 0
+            },
+            {
+              "name": "tombstoned",
+              "running": true,
+              "shouldBeRunning": true,
+              "exitCode": 0
+            },
+            {
+              "name": "uploader",
+              "running": true,
+              "shouldBeRunning": true,
+              "exitCode": 0
+            },
+            {
+              "name": "mapd",
+              "running": true,
+              "shouldBeRunning": true,
+              "exitCode": 0
+            },
+            {
+              "name": "mapd_manager",
+              "running": true,
+              "shouldBeRunning": true,
+              "exitCode": 0
+            },
+            {
+              "name": "otisserv",
+              "running": true,
+              "shouldBeRunning": true,
+              "exitCode": 0
+            },
+            {
+              "name": "fleet_manager",
+              "running": true,
+              "shouldBeRunning": true,
+              "exitCode": 0
+            },
+            {
+              "name": "bridge",
+              "running": false,
+              "shouldBeRunning": false,
+              "exitCode": 0
+            },
+            {
+              "name": "webrtcd",
+              "running": false,
+              "shouldBeRunning": false,
+              "exitCode": 0
+            },
+            {
+              "name": "webjoystick",
+              "running": false,
+              "shouldBeRunning": false,
+              "exitCode": 0
+            },
+            {
+              "name": "manage_sunnylinkd",
+              "running": false,
+              "shouldBeRunning": false,
+              "exitCode": 0
+            },
+            {
+              "name": "sunnylink_uploader",
+              "running": true,
+              "shouldBeRunning": true,
+              "exitCode": 0
+            },
+            {
+              "name": "gitlab_runner_start",
+              "running": true,
+              "shouldBeRunning": true,
+              "exitCode": 0
+            },
+            {
+              "name": "gitlab_runner_stop",
+              "running": false,
+              "shouldBeRunning": false,
+              "exitCode": 0
+            }
+          ]
+        },
+        {
+          "valid": true,
+          "event_monotonic_ns": 2770862287580,
+          "collected_monotonic_ns": 2771137660315,
+          "age_seconds": 0.275373,
+          "frame_sha256": "2834d8b015b74fb141dbb1ba7968ceb6c82cff0cb9c37b13b856d152dfb28273",
+          "fields": [
+            {
+              "name": "manage_athenad",
+              "running": false,
+              "shouldBeRunning": false,
+              "exitCode": 0
+            },
+            {
+              "name": "camerad",
+              "running": false,
+              "shouldBeRunning": false,
+              "exitCode": 0
+            },
+            {
+              "name": "logcatd",
+              "running": false,
+              "shouldBeRunning": false,
+              "exitCode": 0
+            },
+            {
+              "name": "proclogd",
+              "running": false,
+              "shouldBeRunning": false,
+              "exitCode": 0
+            },
+            {
+              "name": "logmessaged",
+              "running": true,
+              "shouldBeRunning": true,
+              "exitCode": 0
+            },
+            {
+              "name": "micd",
+              "running": false,
+              "shouldBeRunning": false,
+              "exitCode": 0
+            },
+            {
+              "name": "timed",
+              "running": true,
+              "shouldBeRunning": true,
+              "exitCode": 0
+            },
+            {
+              "name": "dmonitoringmodeld",
+              "running": false,
+              "shouldBeRunning": false,
+              "exitCode": 0
+            },
+            {
+              "name": "encoderd",
+              "running": false,
+              "shouldBeRunning": false,
+              "exitCode": 0
+            },
+            {
+              "name": "stream_encoderd",
+              "running": false,
+              "shouldBeRunning": false,
+              "exitCode": 0
+            },
+            {
+              "name": "loggerd",
+              "running": false,
+              "shouldBeRunning": false,
+              "exitCode": 0
+            },
+            {
+              "name": "modeld",
+              "running": false,
+              "shouldBeRunning": false,
+              "exitCode": 0
+            },
+            {
+              "name": "mapsd",
+              "running": false,
+              "shouldBeRunning": false,
+              "exitCode": 0
+            },
+            {
+              "name": "navmodeld",
+              "running": false,
+              "shouldBeRunning": false,
+              "exitCode": 0
+            },
+            {
+              "name": "sensord",
+              "running": false,
+              "shouldBeRunning": false,
+              "exitCode": 0
+            },
+            {
+              "name": "ui",
+              "running": true,
+              "shouldBeRunning": true,
+              "exitCode": 0
+            },
+            {
+              "name": "soundd",
+              "running": false,
+              "shouldBeRunning": false,
+              "exitCode": 0
+            },
+            {
+              "name": "locationd",
+              "running": false,
+              "shouldBeRunning": false,
+              "exitCode": 0
+            },
+            {
+              "name": "pandad",
+              "running": true,
+              "shouldBeRunning": true,
+              "exitCode": 0
+            },
+            {
+              "name": "calibrationd",
+              "running": false,
+              "shouldBeRunning": false,
+              "exitCode": 0
+            },
+            {
+              "name": "torqued",
+              "running": false,
+              "shouldBeRunning": false,
+              "exitCode": 0
+            },
+            {
+              "name": "controlsd",
+              "running": false,
+              "shouldBeRunning": false,
+              "exitCode": 0
+            },
+            {
+              "name": "card",
+              "running": false,
+              "shouldBeRunning": false,
+              "exitCode": 0
+            },
+            {
+              "name": "deleter",
+              "running": true,
+              "shouldBeRunning": true,
+              "exitCode": 0
+            },
+            {
+              "name": "dmonitoringd",
+              "running": false,
+              "shouldBeRunning": false,
+              "exitCode": 0
+            },
+            {
+              "name": "paramsd",
+              "running": false,
+              "shouldBeRunning": false,
+              "exitCode": 0
+            },
+            {
+              "name": "ubloxd",
+              "running": false,
+              "shouldBeRunning": false,
+              "exitCode": 0
+            },
+            {
+              "name": "pigeond",
+              "running": false,
+              "shouldBeRunning": false,
+              "exitCode": 0
+            },
+            {
+              "name": "plannerd",
+              "running": false,
+              "shouldBeRunning": false,
+              "exitCode": 0
+            },
+            {
+              "name": "radard",
+              "running": false,
+              "shouldBeRunning": false,
+              "exitCode": 0
+            },
+            {
+              "name": "hardwared",
+              "running": true,
+              "shouldBeRunning": true,
+              "exitCode": 0
+            },
+            {
+              "name": "tombstoned",
+              "running": true,
+              "shouldBeRunning": true,
+              "exitCode": 0
+            },
+            {
+              "name": "uploader",
+              "running": true,
+              "shouldBeRunning": true,
+              "exitCode": 0
+            },
+            {
+              "name": "mapd",
+              "running": true,
+              "shouldBeRunning": true,
+              "exitCode": 0
+            },
+            {
+              "name": "mapd_manager",
+              "running": true,
+              "shouldBeRunning": true,
+              "exitCode": 0
+            },
+            {
+              "name": "otisserv",
+              "running": true,
+              "shouldBeRunning": true,
+              "exitCode": 0
+            },
+            {
+              "name": "fleet_manager",
+              "running": true,
+              "shouldBeRunning": true,
+              "exitCode": 0
+            },
+            {
+              "name": "bridge",
+              "running": false,
+              "shouldBeRunning": false,
+              "exitCode": 0
+            },
+            {
+              "name": "webrtcd",
+              "running": false,
+              "shouldBeRunning": false,
+              "exitCode": 0
+            },
+            {
+              "name": "webjoystick",
+              "running": false,
+              "shouldBeRunning": false,
+              "exitCode": 0
+            },
+            {
+              "name": "manage_sunnylinkd",
+              "running": false,
+              "shouldBeRunning": false,
+              "exitCode": 0
+            },
+            {
+              "name": "sunnylink_uploader",
+              "running": true,
+              "shouldBeRunning": true,
+              "exitCode": 0
+            },
+            {
+              "name": "gitlab_runner_start",
+              "running": true,
+              "shouldBeRunning": true,
+              "exitCode": 0
+            },
+            {
+              "name": "gitlab_runner_stop",
+              "running": false,
+              "shouldBeRunning": false,
+              "exitCode": 0
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "device_files_written_by_collector": false,
+  "ipc_reader_registration": false,
+  "scope": "Whitelisted existing state metadata only; no CAN/vehicle protocol, camera image or new target runtime validation"
+}

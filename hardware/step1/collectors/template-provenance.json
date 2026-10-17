@@ -1,0 +1,20 @@
+[
+  {
+    "source_relative_to_original_workspace": "migration-audit/c3xl-chestnut-20261018/collect_passive_system.py",
+    "source_sha256": "e96c05197c9bf7a9cf90b31d93b6d679beff7321c4e8c8e17bc829d8b4597cf2",
+    "destination": "hardware/step1/collectors/system.py",
+    "note": "Local prior read-only collector used as initial template; current copy separately reviewed before use."
+  },
+  {
+    "source_relative_to_original_workspace": "migration-audit/c3xl-chestnut-20261018/collect_passive_details.py",
+    "source_sha256": "7d9c624424531bc7e53c37d5acfa32be937235a9121a804254e1ae619d6939f2",
+    "destination": "hardware/step1/collectors/details.py",
+    "note": "Local prior read-only collector used as initial template; current copy separately reviewed before use."
+  },
+  {
+    "source_relative_to_original_workspace": "migration-audit/c3xl-chestnut-20261018/observe_existing_messages.py",
+    "source_sha256": "e1dcc309e22c34f7b49afe8aaeb723cd988c9251e137041f8deb8a19f1ba2e84",
+    "destination": "hardware/step1/collectors/messages.py",
+    "note": "Local prior read-only collector used as initial template; current copy separately reviewed before use."
+  }
+]

@@ -1,0 +1,13 @@
+{
+  "schema": "songplus-readonly-inspection/v1",
+  "phase": "system",
+  "collected_at_utc": "2026-10-17T17:28:44.497854+00:00",
+  "source_sha256": "e96c05197c9bf7a9cf90b31d93b6d679beff7321c4e8c8e17bc829d8b4597cf2",
+  "exit_code": 0,
+  "stdout_sha256": "2c81b0ff07859a545d587bed8dde970e64a23af6082dbebf12f5514e9e709fc1",
+  "valid_json": true,
+  "device_files_written_by_collector": false,
+  "firmware_flash": false,
+  "ipc_reader_registration": false,
+  "note": "SSH/system logging and normal running services may update their own state; collectors never publish control messages."
+}

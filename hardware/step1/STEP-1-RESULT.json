@@ -1,0 +1,184 @@
+{
+  "schema": "songplus-step1-acceptance/v1",
+  "recorded_at_utc": "2026-10-17T17:35:20.392660+00:00",
+  "status": "READONLY_AUDIT_COMPLETE_WITH_GAPS",
+  "device_runtime_compatibility_confirmed": false,
+  "recovery_capability_confirmed": false,
+  "deployment_ready": false,
+  "official_commit": "35e78a9d9518855ec0dacec919e719624a28131f",
+  "previous_step_commit": "b739b4a",
+  "observed_time_range_utc": [
+    "2026-10-17T17:28:42.123983+00:00",
+    "2026-10-17T17:34:29.957962+00:00"
+  ],
+  "evidence_manifest": "hardware/step1/evidence-manifest.json",
+  "official_source_comparison": "hardware/step1/official-requirements.json",
+  "recovery_comparison": "hardware/step1/recovery-prerequisites.json",
+  "bindings": [
+    {
+      "path": "upstream-lock.json",
+      "sha256": "8ddb483e54d83a80490671cbcf4cd92a6af93a36e8c7f4b27d053e32eb012947"
+    },
+    {
+      "path": "hardware/step1/evidence-manifest.json",
+      "sha256": "8da80e1effae9eb2121ef4e2136b64797302982f2bee9f41cff3923922a84bd8"
+    },
+    {
+      "path": "hardware/step1/official-requirements.json",
+      "sha256": "be8c3c8e30de5273b54a59704e02bf904d1073de8ae25e998522b07536b98310"
+    },
+    {
+      "path": "hardware/step1/recovery-prerequisites.json",
+      "sha256": "9832bea37fc397442424d9c616cd2b39dccacc5f134eba2b064d7fac4f2e6bcb"
+    },
+    {
+      "path": "tools/inspect_c3xl_readonly.py",
+      "sha256": "fc77b9f6326a6068aec85bbd0e5f2265e3a194afe12c3cd3de26f5c59dd93ad8"
+    },
+    {
+      "path": "tools/decode_c3xl_states.py",
+      "sha256": "0298e9151ade70c53a32f747f5bf6c9642d24b89fc6a6c7549ecb1336634e456"
+    },
+    {
+      "path": "hardware/step1/verify.py",
+      "sha256": "f5a51b2756800ed0f73a309ec2cad39fa17bdac215f70719b5cd4834512153c5"
+    }
+  ],
+  "current_panda_report": [
+    {
+      "pandaType": "dos",
+      "ignitionLine": false,
+      "ignitionCan": false,
+      "uptime": 2872,
+      "harnessStatus": "notConnected",
+      "safetyModel": "noOutput",
+      "safetyParam": 0,
+      "controlsAllowed": false,
+      "heartbeatLost": false,
+      "faultStatus": "none"
+    }
+  ],
+  "message_evidence": {
+    "services": {
+      "deviceState": {
+        "fresh_and_advancing": true,
+        "sample_ages_seconds": [
+          0.041422,
+          0.271475
+        ]
+      },
+      "pandaStates": {
+        "fresh_and_advancing": true,
+        "sample_ages_seconds": [
+          0.091938,
+          0.086678
+        ]
+      },
+      "managerState": {
+        "fresh_and_advancing": true,
+        "sample_ages_seconds": [
+          0.220974,
+          0.275373
+        ]
+      }
+    },
+    "method": "Pure O_RDONLY/pread, no reader registration; host-only schema decode",
+    "native_publisher_and_schema_hashes_checked": true
+  },
+  "gates": [
+    {
+      "id": "G01",
+      "name": "Software-visible hardware identity",
+      "state": "PARTIAL",
+      "observed": "SDA845 rev2.1 / Adreno630v2 / tici / 3699784kB kernel memory",
+      "missing": "PCB/SOM/BOM, physical connector wiring and power specification",
+      "acceptance": "Exact board identity and physical interface evidence match the hardware profile"
+    },
+    {
+      "id": "G02",
+      "name": "Panda/DOS identity and transport",
+      "state": "PARTIAL",
+      "observed": "Fresh single DOS via existing pandad; one cached USB Panda enumeration; installed host source classifies DOS as F4",
+      "missing": "MCU exact part/revision, actual bootstub/provisioning and external Red Panda identity; target H7-only/single-SPI incompatibility",
+      "acceptance": "Board-specific F4/H7 support, USB/multi-board routing and current firmware metadata independently verified"
+    },
+    {
+      "id": "G03",
+      "name": "Camera chain and driver monitoring",
+      "state": "UNVERIFIED_CURRENT_RUNTIME",
+      "observed": "Historical two OX03C10 road probes and 1928x1208 encoder initialization; old sensor2 bringup failure; current camera/model processes intentionally offroad",
+      "missing": "Current three-camera operation, cabin physical presence/type, calibration, ISP/kernel compatibility",
+      "acceptance": "Three correctly mapped streams with verified timing/format/calibration, functional driver monitoring and alerts"
+    },
+    {
+      "id": "G04",
+      "name": "Target OS and inference stack",
+      "state": "NOT_VALIDATED",
+      "observed": "Old AGNOS10.1/Python3.11.4 application versus matched AGNOS19.9/Python3.12.13 target",
+      "missing": "Compatible complete boot/kernel/userland/ISP/KGSL combination, target QCOM latency/memory/thermal proof",
+      "acceptance": "Target bench runtime meets defined model timing/resource budgets with evidence for boot and all devices"
+    },
+    {
+      "id": "G05",
+      "name": "Backup availability",
+      "state": "AVAILABLE_WITH_LIMITS",
+      "observed": "Historical backup integrity and local small-file checks; current GPT entries match historical; selected installed files match",
+      "missing": "Atomic full-device snapshot and actual MCU/provisioning backup not established",
+      "acceptance": "Explicit recoverable coverage and versions for every required boot/system/MCU component"
+    },
+    {
+      "id": "G06",
+      "name": "Recovery capability",
+      "state": "NOT_VERIFIED",
+      "observed": "Current B root; target partition capacities sufficient; known sde secondary entries CRC anomaly persists",
+      "missing": "Device-bound loader/protocol/port, coherent A/B+DSP/modem pairing, recovery rehearsal",
+      "acceptance": "Verified device-specific recovery path and successful controlled restore/rollback rehearsal; GPT discrepancy resolved through separately reviewed work"
+    },
+    {
+      "id": "G07",
+      "name": "Song PLUS actuation compatibility",
+      "state": "NOT_IMPLEMENTED",
+      "observed": "Official BYD ATTO3 dashcam-only does not establish Song PLUS control",
+      "missing": "Vehicle-confirmed protocol, CarState/controller and vehicle-specific safety",
+      "acceptance": "Separate vehicle/control/safety milestones, not inferred from this hardware audit"
+    }
+  ],
+  "performed": {
+    "authenticated_ssh": true,
+    "remote_script_files_created": false,
+    "persistent_configuration_written": false,
+    "ipc_reader_registration": false,
+    "target_application_started_or_stopped": false,
+    "camera_preview_started": false,
+    "usb_control_transfers": false,
+    "i2c_probe": false,
+    "can_transmit": false,
+    "slot_change": false,
+    "gpt_repair": false,
+    "os_installation": false,
+    "panda_reset_or_flash": false,
+    "recovery_mode_entered": false
+  },
+  "validation": {
+    "recorded_evidence_integrity": "PASS",
+    "packaged_evidence_files": 10,
+    "pinned_official_source_anchors": 47,
+    "readonly_snapshot_synthetic_tests": {
+      "run": 9,
+      "passed": 9,
+      "skipped": 0
+    },
+    "gpt_observation": "6 disks, 12 valid header CRCs; sde secondary entries CRC known invalid; all other entries CRCs valid; all primary/secondary entries equal",
+    "known_gpt_anomaly_is_repaired": false,
+    "full_step0_build_rerun_this_step": false
+  },
+  "limitations": [
+    "Installed software/firmware file hashes do not read actual MCU image or provisioning",
+    "Fresh DOS enum does not reveal physical silicon markings or PCB revision",
+    "No external Red Panda enumerated this session; this is not evidence of its failure",
+    "Current camera/model processes were offroad; no current frames or model benchmark collected",
+    "Original backup payloads were not rehashed in full and no restore was performed",
+    "Older A-slot AGNOS12.4 evidence was not revalidated by booting or mounting that slot",
+    "System reads and SSH can coexist with normal system logging; no claim that unrelated running processes remained byte-identical"
+  ]
+}

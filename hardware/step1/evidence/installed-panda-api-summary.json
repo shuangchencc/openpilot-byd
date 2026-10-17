@@ -1,0 +1,40 @@
+{
+  "schema": "songplus-installed-panda-api-summary/v1",
+  "prepared_date": "2026-10-18",
+  "classification": "static source summary; no Panda import or device control",
+  "source": {
+    "device_path": "/data/openpilot/panda/python/__init__.py",
+    "sha256": "c2df6b142adb4ae1a4163128760a8e03a4659eae349b3f7b062231cec7a762c7",
+    "bytes": 30385,
+    "live_hash_evidence": "hardware/step1/evidence/live-recovery.json",
+    "archived_copy_hash_matches_live": true
+  },
+  "constants": {
+    "HW_TYPE_DOS": {
+      "hex": "06",
+      "line": 164
+    },
+    "CAN_PACKET_VERSION": {
+      "value": 4,
+      "line": 170
+    },
+    "HEALTH_PACKET_VERSION": {
+      "value": 16,
+      "line": 171
+    },
+    "CAN_HEALTH_PACKET_VERSION": {
+      "value": 5,
+      "line": 172
+    }
+  },
+  "board_classification": {
+    "DOS_in_F4_DEVICES": true,
+    "line": 176,
+    "inference_limit": "This is the matching installed host API classification; it does not read the physical MCU die or PCB revision."
+  },
+  "not_proven": [
+    "actual current MCU protocol reply",
+    "physical MCU exact type/flash size",
+    "installed firmware equals files in board/obj"
+  ]
+}

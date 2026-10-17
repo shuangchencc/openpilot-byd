@@ -31,6 +31,7 @@ jobs:
           python3 tools/lock_upstream.py --verify --allow-lfs-pointers
           python3 research/verify.py
           python3 hardware/verify_source_evidence.py
+          python3 hardware/step1/verify.py
       - name: Research tools and historical upstream host tests
         env:
           UV_OFFLINE: '1'

@@ -10,7 +10,7 @@
   },
   "hardware_policy": "Retain the user's existing C3XL and Panda hardware; exact board and sensor compatibility remains unverified.",
   "architecture": "Official matched perception, planning and control stack with separately maintained hardware support, vehicle interface and Panda safety changes.",
-  "stage": "0_local_engineering_baseline",
+  "stage": "1_readonly_hardware_audit",
   "official_baseline": "upstream-lock.json",
   "historical_research_baseline": "baseline-lock.json",
   "runtime_depends_on_mr_one_encrypted_vehicle_code": false,
@@ -18,11 +18,12 @@
   "hardware_compatibility_confirmed": false,
   "deployment_ready": false,
   "execution": {
-    "device_connection": false,
+    "device_connection": true,
     "can_transmit": false,
     "os_update": false,
     "panda_flash": false,
-    "target_process_launch": false
+    "target_process_launch": false,
+    "meaning": "Step 1 explicit read-only SSH inspection; not an automatic bootstrap/validation behavior."
   },
   "milestones": [
     "Pinned complete upstream and reproducible host validation",
@@ -32,5 +33,7 @@
     "No-actuation target runtime and hardware-in-loop validation",
     "Controlled lateral validation with preserved stock ACC/AEB paths",
     "Separately validated openpilot longitudinal control"
-  ]
+  ],
+  "step0_acceptance": "validation/STEP-0-RESULT.json",
+  "step1_acceptance": "hardware/step1/STEP-1-RESULT.json"
 }

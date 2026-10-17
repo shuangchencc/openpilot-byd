@@ -21,6 +21,15 @@ Flagship PLUS, with the user's existing Mr One C3XL and Panda hardware.
 
 ## Current execution boundary
 
+- The user has authorized Step 1: connect to the separately powered C3XL via
+  existing authenticated SSH for read-only hardware, OS and recovery inspection.
+  Keep this an explicit diagnostic action separate from bootstrap/validation.
+  Do not write device files/parameters, start or stop existing services, reboot,
+  change USB roles, probe I2C, transmit CAN, switch slots, reset or flash Panda,
+  update AGNOS, or enter recovery modes. Do not instantiate Panda: its constructor
+  performs writes. Use existing keys through SSH without reading their contents.
+  Prefer kernel/sysfs, existing logs and bounded passive observations; record
+  unknowns when proof would require an action beyond the read-only scope.
 - Step 0 is local source, dependency, build, and offline verification work.
   Do not connect to the device, run SSH, launch manager/pandad/camerad, transmit
   CAN, update AGNOS, switch slots, reset Panda, or flash/recover firmware as part
