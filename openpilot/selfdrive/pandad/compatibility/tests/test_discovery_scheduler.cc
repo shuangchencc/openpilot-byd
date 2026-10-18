@@ -52,7 +52,8 @@ struct FakeSink final:DiscoveryCommitSink {
   explicit FakeSink(FakeClock &c):clock(c){}
   bool commit(const DiscoveryTaskRequest &,DiscoveryTaskResult &r) override {
     ++commits;clock.value+=cost;if(throws)throw std::runtime_error("commit");accepted=r.snapshot;
-    if(mutate)r.snapshot={};return accept;
+    if(mutate)r.snapshot={};
+    return accept;
   }
   void retire(const char *r) noexcept override {++retires;accepted={};reason=r;}
 };

@@ -351,7 +351,9 @@ bool NativeDiscoveryExecutor::commit(const DiscoveryTaskRequest &r,DiscoveryTask
   if(handoff->profile.binding_status!="NATIVE_READ_ONLY_BOUND")return false;
   std::array<DiscoveryItem,2> items;
   for(unsigned slot=0;slot<2;++slot){const auto it=std::find_if(result.snapshot.items.begin(),result.snapshot.items.end(),[&](const auto &item){return item.identity==handoff->profile.slots[slot].expected;});
-    if(it==result.snapshot.items.end() || !handoff->ports[slot] || !handoff->ports[slot]->active())return false;items[slot]=*it;}
+    if(it==result.snapshot.items.end() || !handoff->ports[slot] || !handoff->ports[slot]->active()) return false;
+    items[slot]=*it;
+  }
   if(r.kind==DiscoveryTaskKind::Reprobe){if(committed_.items.size()!=2)return false;for(unsigned slot=0;slot<2;++slot)if(ports_[slot]!=handoff->ports[slot] || !same_item(committed_.items[slot],items[slot]))return false;}
   else {if(!committed_.items.empty())return false;ports_=handoff->ports;opened_={};}
   committed_=result.snapshot;committed_.items={items[0],items[1]};committed_profile_=handoff->profile;last_committed_revision_=result.snapshot.revision;return true;
@@ -359,7 +361,8 @@ bool NativeDiscoveryExecutor::commit(const DiscoveryTaskRequest &r,DiscoveryTask
 void NativeDiscoveryExecutor::retire(const char *reason) noexcept {
   if(getpid()!=state_->process)return;
   if(!committed_.items.empty() || state_->busy){try{if(revoke_)revoke_(reason);}catch(...){/* still revoke all ports */}}
-  for(auto &p:ports_)if(p)p->cancel();ports_={};opened_={};committed_={};committed_profile_={};
+  for(auto &p:ports_) { if(p) p->cancel(); }
+  ports_={};opened_={};committed_={};committed_profile_={};
   if(state_->owner_mailbox)state_->owner_mailbox->cancelled=true;
   if(state_->worker_started){state_->busy=true;state_->retire_requested=true;state_->wake.notify_one();}
 }

@@ -212,9 +212,13 @@ void id_exhaustion_refuses_wrap_before_io() {
 void invalid_seed_config_or_identity_never_opens() {
   for(unsigned variant=0;variant<8;++variant) {
     Fixture f; auto backend=f.backend(); auto expected=uid(); auto id=100U;
-    if(variant==0) id=0; if(variant==1) id=UINT32_MAX; if(variant==2) id=UINT32_MAX-1;
-    if(variant==3) expected.fill(0); if(variant==4) expected.fill(0xff);
-    if(variant==5) f.options.selector.expected_mode=1; if(variant==6) f.options.selector.expected_bits_per_word=16;
+    if(variant==0) id=0;
+    if(variant==1) id=UINT32_MAX;
+    if(variant==2) id=UINT32_MAX-1;
+    if(variant==3) expected.fill(0);
+    if(variant==4) expected.fill(0xff);
+    if(variant==5) f.options.selector.expected_mode=1;
+    if(variant==6) f.options.selector.expected_bits_per_word=16;
     if(variant==7) f.options.selector.physical_identity_verified=false;
     CHECK(backend->activate(f.options.selector,expected,id,100,true,true)==Status::Invalid && f.calls->opens==0);
   }
