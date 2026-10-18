@@ -1,0 +1,2724 @@
+From d4d610ecb08ab27200e48c07757b147861f710a5 Mon Sep 17 00:00:00 2001
+From: scarvito <7883167+scarvito@user.noreply.gitee.com>
+Date: Sun, 18 Oct 2026 11:57:59 +0800
+Subject: [PATCH] compat: integrate F4 capabilities and P6 compound safety
+ faults
+
+---
+ .../pandad/compatibility/P6-FAULTS.md         |  80 ++++
+ .../pandad/compatibility/P6-INTEGRATION.md    |  54 +++
+ .../pandad/compatibility/can_router.cc        |   9 +-
+ .../pandad/compatibility/can_router.h         |  12 +
+ .../pandad/compatibility/cereal_bridge.cc     |  23 +-
+ .../pandad/compatibility/control_session.cc   |  42 +-
+ .../pandad/compatibility/control_session.h    |   7 +-
+ .../compatibility/firmware_capabilities.h     |  33 ++
+ .../selfdrive/pandad/compatibility/health.py  |  15 +-
+ .../pandad/compatibility/message_policy.py    |   4 +-
+ .../pandad/compatibility/offline_entry.cc     |  14 +-
+ .../pandad/compatibility/pandad_loop.cc       |  66 +--
+ .../pandad/compatibility/pandad_loop.h        |   7 +-
+ .../pandad/compatibility/pandad_runtime.cc    |  45 +-
+ .../pandad/compatibility/pandad_runtime.h     |   6 +
+ .../tests/check_runtime_messages.py           |   7 +-
+ .../compatibility/tests/p6_safety/README.md   |  50 ++
+ .../compatibility/tests/p6_safety/oracle.c    | 368 +++++++++++++++
+ .../tests/p6_safety/source-lock.json          | 236 +++++++++
+ .../compatibility/tests/run_p6_safety.py      | 156 ++++++
+ .../tests/test_control_session.cc             |  18 +-
+ .../pandad/compatibility/tests/test_health.py |  29 +-
+ .../tests/test_message_policy.py              |  14 +-
+ .../tests/test_p6_capabilities.cc             | 241 ++++++++++
+ .../compatibility/tests/test_p6_faults.cc     | 446 ++++++++++++++++++
+ .../compatibility/tests/test_p6_single_spi.cc | 132 ++++++
+ .../compatibility/tests/test_pandad_loop.cc   |   3 +-
+ 27 files changed, 2037 insertions(+), 80 deletions(-)
+ create mode 100644 openpilot/selfdrive/pandad/compatibility/P6-FAULTS.md
+ create mode 100644 openpilot/selfdrive/pandad/compatibility/P6-INTEGRATION.md
+ create mode 100644 openpilot/selfdrive/pandad/compatibility/firmware_capabilities.h
+ create mode 100644 openpilot/selfdrive/pandad/compatibility/tests/p6_safety/README.md
+ create mode 100644 openpilot/selfdrive/pandad/compatibility/tests/p6_safety/oracle.c
+ create mode 100644 openpilot/selfdrive/pandad/compatibility/tests/p6_safety/source-lock.json
+ create mode 100644 openpilot/selfdrive/pandad/compatibility/tests/run_p6_safety.py
+ create mode 100644 openpilot/selfdrive/pandad/compatibility/tests/test_p6_capabilities.cc
+ create mode 100644 openpilot/selfdrive/pandad/compatibility/tests/test_p6_faults.cc
+ create mode 100644 openpilot/selfdrive/pandad/compatibility/tests/test_p6_single_spi.cc
+
+diff --git a/openpilot/selfdrive/pandad/compatibility/P6-FAULTS.md b/openpilot/selfdrive/pandad/compatibility/P6-FAULTS.md
+new file mode 100644
+index 0000000..9434ee8
+--- /dev/null
++++ b/openpilot/selfdrive/pandad/compatibility/P6-FAULTS.md
+@@ -0,0 +1,80 @@
++# P6 compound faults and shutdown evidence
++
++This acceptance uses real `PandadRuntime`, `PandadLoop`, `ControlSession`,
++`CanRouter`, `Transport`, cereal serialization and a deterministic fake Backend.
++Its positive controls dispatch bytes into fake board backends before injecting
++faults. The synthetic profile continues to require two fixed slots and noOutput
++on each board. Device access, installation and real CAN permissions remain false.
++A successful fake bulk write is evidence of host routing only, not of MCU safety
++acceptance or physical CAN transmission.
++
++## Behavior changes
++
++- A fully validated RX frame marked MCU-rejected increments the router's
++  saturating `safety_rejections` counter and retains bounded immutable evidence:
++  original slot, epoch, connection token, group generation, local bus, host
++  rejected-source number, address and receive time. It is not a TX capability.
++  The runtime closes the whole control group before either queue can dispatch
++  another command. Saturation cannot conceal a subsequent rejection. Pending
++  RX/TX is retired; the rejected packet is not republished as fresh CAN after
++  the epoch changes. Existing faults from checksum, parser and RX overflow also
++  retire registry availability before the next transmit snapshot.
++- A TX queue or batch overflow closes the runtime barrier and drops both slot
++  queues. It cannot leave earlier commands waiting to transmit after the failed
++  enqueue. Other malformed ingress keeps its preexisting rejection behavior.
++- Planned shutdown allows five scheduler rounds, at most one control operation
++  per slot per round. Every transport operation has a 5 ms cooperative limit:
++  at most ten operations / 50 ms of transport budget. A sibling failure changes
++  the group epoch; a surviving F4 may need capability read, noOutput, health
++  readback, then heartbeat(false). Five rounds cover that sequence without
++  retrying the failed board. All remaining transports are then cancelled.
++  This is a cooperative scheduling bound, not a kernel or hardware guarantee.
++- `PandadLoop::request_shutdown()` is an owner-thread handoff. The next cycle
++  runs bounded shutdown before reading the input backlog or performing CAN I/O,
++  then publishes invalid observations. The method is not async-signal-safe and
++  does not install a handler. The SIGINT test models delivery to the serialized
++  owner; an actual signal handler would only set a signal-safe flag.
++
++## Acceptance inventory
++
++`tests/test_p6_faults.cc` contains 22 independent groups. Every scenario that
++could otherwise pass because the gate was permanently closed first establishes
++readiness, a fresh disabled/enabled edge, and positive dispatch on both slots.
++
++| Frozen case | Evidence in this suite |
++|---|---|
++| A62 compound faults | checksum corruption together with queued disconnect and stale-health conditions, fresh reconnect, dropped/replaced board, old envelopes and fragments, TX/RX overflow, expiry boundary, bounded delayed read, same-cycle fault before sibling TX |
++| A64 no bypass | actual-firmware golden rejected frame with original slot/bus/epoch evidence, both queues closed, partial uncertain write never replayed, relay fault, FWD-blocked counter, safety readback mismatch, noOutput-only configuration and allowed control-write audit |
++| A65 exit boundaries | engaged normal shutdown, each slot blocked or cancelled, actual transport mutex contention with an in-flight thread, serialized simulated SIGINT, idempotent shutdown, abrupt scheduler death, simultaneous power removal and fresh recovery |
++
++The golden rejection bytes `8209190000920000000000000000` represent address
++0x321, local bus 1, eight zero payload bytes, rejected=true. They are independently
++emitted by the actual-source P6 firmware/safety oracle's
++`rejected_frame_retains_local_bus` case for F4/H7. The host test asserts source
++193 (slot 0) or 197 (slot 1) without changing the frame's local bus or address.
++The host never converts the rejection into a receive success, diagnostic
++request, alternate safety mode or sibling transmission.
++
++Abrupt loss deliberately performs zero further host calls and makes no claim
++that shutdown/finally executed, that powered-off board outputs were observed,
++or that a host test establishes a hardware watchdog. MCU heartbeat expiry and
++relay/safety behavior are separate actual-source oracle evidence. Empty known
++zero-byte read timeouts remain benign; an arbitrary timeout does not itself
++mean a board is disconnected.
++
++## Single H7/SPI regression
++
++`tests/test_p6_single_spi.cc` is a separate five-group fixture over one
++`SpiIo` fake, the existing `SpiBackend`, `Transport`, and CAN codec. It never
++constructs a dual-board profile or substitutes a missing DOS with a second H7.
++It positively exercises current eight-byte protocol hashes, 48-byte health,
++64-byte CAN health, noOutput and heartbeat writes, classic CAN and full 64-byte
++CAN FD round trips with returned-frame provenance. H7 never issues F4 0xd5.
++NACK, bad CRC and local cancellation prohibit replay or transport fallback.
++
++A63 additionally requires the fresh existing SPI wire-oracle tests against the
++unchanged original SPI definitions, the retained single-H7/Linux daemon source
++compile/link, the real offline entry, and current safety regressions. This
++fixture does not execute the legacy device-opening path. Linux and macOS
++results are reported by the outer P6 runner; no prior run is reused as new
++acceptance evidence.
+diff --git a/openpilot/selfdrive/pandad/compatibility/P6-INTEGRATION.md b/openpilot/selfdrive/pandad/compatibility/P6-INTEGRATION.md
+new file mode 100644
+index 0000000..411f3d3
+--- /dev/null
++++ b/openpilot/selfdrive/pandad/compatibility/P6-INTEGRATION.md
+@@ -0,0 +1,54 @@
++# P6 offline compatibility contracts
++
++This suffix depends on P0–P4 host and the exact independent P5 Panda candidate.
++No physical profile is bound. All safety configuration remains noOutput and all
++real device/TX/install permissions remain false. No new hardware entry exists.
++
++## F4 capabilities and messages
++
++Every F4 connection must return the exact 16-byte `F4C1` v1 response to read-only
++request 0xd5 before either connected board can receive configuration/heartbeat
++writes. The pending request is bound to slot, connection token, epoch and group
++generation, with an exclusive completion deadline. Missing, short, unknown,
++late or mismatched replies cannot activate a session. Reconnection starts a new
++observation. H7 uses its pinned upstream ABI and never receives this extension.
++
++Capability validity does not itself make health valid. Effective measurement
++availability also requires fresh health. F4 exposes voltage and temperature;
++current, sound output and SPI error count are unavailable. Raw health bytes are
++retained for evidence. The frozen cereal schema cannot carry null fields, so
++unsupported numeric fields are zero placeholders. The explicit profile and
++publisher Event.valid (including capability validation) are required together;
++message_policy hides F4 current as None. No schema or global H7 semantics change.
++A valid F4 power/fan event requires fresh available voltage/fan, not a nonexistent
++current sensor. H7 role-selected current remains available.
++
++## Faults and recovery
++
++Control inputs and queues retain generation/control epochs. A disconnect or
++replacement cancels old transport state, fragment buffers and both TX queues.
++No old message can be replayed after reconnect; fresh configuration and a fresh
++disabled-to-enabled edge are still required. Receiving an MCU rejected echo
++closes the entire group before subsequent queued TX on either slot. A bounded
++immutable rejection record preserves original slot, local bus and connection
++provenance for diagnostics; it never becomes a retry request or valid stale CAN.
++No alternate-board, alternate-safety-mode or diagnostic fallback is added.
++
++Planned shutdown has at most five scheduler rounds and ten cooperative control
++operations, each bounded to 5 ms. This covers surviving F4 re-observation when a
++sibling disappears during exit. Cancellation is per handle. SIGINT is simulated
++as owner-loop stop intent, not an asynchronous signal handler executing I/O.
++An arbitrary backend that violates its timeout contract cannot be preempted by
++this single-threaded code. Sudden process/power loss executes no host finally;
++separate actual-C virtual-clock tests cover heartbeat expiry while MCU execution
++continues. A stopped/unpowered MCU cannot be rescued by a software watchdog.
++
++## Evidence boundary
++
++Native fake-I/O tests exercise the real runtime and cereal loop. Separate C
++oracles execute actual pinned safety/queue/heartbeat code with HAL stubs, compare
++F4/H7 classic decisions and preserve the intended FD difference. The standalone
++single H7/SPI fixture uses one session without a dual-board profile; five original
++SPI golden vectors and actual Linux original-source compilation remain required.
++These are host tests, not electrical timing, physical watchdog, MCU execution,
++full AGNOS operation, Song PLUS safety or road validation.
+diff --git a/openpilot/selfdrive/pandad/compatibility/can_router.cc b/openpilot/selfdrive/pandad/compatibility/can_router.cc
+index 8f46e2f..0020387 100644
+--- a/openpilot/selfdrive/pandad/compatibility/can_router.cc
++++ b/openpilot/selfdrive/pandad/compatibility/can_router.cc
+@@ -250,7 +250,14 @@ RouterResult<std::size_t> CanRouter::receive(const RouteToken &token, const std:
+     staged.push_back({token, std::move(frame), source.value, timestamp});
+   }
+   const auto accepted = staged.size();
+-  for (auto &frame : staged) slot.rx.push_back(std::move(frame));
++  for (auto &frame : staged) {
++    if (frame.frame.rejected) {
++      add(counters_.safety_rejections);
++      latest_rejection_ = RejectionEvidence{frame.token, frame.source, frame.frame.local_bus,
++                                           frame.frame.address, frame.receive_timestamp_us};
++    }
++    slot.rx.push_back(std::move(frame));
++  }
+   return {accepted, RouterError::None};
+ }
+ 
+diff --git a/openpilot/selfdrive/pandad/compatibility/can_router.h b/openpilot/selfdrive/pandad/compatibility/can_router.h
+index ac849b0..183f2ac 100644
+--- a/openpilot/selfdrive/pandad/compatibility/can_router.h
++++ b/openpilot/selfdrive/pandad/compatibility/can_router.h
+@@ -76,7 +76,17 @@ struct RoutedRxFrame {
+   // First fragment receive time, never refreshed at completion/publication.
+   std::uint64_t receive_timestamp_us = 0;
+ };
++// Immutable diagnostic evidence from a fully validated MCU rejection. It is
++// never a TX intent, and survives queue retirement without becoming current RX.
++struct RejectionEvidence {
++  RouteToken token{};
++  std::uint32_t source = 0;
++  std::uint32_t local_bus = 0;
++  std::uint64_t address = 0;
++  std::uint64_t receive_timestamp_us = 0;
++};
+ struct RouterCounters {
++  std::uint64_t safety_rejections = 0;
+   std::uint64_t invalid_batches = 0;
+   std::uint64_t malformed = 0;
+   std::uint64_t stale_callbacks = 0;
+@@ -123,6 +133,7 @@ public:
+   // P4 barrier changes discard local work even if physical handles stay live.
+   void discard_pending() { clear_all(); }
+   const RouterCounters &counters() const { return counters_; }
++  std::optional<RejectionEvidence> latest_rejection() const { return latest_rejection_; }
+ 
+ private:
+   struct SlotState {
+@@ -151,6 +162,7 @@ private:
+   bool clock_failed_ = false;
+   std::optional<std::uint64_t> last_now_us_;
+   RouterCounters counters_;
++  std::optional<RejectionEvidence> latest_rejection_;
+ };
+ 
+ }  // namespace openpilot::pandad::compatibility
+diff --git a/openpilot/selfdrive/pandad/compatibility/cereal_bridge.cc b/openpilot/selfdrive/pandad/compatibility/cereal_bridge.cc
+index c153625..e9998df 100644
+--- a/openpilot/selfdrive/pandad/compatibility/cereal_bridge.cc
++++ b/openpilot/selfdrive/pandad/compatibility/cereal_bridge.cc
+@@ -35,8 +35,8 @@ std::uint64_t ns_time(std::uint64_t us) {
+ cereal::PandaState::PandaType panda_type(const SessionBinding &binding) {
+   return binding.expected.board_type == "DOS" ? cereal::PandaState::PandaType::DOS : cereal::PandaState::PandaType::RED_PANDA;
+ }
+-void fill_health(cereal::PandaState::Builder ps, const MessageBytes &h) {
+-  ps.setUptime(u32(h,0)); ps.setVoltage(u16(h,4)); ps.setCurrent(u16(h,6));
++void fill_health(cereal::PandaState::Builder ps, const MessageBytes &h, const HealthFieldAvailability &available) {
++  ps.setUptime(u32(h,0)); ps.setVoltage(available.voltage ? u16(h,4) : 0); ps.setCurrent(available.current ? u16(h,6) : 0);
+   ps.setSafetyTxBlocked(u32(h,8)); ps.setSafetyRxInvalid(u32(h,12));
+   ps.setTxBufferOverflow(u32(h,16)); ps.setRxBufferOverflow(u32(h,20));
+   const auto bits = u32(h,24); unsigned count = 0;
+@@ -50,8 +50,8 @@ void fill_health(cereal::PandaState::Builder ps, const MessageBytes &h) {
+   ps.setHarnessStatus(static_cast<cereal::PandaState::HarnessStatus>(h[30]));
+   ps.setSafetyModel(static_cast<cereal::CarParams::SafetyModel>(h[31])); ps.setSafetyParam(u16(h,32));
+   ps.setFaultStatus(static_cast<cereal::PandaState::FaultStatus>(h[34])); ps.setAlternativeExperience(u16(h,35));
+-  ps.setInterruptLoad(h[37] / 255.0f); ps.setFanPower(h[38]); ps.setSpiErrorCount(u16(h,39));
+-  ps.setSbu1Voltage(u16(h,41)/1000.0f); ps.setSbu2Voltage(u16(h,43)/1000.0f); ps.setSoundOutputLevel(u16(h,45));
++  ps.setInterruptLoad(h[37] / 255.0f); ps.setFanPower(h[38]); ps.setSpiErrorCount(available.spi_error_count ? u16(h,39) : 0);
++  ps.setSbu1Voltage(u16(h,41)/1000.0f); ps.setSbu2Voltage(u16(h,43)/1000.0f); ps.setSoundOutputLevel(available.sound_output ? u16(h,45) : 0);
+ }
+ void fill_can_health(cereal::PandaState::PandaCanState::Builder cs, const MessageBytes &h) {
+   cs.setBusOff(h[0]); cs.setBusOffCnt(u32(h,1)); cs.setErrorWarning(h[5]); cs.setErrorPassive(h[6]);
+@@ -135,11 +135,11 @@ MessageBytes serialize_panda_states(PandadRuntime &runtime, std::uint64_t publis
+   auto list = event.initPandaStates(2);
+   for (unsigned slot = 0; slot < 2; ++slot) {
+     auto ps = list[slot];
+-    if (!state.slots[slot].health_valid || !state.slots[slot].connected) {
++    if (!state.slots[slot].health_valid || !state.slots[slot].connected || !state.slots[slot].capabilities_valid) {
+       ps.setPandaType(cereal::PandaState::PandaType::UNKNOWN);
+       ps.setHeartbeatLost(true); ps.setControlsAllowed(false); continue;
+     }
+-    ps.setPandaType(panda_type(profile.slots[slot])); fill_health(ps, state.slots[slot].health);
++    ps.setPandaType(panda_type(profile.slots[slot])); fill_health(ps, state.slots[slot].health, state.slots[slot].field_available);
+     const std::array builders{ps.initCanState0(), ps.initCanState1(), ps.initCanState2()};
+     for (unsigned bus = 0; bus < 3; ++bus) if (state.slots[slot].can_health_valid[bus]) fill_can_health(builders[bus], state.slots[slot].can_health[bus]);
+   }
+@@ -148,17 +148,18 @@ MessageBytes serialize_panda_states(PandadRuntime &runtime, std::uint64_t publis
+ MessageBytes serialize_peripheral_state(PandadRuntime &runtime, std::uint64_t publish_us) {
+   const auto state = runtime.peripheral_snapshot(); const auto profile = runtime.profile();
+   capnp::MallocMessageBuilder builder; auto event = builder.initRoot<cereal::Event>();
+-  // A single role-selected snapshot supplies every required field. The schema
+-  // cannot mark voltage/current individually absent, so missing power or fan
+-  // observations invalidate the whole Event. Never refresh its oldest source.
+-  const bool valid = state.valid && state.fan_slot >= 0 && state.fan_rpm && state.voltage && state.current;
++  // The explicit profile plus a valid capability handshake distinguishes F4
++  // placeholders from measurements in message_policy. Required available fields
++  // must be fresh. Never refresh the oldest observation timestamp.
++  const bool valid = state.valid && state.fan_slot >= 0 && state.fan_rpm && state.voltage &&
++    (!state.field_available.current || state.current);
+   const auto source_us = valid ? std::min(state.timestamp_us, state.power_timestamp_us) : publish_us;
+   event.setLogMonoTime(ns_time(source_us)); event.setValid(valid);
+   auto ps = event.initPeripheralState();
+   if (valid) {
+     const auto slot = static_cast<unsigned>(state.fan_slot);
+     ps.setPandaType(panda_type(profile.slots[slot])); ps.setFanSpeedRpm(*state.fan_rpm);
+-    ps.setVoltage(*state.voltage); ps.setCurrent(*state.current);
++    ps.setVoltage(*state.voltage); ps.setCurrent(state.current.value_or(0));
+   } else ps.setPandaType(cereal::PandaState::PandaType::UNKNOWN);
+   return flatten(builder);
+ }
+diff --git a/openpilot/selfdrive/pandad/compatibility/control_session.cc b/openpilot/selfdrive/pandad/compatibility/control_session.cc
+index 27b85b5..c849dbc 100644
+--- a/openpilot/selfdrive/pandad/compatibility/control_session.cc
++++ b/openpilot/selfdrive/pandad/compatibility/control_session.cc
+@@ -48,12 +48,12 @@ bool valid_can_health(const std::vector<std::uint8_t> &b, bool fd) {
+   return fd || (b[45] == 0 && b[46] == 0 && b[47] == 0);
+ }
+ bool counters_changed(const std::vector<std::uint8_t> &old, const std::vector<std::uint8_t> &now,
+-                      bool can) {
++                      bool can, bool spi_available = true) {
+   if (old.empty()) return false;
+   if (can) {
+     for (auto i : {1, 13, 17, 21, 37, 60}) if (u32(old, i) != u32(now, i)) return true;
+   } else {
+-    if (u32(now, 0) < u32(old, 0) || u16(old, 39) != u16(now, 39)) return true;
++    if (u32(now, 0) < u32(old, 0) || (spi_available && u16(old, 39) != u16(now, 39))) return true;
+     for (auto i : {8, 12, 16, 20}) if (u32(old, i) != u32(now, i)) return true;
+   }
+   return false;
+@@ -69,6 +69,7 @@ std::string bounded_reason(const std::string &reason) {
+ 
+ const char *control_kind_name(ControlKind kind) {
+   switch (kind) {
++    case ControlKind::ReadCapabilities: return "ReadCapabilities";
+     case ControlKind::ReadHealth: return "ReadHealth";
+     case ControlKind::ReadCanHealth: return "ReadCanHealth";
+     case ControlKind::SetAlternativeExperience: return "SetAlternativeExperience";
+@@ -96,6 +97,11 @@ void ControlSession::synchronize(std::uint64_t now_us) {
+     const auto &slot = next.slots[i];
+     boards_[i].view.token = {static_cast<std::uint32_t>(i), slot.epoch, slot.connection_token, next.generation};
+     boards_[i].view.connected = slot.connected;
++    // H7 uses the pinned upstream ABI; never send it the F4-only extension.
++    if (slot.connected && slot.binding.expected.mcu_family == "H7") {
++      boards_[i].view.capabilities_valid = true;
++      boards_[i].supported_fields = kH7HealthFields;
++    }
+     boards_[i].exit_phase = slot.connected ? (previous_generation ? 3 : 1) : 0;
+   }
+   recovery_required_ = true;
+@@ -199,6 +205,7 @@ bool ControlSession::configure(const std::vector<SlotSafetyConfig> &configs, boo
+ bool ControlSession::health_complete(std::uint64_t now_us) const {
+   if (!registry_state_.group_available || recovery_required_) return false;
+   for (const auto &b : boards_) {
++    if (!b.view.capabilities_valid) return false;
+     if (!fresh(!b.view.health.empty(), b.view.health_timestamp_us, now_us, kHealthMaxAgeUs)) return false;
+     for (std::size_t bus = 0; bus < 3; ++bus) {
+       if (!fresh(!b.view.can_health[bus].empty(), b.view.can_health_timestamp_us[bus], now_us, kHealthMaxAgeUs)) return false;
+@@ -264,6 +271,18 @@ std::vector<ControlCommand> ControlSession::poll(std::uint64_t now_us) {
+   if (next_command_id_ >= std::numeric_limits<std::uint64_t>::max() - 2) {
+     clock_failed_ = true; trip("COMMAND_ID_EXHAUSTED"); registry_.invalidate_group("COMMAND_ID_EXHAUSTED"); return result;
+   }
++  // Capabilities are observed under the exact connection token before the
++  // entire connected group may issue configuration or heartbeat writes. A read
++  // timeout/malformed response retires the connection; there is no fallback.
++  bool capabilities_pending = false;
++  for (std::size_t i = 0; i < 2; ++i) {
++    auto &b = boards_[i];
++    if (b.view.connected && !b.view.capabilities_valid) {
++      capabilities_pending = true;
++      if (!b.pending) result.push_back(issue(i, ControlKind::ReadCapabilities, now_us));
++    }
++  }
++  if (capabilities_pending) return result;
+   for (std::size_t i = 0; i < 2; ++i) {
+     auto &b = boards_[i];
+     if (!b.view.connected || b.pending) continue;
+@@ -324,7 +343,8 @@ bool ControlSession::complete(const ControlCommand &command, bool success,
+   }
+   if (!success) { retire_command_slot(slot, "CONTROL_TRANSFER_FAILED"); return false; }
+   b.pending.reset();
+-  if (command.kind != ControlKind::ReadHealth && command.kind != ControlKind::ReadCanHealth && !response.empty()) {
++  if (command.kind != ControlKind::ReadCapabilities && command.kind != ControlKind::ReadHealth &&
++      command.kind != ControlKind::ReadCanHealth && !response.empty()) {
+     retire_command_slot(slot, "UNEXPECTED_WRITE_RESPONSE"); return false;
+   }
+   if (command.exit_command && command.kind != ControlKind::Heartbeat) {
+@@ -341,6 +361,15 @@ bool ControlSession::complete(const ControlCommand &command, bool success,
+     return true;
+   }
+   switch (command.kind) {
++    case ControlKind::ReadCapabilities:
++      if (registry_state_.slots[slot].binding.expected.mcu_family != "F4" ||
++          registry_state_.slots[slot].binding.expected.capabilities.ir || !valid_f4_capabilities(response)) {
++        retire_command_slot(slot, "INVALID_F4_CAPABILITIES"); return false;
++      }
++      b.view.capabilities_valid = true;
++      b.view.capability_timestamp_us = now_us;
++      b.supported_fields = kF4HealthFields;
++      break;
+     case ControlKind::Heartbeat:
+       b.heartbeat_seen = true;
+       b.heartbeat_timestamp_us = now_us;
+@@ -355,7 +384,7 @@ bool ControlSession::complete(const ControlCommand &command, bool success,
+       break;
+     case ControlKind::ReadHealth: {
+       if (!valid_health(response)) { b.view.health.clear(); trip("INVALID_HEALTH"); return false; }
+-      if (unhealthy(response) || counters_changed(b.view.health, response, false)) {
++      if (unhealthy(response) || counters_changed(b.view.health, response, false, b.supported_fields.spi_error_count)) {
+         b.view.health = response; b.view.health_timestamp_us = now_us;
+         trip("BOARD_HEALTH_FAULT"); return false;
+       }
+@@ -397,9 +426,10 @@ ControlSnapshot ControlSession::snapshot(std::uint64_t now_us) {
+   for (std::size_t i = 0; i < 2; ++i) {
+     result.slots[i] = boards_[i].view;
+     auto &view = result.slots[i];
+-    view.health_valid = clock_ok && fresh(!view.health.empty(), view.health_timestamp_us, now_us, kHealthMaxAgeUs);
++    view.health_valid = clock_ok && view.capabilities_valid && fresh(!view.health.empty(), view.health_timestamp_us, now_us, kHealthMaxAgeUs);
++    view.field_available = view.health_valid ? boards_[i].supported_fields : HealthFieldAvailability{};
+     for (std::size_t bus = 0; bus < 3; ++bus) {
+-      view.can_health_valid[bus] = clock_ok && fresh(!view.can_health[bus].empty(), view.can_health_timestamp_us[bus], now_us, kHealthMaxAgeUs);
++      view.can_health_valid[bus] = clock_ok && view.capabilities_valid && fresh(!view.can_health[bus].empty(), view.can_health_timestamp_us[bus], now_us, kHealthMaxAgeUs);
+     }
+     view.heartbeat_fresh = clock_ok && fresh(boards_[i].heartbeat_seen, boards_[i].heartbeat_timestamp_us, now_us, kHeartbeatMaxAgeUs);
+   }
+diff --git a/openpilot/selfdrive/pandad/compatibility/control_session.h b/openpilot/selfdrive/pandad/compatibility/control_session.h
+index a81fa05..3959555 100644
+--- a/openpilot/selfdrive/pandad/compatibility/control_session.h
++++ b/openpilot/selfdrive/pandad/compatibility/control_session.h
+@@ -7,6 +7,7 @@
+ #include <vector>
+ 
+ #include "can_router.h"
++#include "firmware_capabilities.h"
+ #include "timing_budget.h"
+ 
+ namespace openpilot::pandad::compatibility {
+@@ -28,7 +29,7 @@ struct SelfdriveSample {
+   std::uint64_t generation = 0;
+ };
+ 
+-enum class ControlKind { ReadHealth, ReadCanHealth, SetAlternativeExperience, SetSafety, Heartbeat };
++enum class ControlKind { ReadCapabilities, ReadHealth, ReadCanHealth, SetAlternativeExperience, SetSafety, Heartbeat };
+ const char *control_kind_name(ControlKind kind);
+ struct ControlCommand {
+   std::uint64_t id = 0;
+@@ -48,6 +49,9 @@ struct ControlCommand {
+ struct BoardControlState {
+   RouteToken token{};
+   bool connected = false;
++  bool capabilities_valid = false;
++  std::uint64_t capability_timestamp_us = 0;
++  HealthFieldAvailability field_available{};  // requires both capability and fresh health
+   bool health_valid = false;
+   std::array<bool, 3> can_health_valid{};
+   std::vector<std::uint8_t> health;
+@@ -102,6 +106,7 @@ private:
+   struct Board {
+     BoardControlState view{};
+     Stage stage = Stage::Unconfigured;
++    HealthFieldAvailability supported_fields{};
+     SlotSafetyConfig config{};
+     std::optional<ControlCommand> pending;
+     bool heartbeat_seen = false;
+diff --git a/openpilot/selfdrive/pandad/compatibility/firmware_capabilities.h b/openpilot/selfdrive/pandad/compatibility/firmware_capabilities.h
+new file mode 100644
+index 0000000..a7f0b37
+--- /dev/null
++++ b/openpilot/selfdrive/pandad/compatibility/firmware_capabilities.h
+@@ -0,0 +1,33 @@
++#pragma once
++
++#include <cstdint>
++#include <vector>
++
++namespace openpilot::pandad::compatibility {
++
++// Availability is separate from numeric wire values. In particular an absent
++// current sensor is not a measured zero current and an absent SPI monitor is
++// not evidence of an error-free SPI link.
++struct HealthFieldAvailability {
++  bool voltage = false;
++  bool current = false;
++  bool temperature = false;
++  bool sound_output = false;
++  bool spi_error_count = false;
++};
++inline constexpr HealthFieldAvailability kH7HealthFields{true, true, true, true, true};
++inline constexpr HealthFieldAvailability kF4HealthFields{true, false, true, false, false};
++inline constexpr std::uint8_t kF4CapabilityRequest = 0xd5;
++inline constexpr std::size_t kF4CapabilityLength = 16;
++
++// P5 F4C1 is an exact reference-candidate contract, not a negotiable minimum.
++// Unknown versions/bits, downgraded fields and legacy/short replies quarantine
++// this connection. The canonical health and CAN protocol hashes stay unchanged.
++inline bool valid_f4_capabilities(const std::vector<std::uint8_t> &bytes) {
++  static const std::vector<std::uint8_t> expected{
++    'F', '4', 'C', '1', 1, 0, 16, 0, 0x1f, 0, 0, 0, 7, 0, 0, 0,
++  };
++  return bytes == expected;
++}
++
++}  // namespace openpilot::pandad::compatibility
+diff --git a/openpilot/selfdrive/pandad/compatibility/health.py b/openpilot/selfdrive/pandad/compatibility/health.py
+index a12b03e..09e701d 100644
+--- a/openpilot/selfdrive/pandad/compatibility/health.py
++++ b/openpilot/selfdrive/pandad/compatibility/health.py
+@@ -223,6 +223,7 @@ class HealthCapabilities:
+   fan: bool | None = None
+   sound: bool | None = None
+   temperature: bool | None = None
++  spi_error_count: bool | None = None
+ 
+   def __post_init__(self):
+     for name in self.__dataclass_fields__:
+@@ -230,6 +231,18 @@ class HealthCapabilities:
+         raise HealthCodecError(f"{name}: capability must be bool or None")
+ 
+ 
++def decode_f4_capabilities(data: bytes) -> HealthCapabilities:
++  """Decode the exact P5 reference contract; connection binding lives in C++.
++
++  This pure codec alone grants no validity, role or control authorization.
++  """
++  expected = bytes.fromhex("46344331010010001f00000007000000")
++  if _bytes(data, len(expected)) != expected:
++    raise HealthCodecError("unknown F4 capability contract; no fallback")
++  return HealthCapabilities(voltage=True, current=False, harness=True, fan=True,
++                            sound=False, temperature=True, spi_error_count=False)
++
++
+ @dataclass(frozen=True)
+ class HealthView:
+   raw: WireHealth
+@@ -264,7 +277,7 @@ def normalize_health(packet: WireHealth, capabilities: HealthCapabilities) -> He
+     "interrupt_load": raw["interrupt_load"] / 255.0 if current else raw["interrupt_load"],
+     "fan_power_percent": raw["fan_power"] if capabilities.fan is True else None,
+     "fan_stall_count": raw["fan_stall_count"] if not current and capabilities.fan is True else None,
+-    "spi_error_count": raw["spi_error_count"] if current else None,
++    "spi_error_count": raw["spi_error_count"] if current and capabilities.spi_error_count is True else None,
+     "spi_checksum_error_count": raw["spi_checksum_error_count"] if not current else None,
+     # Firmware amplitude units, not dB or a proof of audible output.
+     "sound_output_level": raw["sound_output_level"] if current and capabilities.sound is True else None,
+diff --git a/openpilot/selfdrive/pandad/compatibility/message_policy.py b/openpilot/selfdrive/pandad/compatibility/message_policy.py
+index 163d7c2..f308448 100644
+--- a/openpilot/selfdrive/pandad/compatibility/message_policy.py
++++ b/openpilot/selfdrive/pandad/compatibility/message_policy.py
+@@ -75,6 +75,8 @@ class MessagePolicy:
+     return len(states) == 2 and all(str(states[i].pandaType) == BOARD_TYPES[b.expected_board_type]
+                                     for i, b in enumerate(self.profile.slots))
+ 
++  # A valid publisher Event includes the per-connection F4C1 handshake.
++  # The unchanged schema has no nullable current; never expose its F4 placeholder.
+   def hardware(self, sm, now_ns: int) -> HardwareObservation:
+     if not self.group_ready(sm, now_ns):
+       return HardwareObservation()
+@@ -84,7 +86,7 @@ class MessagePolicy:
+                                any(states[i].ignitionLine or states[i].ignitionCan for i in roles.ignition_sources),
+                                str(states[roles.harness].harnessStatus) != "notConnected",
+                                None if power is None else power.voltage,
+-                               None if power is None else power.current,
++                               None if power is None or self.profile.slots[roles.power_monitor].mcu_family == "F4" else power.current,
+                                states[roles.vehicle_can].pandaType)
+ 
+   def fan_rpm(self, sm, now_ns: int) -> int | None:
+diff --git a/openpilot/selfdrive/pandad/compatibility/offline_entry.cc b/openpilot/selfdrive/pandad/compatibility/offline_entry.cc
+index 2c9efd6..7369b8c 100644
+--- a/openpilot/selfdrive/pandad/compatibility/offline_entry.cc
++++ b/openpilot/selfdrive/pandad/compatibility/offline_entry.cc
+@@ -59,10 +59,13 @@ public:
+     if (r.kind == Kind::BulkWrite) return {Status::Ok,r.payload.size(),{}};
+     if (r.kind == Kind::BulkRead) { auto data=can_bytes;can_bytes.clear(); return {Status::Short,data.size(),data}; }
+     Bytes bytes(r.read_length);
+-    if (r.request == 0xd2) {
++    if (r.request == 0xd5) {
++      CHECK(dos); bytes = {0x46,0x34,0x43,0x31,1,0,16,0,0x1f,0,0,0,7,0,0,0};
++    } else if (r.request == 0xd2) {
+       bytes[0]=42; put16(bytes,4,dos ? 12001:13002); put16(bytes,6,dos ? 321:654);
+       bytes[28]=dos ? 0:1; bytes[30]=dos ? 0:2;bytes[31]=model;
+       put16(bytes,32,mismatched ? param+1:param);put16(bytes,35,alternative);bytes[47]=75;
++      put16(bytes,39,77);put16(bytes,45,1234);
+     } else if (r.request == 0xc2) { put16(bytes,41,500); put16(bytes,43,2000); }
+     else if (r.request == 0xb2) put16(bytes,0,2345);
+     else throw std::runtime_error("unexpected request");
+@@ -133,7 +136,10 @@ int pandad_compat_offline_main() {
+       for(unsigned dos=0;dos<2;++dos){Rig r(dos);r.ready();
+         trace_message(serialize_panda_states(r.runtime,r.clock.time),"pandaStates",dos,r.clock.time,true);
+         read_event(serialize_panda_states(r.runtime,r.clock.time),[&](auto e){CHECK(e.getValid());auto ps=e.getPandaStates();CHECK(ps.size()==2);
+-          CHECK(ps[dos].getPandaType()==cereal::PandaState::PandaType::DOS);CHECK(ps[dos].getVoltage()==12001);
++          CHECK(ps[dos].getPandaType()==cereal::PandaState::PandaType::DOS);CHECK(ps[dos].getVoltage()==12001);CHECK(ps[dos].getCurrent()==0);
++          CHECK(ps[1-dos].getCurrent()==654);
++          CHECK(ps[dos].getSpiErrorCount()==0);CHECK(ps[dos].getSoundOutputLevel()==0);
++          CHECK(ps[1-dos].getSpiErrorCount()==77);CHECK(ps[1-dos].getSoundOutputLevel()==1234);
+           CHECK(ps[1-dos].getHarnessStatus()==cereal::PandaState::HarnessStatus::FLIPPED);CHECK(ps[0].getSafetyParam()==100);CHECK(ps[1].getSafetyParam()==101);});
+       }
+     });
+@@ -239,8 +245,8 @@ int pandad_compat_offline_main() {
+     });
+     test("explicit_roles_aggregate_ignition_and_no_unsupported_ir",[]{
+       for(unsigned dos=0;dos<2;++dos){Rig r(dos);r.ready();for(unsigned i=0;i<6;++i)r.runtime.peripheral_step();
+-        const auto p=r.runtime.peripheral_snapshot();CHECK(p.valid);CHECK(p.fan_slot==int(dos));CHECK(p.ignition&&*p.ignition);CHECK(p.harness&&*p.harness==2);CHECK(p.voltage&&*p.voltage==12001);
+-        read_event(serialize_peripheral_state(r.runtime,r.clock.time),[](auto e){CHECK(e.getValid());CHECK(e.getPeripheralState().getFanSpeedRpm()==2345);});
++        const auto p=r.runtime.peripheral_snapshot();CHECK(p.valid);CHECK(p.fan_slot==int(dos));CHECK(p.ignition&&*p.ignition);CHECK(p.harness&&*p.harness==2);CHECK(p.voltage&&*p.voltage==12001);CHECK(!p.current);CHECK(p.temperature&&*p.temperature==35);
++        read_event(serialize_peripheral_state(r.runtime,r.clock.time),[](auto e){CHECK(e.getValid());CHECK(e.getPeripheralState().getFanSpeedRpm()==2345);CHECK(e.getPeripheralState().getCurrent()==0);});
+         auto &external=dos==0?r.b1:r.b0;for(const auto &c:external.calls)CHECK(c.request!=0xb1&&c.request!=0xb2&&c.request!=0xb0);
+         for(auto *b:{&r.b0,&r.b1})for(const auto &c:b->calls)CHECK(c.request!=0xe7&&c.request!=0xb0);
+       }
+diff --git a/openpilot/selfdrive/pandad/compatibility/pandad_loop.cc b/openpilot/selfdrive/pandad/compatibility/pandad_loop.cc
+index 7216136..eefd8cd 100644
+--- a/openpilot/selfdrive/pandad/compatibility/pandad_loop.cc
++++ b/openpilot/selfdrive/pandad/compatibility/pandad_loop.cc
+@@ -33,37 +33,43 @@ LoopCycleResult PandadLoop::cycle() {
+     return !out.clock_failed && !out.budget_exceeded;
+   };
+   try {
+-    // Health, heartbeat and explicit exit intents precede all queued messages.
+-    // Even an overdue cycle gets this bounded opportunity to exit healthy peers.
+-    runtime_.tick();
+-    for (std::size_t n = 0; n < kLoopMaxInputs && within_budget(); ++n) {
+-      const auto captured = runtime_.capture();
+-      auto input = source_.next(captured);
+-      if (!input) { within_budget(); break; }
+-      ++out.inputs;
+-      if (!within_budget()) { ++out.rejected; break; }
+-      bool accepted = false;
+-      switch (input->kind) {
+-        case InputKind::Event: accepted = ingest_cereal_event(runtime_, input->bytes, input->epoch); break;
+-        case InputKind::CarParams: accepted = configure_cereal_params(runtime_, input->bytes, input->epoch); break;
+-        default: runtime_.invalid_input("UNKNOWN_INGRESS_KIND"); break;
++    if (shutdown_requested_) {
++      // Shutdown has its own bounded scheduler allowance; no ingress/CAN work.
++      runtime_.shutdown();
++      out.shutdown = true;
++    } else {
++      // Health, heartbeat and explicit exit intents precede all queued messages.
++      // Even an overdue cycle gets this bounded opportunity to exit healthy peers.
++      runtime_.tick();
++      for (std::size_t n = 0; n < kLoopMaxInputs && within_budget(); ++n) {
++        const auto captured = runtime_.capture();
++        auto input = source_.next(captured);
++        if (!input) { within_budget(); break; }
++        ++out.inputs;
++        if (!within_budget()) { ++out.rejected; break; }
++        bool accepted = false;
++        switch (input->kind) {
++          case InputKind::Event: accepted = ingest_cereal_event(runtime_, input->bytes, input->epoch); break;
++          case InputKind::CarParams: accepted = configure_cereal_params(runtime_, input->bytes, input->epoch); break;
++          default: runtime_.invalid_input("UNKNOWN_INGRESS_KIND"); break;
++        }
++        if (accepted) ++out.accepted; else ++out.rejected;
+       }
+-      if (accepted) ++out.accepted; else ++out.rejected;
+-    }
+-    for (std::uint32_t slot = 0; slot < 2 && within_budget(); ++slot) {
+-      ++out.receive_attempts;
+-      runtime_.receive_step(slot);
+-      if (!within_budget()) break;
+-      ++out.transmit_attempts;
+-      runtime_.transmit_step(slot);
+-    }
+-    const auto now = clock_.now_us();
+-    if (within_budget() && due(last_peripheral_, now, kLoopPeripheralStepUs)) {
+-      last_peripheral_ = now;
+-      out.peripheral_attempted = true;
+-      runtime_.peripheral_step();
++      for (std::uint32_t slot = 0; slot < 2 && within_budget(); ++slot) {
++        ++out.receive_attempts;
++        runtime_.receive_step(slot);
++        if (!within_budget()) break;
++        ++out.transmit_attempts;
++        runtime_.transmit_step(slot);
++      }
++      const auto now = clock_.now_us();
++      if (within_budget() && due(last_peripheral_, now, kLoopPeripheralStepUs)) {
++        last_peripheral_ = now;
++        out.peripheral_attempted = true;
++        runtime_.peripheral_step();
++      }
++      within_budget();
+     }
+-    within_budget();
+   } catch (...) {
+     out.callback_failed = true;
+     runtime_.invalid_input("LOOP_CALLBACK_EXCEPTION");
+@@ -84,7 +90,7 @@ LoopCycleResult PandadLoop::cycle() {
+     }
+     within_budget();
+   };
+-  const auto force = [&]() { return out.overdue || out.clock_failed || out.budget_exceeded || out.callback_failed; };
++  const auto force = [&]() { return out.shutdown || out.overdue || out.clock_failed || out.budget_exceeded || out.callback_failed; };
+   publish(OutputTopic::Can, [&] { return serialize_can(runtime_, clock_.now_us()); });
+   auto now = clock_.now_us();
+   if (force() || due(last_panda_publish_, now, kLoopPandaPublishUs)) {
+diff --git a/openpilot/selfdrive/pandad/compatibility/pandad_loop.h b/openpilot/selfdrive/pandad/compatibility/pandad_loop.h
+index 00fdba4..3a3a3af 100644
+--- a/openpilot/selfdrive/pandad/compatibility/pandad_loop.h
++++ b/openpilot/selfdrive/pandad/compatibility/pandad_loop.h
+@@ -35,7 +35,7 @@ struct LoopCycleResult {
+   std::size_t inputs = 0, accepted = 0, rejected = 0;
+   std::size_t receive_attempts = 0, transmit_attempts = 0, publications = 0;
+   bool peripheral_attempted = false, overdue = false, budget_exceeded = false;
+-  bool clock_failed = false, callback_failed = false;
++  bool clock_failed = false, callback_failed = false, shutdown = false;
+   std::uint64_t elapsed_us = 0;
+ };
+ // Actual reusable serialized pandad cycle, with injected ingress/publication.
+@@ -47,6 +47,10 @@ public:
+   PandadLoop(PandadRuntime &runtime, Clock &clock, EventSource &source, EventSink &sink)
+     : runtime_(runtime), clock_(clock), source_(source), sink_(sink) {}
+   LoopCycleResult cycle();
++  // Serialized owner-thread handoff for a normal exit or an observed signal.
++  // Not async-signal-safe: an actual handler must only set its own signal flag.
++  // The next cycle drains bounded exit commands before any ingress/CAN work.
++  void request_shutdown() { shutdown_requested_ = true; }
+ private:
+   PandadRuntime &runtime_;
+   Clock &clock_;
+@@ -54,5 +58,6 @@ private:
+   EventSink &sink_;
+   std::optional<std::uint64_t> last_cycle_, last_peripheral_, last_panda_publish_, last_peripheral_publish_;
+   bool clock_failed_ = false;
++  bool shutdown_requested_ = false;
+ };
+ }  // namespace openpilot::pandad::compatibility
+diff --git a/openpilot/selfdrive/pandad/compatibility/pandad_runtime.cc b/openpilot/selfdrive/pandad/compatibility/pandad_runtime.cc
+index 62ce792..213567b 100644
+--- a/openpilot/selfdrive/pandad/compatibility/pandad_runtime.cc
++++ b/openpilot/selfdrive/pandad/compatibility/pandad_runtime.cc
+@@ -14,6 +14,9 @@ Request control_request(const ControlCommand &command) {
+   request.value = command.value;
+   request.index = command.param;
+   switch (command.kind) {
++    case ControlKind::ReadCapabilities:
++      request.kind = Kind::ControlRead; request.request = kF4CapabilityRequest;
++      request.read_length = kF4CapabilityLength; break;
+     case ControlKind::ReadHealth: request.kind = Kind::ControlRead; request.request = 0xd2; request.read_length = 48; break;
+     case ControlKind::ReadCanHealth: request.kind = Kind::ControlRead; request.request = 0xc2; request.read_length = 64; break;
+     case ControlKind::SetAlternativeExperience: request.request = 0xdf; break;
+@@ -144,7 +147,10 @@ bool PandadRuntime::sendcan(TxBatch batch, InputEpoch epoch) {
+   // refreshed connection after a reconnect or control barrier transition.
+   batch.group_generation = epoch.generation;
+   const auto queued = router_.enqueue_tx(batch, clock_.now_us());
+-  if (!queued) { count(counters_.denied_tx); return false; }
++  if (!queued) {
++    if (queued.error == RouterError::Overflow) invalid_input("TX_QUEUE_OVERFLOW");
++    count(counters_.denied_tx); return false;
++  }
+   last_sendcan_ = batch.source_timestamp_us;
+   return true;
+ }
+@@ -176,8 +182,8 @@ void PandadRuntime::tick() {
+     const Request request = control_request(command);
+     const Result result = perform(command.token.slot, request);
+     const bool ok = exact(result, request.read_length);
+-    control_.complete(command, ok, result.data, clock_.now_us());
+-    if (!ok) {
++    const bool accepted = control_.complete(command, ok, result.data, clock_.now_us());
++    if (!ok || (!accepted && !registry_.snapshot().slots[command.token.slot].connected)) {
+       count(counters_.io_failures);
+       if (transports_[command.token.slot]) transports_[command.token.slot]->cancel();
+     }
+@@ -227,7 +233,17 @@ bool PandadRuntime::receive_step(std::uint32_t slot) {
+                       result.actual_known && !result.delivery_uncertain && result.actual == result.data.size();
+   if (!benign) { retire(slot, "CAN_READ_FAILED"); return false; }
+   if (result.data.empty()) return true;
+-  return static_cast<bool>(router_.receive(token.value, result.data.data(), result.data.size(), started, clock_.now_us()));
++  const auto rejected_before = router_.counters().safety_rejections;
++  const bool accepted = static_cast<bool>(router_.receive(token.value, result.data.data(), result.data.size(), started, clock_.now_us()));
++  if (router_.counters().safety_rejections != rejected_before ||
++      router_.counters().safety_rejections == UINT64_MAX) {
++    // An MCU safety rejection closes the entire group before either board can
++    // consume another queued TX. Preserve immutable diagnostic provenance, but
++    // never treat the rejected frame as a retry or a sibling-route candidate.
++    invalid_input("MCU_TX_REJECTED");
++    return false;
++  }
++  return accepted;
+ }
+ bool PandadRuntime::transmit_step(std::uint32_t slot) {
+   if (stopped_ || slot > 1) return false;
+@@ -274,13 +290,20 @@ PeripheralSnapshot PandadRuntime::peripheral_snapshot() {
+   out.ignition = ignition;
+   if (profile.roles.harness >= 0) out.harness = state.slots[profile.roles.harness].health[30];
+   if (profile.roles.power_monitor >= 0) {
+-    const auto &health = state.slots[profile.roles.power_monitor].health;
+-    out.voltage = u16(health, 4); out.current = u16(health, 6);
+-    out.power_timestamp_us = state.slots[profile.roles.power_monitor].health_timestamp_us;
++    const auto &board = state.slots[profile.roles.power_monitor];
++    const auto &health = board.health;
++    out.field_available = board.field_available;
++    if (board.field_available.voltage) out.voltage = u16(health, 4);
++    if (board.field_available.current) out.current = u16(health, 6);
++    if (board.field_available.temperature) out.temperature = static_cast<std::int16_t>(health[47]) - 40;
++    if (board.field_available.sound_output) out.sound_output = u16(health, 45);
++    if (board.field_available.spi_error_count) out.spi_error_count = u16(health, 39);
++    out.power_timestamp_us = board.health_timestamp_us;
+   }
+   if (out.fan_slot >= 0 && fan_time_ && fresh(*fan_time_, kPeripheralMaxAgeUs)) {
+     out.fan_rpm = fan_rpm_; out.timestamp_us = *fan_time_;
+-    out.valid = out.voltage.has_value() && out.current.has_value() &&
++    out.valid = out.voltage.has_value() &&
++      (!out.field_available.current || out.current.has_value()) &&
+       fresh(out.power_timestamp_us, kHealthMaxAgeUs);
+   }
+   return out;
+@@ -293,11 +316,13 @@ void PandadRuntime::shutdown() {
+   if (stopped_) return;
+   control_.fail_group("PLANNED_SHUTDOWN", clock_.now_us());
+   router_.discard_pending();
+-  // Three bounded scheduler rounds: noOutput -> readback -> heartbeat(false).
++  // Five bounded rounds also cover a first-slot failure, the resulting group
++  // generation change, and a surviving F4 capability re-observation before
++  // noOutput -> readback -> heartbeat(false). At most ten <=5ms operations.
+   // A failed/uncertain operation retires only that handle; no retry or assertion
+   // that this code runs after abrupt power/process loss.
+   device_.reset(); camera_.reset();
+-  for (unsigned round = 0; round < 3; ++round) tick();
++  for (unsigned round = 0; round < 5; ++round) tick();
+   for (auto *transport : transports_) if (transport) transport->cancel();
+   registry_.invalidate_group("PLANNED_SHUTDOWN"); stopped_ = true;
+ }
+diff --git a/openpilot/selfdrive/pandad/compatibility/pandad_runtime.h b/openpilot/selfdrive/pandad/compatibility/pandad_runtime.h
+index e1c20fa..dc58789 100644
+--- a/openpilot/selfdrive/pandad/compatibility/pandad_runtime.h
++++ b/openpilot/selfdrive/pandad/compatibility/pandad_runtime.h
+@@ -39,6 +39,10 @@ struct PeripheralSnapshot {
+   std::optional<std::uint32_t> harness;
+   std::optional<std::uint16_t> voltage;
+   std::optional<std::uint16_t> current;
++  std::optional<std::int16_t> temperature;
++  std::optional<std::uint16_t> sound_output;
++  std::optional<std::uint16_t> spi_error_count;
++  HealthFieldAvailability field_available{};
+ };
+ struct RuntimeCounters {
+   std::uint64_t denied_tx = 0;
+@@ -77,6 +81,8 @@ public:
+   SessionSnapshot sessions() const { return registry_.snapshot(); }
+   SessionProfile profile() const { return registry_.profile(); }
+   const RuntimeCounters &counters() const { return counters_; }
++  std::uint64_t rejection_count() const { return router_.counters().safety_rejections; }
++  std::optional<RejectionEvidence> rejection_evidence() const { return router_.latest_rejection(); }
+   void shutdown();
+   void invalid_input(const char *reason);
+ private:
+diff --git a/openpilot/selfdrive/pandad/compatibility/tests/check_runtime_messages.py b/openpilot/selfdrive/pandad/compatibility/tests/check_runtime_messages.py
+index 9e47cbf..29d6fd6 100644
+--- a/openpilot/selfdrive/pandad/compatibility/tests/check_runtime_messages.py
++++ b/openpilot/selfdrive/pandad/compatibility/tests/check_runtime_messages.py
+@@ -29,10 +29,13 @@ def main():
+         if event.valid:
+           observed = policy.hardware(sm, now)
+           assert observed.valid and observed.ignition and observed.in_car
+-          assert observed.voltage == 12001 and observed.current == 321
++          assert observed.voltage == 12001 and observed.current is None
++          f4, h7 = event.pandaStates[record["dos_slot"]], event.pandaStates[1-record["dos_slot"]]
++          assert f4.current == f4.spiErrorCount == f4.soundOutputLevel == 0
++          assert (h7.current, h7.spiErrorCount, h7.soundOutputLevel) == (654, 77, 1234)
+           assert not policy.group_ready(sm, event.logMonoTime + PANDA_MAX_AGE_NS)
+           assert not policy.enabled(sm, now)
+-          checks += 4
++          checks += 6
+         else:
+           assert not policy.hardware(sm, now).valid
+           checks += 1
+diff --git a/openpilot/selfdrive/pandad/compatibility/tests/p6_safety/README.md b/openpilot/selfdrive/pandad/compatibility/tests/p6_safety/README.md
+new file mode 100644
+index 0000000..4adb85e
+--- /dev/null
++++ b/openpilot/selfdrive/pandad/compatibility/tests/p6_safety/README.md
+@@ -0,0 +1,50 @@
++# P6 actual-source safety and liveness oracle
++
++`../run_p6_safety.py --panda <P5 tree> --opendbc <pinned tree>
++--output <directory> --compiler clang` uses only the Python standard library and
++a native C compiler. Linux uses `gcc`. No Panda Python import, device discovery,
++CAN endpoint, network operation or firmware build/install is present.
++
++The runner first verifies `source-lock.json`, then includes the unchanged current
++opendbc safety headers, P5 `can_common.h` and `can_comms.h`. It extracts exact,
++byte-identical source ranges for `set_safety_mode`, `tick_handler`, heartbeat
++handling and timestamp arithmetic. It includes the actual fault and software
++watchdog headers. Source ranges, full input hashes, compiler commands, native
++binary hashes and observed decisions are recorded in `result.json`.
++
++The native matrix is F4/H7 × debug/non-debug: 19 debug groups and 13 non-debug
++groups per MCU policy, 64 groups and 5,086 assertions per host platform. Thirty
++classic-frame/liveness traces must agree exactly between F4/H7. The FD capability
++case intentionally differs. Four native binaries are compiled with warnings as
++errors and ASan/UBSan. Each case starts a new process, resetting static firmware
++state. This executes host C with MCU policy defines; it is not an ARM emulator.
++P5 separately supplies actual ARM builds and low-level controller tests.
++
++| Evidence | Scope |
++| --- | --- |
++| `deny_modes_all_local_and_host_buses` | SILENT/noOutput reject every bus field 0–7 and DLC 0–15 even with an injected controls-allowed state. |
++| `checksum_and_response_flags_cannot_bypass` | Transport checksum, response flags, reserved bus and invalid standard address fail before CAN queue entry. |
++| `rejected_frame_retains_local_bus` | Genuine rejected echoes preserve original local bus/address and checksum; all local TX queues remain empty. Host sibling-board non-bypass is established by the companion P6 fault suite. |
++| `partial_packet_reset_does_not_send` | Real stream reset discards the partial packet; one fresh allowed ELM327 test vector queues exactly once. This is a positive control, not a production diagnostic bypass. |
++| BYD debug groups | Current ATTO3-reference whitelist, correct-bus/DLC positive control, bad RX bus/length, payload checksum, fifth wrong counter, exact 1 s lag boundary/wrap, relay and forwarding restrictions, disengaged steering. Checksum/counter/lag failures also reject a real steering TX attempt. |
++| Legacy/non-debug groups | Enum 32 + param 33 is absent; actual firmware falls back to SILENT. Current enum 35 is unavailable without ALLOW_DEBUG and also falls back to SILENT. |
++| Abrupt process/USB power loss | No further host commands or cleanup execute. A separately powered, scheduled MCU reaches SILENT at the actual 5/2 decimated tick thresholds and clears all three pending TX queues. |
++| MCU halt/power loss | No software action executes while MCU execution stops. A resumed kick records a late-loop fault; it does not itself set SILENT or prove hardware-watchdog recovery. |
++
++Important boundaries:
++
++- Current debug `byd_init` ignores its parameter, so enum 35 + param 33 is
++  accepted with ATTO3 semantics. It does **not** recover private legacy enum 32
++  semantics or establish Song PLUS support. The host profile must remain unbound.
++- Register/peripheral functions and `process_can` are explicit HAL stubs. H7
++  queue section names receive a Mach-O segment prefix on macOS only; this does
++  not validate MCU memory placement. Actual F4/H7 resource maps remain P5 evidence.
++- RX injection and pre-existing controls/queue state are labelled test inputs.
++  No reimplemented safety policy, fake safety acceptance or spoofed production
++  RX path replaces actual hooks.
++- The timer schedule is explicit. Heartbeat counts are not exact wall-clock
++  expiry guarantees. Physical CAN completion, relay state, power rails and
++  cooling remain untested.
++- The P6 orchestrator requires exact nonempty inventories, counts, source hashes,
++  executable hashes and source ranges, then recomputes F4/H7 and macOS/Linux
++  decision equality. A stale or empty report cannot satisfy the gate.
+diff --git a/openpilot/selfdrive/pandad/compatibility/tests/p6_safety/oracle.c b/openpilot/selfdrive/pandad/compatibility/tests/p6_safety/oracle.c
+new file mode 100644
+index 0000000..f95cb89
+--- /dev/null
++++ b/openpilot/selfdrive/pandad/compatibility/tests/p6_safety/oracle.c
+@@ -0,0 +1,368 @@
++// P6 executes the pinned safety hooks and P5 common CAN/firmware liveness C.
++// Only registers, peripheral calls, scheduler and transport endpoints are fake.
++#include <stdbool.h>
++#include <stdint.h>
++#include <stdio.h>
++#include <stdlib.h>
++#include <string.h>
++#define MIN(a,b) ((a) < (b) ? (a) : (b))
++#define ENTER_CRITICAL() do {} while (0)
++#define EXIT_CRITICAL() do {} while (0)
++#define MAX_CAN_MSGS_PER_USB_BULK_TRANSFER 5U
++#define MAX_CAN_MSGS_PER_SPI_BULK_TRANSFER 5U
++#include "board/drivers/drivers.h"
++#if P6_TARGET_F4
++#define STM32F4
++#else
++#define STM32H7
++#endif
++static uint32_t now_us;
++uint32_t microsecond_timer_get(void) { return now_us; }
++#include "opendbc/safety/safety.h"
++static unsigned processed[3], initialized;
++bool can_init(uint8_t num) { (void)num; ++initialized; return true; }
++void process_can(uint8_t num) { ++processed[num]; }
++void print(const char *s) { (void)s; }
++void puth(unsigned int i) { (void)i; }
++void can_tx_comms_resume_usb(void) {}
++void can_tx_comms_resume_spi(void) {}
++#if defined(__APPLE__) && !P6_TARGET_F4
++// Native Mach-O requires a segment name. Preserve each H7 queue section while
++// adapting its host linker spelling; this does not model MCU RAM placement.
++#define section(name) section("__DATA," name)
++#endif
++#include "board/drivers/can_common.h"
++#if defined(__APPLE__) && !P6_TARGET_F4
++#undef section
++#endif
++#include "board/can_comms.h"
++#include "board/sys/faults.h"
++
++static unsigned assertions;
++#define CHECK(x) do { ++assertions; if (!(x)) { fprintf(stderr, "FAIL %s:%d: %s\n", __FILE__, __LINE__, #x); exit(1); } } while (0)
++enum { HARNESS_STATUS_NC = 0, HARNESS_STATUS_FLIPPED = 2, CAN_MODE_NORMAL = 0,
++       CAN_MODE_OBD_CAN2 = 1, LED_GREEN = 1, LED_BLUE = 2 };
++#undef CANIF_FROM_CAN_NUM
++#define CANIF_FROM_CAN_NUM(x) (x)
++static struct { uint8_t status; } harness;
++static struct { uint32_t SR; } fake_timer;
++#define TICK_TIMER (&fake_timer)
++static uint32_t heartbeat_counter, heartbeat_tick_counter, uptime_cnt;
++static bool heartbeat_lost, heartbeat_disabled, siren_enabled, ignition_line, som_gpio;
++bool power_save_enabled;
++static unsigned relay_calls, mode_calls, fan_calls, ir_calls, host_cleanup_calls;
++static uint32_t board_voltage = 12000U;
++static uint32_t voltage(void) { return board_voltage; }
++static void siren(bool value) { (void)value; }
++static void can_mode(unsigned mode) { (void)mode; ++mode_calls; }
++static void ir(uint32_t value) { CHECK(value == 0U); ++ir_calls; }
++static bool som(void) { return som_gpio; }
++static struct {
++  uint32_t (*read_voltage_mV)(void);
++  void (*set_siren)(bool);
++  void (*set_can_mode)(unsigned);
++  void (*set_ir_power)(uint32_t);
++  bool (*read_som_gpio)(void);
++} board = {voltage, siren, can_mode, ir, som};
++#define current_board (&board)
++static void assert_fatal(bool condition, const char *message) { (void)message; CHECK(condition); }
++static void set_intercept_relay(bool intercept, bool ignition) { (void)intercept; (void)ignition; ++relay_calls; }
++static void can_clear_send(unsigned interface, unsigned bus) { (void)interface; (void)bus; }
++void set_power_save_state(bool enabled) { power_save_enabled = enabled; }
++void fan_tick(void) {}
++static void harness_tick(void) {}
++static void sound_tick(void) {}
++static void led_set(unsigned led, bool enabled) { (void)led; (void)enabled; }
++static bool harness_check_ignition(void) { return ignition_line; }
++void bootkick_tick(bool started, bool recent) { (void)started; (void)recent; }
++void fan_set_power(uint8_t power) { CHECK(power == 0U || power == 30U); ++fan_calls; }
++void check_registers(void) {}
++struct fake_request { uint8_t request; uint16_t param1; };
++#include "firmware_source.inc"
++
++static CANPacket_t packet(unsigned addr, unsigned bus, unsigned dlc) {
++  CANPacket_t p = {0}; p.addr = addr; p.bus = bus; p.data_len_code = dlc;
++  can_set_checksum(&p); return p;
++}
++static void reset_mode(uint16_t mode, uint16_t param) {
++  set_safety_mode(mode, param);
++  memset(processed, 0, sizeof(processed));
++  can_clear(&can_rx_q); comms_can_reset();
++}
++static unsigned queued(void) {
++  unsigned n = 0U;
++  for (unsigned i = 0; i < 3U; ++i) n += can_queues[i]->fifo_size - 1U - can_slots_empty(can_queues[i]);
++  return n;
++}
++static void send(CANPacket_t p) {
++  can_set_checksum(&p);
++  comms_can_write((const uint8_t *)&p, CANPACKET_HEAD_SIZE + GET_LEN(&p));
++}
++static void trace_state(const char *event) {
++  printf("TRACE {\"event\":\"%s\",\"mode\":%u,\"param\":%u,\"controls\":%s,\"queued\":%u,\"processed\":[%u,%u,%u],\"blocked\":%u,\"heartbeat\":%u,\"host_cleanup_calls\":%u}\n",
++         event, current_safety_mode, current_safety_param, controls_allowed ? "true" : "false", queued(),
++         processed[0], processed[1], processed[2], safety_tx_blocked, heartbeat_counter, host_cleanup_calls);
++}
++static void deny_modes_all_local_and_host_buses(void) {
++  const uint16_t modes[] = {SAFETY_SILENT, SAFETY_NOOUTPUT};
++  for (unsigned m = 0; m < 2U; ++m) {
++    for (unsigned bus = 0; bus < 8U; ++bus) {
++      for (unsigned dlc = 0; dlc < 16U; ++dlc) {
++        reset_mode(modes[m], 0U); controls_allowed = true;
++        CANPacket_t p = packet(0x1E2U, bus, dlc); send(p);
++        CHECK(queued() == 0U && processed[0] == 0U && processed[1] == 0U && processed[2] == 0U);
++        CHECK(safety_tx_blocked == 1U);
++        CHECK(safety_fwd_hook(bus, p.addr) == -1);
++      }
++    }
++  }
++  trace_state("deny_all_buses_and_lengths");
++}
++static void legacy_enum32_param33_falls_back_silent(void) {
++  CHECK(SAFETY_BYD == 35U && SAFETY_RIVIAN == 33U);
++  CHECK(set_safety_hooks(32U, 33U) == -1);
++  reset_mode(32U, 33U);
++  CHECK(current_safety_mode == SAFETY_SILENT && current_safety_param == 0U && can_silent);
++  CHECK(!controls_allowed); send(packet(0x1E2U, 0U, 8U)); CHECK(queued() == 0U);
++  trace_state("legacy32_param33_no_translation");
++}
++static void checksum_and_response_flags_cannot_bypass(void) {
++  reset_mode(SAFETY_ELM327, 0U);
++  for (unsigned i = 0; i < 14U; ++i) {
++    CANPacket_t p = packet(0x700U, 0U, 8U);
++    ((uint8_t *)&p)[i] ^= i == 0U ? 1U : 0x80U;
++    comms_can_write((uint8_t *)&p, 14U);
++    CHECK(queued() == 0U);
++  }
++  CHECK(safety_tx_blocked == 14U);
++  for (unsigned variant = 0; variant < 4U; ++variant) {
++    CANPacket_t p = packet(0x700U, 0U, 8U);
++    if (variant == 0U) p.returned = 1U;
++    if (variant == 1U) p.rejected = 1U;
++    if (variant == 2U) p.bus = 7U;
++    if (variant == 3U) p.addr = 0x800U;
++    send(p); CHECK(queued() == 0U);
++  }
++  CHECK(safety_tx_blocked == 18U);
++  trace_state("malformed_host_packet_before_safety");
++}
++static void rejected_frame_retains_local_bus(void) {
++  for (unsigned bus = 0; bus < 3U; ++bus) {
++    reset_mode(SAFETY_NOOUTPUT, 0U);
++    CANPacket_t p = packet(0x321U, bus, 8U); send(p);
++    CANPacket_t rejected; CHECK(can_pop(&can_rx_q, &rejected));
++    CHECK(rejected.bus == bus && rejected.addr == 0x321U && rejected.rejected && !rejected.returned);
++    CHECK(can_check_checksum(&rejected)); CHECK(!can_pop(&can_rx_q, &p));
++    CHECK(queued() == 0U && processed[0] + processed[1] + processed[2] == 0U);
++    printf("TRACE {\"event\":\"rejected_packet\",\"local_bus\":%u,\"wire_hex\":\"", bus);
++    for (unsigned i = 0; i < 14U; ++i) printf("%02x", ((uint8_t *)&rejected)[i]);
++    puts("\",\"alternate_local_sends\":0}");
++  }
++}
++static void partial_packet_reset_does_not_send(void) {
++  reset_mode(SAFETY_ELM327, 0U);
++  CANPacket_t p = packet(0x700U, 0U, 8U);
++  comms_can_write((uint8_t *)&p, 7U); CHECK(queued() == 0U);
++  comms_can_reset(); CHECK(can_write_buffer.ptr == 0U && can_read_buffer.ptr == 0U);
++  send(packet(0x700U, 0U, 8U)); CHECK(queued() == 1U && processed[0] == 1U);
++  trace_state("fresh_packet_only_after_stream_reset");
++}
++static void fd_capability_differs_without_policy_drift(void) {
++  reset_mode(SAFETY_ELM327, 0U);
++  CANPacket_t p = packet(0x700U, 0U, 8U); p.fd = 1U; send(p);
++  CHECK(queued() == (P6_TARGET_F4 ? 0U : 1U));
++  CHECK(safety_tx_blocked == (P6_TARGET_F4 ? 1U : 0U));
++  // This case is intentionally excluded from classic-frame parity comparison.
++  trace_state("f4_fd_denied_h7_existing_fd_header_semantics");
++}
++static void second(void) {
++  for (unsigned i = 0; i < 8U; ++i) { now_us += 125000U; TICK_TIMER->SR = 1U; tick_handler(); CHECK(TICK_TIMER->SR == 0U); }
++}
++static void start_liveness(bool ignition) {
++  reset_mode(SAFETY_TOYOTA, 0U); ignition_line = ignition;
++  controls_allowed = true;  // Inject pre-existing engagement, not spoofed CAN RX.
++  const struct fake_request req = {0xf3U, 1U}; heartbeat_control(&req);
++  initialize_heartbeat_watchdog(); CHECK(wd_state.threshold == 375000U);
++}
++static void abrupt_host_loss(bool ignition, bool usb_power_loss) {
++  start_liveness(ignition);
++  // Model commands accepted before the host disappeared. HAL completion is
++  // deliberately paused so the real SILENT transition must clear all queues.
++  for (unsigned bus = 0; bus < 3U; ++bus) {
++    CANPacket_t pending = packet(0x700U, bus, 8U);
++    CHECK(can_push(can_queues[bus], &pending));
++  }
++  CHECK(queued() == 3U);
++  // Host process receives no cleanup callback and sends no further commands.
++  // A separately powered MCU keeps executing its real 8 Hz timer path.
++  if (usb_power_loss) board_voltage = 5000U;
++  const uint32_t limit = ignition ? 5U : 2U;
++  for (uint32_t n = 1U; n <= limit; ++n) {
++    second(); CHECK(heartbeat_counter == n); CHECK(host_cleanup_calls == 0U);
++    CHECK(current_safety_mode == (n < limit ? SAFETY_TOYOTA : SAFETY_SILENT));
++    CHECK(queued() == (n < limit ? 3U : 0U));
++  }
++  CHECK(!controls_allowed && !heartbeat_engaged && heartbeat_lost && can_silent && power_save_enabled);
++  CHECK(queued() == 0U && fan_calls != 0U && ir_calls != 0U);
++  trace_state(usb_power_loss ? "usb_power_lost_mcu_remains_powered" : "abrupt_process_death_no_host_cleanup");
++}
++static void whole_mcu_power_loss_has_no_software_action(void) {
++  start_liveness(true); const unsigned before_modes = mode_calls;
++  now_us = 6000000U;  // Time in the external model advances; MCU executes nothing.
++  CHECK(heartbeat_counter == 0U && current_safety_mode == SAFETY_TOYOTA);
++  CHECK(mode_calls == before_modes && faults == 0U && host_cleanup_calls == 0U);
++  trace_state("whole_mcu_power_loss_no_execution_or_claimed_cleanup");
++}
++static void stopped_loop_watchdog_only_on_resume(void) {
++  start_liveness(true); now_us = 375001U;
++  CHECK(faults == 0U && heartbeat_counter == 0U);
++  simple_watchdog_kick(); CHECK(faults == FAULT_HEARTBEAT_LOOP_WATCHDOG);
++  CHECK(current_safety_mode == SAFETY_TOYOTA && heartbeat_counter == 0U);
++  trace_state("software_watchdog_fault_on_resume_is_not_silent");
++}
++static void watchdog_threshold_and_wrap(void) {
++  start_liveness(true);
++  for (unsigned wrap = 0; wrap < 2U; ++wrap) {
++    for (unsigned delta = 374999U; delta <= 375001U; ++delta) {
++      faults = 0U; now_us = wrap ? UINT32_MAX - 100U : 100U;
++      initialize_heartbeat_watchdog(); now_us += delta; simple_watchdog_kick();
++      CHECK((faults != 0U) == (delta > 375000U)); CHECK(current_safety_mode == SAFETY_TOYOTA);
++    }
++  }
++  trace_state("watchdog_strict_375000_and_one_wrap");
++}
++
++#ifdef ALLOW_DEBUG
++static CANPacket_t byd_rx(unsigned addr, unsigned counter, bool engaged) {
++  CANPacket_t p = packet(addr, addr == 0x32DU ? 2U : 0U, addr == 0x11FU ? 5U : 8U);
++  if (addr == 0x32DU) { p.data[2] = engaged ? (3U << 3) : 0U; p.data[6] = counter & 15U; }
++  if (addr == 0x1F0U) p.data[6] = (counter & 15U) << 4;
++  uint8_t sum = 0U; for (unsigned i = 0; i < 7U; ++i) sum += p.data[i];
++  p.data[7] = 0xFFU - sum; can_set_checksum(&p); return p;
++}
++static void feed_byd(unsigned counter, bool engaged) {
++  const unsigned addresses[] = {0x11FU, 0x1F0U, 0x242U, 0x32DU};
++  for (unsigned i = 0; i < 4U; ++i) { CANPacket_t p = byd_rx(addresses[i], counter, engaged); CHECK(safety_rx_hook(&p)); }
++}
++static void fresh_byd(void) {
++  reset_mode(SAFETY_BYD, 0U);
++  for (unsigned i = 0; i < 16U; ++i) { now_us = 1000U + i * 20000U; feed_byd(i, true); }
++  CHECK(controls_allowed); safety_tick(); CHECK(controls_allowed && !safety_rx_checks_invalid);
++}
++static void assert_disengaged_steer_denied(void) {
++  CANPacket_t steer = packet(0x1E2U, 0U, 8U);
++  steer.data[2] = 1U << 5; steer.data[3] = 100U; send(steer);
++  CHECK(queued() == 0U && safety_tx_blocked == 1U);
++}
++static void byd_debug_reference_only(void) {
++  reset_mode(SAFETY_BYD, 33U);
++  CHECK(current_safety_mode == 35U && current_safety_param == 33U && !controls_allowed);
++  CHECK(current_safety_config.rx_checks_len == 4 && current_safety_config.tx_msgs_len == 3);
++  CHECK(current_safety_config.tx_msgs[0].addr == 0x1E2 && current_safety_config.tx_msgs[0].bus == 0U);
++  // Current byd_init ignores param. Acceptance is ATTO3 reference semantics;
++  // param 33 cannot recreate the private legacy enum32 behavior.
++  trace_state("byd35_debug_atto3_param_ignored_not_songplus");
++}
++static void byd_wrong_bus_and_dlc(void) {
++  for (unsigned bus = 0; bus < 8U; ++bus) {
++    for (unsigned dlc = 0; dlc < 16U; ++dlc) {
++      reset_mode(SAFETY_BYD, 0U); send(packet(0x316U, bus, dlc));
++      CHECK(queued() == ((bus == 0U && dlc == 8U) ? 1U : 0U));
++    }
++  }
++  trace_state("byd_tx_whitelist_exact_bus_length");
++}
++static void byd_wrong_rx_bus_length_cannot_enable(void) {
++  for (unsigned bus = 0; bus < 3U; ++bus) {
++    for (unsigned dlc = 7U; dlc <= 9U; ++dlc) {
++      if (bus == 2U && dlc == 8U) continue;
++      reset_mode(SAFETY_BYD, 0U);
++      CANPacket_t p = byd_rx(0x32DU, 1U, true); p.bus = bus; p.data_len_code = dlc;
++      (void)safety_rx_hook(&p); CHECK(!controls_allowed);
++      CHECK(!current_safety_config.rx_checks[3].status.msg_seen);
++    }
++  }
++  trace_state("wrong_rx_bus_length_not_whitelisted");
++}
++static void byd_payload_checksum_and_counter(void) {
++  fresh_byd(); CANPacket_t p = byd_rx(0x32DU, 0U, true); p.data[7] ^= 1U;
++  CHECK(!safety_rx_hook(&p)); CHECK(!controls_allowed);
++  CHECK(!current_safety_config.rx_checks[3].status.valid_checksum);
++  assert_disengaged_steer_denied();
++  fresh_byd();
++  for (unsigned i = 1U; i <= 5U; ++i) {
++    p = byd_rx(0x32DU, 15U, true); const bool valid = safety_rx_hook(&p);
++    CHECK(valid == (i < 5U)); CHECK(controls_allowed == (i < 5U));
++    CHECK(current_safety_config.rx_checks[3].status.wrong_counters == (int)i);
++  }
++  assert_disengaged_steer_denied();
++  trace_state("bad_payload_checksum_or_fifth_wrong_counter_exits");
++}
++static void byd_freshness_boundary_and_wrap(void) {
++  for (unsigned wrap = 0; wrap < 2U; ++wrap) {
++    fresh_byd(); now_us = wrap ? UINT32_MAX - 100U : 1000U;
++    feed_byd(0U, true); const uint32_t base = now_us;
++    now_us = base + 1000000U; safety_tick(); CHECK(controls_allowed && !safety_rx_checks_invalid);
++    now_us = base + 1000001U; safety_tick(); CHECK(!controls_allowed && safety_rx_checks_invalid);
++    assert_disengaged_steer_denied();
++  }
++  trace_state("rx_lag_strict_1000000_and_one_wrap");
++}
++static void byd_relay_and_forwarding_block(void) {
++  fresh_byd(); CHECK(safety_fwd_hook(2, 0x1E2) == -1);
++  CHECK(safety_fwd_hook(2, 0x316) == -1); CHECK(safety_fwd_hook(1, 0x123) == -1);
++  CHECK(safety_fwd_hook(0, 0x123) == 2); CHECK(safety_fwd_hook(2, 0x123) == 0);
++  safety_mode_cnt = 2U; CANPacket_t stock = packet(0x1E2U, 0U, 8U);
++  CHECK(safety_rx_hook(&stock)); CHECK(relay_malfunction);
++  for (unsigned bus = 0; bus < 3U; ++bus) {
++    CHECK(safety_fwd_hook(bus, 0x123) == -1); send(packet(0x316U, bus, 8U)); CHECK(queued() == 0U);
++  }
++  CHECK(safety_tx_blocked == 3U); CHECK(processed[0] + processed[1] + processed[2] == 0U);
++  trace_state("relay_fault_tx_and_forwarding_denied_all_local_buses");
++}
++static void byd_disengaged_steering_rejected(void) {
++  reset_mode(SAFETY_BYD, 0U); CANPacket_t steer = packet(0x1E2U, 0U, 8U);
++  steer.data[2] = 1U << 5; steer.data[3] = 100U; send(steer);
++  CHECK(queued() == 0U && safety_tx_blocked == 1U && current_safety_mode == SAFETY_BYD);
++  trace_state("disengaged_steering_denied_without_mode_change");
++}
++#else
++static void release_byd35_unavailable(void) {
++  CHECK(set_safety_hooks(SAFETY_BYD, 0U) == -1);
++  reset_mode(SAFETY_BYD, 33U); CHECK(current_safety_mode == SAFETY_SILENT && current_safety_param == 0U);
++  for (unsigned bus = 0; bus < 3U; ++bus) { send(packet(0x1E2U, bus, 8U)); CHECK(queued() == 0U); }
++  trace_state("release_byd35_unavailable_falls_back_silent");
++}
++#endif
++
++int main(int argc, char **argv) {
++  if (argc != 2) return 2;
++  const char *name = argv[1];
++#define CASE(fn) if (!strcmp(name, #fn)) fn()
++  CASE(deny_modes_all_local_and_host_buses);
++  else CASE(legacy_enum32_param33_falls_back_silent);
++  else CASE(checksum_and_response_flags_cannot_bypass);
++  else CASE(rejected_frame_retains_local_bus);
++  else CASE(partial_packet_reset_does_not_send);
++  else CASE(fd_capability_differs_without_policy_drift);
++  else if (!strcmp(name, "abrupt_process_death_ignition_on")) abrupt_host_loss(true, false);
++  else if (!strcmp(name, "abrupt_process_death_ignition_off")) abrupt_host_loss(false, false);
++  else if (!strcmp(name, "usb_power_loss_mcu_alive")) abrupt_host_loss(true, true);
++  else CASE(whole_mcu_power_loss_has_no_software_action);
++  else CASE(stopped_loop_watchdog_only_on_resume);
++  else CASE(watchdog_threshold_and_wrap);
++#ifdef ALLOW_DEBUG
++  else CASE(byd_debug_reference_only);
++  else CASE(byd_wrong_bus_and_dlc);
++  else CASE(byd_wrong_rx_bus_length_cannot_enable);
++  else CASE(byd_payload_checksum_and_counter);
++  else CASE(byd_freshness_boundary_and_wrap);
++  else CASE(byd_relay_and_forwarding_block);
++  else CASE(byd_disengaged_steering_rejected);
++#else
++  else CASE(release_byd35_unavailable);
++#endif
++  else return 3;
++  printf("{\"case\":\"%s\",\"assertions\":%u,\"failed\":0,\"skipped\":0}\n", name, assertions);
++  return 0;
++}
+diff --git a/openpilot/selfdrive/pandad/compatibility/tests/p6_safety/source-lock.json b/openpilot/selfdrive/pandad/compatibility/tests/p6_safety/source-lock.json
+new file mode 100644
+index 0000000..85479e4
+--- /dev/null
++++ b/openpilot/selfdrive/pandad/compatibility/tests/p6_safety/source-lock.json
+@@ -0,0 +1,236 @@
++{
++  "panda_commit": "aa02e42356f12b5ed4f0dbf553ffc2e8a7211b65",
++  "opendbc_commit": "b3bd79a659dae961af169a3baac723961f720133",
++  "files": [
++    {
++      "repository": "panda",
++      "path": "board/main.c",
++      "sha256": "9b42831360cd93c7dedeb10f989302fc7aba14550c365737e0ec69a990a11d91"
++    },
++    {
++      "repository": "panda",
++      "path": "board/main_comms.h",
++      "sha256": "066592aab7ee47abb47d1d7889284d36da002ba77793a611d576e5e8988cafc6"
++    },
++    {
++      "repository": "panda",
++      "path": "board/utils.h",
++      "sha256": "b40c8296d1a18fc5a83a0dda5c033457a2292197c562496d68121c96763580a5"
++    },
++    {
++      "repository": "panda",
++      "path": "board/drivers/simple_watchdog.h",
++      "sha256": "38cd9992ac95ec35dd22a24a2896ec453407d33b98ddb9ff06b5b1a1a85d20d3"
++    },
++    {
++      "repository": "panda",
++      "path": "board/sys/faults.h",
++      "sha256": "c4df5dbedf40c7f30231b99a095dd4950152aafaa8dfcc7c056598f57916bb3b"
++    },
++    {
++      "repository": "panda",
++      "path": "board/sys/sys.h",
++      "sha256": "452049183c5033cf2391bc59ccc4da87e03838de50533d0f65b492749d534e89"
++    },
++    {
++      "repository": "panda",
++      "path": "board/drivers/drivers.h",
++      "sha256": "55be60e4c1fa8e473e1b888d1ba82de30048d224922fe46457bf8667ec2d7952"
++    },
++    {
++      "repository": "panda",
++      "path": "board/can.h",
++      "sha256": "ee30d6a723476e5bfaf5493249af715c0f783b95fe4cdc19cb868da09b2334e8"
++    },
++    {
++      "repository": "panda",
++      "path": "board/health.h",
++      "sha256": "f512bcff6925e233a35c00e2d921fe01933fd77c0705c573a233b170d73ce20d"
++    },
++    {
++      "repository": "panda",
++      "path": "board/crc.h",
++      "sha256": "2c2f356a4910dc17bc2b429c5f0bd916ee5924ec557faf2fbb3e25a58e2601e4"
++    },
++    {
++      "repository": "panda",
++      "path": "board/drivers/can_common.h",
++      "sha256": "7991a340f4b8f7762f340c6734bed852d10a8012c94054f80f42eb7c313760d6"
++    },
++    {
++      "repository": "panda",
++      "path": "board/can_comms.h",
++      "sha256": "1a217f98bf5944b877a8a71fd82f1c5e7b16da638906165bc306d700d33aa237"
++    },
++    {
++      "repository": "opendbc",
++      "path": "opendbc/safety/can.h",
++      "sha256": "76f2ab751f89797c0a2254ab9a010a261678fe30f869d4e777cb7f2048802743"
++    },
++    {
++      "repository": "opendbc",
++      "path": "opendbc/safety/declarations.h",
++      "sha256": "f6a6d2466c1131b734b763a9d65cdbd51bcf66f876e14bd662be5f8c55b0b284"
++    },
++    {
++      "repository": "opendbc",
++      "path": "opendbc/safety/helpers.h",
++      "sha256": "eabfd7ffa59b28fc91ab0c1ee08ab5befd38e270497e7e9e31b8fcb327f97f62"
++    },
++    {
++      "repository": "opendbc",
++      "path": "opendbc/safety/ignition.h",
++      "sha256": "1c7aea3dbd89b59d3e9eabc6617da3e3323012acbb3b0630f413ec1168a283d3"
++    },
++    {
++      "repository": "opendbc",
++      "path": "opendbc/safety/lateral.h",
++      "sha256": "70f88dc5662b79b66575084d614b2cd577e44d18e07105f9acfabe0c90802979"
++    },
++    {
++      "repository": "opendbc",
++      "path": "opendbc/safety/longitudinal.h",
++      "sha256": "fa6a460f175a5d2f513cf0e4e9612dddd1b9ba1e57733b75a26e021443a1f7f4"
++    },
++    {
++      "repository": "opendbc",
++      "path": "opendbc/safety/modes/body.h",
++      "sha256": "3740556f70e8f1c173ae07403332dcb0d1f1cd3e895ef2fc650e4c1aa783bba6"
++    },
++    {
++      "repository": "opendbc",
++      "path": "opendbc/safety/modes/byd.h",
++      "sha256": "b63e7174f09cd5d97d5016f2be31bd2a9a1cbf0835c1cc8f7f9bb02065b476ed"
++    },
++    {
++      "repository": "opendbc",
++      "path": "opendbc/safety/modes/chrysler.h",
++      "sha256": "313857eafbbd08a1f8a3f09ad3dc3cb4b66eb79ada8de59b8fb9e8419771ee67"
++    },
++    {
++      "repository": "opendbc",
++      "path": "opendbc/safety/modes/chrysler_common.h",
++      "sha256": "74e431619086a433cc7c658370e0245e642ee6a62eb6dd28e7d70fac453d42a9"
++    },
++    {
++      "repository": "opendbc",
++      "path": "opendbc/safety/modes/chrysler_cusw.h",
++      "sha256": "cb7b86f3887c20997b8e1f7a8ac421875f4460ce9e6c6f787fd5e5b186246c26"
++    },
++    {
++      "repository": "opendbc",
++      "path": "opendbc/safety/modes/defaults.h",
++      "sha256": "79659fda18d9e88fe1edb563bd64159845f1c09219523e289e0421c8943ebd21"
++    },
++    {
++      "repository": "opendbc",
++      "path": "opendbc/safety/modes/elm327.h",
++      "sha256": "c193c56df82d01c7f5e6117bcff782da069382b5c5f46d5303d61b4619e459ff"
++    },
++    {
++      "repository": "opendbc",
++      "path": "opendbc/safety/modes/ford.h",
++      "sha256": "26a05ce625785004921d207015a15b63902f65f9dfb6c9355e16636e9c033a84"
++    },
++    {
++      "repository": "opendbc",
++      "path": "opendbc/safety/modes/gm.h",
++      "sha256": "6af227f4b8abf8cdcdbc5c7fc8e009c5158f7384174864e15dd1f212524c6283"
++    },
++    {
++      "repository": "opendbc",
++      "path": "opendbc/safety/modes/honda.h",
++      "sha256": "d1bade17a0dc42cbccd9298b123af7b40ee4b025150d8cbce5c84f4ba102d1b2"
++    },
++    {
++      "repository": "opendbc",
++      "path": "opendbc/safety/modes/hyundai.h",
++      "sha256": "1eb1b63d03031e7b8de33617e3876e257a3a32b8641407aad0ec1ab9f11d82aa"
++    },
++    {
++      "repository": "opendbc",
++      "path": "opendbc/safety/modes/hyundai_canfd.h",
++      "sha256": "f29e4f803b771316d8e845b0381e7658f639c7bbf153ebd94c1dfe8b28845d80"
++    },
++    {
++      "repository": "opendbc",
++      "path": "opendbc/safety/modes/hyundai_common.h",
++      "sha256": "48907a764c493de10c8fc54866b201ef9d570f1b189e80f99b4975e53185066a"
++    },
++    {
++      "repository": "opendbc",
++      "path": "opendbc/safety/modes/mazda.h",
++      "sha256": "d9e799df700c69664cf6fa2947ed5bfff05d9df31e9918cbe96281d47a6a73a9"
++    },
++    {
++      "repository": "opendbc",
++      "path": "opendbc/safety/modes/mg.h",
++      "sha256": "ff6b5004f5e489b7ddeb6b111e9450c4bb9e02638cc0fc1adc02a0d51cffb4c1"
++    },
++    {
++      "repository": "opendbc",
++      "path": "opendbc/safety/modes/nissan.h",
++      "sha256": "08e735f0a73da38a525cf9ea66584d8b95e73a3068460f325ae4e8acd37e3c68"
++    },
++    {
++      "repository": "opendbc",
++      "path": "opendbc/safety/modes/psa.h",
++      "sha256": "d14e9195b0fca76215a66b21af51c07449676f20b231f8d8234bf67c62ea5db3"
++    },
++    {
++      "repository": "opendbc",
++      "path": "opendbc/safety/modes/rivian.h",
++      "sha256": "b14f379d0a2e8135bbbc36f5e68ab227fdf7d3ac2e8a35788abb92fb357f155a"
++    },
++    {
++      "repository": "opendbc",
++      "path": "opendbc/safety/modes/subaru.h",
++      "sha256": "cc60cf2fb8bc6a842ee0e9aac4a566dce4998c5c0c8d8563a9130b1c6e4d4320"
++    },
++    {
++      "repository": "opendbc",
++      "path": "opendbc/safety/modes/subaru_preglobal.h",
++      "sha256": "451b265d43ce839d3c0c80b2aec4a2552548eeab30c90f144d0b98b5badfcce4"
++    },
++    {
++      "repository": "opendbc",
++      "path": "opendbc/safety/modes/tesla.h",
++      "sha256": "6ca8c6e2d5aa290302298b169bfe8b402734c049661cd954de257e8fa9d87a84"
++    },
++    {
++      "repository": "opendbc",
++      "path": "opendbc/safety/modes/toyota.h",
++      "sha256": "2d764121b75d257c94adee890f9b08fb253dcd97069a8397f2e92f703eed0a66"
++    },
++    {
++      "repository": "opendbc",
++      "path": "opendbc/safety/modes/volkswagen_common.h",
++      "sha256": "f9ebe33ccf62161854217e2da61d22a3e6df90ea893d50a32714f65825024182"
++    },
++    {
++      "repository": "opendbc",
++      "path": "opendbc/safety/modes/volkswagen_meb.h",
++      "sha256": "f9a7234be64fa4d7e213da508b953a369004a300489e42f9b139cbe382c8bead"
++    },
++    {
++      "repository": "opendbc",
++      "path": "opendbc/safety/modes/volkswagen_mlb.h",
++      "sha256": "fa6496296fcada8cbf3ff830f2910ab9b7ac523a032a7c764c43914a39ee9b8d"
++    },
++    {
++      "repository": "opendbc",
++      "path": "opendbc/safety/modes/volkswagen_mqb.h",
++      "sha256": "9cf573d6e20fabd91e28ec188189bd2c611e567c6d6f823c820876b6d15b01a1"
++    },
++    {
++      "repository": "opendbc",
++      "path": "opendbc/safety/modes/volkswagen_pq.h",
++      "sha256": "e85c57d9d9d7469296c99097c190219c6322c7c4639181625b093e9aa2594344"
++    },
++    {
++      "repository": "opendbc",
++      "path": "opendbc/safety/safety.h",
++      "sha256": "48523444b74f68181a8ef16afc74e790862591632d49d760c01271292c952c6e"
++    }
++  ]
++}
+diff --git a/openpilot/selfdrive/pandad/compatibility/tests/run_p6_safety.py b/openpilot/selfdrive/pandad/compatibility/tests/run_p6_safety.py
+new file mode 100644
+index 0000000..783b572
+--- /dev/null
++++ b/openpilot/selfdrive/pandad/compatibility/tests/run_p6_safety.py
+@@ -0,0 +1,156 @@
++#!/usr/bin/env python3
++"""Execute source-pinned P5 CAN/current safety and liveness C on an offline host.
++
++This runner uses only the Python standard library and a native C compiler.
++The F4/H7 selections exercise actual conditional common/backend predicates, not
++an MCU emulator. Full ARM builds and low-level controller tests belong to P5.
++"""
++from __future__ import annotations
++
++import argparse
++import hashlib
++import json
++import os
++from pathlib import Path
++import re
++import subprocess
++
++COMMON = (
++  "deny_modes_all_local_and_host_buses", "legacy_enum32_param33_falls_back_silent",
++  "checksum_and_response_flags_cannot_bypass", "rejected_frame_retains_local_bus",
++  "partial_packet_reset_does_not_send", "fd_capability_differs_without_policy_drift",
++  "abrupt_process_death_ignition_on", "abrupt_process_death_ignition_off", "usb_power_loss_mcu_alive",
++  "whole_mcu_power_loss_has_no_software_action", "stopped_loop_watchdog_only_on_resume",
++  "watchdog_threshold_and_wrap",
++)
++DEBUG = (
++  "byd_debug_reference_only", "byd_wrong_bus_and_dlc", "byd_wrong_rx_bus_length_cannot_enable",
++  "byd_payload_checksum_and_counter", "byd_freshness_boundary_and_wrap",
++  "byd_relay_and_forwarding_block", "byd_disengaged_steering_rejected",
++)
++RELEASE = ("release_byd35_unavailable",)
++HERE = Path(__file__).resolve().with_name("p6_safety")
++
++
++def sha(path: Path) -> str:
++  return hashlib.sha256(path.read_bytes()).hexdigest()
++
++
++def extract(panda: Path, output: Path) -> dict:
++  ranges = []
++
++  def take(relative: str, pattern: str) -> str:
++    source = (panda / relative).read_text()
++    matches = list(re.finditer(pattern, source, re.M | re.S))
++    if len(matches) != 1:
++      raise ValueError(f"Non-unique P5 source extraction: {relative}: {pattern}")
++    match = matches[0]
++    raw = match.group()
++    first = source.count("\n", 0, match.start()) + 1
++    ranges.append({"path": relative, "first_line": first,
++                   "last_line": first + raw.count("\n") - int(raw.endswith("\n")),
++                   "sha256": hashlib.sha256(raw.encode()).hexdigest()})
++    return f'#line {first} "{relative}"\n' + raw + "\n"
++
++  def function(relative: str, signature: str) -> str:
++    return take(relative, "^" + re.escape(signature) + r" \{\n.*?^\}\n")
++
++  source = function("board/utils.h", "uint32_t get_ts_elapsed(uint32_t ts, uint32_t ts_last)")
++  source += '#include "board/drivers/simple_watchdog.h"\n'
++  source += function("board/main.c", "void set_safety_mode(uint16_t mode, uint16_t param)")
++  source += function("board/main.c", "bool is_car_safety_mode(uint16_t mode)")
++  source += take("board/main.c", r"^#define HEARTBEAT_IGNITION_CNT_ON [^\n]+\n#define HEARTBEAT_IGNITION_CNT_OFF [^\n]+\n")
++  source += function("board/main.c", "static void tick_handler(void)")
++  source += "static void initialize_heartbeat_watchdog(void) {\n"
++  source += take("board/main.c", r"^  simple_watchdog_init\(FAULT_HEARTBEAT_LOOP_WATCHDOG, [^\n]+\n")
++  source += "}\nstatic void heartbeat_control(const struct fake_request *req) {\n  switch(req->request) {\n"
++  source += take("board/main_comms.h", r"^    case 0xf3:\n.*?^      \}\n")
++  source += "  default: abort();\n  }\n}\n"
++  dest = output / "firmware_source.inc"
++  dest.write_text(source)
++  return {"unmodified_original_ranges": ranges, "generated_sha256": sha(dest)}
++
++
++def main() -> int:
++  parser = argparse.ArgumentParser(description=__doc__)
++  parser.add_argument("--panda", type=Path, required=True)
++  parser.add_argument("--opendbc", type=Path, required=True)
++  parser.add_argument("--output", type=Path, required=True)
++  parser.add_argument("--compiler", default="clang")
++  args = parser.parse_args()
++  args.output.mkdir(parents=True, exist_ok=True)
++  roots = {"panda": args.panda.resolve(), "opendbc": args.opendbc.resolve()}
++  lock = json.loads((HERE / "source-lock.json").read_text())
++  for item in lock["files"]:
++    path = roots[item["repository"]] / item["path"]
++    if sha(path) != item["sha256"]:
++      raise ValueError(f"Pinned source drift: {item['repository']}/{item['path']}")
++  source_evidence = extract(roots["panda"], args.output)
++  env = dict(os.environ, ASAN_OPTIONS="detect_leaks=0:halt_on_error=1", UBSAN_OPTIONS="halt_on_error=1:print_stacktrace=1")
++  commands, configurations = [], []
++
++  def run(name: str, command: list) -> str:
++    command = list(map(str, command))
++    completed = subprocess.run(command, capture_output=True, env=env, timeout=120)
++    (args.output / f"{name}.stdout").write_bytes(completed.stdout)
++    (args.output / f"{name}.stderr").write_bytes(completed.stderr)
++    commands.append({"name": name, "command": command, "exit_code": completed.returncode})
++    if completed.returncode:
++      print(completed.stderr.decode(errors="replace"))
++    completed.check_returncode()
++    return completed.stdout.decode()
++
++  compiler_version = run("compiler-version", [args.compiler, "--version"])
++  for target in ("f4", "h7"):
++    for variant in ("debug", "release"):
++      name = f"{target}-{variant}"
++      binary = args.output / name
++      command = [args.compiler, "-x", "c", "-std=c11", "-Wall", "-Wextra", "-Werror", "-Wno-unused-function",
++                 "-O1", "-g", "-fno-omit-frame-pointer", "-fsanitize=address,undefined", f"-DP6_TARGET_F4={int(target == 'f4')}"]
++      if variant == "debug":
++        command.append("-DALLOW_DEBUG")
++      command += ["-I", args.output, "-I", roots["panda"], "-I", roots["opendbc"], HERE / "oracle.c", "-o", binary]
++      run("compile-" + name, command)
++      cases = []
++      for case in COMMON + (DEBUG if variant == "debug" else RELEASE):
++        raw = run(name + "-" + case, [binary, case])
++        lines = raw.splitlines()
++        record = json.loads(lines[-1])
++        if record["case"] != case or record["failed"] or record["skipped"] or record["assertions"] <= 0:
++          raise ValueError("Invalid case result: " + case)
++        record["traces"] = [json.loads(line[6:]) for line in lines[:-1] if line.startswith("TRACE ")]
++        if not record["traces"]:
++          raise ValueError("Missing decision/transition trace: " + case)
++        cases.append(record)
++      configurations.append({"name": name, "target_policy": target, "variant": variant, "binary_sha256": sha(binary), "cases": cases})
++      print(f"PASS {name}: {len(cases)} groups, {sum(case['assertions'] for case in cases)} assertions")
++  comparisons = []
++  for variant in ("debug", "release"):
++    f4 = next(item for item in configurations if item["name"] == "f4-" + variant)
++    h7 = next(item for item in configurations if item["name"] == "h7-" + variant)
++    for left, right in zip(f4["cases"], h7["cases"], strict=True):
++      if left["case"] == "fd_capability_differs_without_policy_drift":
++        continue
++      if left != right:
++        raise ValueError(f"F4/H7 classic safety/liveness decision drift: {variant}/{left['case']}")
++      comparisons.append({"variant": variant, "case": left["case"], "equal": True})
++  summary = {"status": "PASS_OFFLINE_SOURCE_ORACLE", "passed": sum(len(item["cases"]) for item in configurations),
++             "assertions": sum(case["assertions"] for item in configurations for case in item["cases"]),
++             "failed": 0, "skipped": 0, "classic_parity_comparisons": len(comparisons)}
++  result = {"summary": summary, "configurations": configurations, "parity_comparisons": comparisons,
++            "source_lock": lock, "source_lock_sha256": sha(HERE / "source-lock.json"), "source_evidence": source_evidence,
++            "oracle_sha256": sha(HERE / "oracle.c"), "runner_sha256": sha(Path(__file__)),
++            "compiler_version": compiler_version, "commands": commands, "hardware_access": False, "real_can_tx": False,
++            "scope": "Native host execution of real pinned safety.h, P5 common CAN/queue/stream and exact main/watchdog branches; F4/H7 policy defines, not ARM execution.",
++            "limits": ["Peripheral/register/timer scheduler and process_can completion are explicit HAL stubs; low-level bxCAN/FDCAN IRQ behavior remains P5 coverage.",
++                       "BYD35 is debug-only ATTO3 reference and does not support Song PLUS. Current byd_init ignores param33; legacy enum32 is rejected and actual firmware falls back to SILENT.",
++                       "Abrupt host/USB power loss assumes an independently powered MCU and scheduled tick handler. No host cleanup is invoked. Full MCU power loss/halt executes no software; physical relay state is untested.",
++                       "Heartbeat expiry is measured in actual decimated tick counts; software watchdog observes a late loop only on a later kick. No hardware watchdog recovery claim.",
++                       "Rejected-frame traces prove MCU local decisions; companion P6 host integration tests establish no sibling-board or diagnostic bypass."]}
++  (args.output / "result.json").write_text(json.dumps(result, indent=2) + "\n")
++  print(json.dumps(summary))
++  return 0
++
++
++if __name__ == "__main__":
++  raise SystemExit(main())
+diff --git a/openpilot/selfdrive/pandad/compatibility/tests/test_control_session.cc b/openpilot/selfdrive/pandad/compatibility/tests/test_control_session.cc
+index e06d5b6..d63b3c6 100644
+--- a/openpilot/selfdrive/pandad/compatibility/tests/test_control_session.cc
++++ b/openpilot/selfdrive/pandad/compatibility/tests/test_control_session.cc
+@@ -50,6 +50,7 @@ struct Rig {
+     registry.reconcile({{profile.slots[1].expected, t1}, {profile.slots[0].expected, t0}});
+   }
+   std::vector<std::uint8_t> reply(const ControlCommand &command) const {
++    if (command.kind == ControlKind::ReadCapabilities) return {'F','4','C','1',1,0,16,0,31,0,0,0,7,0,0,0};
+     if (command.kind == ControlKind::ReadHealth) {
+       std::vector<std::uint8_t> bytes(48);
+       put32(bytes, 0, 12345); put16(bytes, 4, 12001); put16(bytes, 6, 745);
+@@ -131,10 +132,11 @@ int main() {
+     test("per_slot_write_order_readback_and_role_permutations", [] {
+       for (std::uint32_t dos : {0U, 1U}) {
+         Rig r(dos); r.ready();
+-        CHECK(r.transcript.size() == 18);
++        CHECK(r.transcript.size() == 19);
+         for (std::size_t slot = 0; slot < 2; ++slot) {
+           std::vector<ControlCommand> own;
+           for (const auto &c : r.transcript) if (c.token.slot == slot) own.push_back(c);
++          if (slot == dos) { CHECK(own.front().kind == ControlKind::ReadCapabilities); own.erase(own.begin()); }
+           CHECK(own.size() == 9); CHECK(own[0].kind == ControlKind::SetSafety && own[0].value == 19 && own[0].param == 0 && own[0].exit_command);
+           CHECK(own[1].kind == ControlKind::ReadHealth && own[1].exit_command);
+           CHECK(own[2].kind == ControlKind::Heartbeat && !own[2].engaged);
+@@ -149,7 +151,7 @@ int main() {
+     });
+     test("incomplete_health_group_never_enables", [] {
+       Rig r; r.start();
+-      for (int n = 0; n < 8; ++n) { r.finish(r.poll()); CHECK(!r.control.snapshot(r.now).configured); }
++      for (int n = 0; n < 9; ++n) { r.finish(r.poll()); CHECK(!r.control.snapshot(r.now).configured); }
+       auto last = r.poll(); CHECK(last.size() == 2);
+       CHECK(r.control.complete(last[0], true, r.reply(last[0]), r.now)); CHECK(!r.control.snapshot(r.now).panda_states_valid);
+       CHECK(r.control.complete(last[1], true, r.reply(last[1]), r.now)); CHECK(r.control.snapshot(r.now).configured);
+@@ -247,7 +249,7 @@ int main() {
+     test("command_completion_age_boundary_and_uncertain_no_replay", [] {
+       for (std::uint64_t age : {kControlCommandMaxAgeUs - 1, kControlCommandMaxAgeUs, kControlCommandMaxAgeUs + 1}) {
+         Rig r; auto c = r.poll()[0]; r.now += age;
+-        CHECK(r.control.complete(c, true, {}, r.now) == (age < kControlCommandMaxAgeUs));
++        CHECK(r.control.complete(c, true, r.reply(c), r.now) == (age < kControlCommandMaxAgeUs));
+         if (age >= kControlCommandMaxAgeUs) CHECK(!r.registry.snapshot().slots[0].connected);
+       }
+       Rig r; r.start(); auto write = r.next(ControlKind::SetAlternativeExperience);
+@@ -257,7 +259,7 @@ int main() {
+       CHECK(surviving[0].kind == ControlKind::SetSafety && surviving[0].value == 19 && surviving[0].param == 0);
+     });
+     test("pending_timeout_retires_slot_and_sibling_progresses", [] {
+-      Rig r; auto cmds = r.poll(); CHECK(cmds.size() == 2);
++      Rig r; r.finish(r.poll()); auto cmds = r.poll(); CHECK(cmds.size() == 2);
+       CHECK(r.control.complete(cmds[1], true, {}, r.now)); r.now += kControlCommandMaxAgeUs;
+       auto remaining = r.poll(); CHECK(!r.registry.snapshot().slots[0].connected);
+       CHECK(remaining.size() == 1); CHECK(remaining[0].token.slot == 1); CHECK(!remaining[0].engaged);
+@@ -277,7 +279,7 @@ int main() {
+         if (m == 8) forged.real_device_authorized = true;
+         CHECK(!r.control.validate_command(forged, r.now)); CHECK(!r.control.complete(forged, true, {}, r.now));
+       }
+-      CHECK(r.control.complete(original, true, {}, r.now)); CHECK(!r.control.complete(original, true, {}, r.now));
++      CHECK(r.control.complete(original, true, r.reply(original), r.now)); CHECK(!r.control.complete(original, true, r.reply(original), r.now));
+     });
+     test("disconnect_reconnect_requires_offroad_readback_and_new_edge", [] {
+       Rig r; r.ready(); r.engage(); auto old = r.poll();
+@@ -305,7 +307,7 @@ int main() {
+     });
+     test("counter_change_and_uptime_reset_close_group", [] {
+       for (std::size_t offset : {0U, 8U, 12U, 16U, 20U, 39U}) {
+-        Rig r; r.ready(); r.now += kHealthPeriodUs; auto c = r.next(ControlKind::ReadHealth); auto bytes = r.reply(c);
++        Rig r; r.ready(); r.now += kHealthPeriodUs; auto c = r.next(ControlKind::ReadHealth, offset == 39 ? 1 : 0); auto bytes = r.reply(c);
+         bytes[offset] = offset == 0 ? 0 : 1;
+         CHECK(!r.control.complete(c, true, bytes, r.now)); denied(r);
+       }
+@@ -336,7 +338,7 @@ int main() {
+       r.registry.reconcile({{r.profile.slots[0].expected, 3}, {r.profile.slots[1].expected, 2}, {changed, 4}}); denied(r);
+     });
+     test("bounded_external_reason_and_exact_write_response", [] {
+-      Rig r; r.control.fail_group(std::string(1000, 'x'), r.now);
++      Rig r; r.finish(r.poll()); r.control.fail_group(std::string(1000, 'x'), r.now);
+       CHECK(r.control.snapshot(r.now).reason == "EXTERNAL_GROUP_FAILURE");
+       auto c = r.poll()[0]; CHECK(!r.control.complete(c, true, {0}, r.now)); CHECK(!r.registry.snapshot().slots[0].connected);
+     });
+@@ -375,7 +377,7 @@ int main() {
+       }
+       for (std::uint64_t age : {kHeartbeatMaxAgeUs - 1, kHeartbeatMaxAgeUs, kHeartbeatMaxAgeUs + 1}) {
+         Rig r; r.start(); std::uint64_t heartbeat = 0;
+-        for (int n = 0; n < 9; ++n) {
++        for (int n = 0; n < 10; ++n) {
+           auto commands = r.poll();
+           if (!commands.empty() && commands[0].kind == ControlKind::Heartbeat) heartbeat = r.now;
+           r.finish(commands); ++r.now;
+diff --git a/openpilot/selfdrive/pandad/compatibility/tests/test_health.py b/openpilot/selfdrive/pandad/compatibility/tests/test_health.py
+index 4dbdf9a..eaf13d5 100644
+--- a/openpilot/selfdrive/pandad/compatibility/tests/test_health.py
++++ b/openpilot/selfdrive/pandad/compatibility/tests/test_health.py
+@@ -121,7 +121,7 @@ class TestHealth(unittest.TestCase):
+     self.assertEqual(h.encode_health(raw), bytes.fromhex(LEGACY_HEX))
+     for name, offset, code in zip(h.LEGACY_HEALTH_FIELDS, LEGACY_OFFSETS, h.LEGACY_HEALTH_FORMAT[1:], strict=True):
+       self.assertEqual(struct.unpack_from("<" + code, bytes.fromhex(LEGACY_HEX), offset)[0], raw.values[name])
+-    view = h.normalize_health(raw, h.HealthCapabilities(True, True, True, True, True, True))
++    view = h.normalize_health(raw, h.HealthCapabilities(True, True, True, True, True, True, True))
+     self.assertFalse(view.control_protocol_supported)
+     self.assertEqual(view.values["safety_mode"], 32)
+     self.assertIsNone(view.values["temperature_c"])
+@@ -201,7 +201,7 @@ class TestHealth(unittest.TestCase):
+         h.decode_health(bytes(wire), h.LEGACY_VERSION)
+ 
+   def test_normalized_units_and_distinct_counter_semantics(self):
+-    view = h.normalize_health(current(), h.HealthCapabilities(True, True, True, True, True, True))
++    view = h.normalize_health(current(), h.HealthCapabilities(True, True, True, True, True, True, True))
+     self.assertAlmostEqual(view.values["voltage_v"], 12.345)
+     self.assertAlmostEqual(view.values["current_a"], 0.678)
+     self.assertAlmostEqual(view.values["sbu1_voltage_v"], 3.3)
+@@ -375,3 +375,28 @@ class TestHeaderABI(unittest.TestCase):
+ 
+ if __name__ == "__main__":
+   unittest.main()
++
++
++class F4CapabilityTests(unittest.TestCase):
++  def test_exact_p5_contract_hides_unsupported_measurements(self):
++    cap = h.decode_f4_capabilities(bytes.fromhex("46344331010010001f00000007000000"))
++    view = h.normalize_health(current(current=54321, sound_output_level=123, spi_error_count=77, temperature=75), cap)
++    for name in ("current_a", "sound_output_level", "spi_error_count"):
++      self.assertIsNone(view.values[name])
++    self.assertEqual(view.values["temperature_c"], 35)
++    self.assertEqual(view.values["voltage_v"], 12.345)
++    self.assertEqual(view.raw.values["current"], 54321)
++
++  def test_contract_rejects_every_bit_mutation_and_wrong_extent(self):
++    good = bytes.fromhex("46344331010010001f00000007000000")
++    for n in range(128):
++      bad = bytearray(good); bad[n // 8] ^= 1 << (n % 8)
++      with self.assertRaises(h.HealthCodecError):
++        h.decode_f4_capabilities(bytes(bad))
++    for bad in (b"", good[:-1], good+b"\x00", bytearray(good)):
++      with self.assertRaises(h.HealthCodecError):
++        h.decode_f4_capabilities(bad)
++
++  def test_unverified_spi_is_unavailable_and_h7_explicit_value_retained(self):
++    self.assertIsNone(h.normalize_health(current(), h.HealthCapabilities()).values["spi_error_count"])
++    self.assertEqual(h.normalize_health(current(), h.HealthCapabilities(spi_error_count=True)).values["spi_error_count"], 0x6162)
+diff --git a/openpilot/selfdrive/pandad/compatibility/tests/test_message_policy.py b/openpilot/selfdrive/pandad/compatibility/tests/test_message_policy.py
+index 4411ed5..33021ca 100644
+--- a/openpilot/selfdrive/pandad/compatibility/tests/test_message_policy.py
++++ b/openpilot/selfdrive/pandad/compatibility/tests/test_message_policy.py
+@@ -185,7 +185,7 @@ class TestMessagePolicy(unittest.TestCase):
+       self.assertTrue(view.valid and view.ignition and view.in_car)
+       self.assertEqual(str(view.vehicle_type), 'redPanda')
+       self.assertEqual(view.voltage, 12000 + dos_slot*1000)
+-      self.assertEqual(view.current, 100 + dos_slot)
++      self.assertIsNone(view.current)
+       sm['pandaStates'][1-dos_slot].ignitionLine = False
+       self.assertFalse(policy.hardware(sm, NOW).ignition)
+       data = synthetic_dict(dos_slot)
+@@ -194,6 +194,18 @@ class TestMessagePolicy(unittest.TestCase):
+       sm['pandaStates'][1-dos_slot].ignitionLine = True
+       self.assertFalse(policy.hardware(sm, NOW).ignition)
+ 
++  def test_h7_power_role_retains_current_and_stale_group_hides_it(self):
++    for dos_slot in (0, 1):
++      data = synthetic_dict(dos_slot)
++      h7 = 1 - dos_slot
++      data['slots'][h7]['capabilities']['power_monitor'] = True
++      data['roles']['power_monitor'] = h7
++      policy = MessagePolicy(load_profile(json.dumps(data)))
++      _, sm = fixture(dos_slot)
++      self.assertEqual(policy.hardware(sm, NOW).current, 100 + h7)
++      sm.valid['pandaStates'] = False
++      self.assertIsNone(policy.hardware(sm, NOW).current)
++
+   def test_fan_role_capability_validity_freshness_and_missing_board(self):
+     for dos_slot in (0, 1):
+       policy, sm = fixture(dos_slot)
+diff --git a/openpilot/selfdrive/pandad/compatibility/tests/test_p6_capabilities.cc b/openpilot/selfdrive/pandad/compatibility/tests/test_p6_capabilities.cc
+new file mode 100644
+index 0000000..94a17a7
+--- /dev/null
++++ b/openpilot/selfdrive/pandad/compatibility/tests/test_p6_capabilities.cc
+@@ -0,0 +1,241 @@
++#include "../pandad_runtime.h"
++
++#include <algorithm>
++#include <functional>
++#include <iostream>
++#include <stdexcept>
++#include <string>
++#include <vector>
++
++using namespace openpilot::pandad::compatibility;
++namespace {
++using Bytes = std::vector<std::uint8_t>;
++std::size_t assertions = 0;
++void check(bool value, int line) {
++  ++assertions;
++  if (!value) throw std::runtime_error("capability assertion line " + std::to_string(line));
++}
++#define CHECK(x) check(static_cast<bool>(x), __LINE__)
++const Bytes kCapabilities{'F','4','C','1',1,0,16,0,31,0,0,0,7,0,0,0};
++void put16(Bytes &bytes, std::size_t offset, unsigned value) {
++  bytes[offset] = static_cast<std::uint8_t>(value);
++  bytes[offset + 1] = static_cast<std::uint8_t>(value >> 8);
++}
++SessionProfile profile(unsigned dos_slot = 0, bool h7_only = false) {
++  SessionProfile p; p.binding_status = "SYNTHETIC_BOUND";
++  for (unsigned slot = 0; slot < 2; ++slot) {
++    const bool dos = !h7_only && slot == dos_slot;
++    p.slots[slot].expected = {slot ? "fixture:second" : "fixture:first", dos ? "DOS" : "RED_PANDA",
++      dos ? "F4" : "H7", dos ? "fixture:F413-reference" : "fixture:H725-reference", "USB", kSessionProtocol,
++      {{0,1,2}, !dos, true, true, true, slot == dos_slot, slot == dos_slot, false}, "fixture:application"};
++    p.slots[slot].safety_config_semantics = "noOutput";
++  }
++  p.roles = {int(1-dos_slot), int(1-dos_slot), int(1-dos_slot), {0,1}, int(dos_slot), int(dos_slot), kRoleUnsupported};
++  return p;
++}
++struct FakeClock final : Clock {
++  std::uint64_t now = 1000000;
++  std::uint64_t now_us() override { return now; }
++  void wait_us(std::uint32_t amount) override { now += amount; }
++};
++struct Board final : Backend {
++  bool f4;
++  unsigned param = 0, alternative = 0, spi_count = 0;
++  Bytes capabilities = kCapabilities;
++  Status capability_status = Status::Ok;
++  std::vector<Request> calls;
++  bool cancelled = false;
++  explicit Board(bool is_f4) : f4(is_f4) {}
++  Result transact(const Request &request, std::uint32_t budget) override {
++    CHECK(budget <= 5); calls.push_back(request);
++    if (request.kind == Kind::ControlWrite) {
++      CHECK(request.request == 0xdc || request.request == 0xdf || request.request == 0xf3 || request.request == 0xb1);
++      if (request.request == 0xdc) { CHECK(request.value == 19); param = request.index; }
++      if (request.request == 0xdf) alternative = request.value;
++      return {Status::Ok, 0, {}};
++    }
++    CHECK(request.kind == Kind::ControlRead);
++    if (request.request == kF4CapabilityRequest) {
++      CHECK(f4); CHECK(request.read_length == 16); CHECK(request.value == 0); CHECK(request.index == 0);
++      return {capability_status, capabilities.size(), capabilities};
++    }
++    Bytes response(request.read_length);
++    if (request.request == 0xd2) {
++      response[0] = 42; put16(response, 4, 12001); put16(response, 6, 321);
++      response[28] = 1; response[30] = 1; response[31] = 19;
++      put16(response, 32, param); put16(response, 35, alternative);
++      put16(response, 39, spi_count); put16(response, 45, 1234); response[47] = 75;
++    } else if (request.request == 0xc2) { put16(response, 41, 500); }
++    else if (request.request == 0xb2) { put16(response, 0, 1500); }
++    else throw std::runtime_error("unexpected capability fixture request");
++    return {Status::Ok, response.size(), response};
++  }
++  void cancel() noexcept override { cancelled = true; }
++  unsigned count(unsigned request) const {
++    return std::count_if(calls.begin(), calls.end(), [=](const Request &q) { return q.request == request; });
++  }
++};
++struct Rig {
++  FakeClock clock;
++  SessionProfile p;
++  Board b0, b1;
++  Transport t0{b0, clock}, t1{b1, clock};
++  PandadRuntime runtime;
++  explicit Rig(unsigned dos = 0, bool h7_only = false)
++    : p(profile(dos, h7_only)), b0(!h7_only && dos == 0), b1(!h7_only && dos == 1), runtime(p, clock) {
++    CHECK(runtime.reconcile({{p.slots[0].expected,1},{p.slots[1].expected,1}}, {{&t0,&t1}}));
++  }
++  void ready() {
++    ++clock.now;
++    CHECK(runtime.device_input({true, false, true, 25, clock.now}, runtime.capture()));
++    CHECK(runtime.configure({{0,19,11,2},{1,19,22,2}}, runtime.capture()));
++    for (unsigned i = 0; i < 12; ++i) { runtime.tick(); ++clock.now; }
++    CHECK(runtime.snapshot().configured);
++    for (unsigned i = 0; i < 3; ++i) runtime.peripheral_step();
++  }
++};
++struct CoreRig {
++  SessionProfile p = profile();
++  SessionRegistry registry{p};
++  ControlSession control{registry};
++  std::uint64_t now = 1000;
++  CoreRig() { registry.reconcile({{p.slots[0].expected,1},{p.slots[1].expected,1}}); }
++  ControlCommand probe() {
++    const auto commands = control.poll(now); CHECK(commands.size() == 1);
++    CHECK(commands[0].kind == ControlKind::ReadCapabilities); CHECK(commands[0].token.slot == 0);
++    return commands[0];
++  }
++};
++}
++int main() {
++  std::size_t groups = 0;
++  const auto test = [&](const char *name, const std::function<void()> &run) {
++    run(); ++groups; std::cout << "PASS " << name << '\n';
++  };
++  try {
++    test("f4c1_exact_bytes_all_single_bit_mutations_and_lengths", [] {
++      CHECK(valid_f4_capabilities(kCapabilities));
++      for (std::size_t index = 0; index < 16; ++index) {
++        for (unsigned bit = 0; bit < 8; ++bit) {
++          auto mutated = kCapabilities; mutated[index] ^= 1U << bit;
++          CHECK(!valid_f4_capabilities(mutated));
++        }
++      }
++      for (std::size_t size = 0; size < 32; ++size) {
++        if (size == 16) continue;
++        auto malformed = kCapabilities; malformed.resize(size);
++        CHECK(!valid_f4_capabilities(malformed));
++      }
++    });
++    test("first_probe_precedes_all_group_writes_in_both_slot_orders", [] {
++      for (unsigned dos : {0U, 1U}) {
++        Rig r(dos); CHECK(!r.runtime.snapshot().slots[dos].capabilities_valid);
++        r.runtime.tick();
++        auto &f4 = dos == 0 ? r.b0 : r.b1; auto &h7 = dos == 0 ? r.b1 : r.b0;
++        CHECK(f4.calls.size() == 1); CHECK(f4.calls[0].request == 0xd5); CHECK(h7.calls.empty());
++        const auto view = r.runtime.snapshot().slots[dos]; CHECK(view.capabilities_valid);
++        CHECK(view.capability_timestamp_us == r.clock.now);
++        CHECK(!view.health_valid); CHECK(!view.field_available.voltage); CHECK(!view.field_available.temperature);
++        r.runtime.tick(); CHECK(h7.count(0xd5) == 0); CHECK(f4.count(0xd5) == 1);
++      }
++    });
++    test("every_short_capability_reply_quarantines_without_fallback", [] {
++      for (std::size_t size = 0; size < 16; ++size) {
++        Rig r; r.b0.capabilities.resize(size); r.b0.capability_status = Status::Short;
++        r.runtime.tick(); CHECK(!r.runtime.sessions().slots[0].connected);
++        CHECK(r.b0.calls.size() == 1); CHECK(r.b0.cancelled); CHECK(r.b1.calls.empty());
++        CHECK(!r.runtime.snapshot().panda_states_valid); CHECK(!r.runtime.snapshot().simulated_tx_allowed);
++        r.runtime.tick(); CHECK(r.b0.calls.size() == 1);
++      }
++    });
++    test("unknown_capability_payload_quarantines_and_retires_handle", [] {
++      for (unsigned byte : {0U,4U,6U,8U,9U,12U,13U}) {
++        Rig r; r.b0.capabilities[byte] ^= 1U;
++        r.runtime.tick(); CHECK(!r.runtime.sessions().slots[0].connected); CHECK(r.b0.cancelled);
++        CHECK(!r.runtime.snapshot().slots[0].capabilities_valid); CHECK(r.b1.calls.empty());
++        CHECK(r.runtime.counters().io_failures == 1);
++      }
++    });
++    test("missing_extension_transfer_failure_never_probes_legacy_fallback", [] {
++      for (const auto status : {Status::Stall, Status::Disconnected, Status::Cancelled, Status::IoError}) {
++        Rig r; r.b0.capabilities.clear(); r.b0.capability_status = status;
++        r.runtime.tick(); CHECK(!r.runtime.sessions().slots[0].connected); CHECK(r.b0.calls.size() == 1);
++        CHECK(r.b0.calls[0].request == 0xd5); CHECK(r.b1.calls.empty());
++      }
++    });
++    test("capability_timeout_exact_boundary_before_any_write", [] {
++      for (std::uint64_t age : {kControlCommandMaxAgeUs - 1, kControlCommandMaxAgeUs}) {
++        CoreRig r; const auto request = r.probe(); r.now += age;
++        CHECK(r.control.complete(request, true, kCapabilities, r.now) == (age < kControlCommandMaxAgeUs));
++        CHECK(r.control.snapshot(r.now).slots[0].capabilities_valid == (age < kControlCommandMaxAgeUs));
++        CHECK(!r.control.snapshot(r.now).simulated_tx_allowed);
++      }
++    });
++    test("forged_capability_token_and_duplicate_reply_cannot_bind", [] {
++      CoreRig r; const auto original = r.probe();
++      for (unsigned field = 0; field < 4; ++field) {
++        auto forged = original;
++        if (field == 0) forged.token.slot = 1;
++        if (field == 1) ++forged.token.epoch;
++        if (field == 2) ++forged.token.connection_token;
++        if (field == 3) ++forged.token.group_generation;
++        CHECK(!r.control.complete(forged, true, kCapabilities, r.now));
++        CHECK(!r.control.snapshot(r.now).slots[0].capabilities_valid);
++      }
++      CHECK(r.control.complete(original, true, kCapabilities, r.now));
++      CHECK(!r.control.complete(original, true, kCapabilities, r.now));
++    });
++    test("reconnection_requires_new_observation_and_old_reply_is_inert", [] {
++      CoreRig r; const auto old = r.probe(); CHECK(r.control.complete(old, true, kCapabilities, r.now));
++      const auto slot = r.registry.snapshot().slots[0];
++      CHECK(r.registry.disconnect(0, slot.epoch, slot.connection_token));
++      r.registry.reconcile({{r.p.slots[0].expected,2},{r.p.slots[1].expected,1}});
++      CHECK(!r.control.snapshot(r.now).slots[0].capabilities_valid);
++      const auto fresh = r.probe();
++      CHECK(!r.control.complete(old, true, kCapabilities, 0));
++      CHECK(!r.control.snapshot(r.now).slots[0].capabilities_valid);
++      CHECK(r.control.complete(fresh, true, kCapabilities, r.now));
++    });
++    test("f4_health_unsupported_fields_are_null_and_voltage_is_available", [] {
++      for (unsigned dos : {0U, 1U}) {
++        Rig r(dos); r.ready(); const auto s = r.runtime.snapshot();
++        const auto &f4 = s.slots[dos]; const auto &h7 = s.slots[1-dos];
++        CHECK(f4.health_valid); CHECK(f4.field_available.voltage); CHECK(f4.field_available.temperature);
++        CHECK(!f4.field_available.current); CHECK(!f4.field_available.sound_output); CHECK(!f4.field_available.spi_error_count);
++        CHECK(h7.field_available.current); CHECK(h7.field_available.sound_output); CHECK(h7.field_available.spi_error_count);
++        const auto p = r.runtime.peripheral_snapshot(); CHECK(p.valid); CHECK(p.voltage == 12001);
++        CHECK(p.temperature == 35); CHECK(!p.current); CHECK(!p.sound_output); CHECK(!p.spi_error_count);
++        CHECK(p.fan_rpm == 1500); CHECK(!p.field_available.current);
++        r.clock.now += kHealthMaxAgeUs;
++        const auto stale = r.runtime.snapshot().slots[dos]; CHECK(!stale.health_valid);
++        CHECK(!stale.field_available.voltage); CHECK(!stale.field_available.temperature);
++        CHECK(!r.runtime.peripheral_snapshot().voltage);
++      }
++    });
++    test("h7_baseline_never_probes_extension_and_preserves_supported_fields", [] {
++      Rig r(0, true); r.ready(); CHECK(r.b0.count(0xd5) == 0); CHECK(r.b1.count(0xd5) == 0);
++      const auto p = r.runtime.peripheral_snapshot(); CHECK(p.valid); CHECK(p.current == 321);
++      CHECK(p.sound_output == 1234); CHECK(p.spi_error_count == 0); CHECK(p.temperature == 35);
++      CHECK(p.field_available.current && p.field_available.sound_output && p.field_available.spi_error_count);
++    });
++    test("f4_absent_spi_counter_is_ignored_h7_counter_still_faults", [] {
++      for (unsigned slot : {0U, 1U}) {
++        Rig r; r.ready(); (slot == 0 ? r.b0 : r.b1).spi_count = 1;
++        r.clock.now += kHealthPeriodUs;
++        for (unsigned n = 0; n < 5; ++n) r.runtime.tick();
++        CHECK(r.runtime.snapshot().configured == (slot == 0));
++        if (slot == 1) CHECK(r.runtime.snapshot().reason == "BOARD_HEALTH_FAULT");
++      }
++    });
++    test("profile_cannot_invent_ir_missing_from_f4_candidate", [] {
++      auto p = profile(); p.slots[0].expected.capabilities.ir = true; p.roles.ir_control = 0;
++      SessionRegistry registry(p); ControlSession control(registry);
++      registry.reconcile({{p.slots[0].expected,1},{p.slots[1].expected,1}});
++      const auto commands = control.poll(1000); CHECK(commands.size() == 1);
++      CHECK(!control.complete(commands[0], true, kCapabilities, 1000)); CHECK(!registry.snapshot().slots[0].connected);
++    });
++    std::cout << "{\"suite\":\"p6_capabilities\",\"groups\":" << groups << ",\"assertions\":" << assertions
++              << ",\"failures\":0,\"skips\":0,\"device_open\":false,\"real_can_tx\":false}\n";
++  } catch (const std::exception &e) { std::cerr << "FAIL " << e.what() << '\n'; return 1; }
++  return 0;
++}
+diff --git a/openpilot/selfdrive/pandad/compatibility/tests/test_p6_faults.cc b/openpilot/selfdrive/pandad/compatibility/tests/test_p6_faults.cc
+new file mode 100644
+index 0000000..9b05936
+--- /dev/null
++++ b/openpilot/selfdrive/pandad/compatibility/tests/test_p6_faults.cc
+@@ -0,0 +1,446 @@
++#include "../pandad_loop.h"
++
++#include <algorithm>
++#include <atomic>
++#include <array>
++#include <cstring>
++#include <deque>
++#include <functional>
++#include <iostream>
++#include <memory>
++#include <stdexcept>
++#include <string>
++#include <thread>
++#include <utility>
++#include <vector>
++#include <capnp/message.h>
++#include <capnp/serialize.h>
++#include "openpilot/cereal/gen/cpp/log.capnp.h"
++
++using namespace openpilot::pandad::compatibility;
++namespace {
++std::size_t assertions = 0;
++void check(bool ok, int line) {
++  ++assertions;
++  if (!ok) throw std::runtime_error("P6 fault assertion line " + std::to_string(line));
++}
++#define CHECK(x) check(static_cast<bool>(x), __LINE__)
++using Bytes = MessageBytes;
++void put16(Bytes &b, unsigned n, unsigned value) { b[n] = value; b[n + 1] = value >> 8; }
++void put32(Bytes &b, unsigned n, unsigned value) { put16(b,n,value); put16(b,n+2,value>>16); }
++SessionProfile profile() {
++  SessionProfile p; p.binding_status = "SYNTHETIC_BOUND";
++  for (unsigned s = 0; s < 2; ++s) {
++    p.slots[s].expected = {s ? "fixture:red" : "fixture:dos", s ? "RED_PANDA" : "DOS", s ? "H7" : "F4",
++      s ? "fixture:H7" : "fixture:F4", "USB", kSessionProtocol,
++      {{0,1,2},s==1,s==1,s==1,true,s==0,s==0,false}, "fixture:app"};
++    p.slots[s].safety_config_semantics = "noOutput";
++  }
++  p.roles = {1,1,1,{0,1},0,0,kRoleUnsupported};
++  return p;
++}
++struct FakeClock final : Clock {
++  std::uint64_t now = 1000000;
++  std::uint64_t now_us() override { return now; }
++  void wait_us(std::uint32_t amount) override { now += amount; }
++};
++struct Call { unsigned slot; Request request; std::uint64_t time; };
++struct Board final : Backend {
++  FakeClock &clock; unsigned slot;
++  std::vector<Call> &trace;
++  unsigned param = 0, alternative = 0, cancellations = 0, model = kNoOutputSafetyModel;
++  std::uint32_t faults = 0, blocked = 0, fwd_blocked = 0;
++  std::deque<Result> reads;
++  std::function<std::optional<Result>(const Request &)> inject;
++  Board(FakeClock &c, unsigned s, std::vector<Call> &t) : clock(c), slot(s), trace(t) {}
++  Result transact(const Request &r, std::uint32_t timeout) override {
++    CHECK(timeout > 0 && timeout <= kRuntimeIoBudgetMs);
++    trace.push_back({slot,r,clock.now});
++    if (inject) if (auto result = inject(r)) return *result;
++    if (r.kind == Kind::ControlWrite) {
++      CHECK(r.request==0xdc || r.request==0xdf || r.request==0xf3 || r.request==0xb1);
++      if (r.request==0xdc) { CHECK(r.value==kNoOutputSafetyModel); param=r.index; model=r.value; }
++      if (r.request==0xdf) alternative=r.value;
++      return {Status::Ok,0,{}};
++    }
++    if (r.kind==Kind::BulkWrite) return {Status::Ok,r.payload.size(),{}};
++    if (r.kind==Kind::BulkRead) {
++      if (reads.empty()) return {Status::Short,0,{}};
++      auto result=std::move(reads.front()); reads.pop_front(); return result;
++    }
++    Bytes b(r.read_length);
++    if (r.request==0xd5) {
++      CHECK(slot==0); CHECK(r.read_length==16);
++      b={'F','4','C','1',1,0,16,0,31,0,0,0,7,0,0,0};
++    } else if (r.request==0xd2) {
++      put16(b,4,12000); put16(b,6,slot==0 ? 0 : 420); put32(b,8,blocked); put32(b,24,faults);
++      b[28]=1; b[30]=2; b[31]=model; put16(b,32,param); put16(b,35,alternative); b[47]=75;
++    } else if (r.request==0xc2) {
++      put32(b,37,fwd_blocked); put16(b,41,500); put16(b,43,slot==0 ? 0 : 2000);
++    } else if (r.request==0xb2) put16(b,0,1200);
++    else throw std::runtime_error("unexpected control request " + std::to_string(r.request));
++    return {Status::Ok,b.size(),b};
++  }
++  void cancel() noexcept override { ++cancellations; }
++  void rx(Bytes b) { reads.push_back({Status::Short,b.size(),std::move(b)}); }
++};
++Bytes frame(unsigned bus=0, bool returned=false, bool rejected=false, unsigned data=1, bool fd=false) {
++  CanFrame f{0x123,bus,false,fd,returned,rejected,Bytes(fd ? 12 : 1,static_cast<std::uint8_t>(data))};
++  auto out=encode_can_frame(f,CanCapability::CanFd,FrameDirection::Rx); CHECK(out); return out.value;
++}
++Bytes flatten(capnp::MallocMessageBuilder &b) {
++  const auto words=capnp::messageToFlatArray(b); const auto bytes=words.asBytes(); return {bytes.begin(),bytes.end()};
++}
++Bytes send_event(std::uint64_t now, unsigned source) {
++  capnp::MallocMessageBuilder b; auto e=b.initRoot<cereal::Event>(); e.setValid(true); e.setLogMonoTime(now*1000);
++  auto f=e.initSendcan(1)[0]; f.setAddress(0x123); f.setSrc(source); const std::uint8_t data[]{1};
++  f.setDat(kj::arrayPtr(data,1)); return flatten(b);
++}
++struct Source final : EventSource {
++  std::deque<InputEnvelope> queued; unsigned attempts=0;
++  std::optional<InputEnvelope> next(InputEpoch) override {
++    ++attempts; if (queued.empty()) return std::nullopt;
++    auto out=std::move(queued.front()); queued.pop_front(); return out;
++  }
++};
++struct Sink final : EventSink {
++  std::vector<std::pair<OutputTopic,Bytes>> records;
++  bool publish(OutputTopic t,const Bytes &b) override { records.emplace_back(t,b); return true; }
++};
++struct Rig {
++  FakeClock clock; SessionProfile p=profile(); std::vector<Call> trace;
++  std::vector<std::unique_ptr<Board>> boards_store;
++  std::vector<std::unique_ptr<Transport>> transports_store;
++  std::array<Board *,2> boards{}; std::array<Transport *,2> transports{};
++  std::array<std::uint64_t,2> tokens{{1,1}};
++  PandadRuntime runtime{p,clock}; Source source; Sink sink; PandadLoop loop{runtime,clock,source,sink};
++  Rig() { attach(0); attach(1); CHECK(reconcile()); }
++  void attach(unsigned s) {
++    boards_store.push_back(std::make_unique<Board>(clock,s,trace)); boards[s]=boards_store.back().get();
++    transports_store.push_back(std::make_unique<Transport>(*boards[s],clock)); transports[s]=transports_store.back().get();
++  }
++  bool reconcile() {
++    return runtime.reconcile({{p.slots[0].expected,tokens[0]},{p.slots[1].expected,tokens[1]}},transports);
++  }
++  void ready() {
++    ++clock.now; CHECK(runtime.device_input({true,false,true,25,clock.now},runtime.capture()));
++    CHECK(runtime.configure({{0,19,11,0},{1,19,22,0}},runtime.capture()));
++    for (unsigned i=0;i<20;++i) { runtime.tick(); clock.now+=1000; }
++    CHECK(runtime.snapshot().panda_states_valid); CHECK(!runtime.snapshot().simulated_tx_allowed);
++    for (unsigned i=0;i<3;++i) runtime.peripheral_step();
++  }
++  void engage() {
++    ++clock.now; CHECK(runtime.selfdrive(true,false,clock.now,runtime.capture()));
++    ++clock.now; CHECK(runtime.device_input({true,true,true,25,clock.now},runtime.capture()));
++    ++clock.now; CHECK(runtime.selfdrive(true,true,clock.now,runtime.capture()));
++    CHECK(runtime.snapshot().simulated_tx_allowed); CHECK(!runtime.snapshot().real_tx_authorized);
++  }
++  TxBatch batch(std::initializer_list<unsigned> sources) {
++    TxBatch b; b.valid=true; b.source_timestamp_us=++clock.now;
++    for (const auto source:sources) b.frames.push_back({0x123,source,false,false,{1}});
++    return b;
++  }
++  bool queue(std::initializer_list<unsigned> sources) { return runtime.sendcan(batch(sources),runtime.capture()); }
++  std::size_t writes(unsigned slot) const {
++    return std::count_if(trace.begin(),trace.end(),[&](const Call &c){ return c.slot==slot && c.request.kind==Kind::BulkWrite; });
++  }
++  std::size_t total_writes() const { return writes(0)+writes(1); }
++  void positive() {
++    ready(); engage(); CHECK(queue({0,4})); CHECK(runtime.transmit_step(0)); CHECK(runtime.transmit_step(1));
++    CHECK(writes(0)==1 && writes(1)==1); CHECK(runtime.counters().simulated_tx==2);
++  }
++  void closed() {
++    CHECK(!runtime.snapshot().simulated_tx_allowed); CHECK(!runtime.snapshot().real_tx_authorized);
++    const auto before=total_writes(); CHECK(!runtime.transmit_step(0)); CHECK(!runtime.transmit_step(1)); CHECK(total_writes()==before);
++  }
++  void no_bypass(std::size_t start) const {
++    for (std::size_t i=start;i<trace.size();++i) {
++      const auto &q=trace[i].request;
++      if (q.kind==Kind::ControlWrite) {
++        CHECK(q.request==0xdc || q.request==0xdf || q.request==0xf3 || q.request==0xb1);
++        if (q.request==0xdc) CHECK(q.value==kNoOutputSafetyModel);
++        if (q.request==0xdf) CHECK(q.value==0);
++      }
++    }
++  }
++};
++void inspect(const Bytes &bytes,const std::function<void(cereal::Event::Reader)> &fn) {
++  auto words=kj::heapArray<capnp::word>(bytes.size()/8); std::memcpy(words.begin(),bytes.data(),bytes.size());
++  capnp::FlatArrayMessageReader reader(words); fn(reader.getRoot<cereal::Event>());
++}
++void assert_exit(const Rig &r,unsigned survivor,std::size_t start) {
++  unsigned phase=0;
++  for (std::size_t i=start;i<r.trace.size();++i) {
++    const auto &c=r.trace[i]; if (c.slot!=survivor) continue;
++    const auto &q=c.request;
++    CHECK(q.kind!=Kind::BulkWrite && q.kind!=Kind::BulkRead);
++    if (q.request==0xdc) { CHECK(q.value==19 && q.index==0); phase=1; }
++    else if (q.request==0xd2 && phase==1) phase=2;
++    else if (q.request==0xf3 && phase==2) { CHECK(q.value==0); phase=3; }
++  }
++  CHECK(phase==3);
++}
++}
++int main() {
++  std::vector<std::string> passed;
++  const auto test=[&](const char *name,const std::function<void()> &fn) { fn(); passed.push_back(name); std::cout<<"PASS "<<name<<'\n'; };
++  try {
++    test("p6_positive_dual_route_all_local_buses_and_returned_rx_provenance",[]{
++      Rig r; r.positive();
++      for (unsigned bus=0;bus<3;++bus) {
++        CHECK(r.queue({bus,4+bus})); CHECK(r.runtime.transmit_step(0)); CHECK(r.runtime.transmit_step(1));
++        r.boards[0]->rx(frame(bus,true)); r.boards[1]->rx(frame(bus,true));
++        CHECK(r.runtime.receive_step(0)); CHECK(r.runtime.receive_step(1));
++        const auto rx=r.runtime.receive_frames(); CHECK(rx.size()==2);
++        CHECK(rx[0].source==128+bus && rx[1].source==132+bus);
++        CHECK(rx[0].frame.returned && rx[1].frame.returned); CHECK(!rx[0].frame.rejected && !rx[1].frame.rejected);
++      }
++      CHECK(r.writes(0)==4 && r.writes(1)==4); CHECK(r.runtime.snapshot().simulated_tx_allowed);
++      CHECK(!r.p.device_access_enabled && !r.p.can_tx_enabled && !r.p.firmware_install_enabled);
++    });
++    test("p6_disconnect_reconnect_drops_both_queues_and_requires_fresh_edges",[]{
++      for (unsigned lost=0;lost<2;++lost) {
++        Rig r; r.positive(); CHECK(r.queue({0,4})); const auto stale=r.runtime.capture();
++        r.boards[lost]->reads.push_back({Status::Disconnected}); CHECK(!r.runtime.receive_step(lost)); r.closed();
++        CHECK(r.runtime.sessions().slots[1-lost].connected); CHECK(!r.runtime.sessions().slots[lost].connected);
++        ++r.tokens[lost]; r.attach(lost); CHECK(r.reconcile());
++        CHECK(!r.runtime.selfdrive(true,true,++r.clock.now,r.runtime.capture())); r.closed();
++        r.ready();
++        CHECK(!r.runtime.selfdrive(true,true,++r.clock.now,r.runtime.capture()));
++        // The bad enable intentionally closes the group; a new offroad barrier is required.
++        r.ready(); r.engage();
++        const auto epoch=r.runtime.capture(); CHECK(!ingest_cereal_event(r.runtime,{1,2,3},stale));
++        CHECK(r.runtime.capture().control_epoch==epoch.control_epoch); CHECK(r.runtime.snapshot().simulated_tx_allowed);
++        CHECK(!r.runtime.transmit_step(0) && !r.runtime.transmit_step(1)); CHECK(r.total_writes()==2);
++        CHECK(r.queue({0,4})); CHECK(r.runtime.transmit_step(0)); CHECK(r.runtime.transmit_step(1)); CHECK(r.total_writes()==4);
++      }
++    });
++    test("p6_direct_handle_replacement_retires_fragments_and_old_envelopes",[]{
++      Rig r; r.positive(); const auto wire=frame(); r.boards[0]->rx(Bytes(wire.begin(),wire.begin()+3));
++      CHECK(r.runtime.receive_step(0)); CHECK(r.queue({0,4}));
++      const auto old=r.runtime.capture(); Board *retired=r.boards[0]; ++r.tokens[0]; r.attach(0); CHECK(r.reconcile());
++      CHECK(retired->cancellations>0); r.closed(); r.ready(); r.engage();
++      CHECK(!r.runtime.sendcan(r.batch({4}),old)); CHECK(r.runtime.snapshot().simulated_tx_allowed);
++      r.boards[0]->rx(wire); CHECK(r.runtime.receive_step(0)); CHECK(r.runtime.receive_frames().size()==1);
++      CHECK(!r.runtime.transmit_step(0) && !r.runtime.transmit_step(1)); CHECK(r.total_writes()==2);
++    });
++    test("p6_unknown_replacement_cannot_inherit_role_or_profile",[]{
++      Rig r; r.positive(); CHECK(r.queue({0,4})); auto wrong=r.p.slots[1].expected;
++      wrong.identity="fixture:replacement";
++      CHECK(!r.runtime.reconcile({{r.p.slots[0].expected,1},{wrong,2}},r.transports)); r.closed();
++      CHECK(r.runtime.profile().slots[1].expected.identity=="fixture:red"); CHECK(r.total_writes()==2);
++      r.tokens[1]=3; r.attach(1); CHECK(r.reconcile()); r.ready(); r.engage();
++      CHECK(!r.runtime.transmit_step(1)); CHECK(r.queue({4})); CHECK(r.runtime.transmit_step(1));
++    });
++    test("p6_expired_tx_queue_never_replayed_on_other_board",[]{
++      for (const auto age:{kTxQueueMaxAgeUs-1,kTxQueueMaxAgeUs,kTxQueueMaxAgeUs+1}) {
++        Rig r; r.positive(); CHECK(r.queue({0,4})); r.clock.now+=age;
++        CHECK(r.runtime.transmit_step(0)==(age<kTxQueueMaxAgeUs));
++        CHECK(r.runtime.transmit_step(1)==(age<kTxQueueMaxAgeUs));
++        CHECK(r.total_writes()==(age<kTxQueueMaxAgeUs ? 4U : 2U));
++        CHECK(r.runtime.snapshot().simulated_tx_allowed);
++      }
++    });
++    test("p6_expired_partial_frame_closes_before_suffix_or_queued_tx",[]{
++      Rig r; r.positive(); const auto wire=frame(); r.boards[0]->rx(Bytes(wire.begin(),wire.begin()+3));
++      CHECK(r.runtime.receive_step(0)); const auto fragment_at=r.clock.now; CHECK(r.queue({4}));
++      r.clock.now=fragment_at+kRxMaxAgeUs-3; CHECK(r.runtime.selfdrive(true,true,r.clock.now,r.runtime.capture()));
++      r.clock.now=fragment_at+kRxMaxAgeUs; r.boards[0]->rx(Bytes(wire.begin()+3,wire.end()));
++      const auto before=r.trace.size(); CHECK(!r.runtime.receive_step(0)); CHECK(r.trace.size()==before); r.closed();
++      CHECK(r.runtime.receive_frames().empty());
++    });
++    test("p6_bad_checksum_disconnect_and_stale_health_remain_closed",[]{
++      Rig r; r.positive(); CHECK(r.queue({0,4})); auto bad=frame(); bad.back()^=0x80;
++      r.boards[0]->rx(bad); r.boards[1]->reads.push_back({Status::Disconnected});
++      CHECK(!r.runtime.receive_step(0)); const auto after_bad=r.trace.size(); CHECK(!r.runtime.receive_step(1));
++      CHECK(r.trace.size()==after_bad); r.clock.now+=kHealthMaxAgeUs; r.closed();
++      CHECK(!r.runtime.snapshot().panda_states_valid); CHECK(r.runtime.receive_frames().empty()); CHECK(r.total_writes()==2);
++      CHECK(!r.reconcile());  // the same handles/tokens cannot heal corruption
++      r.tokens={2,2}; r.attach(0); r.attach(1); CHECK(r.reconcile()); r.ready(); r.engage();
++      CHECK(r.queue({4})); CHECK(r.runtime.transmit_step(1)); CHECK(r.total_writes()==3);
++    });
++    test("p6_tx_and_rx_queue_overflow_close_both_slots_before_dispatch",[]{
++      for (unsigned rx=0;rx<2;++rx) {
++        Rig r; r.positive();
++        if (rx) {
++          CHECK(r.queue({0,4})); Bytes stream; const auto wire=frame();
++          for (unsigned i=0;i<=kRxFramesPerSlot;++i) stream.insert(stream.end(),wire.begin(),wire.end());
++          r.boards[0]->rx(stream); CHECK(!r.runtime.receive_step(0));
++        } else {
++          for (unsigned slot=0;slot<2;++slot) {
++            auto full=r.batch({slot*4}); full.frames.resize(kTxFramesPerSlot,full.frames.front());
++            CHECK(r.runtime.sendcan(full,r.runtime.capture()));
++          }
++          CHECK(!r.queue({0}));
++        }
++        r.closed(); CHECK(r.total_writes()==2); CHECK(r.runtime.receive_frames().empty());
++      }
++    });
++    test("p6_stale_cereal_backlog_cannot_poison_or_enable_reconnected_group",[]{
++      Rig r; r.positive(); const auto old=r.runtime.capture();
++      r.source.queued.push_back({InputKind::Event,send_event(r.clock.now,4),old});
++      r.source.queued.push_back({InputKind::Event,{1,2,3},old});
++      ++r.tokens[1]; r.attach(1); CHECK(r.reconcile()); r.ready(); r.engage();
++      const auto current=r.runtime.capture(); const auto result=r.loop.cycle();
++      CHECK(result.inputs==2 && result.rejected==2 && result.accepted==0);
++      CHECK(r.runtime.capture().control_epoch==current.control_epoch); CHECK(r.runtime.snapshot().simulated_tx_allowed);
++      CHECK(r.total_writes()==2);
++    });
++    test("p6_uncertain_partial_write_not_retried_rerouted_or_diagnostic",[]{
++      for (unsigned failed=0;failed<2;++failed) {
++        Rig r; r.positive(); CHECK(r.queue({0,4})); const auto start=r.trace.size();
++        r.boards[failed]->inject=[](const Request &q)->std::optional<Result> {
++          if (q.kind==Kind::BulkWrite) return Result{Status::Timeout,2,{},false,true};
++          return std::nullopt;
++        };
++        CHECK(!r.runtime.transmit_step(failed)); r.closed();
++        for (unsigned i=0;i<6;++i) { r.runtime.tick(); CHECK(!r.runtime.transmit_step(1-failed)); }
++        CHECK(r.writes(failed)==2 && r.writes(1-failed)==1); r.no_bypass(start);
++      }
++    });
++    test("p6_mcu_rejection_closes_before_same_or_sibling_queued_tx",[]{
++      for (unsigned rejected=0;rejected<2;++rejected) {
++        Rig r; r.positive(); CHECK(r.queue({0,4})); const auto start=r.trace.size();
++        // Golden bytes independently emitted by the P6 actual-source F4/H7
++        // safety oracle: noOutput rejected address 0x321, bus1, eight zeros.
++        const auto original=r.runtime.sessions().slots[rejected];
++        r.boards[rejected]->rx({0x82,0x09,0x19,0,0,0x92,0,0,0,0,0,0,0,0});
++        CHECK(!r.runtime.receive_step(rejected)); r.closed();
++        CHECK(r.runtime.rejection_count()==1); const auto evidence=r.runtime.rejection_evidence(); CHECK(evidence);
++        CHECK(evidence->token.slot==rejected && evidence->token.epoch==original.epoch);
++        CHECK(evidence->token.connection_token==original.connection_token);
++        CHECK(evidence->local_bus==1 && evidence->source==193+4*rejected && evidence->address==0x321);
++        CHECK(!r.queue({4*(1-rejected)})); CHECK(r.runtime.receive_frames().empty());
++        for (unsigned i=0;i<6;++i) r.runtime.tick();
++        CHECK(r.total_writes()==2); r.no_bypass(start);
++      }
++    });
++    test("p6_relay_fault_and_forward_block_counter_close_queued_tx",[]{
++      for (unsigned fault=0;fault<2;++fault) {
++        Rig r; r.positive();
++        if (fault==0) r.boards[1]->faults=1; else r.boards[1]->fwd_blocked=1;
++        r.clock.now+=kHealthPeriodUs/2;
++        CHECK(r.runtime.selfdrive(true,true,r.clock.now,r.runtime.capture()));
++        r.clock.now+=kHealthPeriodUs/2;
++        CHECK(r.runtime.selfdrive(true,true,r.clock.now,r.runtime.capture()));
++        CHECK(r.queue({0,4}));
++        for (unsigned i=0;i<10 && r.runtime.snapshot().simulated_tx_allowed;++i) r.runtime.tick();
++        r.closed(); CHECK(r.total_writes()==2);
++      }
++    });
++    test("p6_safety_readback_mismatch_never_changes_mode_or_reroutes",[]{
++      Rig r; r.positive(); r.boards[1]->model=35;
++      r.clock.now+=kHealthPeriodUs/2; CHECK(r.runtime.selfdrive(true,true,r.clock.now,r.runtime.capture()));
++      r.clock.now+=kHealthPeriodUs/2; CHECK(r.runtime.selfdrive(true,true,r.clock.now,r.runtime.capture()));
++      CHECK(r.queue({0,4})); const auto start=r.trace.size();
++      for (unsigned i=0;i<6 && r.runtime.snapshot().simulated_tx_allowed;++i) r.runtime.tick();
++      r.closed(); CHECK(r.total_writes()==2);
++      for (unsigned i=0;i<5;++i) { r.runtime.tick(); } r.no_bypass(start);
++    });
++    test("p6_nooutput_only_policy_rejects_alloutput_and_silent_as_configuration",[]{
++      for (const auto mode:{0U,17U,35U,32U}) {
++        Rig r; r.ready(); ++r.clock.now;
++        CHECK(r.runtime.device_input({true,false,true,25,r.clock.now},r.runtime.capture()));
++        CHECK(!r.runtime.configure({{0,mode,33,0},{1,19,22,0}},r.runtime.capture())); r.closed();
++        for (unsigned i=0;i<5;++i) { r.runtime.tick(); } r.no_bypass(0); CHECK(r.total_writes()==0);
++      }
++    });
++    test("p6_planned_shutdown_exits_both_and_discards_queued_commands",[]{
++      Rig r; r.positive(); CHECK(r.queue({0,4})); const auto start=r.trace.size(); r.runtime.shutdown();
++      r.closed(); assert_exit(r,0,start); assert_exit(r,1,start); CHECK(r.total_writes()==2);
++      CHECK(r.trace.size()-start<=10); CHECK(!r.transports[0]->healthy() && !r.transports[1]->healthy());
++      const auto end=r.trace.size(); r.runtime.shutdown(); r.runtime.tick(); CHECK(r.trace.size()==end); CHECK(!r.reconcile());
++    });
++    test("p6_shutdown_blocked_or_cancelled_board_cannot_starve_sibling_exit",[]{
++      for (unsigned failed=0;failed<2;++failed) for (unsigned mode=0;mode<2;++mode) {
++        Rig r; r.positive(); CHECK(r.queue({0,4})); const auto start=r.trace.size(); const auto started=r.clock.now;
++        if (mode==0) r.boards[failed]->inject=[&](const Request &)->std::optional<Result> {
++          r.clock.now+=5000; return Result{Status::Timeout,0,{},false,true};
++        }; else r.transports[failed]->cancel();
++        r.runtime.shutdown(); r.closed(); assert_exit(r,1-failed,start); CHECK(r.total_writes()==2);
++        CHECK(r.trace.size()-start<=10); CHECK(r.clock.now-started<=50000); r.no_bypass(start);
++      }
++    });
++    test("p6_shutdown_transport_lock_contention_cancels_without_blocking_sibling",[]{
++      for (unsigned held=0;held<2;++held) {
++        Rig r; r.positive(); CHECK(r.queue({0,4}));
++        std::atomic<bool> entered{false},release{false}; Result background;
++        r.boards[held]->inject=[&](const Request &q)->std::optional<Result> {
++          if (q.kind==Kind::ControlRead && q.request==0xd2) {
++            entered.store(true);
++            while (!release.load()) std::this_thread::yield();
++            return Result{Status::Ok,48,Bytes(48)};
++          }
++          return std::nullopt;
++        };
++        Request request; request.kind=Kind::ControlRead; request.request=0xd2; request.read_length=48;
++        std::thread pending([&]{ background=r.transports[held]->perform(request,5); });
++        struct Join {
++          std::atomic<bool> &release; std::thread &thread;
++          ~Join() { release.store(true); if (thread.joinable()) thread.join(); }
++        } guard{release,pending};
++        while (!entered.load()) std::this_thread::yield();
++        const auto start=r.trace.size(); const auto started=r.clock.now;
++        r.runtime.shutdown();
++        release.store(true); pending.join();
++        CHECK(background.status==Status::Cancelled); CHECK(r.clock.now-started<=50000);
++        assert_exit(r,1-held,start); r.closed(); CHECK(r.total_writes()==2);
++        CHECK(!r.transports[held]->healthy()); CHECK(r.trace.size()-start<=10);
++      }
++    });
++    test("p6_simulated_sigint_owner_handoff_precedes_backlog_and_publishes_invalid",[]{
++      Rig r; r.positive(); CHECK(r.queue({0,4}));
++      r.source.queued.push_back({InputKind::Event,send_event(r.clock.now,4),r.runtime.capture()});
++      const auto start=r.trace.size(); r.loop.request_shutdown(); const auto result=r.loop.cycle();
++      CHECK(result.shutdown); CHECK(result.inputs==0 && result.receive_attempts==0 && result.transmit_attempts==0);
++      CHECK(r.source.attempts==0 && r.source.queued.size()==1); CHECK(result.publications==3);
++      assert_exit(r,0,start); assert_exit(r,1,start); r.closed(); CHECK(r.total_writes()==2);
++      for (const auto &record:r.sink.records) inspect(record.second,[](auto e){ CHECK(!e.getValid()); });
++      const auto end=r.trace.size(); CHECK(r.loop.cycle().shutdown); CHECK(r.trace.size()==end);
++    });
++    test("p6_abrupt_process_loss_has_no_host_finally_or_exit_writes",[]{
++      auto r=std::make_unique<Rig>(); r->positive(); CHECK(r->queue({0,4}));
++      const auto before=r->trace.size(); const auto hb=std::count_if(r->trace.begin(),r->trace.end(),[](const Call &c){return c.request.request==0xf3;});
++      // The model stops scheduling. It deliberately does NOT call shutdown,
++      // tick, or invent a callback from a dead host. MCU fallback is verified by
++      // the separate actual-source firmware/safety oracle, not this fixture.
++      r->clock.now+=10000000; CHECK(r->trace.size()==before);
++      CHECK(std::count_if(r->trace.begin(),r->trace.end(),[](const Call &c){return c.request.request==0xf3;})==hb);
++      CHECK(r->total_writes()==2);
++      std::cout<<"TRACE abrupt_process_loss host_calls_after_stop=0 shutdown_executed=false firmware_fallback_claimed=false\n";
++      r.reset();
++    });
++    test("p6_simultaneous_power_loss_keeps_survivor_unpromoted_and_restart_closed",[]{
++      Rig r; r.positive(); CHECK(r.queue({0,4})); const auto before=r.trace.size();
++      // Model removal of power from both boards as complete empty inventory.
++      CHECK(!r.runtime.reconcile({},{{nullptr,nullptr}})); r.closed();
++      for (unsigned i=0;i<5;++i) { r.runtime.tick(); } CHECK(r.trace.size()==before); CHECK(r.total_writes()==2);
++      r.tokens={2,2}; r.attach(0); r.attach(1); CHECK(r.reconcile()); r.closed();
++      CHECK(!r.runtime.selfdrive(true,true,++r.clock.now,r.runtime.capture())); r.closed();
++      r.ready(); r.engage(); CHECK(!r.runtime.transmit_step(0) && !r.runtime.transmit_step(1));
++      CHECK(r.queue({4})); CHECK(r.runtime.transmit_step(1));
++      std::cout<<"TRACE simultaneous_power_loss board_outputs_unobserved=true recovery_requires_fresh_configuration=true\n";
++    });
++    test("p6_loop_receive_fault_stops_sibling_transmit_in_same_cycle",[]{
++      Rig r; r.positive(); CHECK(r.queue({0,4})); auto bad=frame(); bad.back()^=0x40; r.boards[0]->rx(bad);
++      const auto result=r.loop.cycle(); CHECK(result.receive_attempts<=2 && result.transmit_attempts<=2);
++      CHECK(r.total_writes()==2); r.closed();
++      for (const auto &record:r.sink.records) if (record.first==OutputTopic::Can)
++        inspect(record.second,[](auto e){ CHECK(!e.getValid()); CHECK(e.getCan().size()==0); });
++    });
++    test("p6_bounded_timeout_does_not_drain_queue_or_repeat_write",[]{
++      Rig r; r.positive(); CHECK(r.queue({0,4})); const auto start=r.trace.size();
++      r.boards[0]->inject=[&](const Request &q)->std::optional<Result> {
++        if (q.kind==Kind::BulkRead) { r.clock.now+=5000; return Result{Status::Timeout,0,{}}; }
++        return std::nullopt;
++      };
++      const auto result=r.loop.cycle();
++      CHECK(result.elapsed_us<=10000); CHECK(result.receive_attempts<=2 && result.transmit_attempts<=2);
++      unsigned reads=0; for (std::size_t i=start;i<r.trace.size();++i) reads+=r.trace[i].slot==0 && r.trace[i].request.kind==Kind::BulkRead;
++      CHECK(reads==1); CHECK(r.writes(0)==2 && r.writes(1)==2); CHECK(r.runtime.snapshot().simulated_tx_allowed);
++    });
++    std::cout<<"{\"suite\":\"p6_compound_faults\",\"passed\":"<<passed.size()<<",\"failed\":0,\"skipped\":0,\"assertions\":"<<assertions
++      <<",\"device_access\":false,\"real_can_tx\":false,\"schema_changed\":false,\"abrupt_host_finally_claimed\":false}\n";
++    return 0;
++  } catch (const std::exception &e) { std::cerr<<e.what()<<'\n'; return 1; }
++}
+diff --git a/openpilot/selfdrive/pandad/compatibility/tests/test_p6_single_spi.cc b/openpilot/selfdrive/pandad/compatibility/tests/test_p6_single_spi.cc
+new file mode 100644
+index 0000000..f419eea
+--- /dev/null
++++ b/openpilot/selfdrive/pandad/compatibility/tests/test_p6_single_spi.cc
+@@ -0,0 +1,132 @@
++#include "../spi_backend.h"
++#include "../can_codec.h"
++
++#include <algorithm>
++#include <cstdint>
++#include <iostream>
++#include <stdexcept>
++#include <string>
++#include <vector>
++
++using namespace openpilot::pandad::compatibility;
++namespace {
++using Bytes=std::vector<std::uint8_t>;
++std::size_t assertions=0;
++void check(bool ok,int line) { ++assertions; if (!ok) throw std::runtime_error("P6 single SPI assertion line "+std::to_string(line)); }
++#define CHECK(x) check(static_cast<bool>(x),__LINE__)
++std::uint32_t le(const Bytes &b,std::size_t n,unsigned width) {
++  std::uint32_t out=0; for (unsigned i=0;i<width;++i) out|=static_cast<std::uint32_t>(b.at(n+i))<<(i*8); return out;
++}
++void append(Bytes &b,std::uint32_t value,unsigned width) { for (unsigned i=0;i<width;++i) b.push_back(value>>(i*8)); }
++std::uint32_t crc(const Bytes &b) {
++  std::uint32_t out=0xffffffffU;
++  for (const auto byte:b) { out^=byte; for (unsigned i=0;i<8;++i) out=(out>>1)^((out&1U)?0xedb88320U:0); }
++  return out^0xffffffffU;
++}
++struct FakeClock final : Clock {
++  std::uint64_t now=1000000;
++  std::uint64_t now_us() override { return now; }
++  void wait_us(std::uint32_t us) override { now+=us; }
++};
++struct H7Spi final : SpiIo {
++  std::vector<Bytes> requests;
++  Bytes reply,rx;
++  std::uint32_t id=0;
++  unsigned exchanges=0,begins=0,ends=0;
++  bool lease=false,bad_crc=false,nack=false;
++  Status begin(std::uint32_t ms) override { CHECK(ms>0 && ms<=5); ++begins; lease=true; return Status::Ok; }
++  void end() noexcept override { ++ends; lease=false; }
++  Result exchange(const Bytes &tx,std::uint32_t ms) override {
++    CHECK(lease && ms>0 && ms<=5); ++exchanges;
++    if (tx[0]!=0xff) {
++      CHECK(tx.size()>=13); CHECK(le(tx,tx.size()-4,4)==crc(Bytes(tx.begin(),tx.end()-4)));
++      CHECK(le(tx,5,2)+13==tx.size()); requests.push_back(tx); id=le(tx,1,4); reply.clear();
++      if (tx[0]==0) {
++        CHECK(le(tx,5,2)==7); const auto request=tx[9]; CHECK(request!=0xd5);
++        const auto length=le(tx,14,2); reply.resize(length);
++        if (request==0xdd) { CHECK(length==8); reply={0xf5,0x12,0xbc,0xff,0x76,0xf2,0xab,0x75}; }
++        else if (request==0xd2) {
++          CHECK(length==48); reply[4]=0xe0; reply[5]=0x2e; reply[6]=0xa4; reply[7]=1;
++          reply[28]=1; reply[30]=1; reply[31]=19; reply[45]=7; reply[47]=75;
++        } else if (request==0xc2) { CHECK(length==64); reply[45]=reply[46]=1; }
++        else { CHECK(request==0xdc || request==0xf3); CHECK(length==0); if(request==0xdc) CHECK(le(tx,10,2)==19); }
++      } else if (tx[0]==0x81) { reply=rx; rx.clear(); }
++      else CHECK(tx[0]==3);
++      Bytes ready(tx.size()); ready[0]=0x3c; return {Status::Ok,ready.size(),ready};
++    }
++    Bytes out{static_cast<std::uint8_t>(nack?0x5a:0xc3)}; append(out,id,4);
++    const Bytes empty; const auto &payload=nack?empty:reply;
++    append(out,payload.size(),2); out.insert(out.end(),payload.begin(),payload.end());
++    append(out,crc(out)^(bad_crc?1U:0U),4); CHECK(out.size()<=tx.size()); out.resize(tx.size());
++    return {Status::Ok,out.size(),out};
++  }
++};
++Request control(unsigned code,std::size_t length=0,unsigned value=0) {
++  Request r; r.kind=length?Kind::ControlRead:Kind::ControlWrite; r.request=code; r.read_length=length; r.value=value; return r;
++}
++Request txframe(bool fd) {
++  CanFrame f{0x123,2,false,fd,false,false,Bytes(fd?64:8,0x55)};
++  const auto encoded=encode_can_frame(f,CanCapability::CanFd,FrameDirection::Tx); CHECK(encoded);
++  Request r; r.kind=Kind::BulkWrite; r.endpoint=3; r.payload=encoded.value; return r;
++}
++struct Rig { FakeClock clock; H7Spi io; SpiBackend spi{io,clock,0x76543210}; Transport transport{spi,clock}; };
++}
++int main() {
++  unsigned passed=0;
++  const auto pass=[&](const char *name) { ++passed; std::cout<<"PASS "<<name<<'\n'; };
++  try {
++    {
++      Rig r; CHECK(r.io.exchanges==0);
++      const auto versions=r.transport.perform(control(0xdd,8),5);
++      CHECK(versions.status==Status::Ok && versions.data==Bytes({0xf5,0x12,0xbc,0xff,0x76,0xf2,0xab,0x75}));
++      const auto health=r.transport.perform(control(0xd2,48),5); CHECK(health.status==Status::Ok && health.actual==48);
++      CHECK(le(health.data,6,2)==420 && le(health.data,45,2)==7);
++      const auto can=r.transport.perform(control(0xc2,64),5); CHECK(can.status==Status::Ok && can.data[45]==1 && can.data[46]==1);
++      CHECK(r.transport.perform(control(0xdc,0,19),5).status==Status::Ok);
++      CHECK(r.transport.perform(control(0xf3,0,1),5).status==Status::Ok);
++      CHECK(r.io.requests.size()==5 && r.io.begins==5 && r.io.ends==5);
++      for (const auto &wire:r.io.requests) CHECK(wire[9]!=0xd5);
++      pass("p6_single_h7_spi_current_protocol_health_safety_heartbeat_no_f4_handshake");
++    }
++    {
++      Rig r;
++      for (bool fd:{false,true}) {
++        const auto request=txframe(fd); const auto sent=r.transport.perform(request,5);
++        CHECK(sent.status==Status::Ok && sent.actual==request.payload.size());
++        CanFrame returned{0x123,2,false,fd,true,false,Bytes(fd?64:8,0x55)};
++        const auto encoded=encode_can_frame(returned,CanCapability::CanFd,FrameDirection::Rx); CHECK(encoded); r.io.rx=encoded.value;
++        Request read; read.kind=Kind::BulkRead; read.endpoint=0x81; read.read_length=100;
++        const auto received=r.transport.perform(read,5); CHECK(received.status==Status::Short);
++        CanStreamParser parser(CanCapability::CanFd); const auto frames=parser.feed(received.data.data(),received.data.size());
++        CHECK(frames && frames.value.size()==1); CHECK(frames.value[0].returned && frames.value[0].fd==fd);
++        CHECK(frames.value[0].local_bus==2 && frames.value[0].payload==returned.payload);
++        CHECK(r.io.requests[r.io.requests.size()-2][0]==3);
++      }
++      CHECK(r.io.requests.size()==4); CHECK(r.transport.healthy());
++      // This is one standalone SPI session: no dual-board profile, group gate,
++      // slot promotion, USB API, opener or Panda constructor participates.
++      pass("p6_single_h7_spi_classic_and_64byte_fd_bidirectional_positive");
++    }
++    {
++      Rig r; r.io.nack=true; const auto result=r.transport.perform(txframe(true),5);
++      CHECK(result.status==Status::Busy && result.actual==0 && result.delivery_uncertain);
++      CHECK(r.io.requests.size()==1 && r.io.exchanges==2); CHECK(!r.transport.healthy());
++      CHECK(r.transport.perform(txframe(true),5).status==Status::Poisoned); CHECK(r.io.requests.size()==1);
++      pass("p6_single_h7_spi_nack_never_replayed_or_switched_to_usb");
++    }
++    {
++      Rig r; r.io.bad_crc=true;
++      const auto result=r.transport.perform(control(0xdd,8),5); CHECK(result.status==Status::IoError && !result.actual_known);
++      CHECK(!r.transport.healthy()); CHECK(r.io.requests.size()==1);
++      r.io.bad_crc=false; CHECK(r.transport.perform(control(0xdd,8),5).status==Status::Poisoned); CHECK(r.io.requests.size()==1);
++      pass("p6_single_h7_spi_bad_crc_requires_new_session");
++    }
++    {
++      Rig r; r.transport.cancel(); CHECK(r.transport.perform(control(0xdd,8),5).status==Status::Cancelled);
++      CHECK(r.io.begins==0 && r.io.exchanges==0);
++      pass("p6_single_h7_spi_cancel_is_local_and_inert");
++    }
++    std::cout<<"{\"suite\":\"p6_single_h7_spi\",\"passed\":"<<passed<<",\"failed\":0,\"skipped\":0,\"assertions\":"<<assertions
++      <<",\"standalone_sessions\":1,\"dual_profile_used\":false,\"device_access\":false,\"real_can_tx\":false,\"legacy_device_path_executed\":false}\n";
++  } catch (const std::exception &e) { std::cerr<<e.what()<<'\n'; return 1; }
++}
+diff --git a/openpilot/selfdrive/pandad/compatibility/tests/test_pandad_loop.cc b/openpilot/selfdrive/pandad/compatibility/tests/test_pandad_loop.cc
+index dd13f39..64439df 100644
+--- a/openpilot/selfdrive/pandad/compatibility/tests/test_pandad_loop.cc
++++ b/openpilot/selfdrive/pandad/compatibility/tests/test_pandad_loop.cc
+@@ -48,7 +48,8 @@ struct Board final : Backend {
+     if(r.kind==Kind::BulkWrite){return {Status::Ok,r.payload.size(),{}};}
+     if(r.kind==Kind::BulkRead){return {Status::Short,0,{}};}
+     Bytes b(r.read_length);
+-    if(r.request==0xd2){b[28]=1;b[30]=2;b[31]=19;put16(b,32,param);put16(b,35,alternative);b[47]=75;}
++    if(r.request==0xd5){b={'F','4','C','1',1,0,16,0,31,0,0,0,7,0,0,0};}
++    else if(r.request==0xd2){b[28]=1;b[30]=2;b[31]=19;put16(b,32,param);put16(b,35,alternative);b[47]=75;}
+     else if(r.request==0xc2){put16(b,41,500);put16(b,43,2000);}
+     else if(r.request==0xb2){put16(b,0,1200);}
+     else throw std::runtime_error("unexpected control request");

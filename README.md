@@ -10,7 +10,9 @@ DOS/F4、USB 双 Panda 兼容层的 **P0/P1/P2/P3/P4 已完成本地实现和限
 
 P5 已完成 **DOS/F4 应用 BSP、四个 F4/H7 ARM 候选构建、资源预算、协议与精选 safety 离线回归**。见 [P5验收报告](validation/panda-firmware-p5/RESULT.md) 和 [Panda独立补丁](patches/panda/p5/README.md)。F413/DOS仍为公开参考配置；所有候选不可部署，实物profile未绑定，未构建bootstub或访问设备。
 
-用户无法提供照片和厂家资料，实物未知项继续保留，不阻断本地工作。[兼容层设计](hardware/design/dos-usb-dual-panda/DESIGN.md) 与其NOT_RUN清单是实现前冻结的历史快照；P0–P5的新验收结果以上述报告为准，P6–P7仍待实施。
+P6 已完成 **F4 能力握手、双板复合故障与 safety 离线回归**，包括掉板重连、过期消息、退出/断电模拟、拒绝后不得绕板发送，以及实际 Linux pandad 离线入口和单 H7/SPI 回归。见 [P6验收报告](validation/panda-compat-p6/RESULT.md) 与 [独立补丁](patches/openpilot/p6/README.md)。F4 缺失字段不再作为有效测量；实物权限保持关闭。
+
+用户无法提供照片和厂家资料，实物未知项继续保留，不阻断本地工作。[兼容层设计](hardware/design/dos-usb-dual-panda/DESIGN.md) 与其NOT_RUN清单是实现前冻结的历史快照；P0–P6的新验收结果以上述报告为准，P7仍待实施。
 
 ## 固定基线
 

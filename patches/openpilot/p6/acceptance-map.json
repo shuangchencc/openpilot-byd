@@ -1,0 +1,201 @@
+{
+  "schema": "songplus-panda-p6-acceptance-map/v1",
+  "cases": [
+    {
+      "id": "A60",
+      "required_groups": {
+        "p6_faults": [
+          "p6_positive_dual_route_all_local_buses_and_returned_rx_provenance"
+        ],
+        "p6_capabilities": [
+          "f4c1_exact_bytes_all_single_bit_mutations_and_lengths",
+          "first_probe_precedes_all_group_writes_in_both_slot_orders",
+          "every_short_capability_reply_quarantines_without_fallback",
+          "unknown_capability_payload_quarantines_and_retires_handle",
+          "missing_extension_transfer_failure_never_probes_legacy_fallback",
+          "capability_timeout_exact_boundary_before_any_write",
+          "forged_capability_token_and_duplicate_reply_cannot_bind",
+          "reconnection_requires_new_observation_and_old_reply_is_inert"
+        ]
+      },
+      "required_python_selectors": [],
+      "scope": "Actual pinned safety/firmware C with HAL mocks on F4/H7 host policies; local buses and negative checksum/counter/freshness. F4 capability handshake before group writes.",
+      "safety_evidence": {
+        "platforms": [
+          "macos",
+          "linux"
+        ],
+        "report": "p6_safety.<platform>",
+        "policy_builds": [
+          "f4-debug",
+          "h7-debug",
+          "f4-release",
+          "h7-release"
+        ],
+        "source_lock": "openpilot/selfdrive/pandad/compatibility/tests/p6_safety/source-lock.json",
+        "limits": "Native execution of real pinned C plus HAL mocks; no MCU hardware or Song PLUS support claim.",
+        "required_cases": [
+          "deny_modes_all_local_and_host_buses",
+          "checksum_and_response_flags_cannot_bypass",
+          "partial_packet_reset_does_not_send",
+          "fd_capability_differs_without_policy_drift",
+          "byd_wrong_bus_and_dlc",
+          "byd_wrong_rx_bus_length_cannot_enable",
+          "byd_payload_checksum_and_counter",
+          "byd_freshness_boundary_and_wrap",
+          "byd_disengaged_steering_rejected"
+        ],
+        "required_parity_comparisons": 30,
+        "positive_controls": "Current ELM327 host CAN path accepts one valid packet; BYD debug HUD accepts only local bus0/DLC8; fresh BYD reference RX establishes controls before checksum/counter/lag failure."
+      }
+    },
+    {
+      "id": "A61",
+      "required_groups": {
+        "p6_faults": [
+          "p6_nooutput_only_policy_rejects_alloutput_and_silent_as_configuration"
+        ]
+      },
+      "required_python_selectors": [],
+      "scope": "Legacy enum32/param33 is not remapped to current BYD35. Current debug parameter semantics are reported honestly; Song PLUS remains unavailable.",
+      "safety_evidence": {
+        "platforms": [
+          "macos",
+          "linux"
+        ],
+        "report": "p6_safety.<platform>",
+        "policy_builds": [
+          "f4-debug",
+          "h7-debug",
+          "f4-release",
+          "h7-release"
+        ],
+        "source_lock": "openpilot/selfdrive/pandad/compatibility/tests/p6_safety/source-lock.json",
+        "limits": "Native execution of real pinned C plus HAL mocks; no MCU hardware or Song PLUS support claim.",
+        "required_cases": [
+          "legacy_enum32_param33_falls_back_silent",
+          "byd_debug_reference_only",
+          "release_byd35_unavailable"
+        ],
+        "qualification": "Legacy enum32/param33 is rejected and actual firmware falls back to SILENT. Current debug BYD35 ignores param33 and remains ATTO3 semantics; current release lacks BYD35. Host Song PLUS profile remains unsupported/unbound."
+      }
+    },
+    {
+      "id": "A62",
+      "required_groups": {
+        "p6_faults": [
+          "p6_disconnect_reconnect_drops_both_queues_and_requires_fresh_edges",
+          "p6_direct_handle_replacement_retires_fragments_and_old_envelopes",
+          "p6_unknown_replacement_cannot_inherit_role_or_profile",
+          "p6_expired_tx_queue_never_replayed_on_other_board",
+          "p6_expired_partial_frame_closes_before_suffix_or_queued_tx",
+          "p6_bad_checksum_disconnect_and_stale_health_remain_closed",
+          "p6_tx_and_rx_queue_overflow_close_both_slots_before_dispatch",
+          "p6_stale_cereal_backlog_cannot_poison_or_enable_reconnected_group",
+          "p6_loop_receive_fault_stops_sibling_transmit_in_same_cycle",
+          "p6_bounded_timeout_does_not_drain_queue_or_repeat_write"
+        ]
+      },
+      "required_python_selectors": [],
+      "scope": "Real runtime with bounded fake I/O, epochs, replacement, stale inputs, partials, queue overflow and same-cycle fail-closed dispatch; no hardware operations."
+    },
+    {
+      "id": "A63",
+      "required_groups": {
+        "p6_single_spi": [
+          "p6_single_h7_spi_current_protocol_health_safety_heartbeat_no_f4_handshake",
+          "p6_single_h7_spi_classic_and_64byte_fd_bidirectional_positive",
+          "p6_single_h7_spi_nack_never_replayed_or_switched_to_usb",
+          "p6_single_h7_spi_bad_crc_requires_new_session",
+          "p6_single_h7_spi_cancel_is_local_and_inert"
+        ],
+        "p6_capabilities": [
+          "f4_health_unsupported_fields_are_null_and_voltage_is_available",
+          "h7_baseline_never_probes_extension_and_preserves_supported_fields",
+          "f4_absent_spi_counter_is_ignored_h7_counter_still_faults",
+          "profile_cannot_invent_ir_missing_from_f4_candidate"
+        ]
+      },
+      "required_python_selectors": [
+        "test_health.F4CapabilityTests.*",
+        "test_message_policy.*.test_h7_power_role_retains_current_and_stale_group_hides_it",
+        "test_message_policy.*.test_both_role_permutations_ignition_harness_voltage_current"
+      ],
+      "scope": "Actual Linux daemon compiled and linked, explicit offline entry only; native USB regressions and independent single H7/SPI positive/negative fixture plus five original SPI golden vectors. F4 absent fields cannot become measurements."
+    },
+    {
+      "id": "A64",
+      "required_groups": {
+        "p6_faults": [
+          "p6_uncertain_partial_write_not_retried_rerouted_or_diagnostic",
+          "p6_mcu_rejection_closes_before_same_or_sibling_queued_tx",
+          "p6_relay_fault_and_forward_block_counter_close_queued_tx",
+          "p6_safety_readback_mismatch_never_changes_mode_or_reroutes",
+          "p6_nooutput_only_policy_rejects_alloutput_and_silent_as_configuration"
+        ]
+      },
+      "required_python_selectors": [],
+      "scope": "Actual MCU safety decision oracle plus host rejected-frame provenance. Entire group closes, with no sibling/mode/diagnostic retry.",
+      "safety_evidence": {
+        "platforms": [
+          "macos",
+          "linux"
+        ],
+        "report": "p6_safety.<platform>",
+        "policy_builds": [
+          "f4-debug",
+          "h7-debug",
+          "f4-release",
+          "h7-release"
+        ],
+        "source_lock": "openpilot/selfdrive/pandad/compatibility/tests/p6_safety/source-lock.json",
+        "limits": "Native execution of real pinned C plus HAL mocks; no MCU hardware or Song PLUS support claim.",
+        "required_cases": [
+          "rejected_frame_retains_local_bus",
+          "byd_relay_and_forwarding_block",
+          "byd_disengaged_steering_rejected"
+        ],
+        "required_companion": "P6 host fault suite must prove no sibling-board, alternate-mode, diagnostic or forged-RX bypass; this MCU oracle alone only proves original local rejection decisions and genuine returned wire echoes."
+      }
+    },
+    {
+      "id": "A65",
+      "required_groups": {
+        "p6_faults": [
+          "p6_planned_shutdown_exits_both_and_discards_queued_commands",
+          "p6_shutdown_blocked_or_cancelled_board_cannot_starve_sibling_exit",
+          "p6_shutdown_transport_lock_contention_cancels_without_blocking_sibling",
+          "p6_simulated_sigint_owner_handoff_precedes_backlog_and_publishes_invalid",
+          "p6_abrupt_process_loss_has_no_host_finally_or_exit_writes",
+          "p6_simultaneous_power_loss_keeps_survivor_unpromoted_and_restart_closed"
+        ]
+      },
+      "required_python_selectors": [],
+      "scope": "Bounded cooperative planned shutdown and simulated owner-loop SIGINT distinct from host-process death, powered MCU heartbeat expiry and stopped/unpowered MCU. No physical recovery or watchdog claim.",
+      "safety_evidence": {
+        "platforms": [
+          "macos",
+          "linux"
+        ],
+        "report": "p6_safety.<platform>",
+        "policy_builds": [
+          "f4-debug",
+          "h7-debug",
+          "f4-release",
+          "h7-release"
+        ],
+        "source_lock": "openpilot/selfdrive/pandad/compatibility/tests/p6_safety/source-lock.json",
+        "limits": "Native execution of real pinned C plus HAL mocks; no MCU hardware or Song PLUS support claim.",
+        "required_cases": [
+          "abrupt_process_death_ignition_on",
+          "abrupt_process_death_ignition_off",
+          "usb_power_loss_mcu_alive",
+          "whole_mcu_power_loss_has_no_software_action",
+          "stopped_loop_watchdog_only_on_resume",
+          "watchdog_threshold_and_wrap"
+        ],
+        "required_companion": "P6 host fault suite covers normal/SIGINT/engaged shutdown and cancellation separately. Abrupt death oracle invokes no host cleanup, keeps independently powered MCU scheduled, checks actual5/2 heartbeat SILENT and clears3pending queues. Whole MCU power loss executes no software; software watchdog only faults on resume."
+      }
+    }
+  ]
+}

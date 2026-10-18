@@ -10,7 +10,7 @@
   },
   "hardware_policy": "Retain the user's existing C3XL and Panda hardware; exact board and sensor compatibility remains unverified.",
   "architecture": "Official matched perception, planning and control stack with separately maintained hardware support, vehicle interface and Panda safety changes.",
-  "stage": "p5_offline_firmware_candidate",
+  "stage": "p6_offline_capabilities_fault_safety",
   "official_baseline": "upstream-lock.json",
   "historical_research_baseline": "baseline-lock.json",
   "runtime_depends_on_mr_one_encrypted_vehicle_code": false,
@@ -23,7 +23,7 @@
     "os_update": false,
     "panda_flash": false,
     "target_process_launch": false,
-    "meaning": "Historical Step 1 SSH evidence retained. Current P5 builds application-only F4/H7 candidates and runs host-mocked protocol/safety/resource acceptance offline. No target execution, device access, bootstub build, deployment or firmware/OS writes.",
+    "meaning": "Historical Step 1 SSH evidence retained. Current P6 replays independent P0–P5 patches and validates capability, dual-board faults, actual safety C and Linux/single-H7-SPI offline. No target execution, device access, reset, flash, system/slot changes or real CAN TX.",
     "current_task_device_connection": false
   },
   "milestones": [
@@ -43,9 +43,9 @@
     "telephone_card_function": false,
     "exact_pcb_revision_confirmed": false
   },
-  "current_work": "local_dos_usb_p0_p1_p2_p3_p4_and_f4_bsp_p5_offline_implemented",
+  "current_work": "local_dos_usb_p0_p6_offline_declared_scope_implemented",
   "compatibility_design": "hardware/design/dos-usb-dual-panda/implementation-plan.json",
-  "compatibility_implementation": "patches/openpilot/p4/manifest.json",
+  "compatibility_implementation": "patches/openpilot/p6/manifest.json",
   "compatibility_stage_status": {
     "P0": "OFFLINE_HOST_PASSED",
     "P1": "OFFLINE_HOST_PASSED",
@@ -53,11 +53,11 @@
     "P3": "OFFLINE_DECLARED_SCOPE_PASSED",
     "P4": "OFFLINE_DECLARED_SCOPE_PASSED",
     "P5": "OFFLINE_CANDIDATE_PASSED",
-    "P6": "NOT_IMPLEMENTED",
+    "P6": "OFFLINE_DECLARED_SCOPE_PASSED",
     "P7": "NOT_IMPLEMENTED"
   },
   "compatibility_p0p1_implementation": "patches/openpilot/p0p1/manifest.json",
-  "compatibility_acceptance": "validation/panda-compat-p4/result.json",
+  "compatibility_acceptance": "validation/panda-compat-p6/result.json",
   "health_heartbeat_runtime_integrated": "offline injected transports and serialized event loop only",
   "compatibility_p2_implementation": "patches/openpilot/p2/manifest.json",
   "p3_group_availability": "structural_synthetic_only_not_real_tx_permission",
@@ -69,5 +69,10 @@
   "p5_source_commit": "aa02e42356f12b5ed4f0dbf553ffc2e8a7211b65",
   "p5_physical_mcu_confirmed": false,
   "p5_bootstub_built": false,
-  "p5_real_capability_binding": false
+  "p5_real_capability_binding": false,
+  "compatibility_p4_implementation": "patches/openpilot/p4/manifest.json",
+  "compatibility_p4_acceptance": "validation/panda-compat-p4/result.json",
+  "p6_source_commit": "d4d610ecb08ab27200e48c07757b147861f710a5",
+  "p6_real_capability_binding": false,
+  "p6_candidate_capability_binding": "offline synthetic connection only"
 }
