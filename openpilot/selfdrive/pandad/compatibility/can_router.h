@@ -132,6 +132,9 @@ public:
   RouterResult<RouterDepths> inspect(std::uint64_t now_us);
   // P4 barrier changes discard local work even if physical handles stay live.
   void discard_pending() { clear_all(); }
+  // Ordinary noOutput/disabled operation suppresses TX, but still observes CAN.
+  // Connection/control epoch changes and faults continue to clear all queues.
+  void discard_tx_pending();
   const RouterCounters &counters() const { return counters_; }
   std::optional<RejectionEvidence> latest_rejection() const { return latest_rejection_; }
 

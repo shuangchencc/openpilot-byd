@@ -106,6 +106,7 @@ bool PandadRuntime::device_input(const DeviceInput &input, InputEpoch epoch) {
 bool PandadRuntime::camera_input(const CameraInput &input, InputEpoch epoch) {
   if (!epoch_matches(epoch)) { count(counters_.discarded_inputs); return false; }
   if (!input.valid || input.ir_percent > 100 || !fresh(input.timestamp_us, kDeviceInputMaxAgeUs) ||
+      input.timestamp_us < control_started_us_ ||
       (camera_ && input.timestamp_us <= camera_->timestamp_us)) {
     invalid_input("INVALID_CAMERA_STATE"); return false;
   }
@@ -249,7 +250,7 @@ bool PandadRuntime::transmit_step(std::uint32_t slot) {
   if (stopped_ || slot > 1) return false;
   const auto state = snapshot();
   if (!state.simulated_tx_allowed || !device_fresh() || !device_->started) {
-    router_.discard_pending(); count(counters_.denied_tx); return false;
+    router_.discard_tx_pending(); count(counters_.denied_tx); return false;
   }
   auto intent = router_.take_tx(slot, clock_.now_us());
   if (!intent || !router_.validate_intent(intent.value, clock_.now_us())) return false;

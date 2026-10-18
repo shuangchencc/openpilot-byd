@@ -1,14 +1,19 @@
 Import('env', 'arch', 'common', 'messaging')
 
 if arch != "Darwin":
+  import libusb
+  pandad_env = env.Clone()
+  pandad_env.Append(CPPPATH=[libusb.INCLUDE_DIR], LIBPATH=[libusb.LIB_DIR], CPPDEFINES=["SONGPLUS_P8_INTEGRATION"])
   libs = [common, messaging, 'pthread']
   panda = env.Library('panda', ['panda.cc', 'spi.cc'])
 
   compatibility = ['compatibility/' + name + '.cc' for name in [
     'session_registry', 'can_codec', 'can_router', 'transport', 'control_session',
     'pandad_runtime', 'cereal_bridge', 'pandad_loop', 'offline_entry',
+    'runtime_integration', 'realtime_bridge', 'msgq_adapter',
+    'usb_backend', 'libusb_api', 'spi_backend',
   ]]
-  env.Program('pandad', ['main.cc', 'pandad.cc', 'panda_safety.cc'] + compatibility, LIBS=[panda] + libs)
+  pandad_env.Program('pandad', ['main.cc', 'pandad.cc', 'panda_safety.cc'] + compatibility, LIBS=[panda] + libs + ['usb-1.0'])
 
   if GetOption('extras'):
     env.Program('tests/test_pandad_canprotocol', ['tests/test_pandad_canprotocol.cc'], LIBS=[panda] + libs)

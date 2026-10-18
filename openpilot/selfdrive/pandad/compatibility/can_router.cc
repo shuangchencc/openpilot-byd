@@ -46,6 +46,13 @@ CanRouter::CanRouter(SessionRegistry &registry)
   synchronize();
 }
 
+void CanRouter::discard_tx_pending() {
+  for (auto &slot : slots_) {
+    add(counters_.epoch_tx_drops, slot.tx.size());
+    slot.tx.clear();
+  }
+}
+
 void CanRouter::clear_all() {
   for (auto &slot : slots_) {
     add(counters_.epoch_tx_drops, slot.tx.size());
