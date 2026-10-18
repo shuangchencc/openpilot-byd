@@ -60,7 +60,9 @@ def main():
   main_p8=None
   if linux:
    main=a.output/'actual-main.o'
-   run('compile-actual-main',[a.compiler,*flags,'-DSONGPLUS_P8_INTEGRATION','-isystem',a.prefix/'json11/install/include','-c',a.source/'openpilot/selfdrive/pandad/main.cc','-o',main])
+   # Match the retained worker: preserve official-header warnings, while the
+   # compatibility sources and their tests above keep -Werror.
+   run('compile-actual-main',[a.compiler,*[f for f in flags if f!='-Werror'],'-DSONGPLUS_P8_INTEGRATION','-isystem',a.prefix/'json11/install/include','-c',a.source/'openpilot/selfdrive/pandad/main.cc','-o',main])
    full=a.output/'pandad-p8';run('link-actual-pandad-p8',[a.compiler,'-fsanitize=address,undefined','-pthread',*[q for q in old_objects if int(q.stem)!=13],main,*objects,*libs,*extra,'-o',full])
    run('actual-pandad-offline',[full,'--compat-offline'])
    main_raw=run('actual-pandad-p8-owner',[full,'--compat-runtime-offline'])

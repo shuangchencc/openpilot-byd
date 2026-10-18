@@ -76,7 +76,7 @@
     "songplus_readonly/tests/test_carstate.py": "67980e2de5d238be66eb5d62c9a0de6a03919c249070efa4e7b702e0ec65ce49",
     "songplus_readonly/tests/test_replay.py": "22f67165ead83e4aaded731fc7771732e2f81e5fb0c27899030fa7fcd0263f3a",
     "tests/test_songplus_integration_ci.py": "51aba5a8d9d3ee20e9e78fdfd678121932e6f7944c470433f8f3806087190091",
-    "tools/build_p8_runtime.py": "fd85531147c4a5bf2d04894df2ae7c069b11e84048d9286333c7150d9909bc7b",
+    "tools/build_p8_runtime.py": "35af9563b834139df00e924d07a2ea859cfd08cebd5088a94ec32e42e831b807",
     "tools/check_songplus_integration_ci.py": "9cfee06716e5eb80663f4fb61b03104fd127fcd056a27dae92031fd0979ff87a",
     "tools/p8_runtime_linux_sandbox.sh": "bf82d2380a87c189776a151f24d0beb384cad3fa2b6495d1514ea1fb2c583625",
     "tools/songplus_integration.py": "ffbba41cb4310bc4ddeff897bc56b5344dcc26b5aadbc1a48c199a32f4887bb3",
