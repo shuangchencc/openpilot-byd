@@ -121,7 +121,7 @@ class TestHealth(unittest.TestCase):
     self.assertEqual(h.encode_health(raw), bytes.fromhex(LEGACY_HEX))
     for name, offset, code in zip(h.LEGACY_HEALTH_FIELDS, LEGACY_OFFSETS, h.LEGACY_HEALTH_FORMAT[1:], strict=True):
       self.assertEqual(struct.unpack_from("<" + code, bytes.fromhex(LEGACY_HEX), offset)[0], raw.values[name])
-    view = h.normalize_health(raw, h.HealthCapabilities(True, True, True, True, True, True))
+    view = h.normalize_health(raw, h.HealthCapabilities(True, True, True, True, True, True, True))
     self.assertFalse(view.control_protocol_supported)
     self.assertEqual(view.values["safety_mode"], 32)
     self.assertIsNone(view.values["temperature_c"])
@@ -201,7 +201,7 @@ class TestHealth(unittest.TestCase):
         h.decode_health(bytes(wire), h.LEGACY_VERSION)
 
   def test_normalized_units_and_distinct_counter_semantics(self):
-    view = h.normalize_health(current(), h.HealthCapabilities(True, True, True, True, True, True))
+    view = h.normalize_health(current(), h.HealthCapabilities(True, True, True, True, True, True, True))
     self.assertAlmostEqual(view.values["voltage_v"], 12.345)
     self.assertAlmostEqual(view.values["current_a"], 0.678)
     self.assertAlmostEqual(view.values["sbu1_voltage_v"], 3.3)
@@ -375,3 +375,28 @@ class TestHeaderABI(unittest.TestCase):
 
 if __name__ == "__main__":
   unittest.main()
+
+
+class F4CapabilityTests(unittest.TestCase):
+  def test_exact_p5_contract_hides_unsupported_measurements(self):
+    cap = h.decode_f4_capabilities(bytes.fromhex("46344331010010001f00000007000000"))
+    view = h.normalize_health(current(current=54321, sound_output_level=123, spi_error_count=77, temperature=75), cap)
+    for name in ("current_a", "sound_output_level", "spi_error_count"):
+      self.assertIsNone(view.values[name])
+    self.assertEqual(view.values["temperature_c"], 35)
+    self.assertEqual(view.values["voltage_v"], 12.345)
+    self.assertEqual(view.raw.values["current"], 54321)
+
+  def test_contract_rejects_every_bit_mutation_and_wrong_extent(self):
+    good = bytes.fromhex("46344331010010001f00000007000000")
+    for n in range(128):
+      bad = bytearray(good); bad[n // 8] ^= 1 << (n % 8)
+      with self.assertRaises(h.HealthCodecError):
+        h.decode_f4_capabilities(bytes(bad))
+    for bad in (b"", good[:-1], good+b"\x00", bytearray(good)):
+      with self.assertRaises(h.HealthCodecError):
+        h.decode_f4_capabilities(bad)
+
+  def test_unverified_spi_is_unavailable_and_h7_explicit_value_retained(self):
+    self.assertIsNone(h.normalize_health(current(), h.HealthCapabilities()).values["spi_error_count"])
+    self.assertEqual(h.normalize_health(current(), h.HealthCapabilities(spi_error_count=True)).values["spi_error_count"], 0x6162)

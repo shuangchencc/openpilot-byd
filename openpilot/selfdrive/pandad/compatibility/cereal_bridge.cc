@@ -35,8 +35,8 @@ std::uint64_t ns_time(std::uint64_t us) {
 cereal::PandaState::PandaType panda_type(const SessionBinding &binding) {
   return binding.expected.board_type == "DOS" ? cereal::PandaState::PandaType::DOS : cereal::PandaState::PandaType::RED_PANDA;
 }
-void fill_health(cereal::PandaState::Builder ps, const MessageBytes &h) {
-  ps.setUptime(u32(h,0)); ps.setVoltage(u16(h,4)); ps.setCurrent(u16(h,6));
+void fill_health(cereal::PandaState::Builder ps, const MessageBytes &h, const HealthFieldAvailability &available) {
+  ps.setUptime(u32(h,0)); ps.setVoltage(available.voltage ? u16(h,4) : 0); ps.setCurrent(available.current ? u16(h,6) : 0);
   ps.setSafetyTxBlocked(u32(h,8)); ps.setSafetyRxInvalid(u32(h,12));
   ps.setTxBufferOverflow(u32(h,16)); ps.setRxBufferOverflow(u32(h,20));
   const auto bits = u32(h,24); unsigned count = 0;
@@ -50,8 +50,8 @@ void fill_health(cereal::PandaState::Builder ps, const MessageBytes &h) {
   ps.setHarnessStatus(static_cast<cereal::PandaState::HarnessStatus>(h[30]));
   ps.setSafetyModel(static_cast<cereal::CarParams::SafetyModel>(h[31])); ps.setSafetyParam(u16(h,32));
   ps.setFaultStatus(static_cast<cereal::PandaState::FaultStatus>(h[34])); ps.setAlternativeExperience(u16(h,35));
-  ps.setInterruptLoad(h[37] / 255.0f); ps.setFanPower(h[38]); ps.setSpiErrorCount(u16(h,39));
-  ps.setSbu1Voltage(u16(h,41)/1000.0f); ps.setSbu2Voltage(u16(h,43)/1000.0f); ps.setSoundOutputLevel(u16(h,45));
+  ps.setInterruptLoad(h[37] / 255.0f); ps.setFanPower(h[38]); ps.setSpiErrorCount(available.spi_error_count ? u16(h,39) : 0);
+  ps.setSbu1Voltage(u16(h,41)/1000.0f); ps.setSbu2Voltage(u16(h,43)/1000.0f); ps.setSoundOutputLevel(available.sound_output ? u16(h,45) : 0);
 }
 void fill_can_health(cereal::PandaState::PandaCanState::Builder cs, const MessageBytes &h) {
   cs.setBusOff(h[0]); cs.setBusOffCnt(u32(h,1)); cs.setErrorWarning(h[5]); cs.setErrorPassive(h[6]);
@@ -135,11 +135,11 @@ MessageBytes serialize_panda_states(PandadRuntime &runtime, std::uint64_t publis
   auto list = event.initPandaStates(2);
   for (unsigned slot = 0; slot < 2; ++slot) {
     auto ps = list[slot];
-    if (!state.slots[slot].health_valid || !state.slots[slot].connected) {
+    if (!state.slots[slot].health_valid || !state.slots[slot].connected || !state.slots[slot].capabilities_valid) {
       ps.setPandaType(cereal::PandaState::PandaType::UNKNOWN);
       ps.setHeartbeatLost(true); ps.setControlsAllowed(false); continue;
     }
-    ps.setPandaType(panda_type(profile.slots[slot])); fill_health(ps, state.slots[slot].health);
+    ps.setPandaType(panda_type(profile.slots[slot])); fill_health(ps, state.slots[slot].health, state.slots[slot].field_available);
     const std::array builders{ps.initCanState0(), ps.initCanState1(), ps.initCanState2()};
     for (unsigned bus = 0; bus < 3; ++bus) if (state.slots[slot].can_health_valid[bus]) fill_can_health(builders[bus], state.slots[slot].can_health[bus]);
   }
@@ -148,17 +148,18 @@ MessageBytes serialize_panda_states(PandadRuntime &runtime, std::uint64_t publis
 MessageBytes serialize_peripheral_state(PandadRuntime &runtime, std::uint64_t publish_us) {
   const auto state = runtime.peripheral_snapshot(); const auto profile = runtime.profile();
   capnp::MallocMessageBuilder builder; auto event = builder.initRoot<cereal::Event>();
-  // A single role-selected snapshot supplies every required field. The schema
-  // cannot mark voltage/current individually absent, so missing power or fan
-  // observations invalidate the whole Event. Never refresh its oldest source.
-  const bool valid = state.valid && state.fan_slot >= 0 && state.fan_rpm && state.voltage && state.current;
+  // The explicit profile plus a valid capability handshake distinguishes F4
+  // placeholders from measurements in message_policy. Required available fields
+  // must be fresh. Never refresh the oldest observation timestamp.
+  const bool valid = state.valid && state.fan_slot >= 0 && state.fan_rpm && state.voltage &&
+    (!state.field_available.current || state.current);
   const auto source_us = valid ? std::min(state.timestamp_us, state.power_timestamp_us) : publish_us;
   event.setLogMonoTime(ns_time(source_us)); event.setValid(valid);
   auto ps = event.initPeripheralState();
   if (valid) {
     const auto slot = static_cast<unsigned>(state.fan_slot);
     ps.setPandaType(panda_type(profile.slots[slot])); ps.setFanSpeedRpm(*state.fan_rpm);
-    ps.setVoltage(*state.voltage); ps.setCurrent(*state.current);
+    ps.setVoltage(*state.voltage); ps.setCurrent(state.current.value_or(0));
   } else ps.setPandaType(cereal::PandaState::PandaType::UNKNOWN);
   return flatten(builder);
 }

@@ -1,0 +1,236 @@
+{
+  "panda_commit": "aa02e42356f12b5ed4f0dbf553ffc2e8a7211b65",
+  "opendbc_commit": "b3bd79a659dae961af169a3baac723961f720133",
+  "files": [
+    {
+      "repository": "panda",
+      "path": "board/main.c",
+      "sha256": "9b42831360cd93c7dedeb10f989302fc7aba14550c365737e0ec69a990a11d91"
+    },
+    {
+      "repository": "panda",
+      "path": "board/main_comms.h",
+      "sha256": "066592aab7ee47abb47d1d7889284d36da002ba77793a611d576e5e8988cafc6"
+    },
+    {
+      "repository": "panda",
+      "path": "board/utils.h",
+      "sha256": "b40c8296d1a18fc5a83a0dda5c033457a2292197c562496d68121c96763580a5"
+    },
+    {
+      "repository": "panda",
+      "path": "board/drivers/simple_watchdog.h",
+      "sha256": "38cd9992ac95ec35dd22a24a2896ec453407d33b98ddb9ff06b5b1a1a85d20d3"
+    },
+    {
+      "repository": "panda",
+      "path": "board/sys/faults.h",
+      "sha256": "c4df5dbedf40c7f30231b99a095dd4950152aafaa8dfcc7c056598f57916bb3b"
+    },
+    {
+      "repository": "panda",
+      "path": "board/sys/sys.h",
+      "sha256": "452049183c5033cf2391bc59ccc4da87e03838de50533d0f65b492749d534e89"
+    },
+    {
+      "repository": "panda",
+      "path": "board/drivers/drivers.h",
+      "sha256": "55be60e4c1fa8e473e1b888d1ba82de30048d224922fe46457bf8667ec2d7952"
+    },
+    {
+      "repository": "panda",
+      "path": "board/can.h",
+      "sha256": "ee30d6a723476e5bfaf5493249af715c0f783b95fe4cdc19cb868da09b2334e8"
+    },
+    {
+      "repository": "panda",
+      "path": "board/health.h",
+      "sha256": "f512bcff6925e233a35c00e2d921fe01933fd77c0705c573a233b170d73ce20d"
+    },
+    {
+      "repository": "panda",
+      "path": "board/crc.h",
+      "sha256": "2c2f356a4910dc17bc2b429c5f0bd916ee5924ec557faf2fbb3e25a58e2601e4"
+    },
+    {
+      "repository": "panda",
+      "path": "board/drivers/can_common.h",
+      "sha256": "7991a340f4b8f7762f340c6734bed852d10a8012c94054f80f42eb7c313760d6"
+    },
+    {
+      "repository": "panda",
+      "path": "board/can_comms.h",
+      "sha256": "1a217f98bf5944b877a8a71fd82f1c5e7b16da638906165bc306d700d33aa237"
+    },
+    {
+      "repository": "opendbc",
+      "path": "opendbc/safety/can.h",
+      "sha256": "76f2ab751f89797c0a2254ab9a010a261678fe30f869d4e777cb7f2048802743"
+    },
+    {
+      "repository": "opendbc",
+      "path": "opendbc/safety/declarations.h",
+      "sha256": "f6a6d2466c1131b734b763a9d65cdbd51bcf66f876e14bd662be5f8c55b0b284"
+    },
+    {
+      "repository": "opendbc",
+      "path": "opendbc/safety/helpers.h",
+      "sha256": "eabfd7ffa59b28fc91ab0c1ee08ab5befd38e270497e7e9e31b8fcb327f97f62"
+    },
+    {
+      "repository": "opendbc",
+      "path": "opendbc/safety/ignition.h",
+      "sha256": "1c7aea3dbd89b59d3e9eabc6617da3e3323012acbb3b0630f413ec1168a283d3"
+    },
+    {
+      "repository": "opendbc",
+      "path": "opendbc/safety/lateral.h",
+      "sha256": "70f88dc5662b79b66575084d614b2cd577e44d18e07105f9acfabe0c90802979"
+    },
+    {
+      "repository": "opendbc",
+      "path": "opendbc/safety/longitudinal.h",
+      "sha256": "fa6a460f175a5d2f513cf0e4e9612dddd1b9ba1e57733b75a26e021443a1f7f4"
+    },
+    {
+      "repository": "opendbc",
+      "path": "opendbc/safety/modes/body.h",
+      "sha256": "3740556f70e8f1c173ae07403332dcb0d1f1cd3e895ef2fc650e4c1aa783bba6"
+    },
+    {
+      "repository": "opendbc",
+      "path": "opendbc/safety/modes/byd.h",
+      "sha256": "b63e7174f09cd5d97d5016f2be31bd2a9a1cbf0835c1cc8f7f9bb02065b476ed"
+    },
+    {
+      "repository": "opendbc",
+      "path": "opendbc/safety/modes/chrysler.h",
+      "sha256": "313857eafbbd08a1f8a3f09ad3dc3cb4b66eb79ada8de59b8fb9e8419771ee67"
+    },
+    {
+      "repository": "opendbc",
+      "path": "opendbc/safety/modes/chrysler_common.h",
+      "sha256": "74e431619086a433cc7c658370e0245e642ee6a62eb6dd28e7d70fac453d42a9"
+    },
+    {
+      "repository": "opendbc",
+      "path": "opendbc/safety/modes/chrysler_cusw.h",
+      "sha256": "cb7b86f3887c20997b8e1f7a8ac421875f4460ce9e6c6f787fd5e5b186246c26"
+    },
+    {
+      "repository": "opendbc",
+      "path": "opendbc/safety/modes/defaults.h",
+      "sha256": "79659fda18d9e88fe1edb563bd64159845f1c09219523e289e0421c8943ebd21"
+    },
+    {
+      "repository": "opendbc",
+      "path": "opendbc/safety/modes/elm327.h",
+      "sha256": "c193c56df82d01c7f5e6117bcff782da069382b5c5f46d5303d61b4619e459ff"
+    },
+    {
+      "repository": "opendbc",
+      "path": "opendbc/safety/modes/ford.h",
+      "sha256": "26a05ce625785004921d207015a15b63902f65f9dfb6c9355e16636e9c033a84"
+    },
+    {
+      "repository": "opendbc",
+      "path": "opendbc/safety/modes/gm.h",
+      "sha256": "6af227f4b8abf8cdcdbc5c7fc8e009c5158f7384174864e15dd1f212524c6283"
+    },
+    {
+      "repository": "opendbc",
+      "path": "opendbc/safety/modes/honda.h",
+      "sha256": "d1bade17a0dc42cbccd9298b123af7b40ee4b025150d8cbce5c84f4ba102d1b2"
+    },
+    {
+      "repository": "opendbc",
+      "path": "opendbc/safety/modes/hyundai.h",
+      "sha256": "1eb1b63d03031e7b8de33617e3876e257a3a32b8641407aad0ec1ab9f11d82aa"
+    },
+    {
+      "repository": "opendbc",
+      "path": "opendbc/safety/modes/hyundai_canfd.h",
+      "sha256": "f29e4f803b771316d8e845b0381e7658f639c7bbf153ebd94c1dfe8b28845d80"
+    },
+    {
+      "repository": "opendbc",
+      "path": "opendbc/safety/modes/hyundai_common.h",
+      "sha256": "48907a764c493de10c8fc54866b201ef9d570f1b189e80f99b4975e53185066a"
+    },
+    {
+      "repository": "opendbc",
+      "path": "opendbc/safety/modes/mazda.h",
+      "sha256": "d9e799df700c69664cf6fa2947ed5bfff05d9df31e9918cbe96281d47a6a73a9"
+    },
+    {
+      "repository": "opendbc",
+      "path": "opendbc/safety/modes/mg.h",
+      "sha256": "ff6b5004f5e489b7ddeb6b111e9450c4bb9e02638cc0fc1adc02a0d51cffb4c1"
+    },
+    {
+      "repository": "opendbc",
+      "path": "opendbc/safety/modes/nissan.h",
+      "sha256": "08e735f0a73da38a525cf9ea66584d8b95e73a3068460f325ae4e8acd37e3c68"
+    },
+    {
+      "repository": "opendbc",
+      "path": "opendbc/safety/modes/psa.h",
+      "sha256": "d14e9195b0fca76215a66b21af51c07449676f20b231f8d8234bf67c62ea5db3"
+    },
+    {
+      "repository": "opendbc",
+      "path": "opendbc/safety/modes/rivian.h",
+      "sha256": "b14f379d0a2e8135bbbc36f5e68ab227fdf7d3ac2e8a35788abb92fb357f155a"
+    },
+    {
+      "repository": "opendbc",
+      "path": "opendbc/safety/modes/subaru.h",
+      "sha256": "cc60cf2fb8bc6a842ee0e9aac4a566dce4998c5c0c8d8563a9130b1c6e4d4320"
+    },
+    {
+      "repository": "opendbc",
+      "path": "opendbc/safety/modes/subaru_preglobal.h",
+      "sha256": "451b265d43ce839d3c0c80b2aec4a2552548eeab30c90f144d0b98b5badfcce4"
+    },
+    {
+      "repository": "opendbc",
+      "path": "opendbc/safety/modes/tesla.h",
+      "sha256": "6ca8c6e2d5aa290302298b169bfe8b402734c049661cd954de257e8fa9d87a84"
+    },
+    {
+      "repository": "opendbc",
+      "path": "opendbc/safety/modes/toyota.h",
+      "sha256": "2d764121b75d257c94adee890f9b08fb253dcd97069a8397f2e92f703eed0a66"
+    },
+    {
+      "repository": "opendbc",
+      "path": "opendbc/safety/modes/volkswagen_common.h",
+      "sha256": "f9ebe33ccf62161854217e2da61d22a3e6df90ea893d50a32714f65825024182"
+    },
+    {
+      "repository": "opendbc",
+      "path": "opendbc/safety/modes/volkswagen_meb.h",
+      "sha256": "f9a7234be64fa4d7e213da508b953a369004a300489e42f9b139cbe382c8bead"
+    },
+    {
+      "repository": "opendbc",
+      "path": "opendbc/safety/modes/volkswagen_mlb.h",
+      "sha256": "fa6496296fcada8cbf3ff830f2910ab9b7ac523a032a7c764c43914a39ee9b8d"
+    },
+    {
+      "repository": "opendbc",
+      "path": "opendbc/safety/modes/volkswagen_mqb.h",
+      "sha256": "9cf573d6e20fabd91e28ec188189bd2c611e567c6d6f823c820876b6d15b01a1"
+    },
+    {
+      "repository": "opendbc",
+      "path": "opendbc/safety/modes/volkswagen_pq.h",
+      "sha256": "e85c57d9d9d7469296c99097c190219c6322c7c4639181625b093e9aa2594344"
+    },
+    {
+      "repository": "opendbc",
+      "path": "opendbc/safety/safety.h",
+      "sha256": "48523444b74f68181a8ef16afc74e790862591632d49d760c01271292c952c6e"
+    }
+  ]
+}

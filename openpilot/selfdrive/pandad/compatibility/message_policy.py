@@ -75,6 +75,8 @@ class MessagePolicy:
     return len(states) == 2 and all(str(states[i].pandaType) == BOARD_TYPES[b.expected_board_type]
                                     for i, b in enumerate(self.profile.slots))
 
+  # A valid publisher Event includes the per-connection F4C1 handshake.
+  # The unchanged schema has no nullable current; never expose its F4 placeholder.
   def hardware(self, sm, now_ns: int) -> HardwareObservation:
     if not self.group_ready(sm, now_ns):
       return HardwareObservation()
@@ -84,7 +86,7 @@ class MessagePolicy:
                                any(states[i].ignitionLine or states[i].ignitionCan for i in roles.ignition_sources),
                                str(states[roles.harness].harnessStatus) != "notConnected",
                                None if power is None else power.voltage,
-                               None if power is None else power.current,
+                               None if power is None or self.profile.slots[roles.power_monitor].mcu_family == "F4" else power.current,
                                states[roles.vehicle_can].pandaType)
 
   def fan_rpm(self, sm, now_ns: int) -> int | None:

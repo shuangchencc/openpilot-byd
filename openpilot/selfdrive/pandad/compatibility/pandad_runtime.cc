@@ -14,6 +14,9 @@ Request control_request(const ControlCommand &command) {
   request.value = command.value;
   request.index = command.param;
   switch (command.kind) {
+    case ControlKind::ReadCapabilities:
+      request.kind = Kind::ControlRead; request.request = kF4CapabilityRequest;
+      request.read_length = kF4CapabilityLength; break;
     case ControlKind::ReadHealth: request.kind = Kind::ControlRead; request.request = 0xd2; request.read_length = 48; break;
     case ControlKind::ReadCanHealth: request.kind = Kind::ControlRead; request.request = 0xc2; request.read_length = 64; break;
     case ControlKind::SetAlternativeExperience: request.request = 0xdf; break;
@@ -144,7 +147,10 @@ bool PandadRuntime::sendcan(TxBatch batch, InputEpoch epoch) {
   // refreshed connection after a reconnect or control barrier transition.
   batch.group_generation = epoch.generation;
   const auto queued = router_.enqueue_tx(batch, clock_.now_us());
-  if (!queued) { count(counters_.denied_tx); return false; }
+  if (!queued) {
+    if (queued.error == RouterError::Overflow) invalid_input("TX_QUEUE_OVERFLOW");
+    count(counters_.denied_tx); return false;
+  }
   last_sendcan_ = batch.source_timestamp_us;
   return true;
 }
@@ -176,8 +182,8 @@ void PandadRuntime::tick() {
     const Request request = control_request(command);
     const Result result = perform(command.token.slot, request);
     const bool ok = exact(result, request.read_length);
-    control_.complete(command, ok, result.data, clock_.now_us());
-    if (!ok) {
+    const bool accepted = control_.complete(command, ok, result.data, clock_.now_us());
+    if (!ok || (!accepted && !registry_.snapshot().slots[command.token.slot].connected)) {
       count(counters_.io_failures);
       if (transports_[command.token.slot]) transports_[command.token.slot]->cancel();
     }
@@ -227,7 +233,17 @@ bool PandadRuntime::receive_step(std::uint32_t slot) {
                       result.actual_known && !result.delivery_uncertain && result.actual == result.data.size();
   if (!benign) { retire(slot, "CAN_READ_FAILED"); return false; }
   if (result.data.empty()) return true;
-  return static_cast<bool>(router_.receive(token.value, result.data.data(), result.data.size(), started, clock_.now_us()));
+  const auto rejected_before = router_.counters().safety_rejections;
+  const bool accepted = static_cast<bool>(router_.receive(token.value, result.data.data(), result.data.size(), started, clock_.now_us()));
+  if (router_.counters().safety_rejections != rejected_before ||
+      router_.counters().safety_rejections == UINT64_MAX) {
+    // An MCU safety rejection closes the entire group before either board can
+    // consume another queued TX. Preserve immutable diagnostic provenance, but
+    // never treat the rejected frame as a retry or a sibling-route candidate.
+    invalid_input("MCU_TX_REJECTED");
+    return false;
+  }
+  return accepted;
 }
 bool PandadRuntime::transmit_step(std::uint32_t slot) {
   if (stopped_ || slot > 1) return false;
@@ -274,13 +290,20 @@ PeripheralSnapshot PandadRuntime::peripheral_snapshot() {
   out.ignition = ignition;
   if (profile.roles.harness >= 0) out.harness = state.slots[profile.roles.harness].health[30];
   if (profile.roles.power_monitor >= 0) {
-    const auto &health = state.slots[profile.roles.power_monitor].health;
-    out.voltage = u16(health, 4); out.current = u16(health, 6);
-    out.power_timestamp_us = state.slots[profile.roles.power_monitor].health_timestamp_us;
+    const auto &board = state.slots[profile.roles.power_monitor];
+    const auto &health = board.health;
+    out.field_available = board.field_available;
+    if (board.field_available.voltage) out.voltage = u16(health, 4);
+    if (board.field_available.current) out.current = u16(health, 6);
+    if (board.field_available.temperature) out.temperature = static_cast<std::int16_t>(health[47]) - 40;
+    if (board.field_available.sound_output) out.sound_output = u16(health, 45);
+    if (board.field_available.spi_error_count) out.spi_error_count = u16(health, 39);
+    out.power_timestamp_us = board.health_timestamp_us;
   }
   if (out.fan_slot >= 0 && fan_time_ && fresh(*fan_time_, kPeripheralMaxAgeUs)) {
     out.fan_rpm = fan_rpm_; out.timestamp_us = *fan_time_;
-    out.valid = out.voltage.has_value() && out.current.has_value() &&
+    out.valid = out.voltage.has_value() &&
+      (!out.field_available.current || out.current.has_value()) &&
       fresh(out.power_timestamp_us, kHealthMaxAgeUs);
   }
   return out;
@@ -293,11 +316,13 @@ void PandadRuntime::shutdown() {
   if (stopped_) return;
   control_.fail_group("PLANNED_SHUTDOWN", clock_.now_us());
   router_.discard_pending();
-  // Three bounded scheduler rounds: noOutput -> readback -> heartbeat(false).
+  // Five bounded rounds also cover a first-slot failure, the resulting group
+  // generation change, and a surviving F4 capability re-observation before
+  // noOutput -> readback -> heartbeat(false). At most ten <=5ms operations.
   // A failed/uncertain operation retires only that handle; no retry or assertion
   // that this code runs after abrupt power/process loss.
   device_.reset(); camera_.reset();
-  for (unsigned round = 0; round < 3; ++round) tick();
+  for (unsigned round = 0; round < 5; ++round) tick();
   for (auto *transport : transports_) if (transport) transport->cancel();
   registry_.invalidate_group("PLANNED_SHUTDOWN"); stopped_ = true;
 }

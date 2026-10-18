@@ -76,7 +76,17 @@ struct RoutedRxFrame {
   // First fragment receive time, never refreshed at completion/publication.
   std::uint64_t receive_timestamp_us = 0;
 };
+// Immutable diagnostic evidence from a fully validated MCU rejection. It is
+// never a TX intent, and survives queue retirement without becoming current RX.
+struct RejectionEvidence {
+  RouteToken token{};
+  std::uint32_t source = 0;
+  std::uint32_t local_bus = 0;
+  std::uint64_t address = 0;
+  std::uint64_t receive_timestamp_us = 0;
+};
 struct RouterCounters {
+  std::uint64_t safety_rejections = 0;
   std::uint64_t invalid_batches = 0;
   std::uint64_t malformed = 0;
   std::uint64_t stale_callbacks = 0;
@@ -123,6 +133,7 @@ public:
   // P4 barrier changes discard local work even if physical handles stay live.
   void discard_pending() { clear_all(); }
   const RouterCounters &counters() const { return counters_; }
+  std::optional<RejectionEvidence> latest_rejection() const { return latest_rejection_; }
 
 private:
   struct SlotState {
@@ -151,6 +162,7 @@ private:
   bool clock_failed_ = false;
   std::optional<std::uint64_t> last_now_us_;
   RouterCounters counters_;
+  std::optional<RejectionEvidence> latest_rejection_;
 };
 
 }  // namespace openpilot::pandad::compatibility

@@ -50,6 +50,7 @@ struct Rig {
     registry.reconcile({{profile.slots[1].expected, t1}, {profile.slots[0].expected, t0}});
   }
   std::vector<std::uint8_t> reply(const ControlCommand &command) const {
+    if (command.kind == ControlKind::ReadCapabilities) return {'F','4','C','1',1,0,16,0,31,0,0,0,7,0,0,0};
     if (command.kind == ControlKind::ReadHealth) {
       std::vector<std::uint8_t> bytes(48);
       put32(bytes, 0, 12345); put16(bytes, 4, 12001); put16(bytes, 6, 745);
@@ -131,10 +132,11 @@ int main() {
     test("per_slot_write_order_readback_and_role_permutations", [] {
       for (std::uint32_t dos : {0U, 1U}) {
         Rig r(dos); r.ready();
-        CHECK(r.transcript.size() == 18);
+        CHECK(r.transcript.size() == 19);
         for (std::size_t slot = 0; slot < 2; ++slot) {
           std::vector<ControlCommand> own;
           for (const auto &c : r.transcript) if (c.token.slot == slot) own.push_back(c);
+          if (slot == dos) { CHECK(own.front().kind == ControlKind::ReadCapabilities); own.erase(own.begin()); }
           CHECK(own.size() == 9); CHECK(own[0].kind == ControlKind::SetSafety && own[0].value == 19 && own[0].param == 0 && own[0].exit_command);
           CHECK(own[1].kind == ControlKind::ReadHealth && own[1].exit_command);
           CHECK(own[2].kind == ControlKind::Heartbeat && !own[2].engaged);
@@ -149,7 +151,7 @@ int main() {
     });
     test("incomplete_health_group_never_enables", [] {
       Rig r; r.start();
-      for (int n = 0; n < 8; ++n) { r.finish(r.poll()); CHECK(!r.control.snapshot(r.now).configured); }
+      for (int n = 0; n < 9; ++n) { r.finish(r.poll()); CHECK(!r.control.snapshot(r.now).configured); }
       auto last = r.poll(); CHECK(last.size() == 2);
       CHECK(r.control.complete(last[0], true, r.reply(last[0]), r.now)); CHECK(!r.control.snapshot(r.now).panda_states_valid);
       CHECK(r.control.complete(last[1], true, r.reply(last[1]), r.now)); CHECK(r.control.snapshot(r.now).configured);
@@ -247,7 +249,7 @@ int main() {
     test("command_completion_age_boundary_and_uncertain_no_replay", [] {
       for (std::uint64_t age : {kControlCommandMaxAgeUs - 1, kControlCommandMaxAgeUs, kControlCommandMaxAgeUs + 1}) {
         Rig r; auto c = r.poll()[0]; r.now += age;
-        CHECK(r.control.complete(c, true, {}, r.now) == (age < kControlCommandMaxAgeUs));
+        CHECK(r.control.complete(c, true, r.reply(c), r.now) == (age < kControlCommandMaxAgeUs));
         if (age >= kControlCommandMaxAgeUs) CHECK(!r.registry.snapshot().slots[0].connected);
       }
       Rig r; r.start(); auto write = r.next(ControlKind::SetAlternativeExperience);
@@ -257,7 +259,7 @@ int main() {
       CHECK(surviving[0].kind == ControlKind::SetSafety && surviving[0].value == 19 && surviving[0].param == 0);
     });
     test("pending_timeout_retires_slot_and_sibling_progresses", [] {
-      Rig r; auto cmds = r.poll(); CHECK(cmds.size() == 2);
+      Rig r; r.finish(r.poll()); auto cmds = r.poll(); CHECK(cmds.size() == 2);
       CHECK(r.control.complete(cmds[1], true, {}, r.now)); r.now += kControlCommandMaxAgeUs;
       auto remaining = r.poll(); CHECK(!r.registry.snapshot().slots[0].connected);
       CHECK(remaining.size() == 1); CHECK(remaining[0].token.slot == 1); CHECK(!remaining[0].engaged);
@@ -277,7 +279,7 @@ int main() {
         if (m == 8) forged.real_device_authorized = true;
         CHECK(!r.control.validate_command(forged, r.now)); CHECK(!r.control.complete(forged, true, {}, r.now));
       }
-      CHECK(r.control.complete(original, true, {}, r.now)); CHECK(!r.control.complete(original, true, {}, r.now));
+      CHECK(r.control.complete(original, true, r.reply(original), r.now)); CHECK(!r.control.complete(original, true, r.reply(original), r.now));
     });
     test("disconnect_reconnect_requires_offroad_readback_and_new_edge", [] {
       Rig r; r.ready(); r.engage(); auto old = r.poll();
@@ -305,7 +307,7 @@ int main() {
     });
     test("counter_change_and_uptime_reset_close_group", [] {
       for (std::size_t offset : {0U, 8U, 12U, 16U, 20U, 39U}) {
-        Rig r; r.ready(); r.now += kHealthPeriodUs; auto c = r.next(ControlKind::ReadHealth); auto bytes = r.reply(c);
+        Rig r; r.ready(); r.now += kHealthPeriodUs; auto c = r.next(ControlKind::ReadHealth, offset == 39 ? 1 : 0); auto bytes = r.reply(c);
         bytes[offset] = offset == 0 ? 0 : 1;
         CHECK(!r.control.complete(c, true, bytes, r.now)); denied(r);
       }
@@ -336,7 +338,7 @@ int main() {
       r.registry.reconcile({{r.profile.slots[0].expected, 3}, {r.profile.slots[1].expected, 2}, {changed, 4}}); denied(r);
     });
     test("bounded_external_reason_and_exact_write_response", [] {
-      Rig r; r.control.fail_group(std::string(1000, 'x'), r.now);
+      Rig r; r.finish(r.poll()); r.control.fail_group(std::string(1000, 'x'), r.now);
       CHECK(r.control.snapshot(r.now).reason == "EXTERNAL_GROUP_FAILURE");
       auto c = r.poll()[0]; CHECK(!r.control.complete(c, true, {0}, r.now)); CHECK(!r.registry.snapshot().slots[0].connected);
     });
@@ -375,7 +377,7 @@ int main() {
       }
       for (std::uint64_t age : {kHeartbeatMaxAgeUs - 1, kHeartbeatMaxAgeUs, kHeartbeatMaxAgeUs + 1}) {
         Rig r; r.start(); std::uint64_t heartbeat = 0;
-        for (int n = 0; n < 9; ++n) {
+        for (int n = 0; n < 10; ++n) {
           auto commands = r.poll();
           if (!commands.empty() && commands[0].kind == ControlKind::Heartbeat) heartbeat = r.now;
           r.finish(commands); ++r.now;

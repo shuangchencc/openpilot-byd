@@ -185,7 +185,7 @@ class TestMessagePolicy(unittest.TestCase):
       self.assertTrue(view.valid and view.ignition and view.in_car)
       self.assertEqual(str(view.vehicle_type), 'redPanda')
       self.assertEqual(view.voltage, 12000 + dos_slot*1000)
-      self.assertEqual(view.current, 100 + dos_slot)
+      self.assertIsNone(view.current)
       sm['pandaStates'][1-dos_slot].ignitionLine = False
       self.assertFalse(policy.hardware(sm, NOW).ignition)
       data = synthetic_dict(dos_slot)
@@ -193,6 +193,18 @@ class TestMessagePolicy(unittest.TestCase):
       policy = MessagePolicy(load_profile(json.dumps(data)))
       sm['pandaStates'][1-dos_slot].ignitionLine = True
       self.assertFalse(policy.hardware(sm, NOW).ignition)
+
+  def test_h7_power_role_retains_current_and_stale_group_hides_it(self):
+    for dos_slot in (0, 1):
+      data = synthetic_dict(dos_slot)
+      h7 = 1 - dos_slot
+      data['slots'][h7]['capabilities']['power_monitor'] = True
+      data['roles']['power_monitor'] = h7
+      policy = MessagePolicy(load_profile(json.dumps(data)))
+      _, sm = fixture(dos_slot)
+      self.assertEqual(policy.hardware(sm, NOW).current, 100 + h7)
+      sm.valid['pandaStates'] = False
+      self.assertIsNone(policy.hardware(sm, NOW).current)
 
   def test_fan_role_capability_validity_freshness_and_missing_board(self):
     for dos_slot in (0, 1):

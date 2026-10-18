@@ -39,6 +39,10 @@ struct PeripheralSnapshot {
   std::optional<std::uint32_t> harness;
   std::optional<std::uint16_t> voltage;
   std::optional<std::uint16_t> current;
+  std::optional<std::int16_t> temperature;
+  std::optional<std::uint16_t> sound_output;
+  std::optional<std::uint16_t> spi_error_count;
+  HealthFieldAvailability field_available{};
 };
 struct RuntimeCounters {
   std::uint64_t denied_tx = 0;
@@ -77,6 +81,8 @@ public:
   SessionSnapshot sessions() const { return registry_.snapshot(); }
   SessionProfile profile() const { return registry_.profile(); }
   const RuntimeCounters &counters() const { return counters_; }
+  std::uint64_t rejection_count() const { return router_.counters().safety_rejections; }
+  std::optional<RejectionEvidence> rejection_evidence() const { return router_.latest_rejection(); }
   void shutdown();
   void invalid_input(const char *reason);
 private:

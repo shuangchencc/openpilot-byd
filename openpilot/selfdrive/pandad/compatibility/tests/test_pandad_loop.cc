@@ -48,7 +48,8 @@ struct Board final : Backend {
     if(r.kind==Kind::BulkWrite){return {Status::Ok,r.payload.size(),{}};}
     if(r.kind==Kind::BulkRead){return {Status::Short,0,{}};}
     Bytes b(r.read_length);
-    if(r.request==0xd2){b[28]=1;b[30]=2;b[31]=19;put16(b,32,param);put16(b,35,alternative);b[47]=75;}
+    if(r.request==0xd5){b={'F','4','C','1',1,0,16,0,31,0,0,0,7,0,0,0};}
+    else if(r.request==0xd2){b[28]=1;b[30]=2;b[31]=19;put16(b,32,param);put16(b,35,alternative);b[47]=75;}
     else if(r.request==0xc2){put16(b,41,500);put16(b,43,2000);}
     else if(r.request==0xb2){put16(b,0,1200);}
     else throw std::runtime_error("unexpected control request");

@@ -7,6 +7,7 @@
 #include <vector>
 
 #include "can_router.h"
+#include "firmware_capabilities.h"
 #include "timing_budget.h"
 
 namespace openpilot::pandad::compatibility {
@@ -28,7 +29,7 @@ struct SelfdriveSample {
   std::uint64_t generation = 0;
 };
 
-enum class ControlKind { ReadHealth, ReadCanHealth, SetAlternativeExperience, SetSafety, Heartbeat };
+enum class ControlKind { ReadCapabilities, ReadHealth, ReadCanHealth, SetAlternativeExperience, SetSafety, Heartbeat };
 const char *control_kind_name(ControlKind kind);
 struct ControlCommand {
   std::uint64_t id = 0;
@@ -48,6 +49,9 @@ struct ControlCommand {
 struct BoardControlState {
   RouteToken token{};
   bool connected = false;
+  bool capabilities_valid = false;
+  std::uint64_t capability_timestamp_us = 0;
+  HealthFieldAvailability field_available{};  // requires both capability and fresh health
   bool health_valid = false;
   std::array<bool, 3> can_health_valid{};
   std::vector<std::uint8_t> health;
@@ -102,6 +106,7 @@ private:
   struct Board {
     BoardControlState view{};
     Stage stage = Stage::Unconfigured;
+    HealthFieldAvailability supported_fields{};
     SlotSafetyConfig config{};
     std::optional<ControlCommand> pending;
     bool heartbeat_seen = false;

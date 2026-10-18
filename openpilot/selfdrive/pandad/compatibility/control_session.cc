@@ -48,12 +48,12 @@ bool valid_can_health(const std::vector<std::uint8_t> &b, bool fd) {
   return fd || (b[45] == 0 && b[46] == 0 && b[47] == 0);
 }
 bool counters_changed(const std::vector<std::uint8_t> &old, const std::vector<std::uint8_t> &now,
-                      bool can) {
+                      bool can, bool spi_available = true) {
   if (old.empty()) return false;
   if (can) {
     for (auto i : {1, 13, 17, 21, 37, 60}) if (u32(old, i) != u32(now, i)) return true;
   } else {
-    if (u32(now, 0) < u32(old, 0) || u16(old, 39) != u16(now, 39)) return true;
+    if (u32(now, 0) < u32(old, 0) || (spi_available && u16(old, 39) != u16(now, 39))) return true;
     for (auto i : {8, 12, 16, 20}) if (u32(old, i) != u32(now, i)) return true;
   }
   return false;
@@ -69,6 +69,7 @@ std::string bounded_reason(const std::string &reason) {
 
 const char *control_kind_name(ControlKind kind) {
   switch (kind) {
+    case ControlKind::ReadCapabilities: return "ReadCapabilities";
     case ControlKind::ReadHealth: return "ReadHealth";
     case ControlKind::ReadCanHealth: return "ReadCanHealth";
     case ControlKind::SetAlternativeExperience: return "SetAlternativeExperience";
@@ -96,6 +97,11 @@ void ControlSession::synchronize(std::uint64_t now_us) {
     const auto &slot = next.slots[i];
     boards_[i].view.token = {static_cast<std::uint32_t>(i), slot.epoch, slot.connection_token, next.generation};
     boards_[i].view.connected = slot.connected;
+    // H7 uses the pinned upstream ABI; never send it the F4-only extension.
+    if (slot.connected && slot.binding.expected.mcu_family == "H7") {
+      boards_[i].view.capabilities_valid = true;
+      boards_[i].supported_fields = kH7HealthFields;
+    }
     boards_[i].exit_phase = slot.connected ? (previous_generation ? 3 : 1) : 0;
   }
   recovery_required_ = true;
@@ -199,6 +205,7 @@ bool ControlSession::configure(const std::vector<SlotSafetyConfig> &configs, boo
 bool ControlSession::health_complete(std::uint64_t now_us) const {
   if (!registry_state_.group_available || recovery_required_) return false;
   for (const auto &b : boards_) {
+    if (!b.view.capabilities_valid) return false;
     if (!fresh(!b.view.health.empty(), b.view.health_timestamp_us, now_us, kHealthMaxAgeUs)) return false;
     for (std::size_t bus = 0; bus < 3; ++bus) {
       if (!fresh(!b.view.can_health[bus].empty(), b.view.can_health_timestamp_us[bus], now_us, kHealthMaxAgeUs)) return false;
@@ -264,6 +271,18 @@ std::vector<ControlCommand> ControlSession::poll(std::uint64_t now_us) {
   if (next_command_id_ >= std::numeric_limits<std::uint64_t>::max() - 2) {
     clock_failed_ = true; trip("COMMAND_ID_EXHAUSTED"); registry_.invalidate_group("COMMAND_ID_EXHAUSTED"); return result;
   }
+  // Capabilities are observed under the exact connection token before the
+  // entire connected group may issue configuration or heartbeat writes. A read
+  // timeout/malformed response retires the connection; there is no fallback.
+  bool capabilities_pending = false;
+  for (std::size_t i = 0; i < 2; ++i) {
+    auto &b = boards_[i];
+    if (b.view.connected && !b.view.capabilities_valid) {
+      capabilities_pending = true;
+      if (!b.pending) result.push_back(issue(i, ControlKind::ReadCapabilities, now_us));
+    }
+  }
+  if (capabilities_pending) return result;
   for (std::size_t i = 0; i < 2; ++i) {
     auto &b = boards_[i];
     if (!b.view.connected || b.pending) continue;
@@ -324,7 +343,8 @@ bool ControlSession::complete(const ControlCommand &command, bool success,
   }
   if (!success) { retire_command_slot(slot, "CONTROL_TRANSFER_FAILED"); return false; }
   b.pending.reset();
-  if (command.kind != ControlKind::ReadHealth && command.kind != ControlKind::ReadCanHealth && !response.empty()) {
+  if (command.kind != ControlKind::ReadCapabilities && command.kind != ControlKind::ReadHealth &&
+      command.kind != ControlKind::ReadCanHealth && !response.empty()) {
     retire_command_slot(slot, "UNEXPECTED_WRITE_RESPONSE"); return false;
   }
   if (command.exit_command && command.kind != ControlKind::Heartbeat) {
@@ -341,6 +361,15 @@ bool ControlSession::complete(const ControlCommand &command, bool success,
     return true;
   }
   switch (command.kind) {
+    case ControlKind::ReadCapabilities:
+      if (registry_state_.slots[slot].binding.expected.mcu_family != "F4" ||
+          registry_state_.slots[slot].binding.expected.capabilities.ir || !valid_f4_capabilities(response)) {
+        retire_command_slot(slot, "INVALID_F4_CAPABILITIES"); return false;
+      }
+      b.view.capabilities_valid = true;
+      b.view.capability_timestamp_us = now_us;
+      b.supported_fields = kF4HealthFields;
+      break;
     case ControlKind::Heartbeat:
       b.heartbeat_seen = true;
       b.heartbeat_timestamp_us = now_us;
@@ -355,7 +384,7 @@ bool ControlSession::complete(const ControlCommand &command, bool success,
       break;
     case ControlKind::ReadHealth: {
       if (!valid_health(response)) { b.view.health.clear(); trip("INVALID_HEALTH"); return false; }
-      if (unhealthy(response) || counters_changed(b.view.health, response, false)) {
+      if (unhealthy(response) || counters_changed(b.view.health, response, false, b.supported_fields.spi_error_count)) {
         b.view.health = response; b.view.health_timestamp_us = now_us;
         trip("BOARD_HEALTH_FAULT"); return false;
       }
@@ -397,9 +426,10 @@ ControlSnapshot ControlSession::snapshot(std::uint64_t now_us) {
   for (std::size_t i = 0; i < 2; ++i) {
     result.slots[i] = boards_[i].view;
     auto &view = result.slots[i];
-    view.health_valid = clock_ok && fresh(!view.health.empty(), view.health_timestamp_us, now_us, kHealthMaxAgeUs);
+    view.health_valid = clock_ok && view.capabilities_valid && fresh(!view.health.empty(), view.health_timestamp_us, now_us, kHealthMaxAgeUs);
+    view.field_available = view.health_valid ? boards_[i].supported_fields : HealthFieldAvailability{};
     for (std::size_t bus = 0; bus < 3; ++bus) {
-      view.can_health_valid[bus] = clock_ok && fresh(!view.can_health[bus].empty(), view.can_health_timestamp_us[bus], now_us, kHealthMaxAgeUs);
+      view.can_health_valid[bus] = clock_ok && view.capabilities_valid && fresh(!view.can_health[bus].empty(), view.can_health_timestamp_us[bus], now_us, kHealthMaxAgeUs);
     }
     view.heartbeat_fresh = clock_ok && fresh(boards_[i].heartbeat_seen, boards_[i].heartbeat_timestamp_us, now_us, kHeartbeatMaxAgeUs);
   }

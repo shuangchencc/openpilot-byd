@@ -35,7 +35,7 @@ struct LoopCycleResult {
   std::size_t inputs = 0, accepted = 0, rejected = 0;
   std::size_t receive_attempts = 0, transmit_attempts = 0, publications = 0;
   bool peripheral_attempted = false, overdue = false, budget_exceeded = false;
-  bool clock_failed = false, callback_failed = false;
+  bool clock_failed = false, callback_failed = false, shutdown = false;
   std::uint64_t elapsed_us = 0;
 };
 // Actual reusable serialized pandad cycle, with injected ingress/publication.
@@ -47,6 +47,10 @@ public:
   PandadLoop(PandadRuntime &runtime, Clock &clock, EventSource &source, EventSink &sink)
     : runtime_(runtime), clock_(clock), source_(source), sink_(sink) {}
   LoopCycleResult cycle();
+  // Serialized owner-thread handoff for a normal exit or an observed signal.
+  // Not async-signal-safe: an actual handler must only set its own signal flag.
+  // The next cycle drains bounded exit commands before any ingress/CAN work.
+  void request_shutdown() { shutdown_requested_ = true; }
 private:
   PandadRuntime &runtime_;
   Clock &clock_;
@@ -54,5 +58,6 @@ private:
   EventSink &sink_;
   std::optional<std::uint64_t> last_cycle_, last_peripheral_, last_panda_publish_, last_peripheral_publish_;
   bool clock_failed_ = false;
+  bool shutdown_requested_ = false;
 };
 }  // namespace openpilot::pandad::compatibility

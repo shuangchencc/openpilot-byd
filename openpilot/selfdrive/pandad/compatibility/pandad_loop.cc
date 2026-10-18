@@ -33,37 +33,43 @@ LoopCycleResult PandadLoop::cycle() {
     return !out.clock_failed && !out.budget_exceeded;
   };
   try {
-    // Health, heartbeat and explicit exit intents precede all queued messages.
-    // Even an overdue cycle gets this bounded opportunity to exit healthy peers.
-    runtime_.tick();
-    for (std::size_t n = 0; n < kLoopMaxInputs && within_budget(); ++n) {
-      const auto captured = runtime_.capture();
-      auto input = source_.next(captured);
-      if (!input) { within_budget(); break; }
-      ++out.inputs;
-      if (!within_budget()) { ++out.rejected; break; }
-      bool accepted = false;
-      switch (input->kind) {
-        case InputKind::Event: accepted = ingest_cereal_event(runtime_, input->bytes, input->epoch); break;
-        case InputKind::CarParams: accepted = configure_cereal_params(runtime_, input->bytes, input->epoch); break;
-        default: runtime_.invalid_input("UNKNOWN_INGRESS_KIND"); break;
+    if (shutdown_requested_) {
+      // Shutdown has its own bounded scheduler allowance; no ingress/CAN work.
+      runtime_.shutdown();
+      out.shutdown = true;
+    } else {
+      // Health, heartbeat and explicit exit intents precede all queued messages.
+      // Even an overdue cycle gets this bounded opportunity to exit healthy peers.
+      runtime_.tick();
+      for (std::size_t n = 0; n < kLoopMaxInputs && within_budget(); ++n) {
+        const auto captured = runtime_.capture();
+        auto input = source_.next(captured);
+        if (!input) { within_budget(); break; }
+        ++out.inputs;
+        if (!within_budget()) { ++out.rejected; break; }
+        bool accepted = false;
+        switch (input->kind) {
+          case InputKind::Event: accepted = ingest_cereal_event(runtime_, input->bytes, input->epoch); break;
+          case InputKind::CarParams: accepted = configure_cereal_params(runtime_, input->bytes, input->epoch); break;
+          default: runtime_.invalid_input("UNKNOWN_INGRESS_KIND"); break;
+        }
+        if (accepted) ++out.accepted; else ++out.rejected;
       }
-      if (accepted) ++out.accepted; else ++out.rejected;
+      for (std::uint32_t slot = 0; slot < 2 && within_budget(); ++slot) {
+        ++out.receive_attempts;
+        runtime_.receive_step(slot);
+        if (!within_budget()) break;
+        ++out.transmit_attempts;
+        runtime_.transmit_step(slot);
+      }
+      const auto now = clock_.now_us();
+      if (within_budget() && due(last_peripheral_, now, kLoopPeripheralStepUs)) {
+        last_peripheral_ = now;
+        out.peripheral_attempted = true;
+        runtime_.peripheral_step();
+      }
+      within_budget();
     }
-    for (std::uint32_t slot = 0; slot < 2 && within_budget(); ++slot) {
-      ++out.receive_attempts;
-      runtime_.receive_step(slot);
-      if (!within_budget()) break;
-      ++out.transmit_attempts;
-      runtime_.transmit_step(slot);
-    }
-    const auto now = clock_.now_us();
-    if (within_budget() && due(last_peripheral_, now, kLoopPeripheralStepUs)) {
-      last_peripheral_ = now;
-      out.peripheral_attempted = true;
-      runtime_.peripheral_step();
-    }
-    within_budget();
   } catch (...) {
     out.callback_failed = true;
     runtime_.invalid_input("LOOP_CALLBACK_EXCEPTION");
@@ -84,7 +90,7 @@ LoopCycleResult PandadLoop::cycle() {
     }
     within_budget();
   };
-  const auto force = [&]() { return out.overdue || out.clock_failed || out.budget_exceeded || out.callback_failed; };
+  const auto force = [&]() { return out.shutdown || out.overdue || out.clock_failed || out.budget_exceeded || out.callback_failed; };
   publish(OutputTopic::Can, [&] { return serialize_can(runtime_, clock_.now_us()); });
   auto now = clock_.now_us();
   if (force() || due(last_panda_publish_, now, kLoopPandaPublishUs)) {

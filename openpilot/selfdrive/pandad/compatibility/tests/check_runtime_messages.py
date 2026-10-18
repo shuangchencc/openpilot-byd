@@ -29,10 +29,13 @@ def main():
         if event.valid:
           observed = policy.hardware(sm, now)
           assert observed.valid and observed.ignition and observed.in_car
-          assert observed.voltage == 12001 and observed.current == 321
+          assert observed.voltage == 12001 and observed.current is None
+          f4, h7 = event.pandaStates[record["dos_slot"]], event.pandaStates[1-record["dos_slot"]]
+          assert f4.current == f4.spiErrorCount == f4.soundOutputLevel == 0
+          assert (h7.current, h7.spiErrorCount, h7.soundOutputLevel) == (654, 77, 1234)
           assert not policy.group_ready(sm, event.logMonoTime + PANDA_MAX_AGE_NS)
           assert not policy.enabled(sm, now)
-          checks += 4
+          checks += 6
         else:
           assert not policy.hardware(sm, now).valid
           checks += 1

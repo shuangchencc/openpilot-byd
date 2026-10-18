@@ -250,7 +250,14 @@ RouterResult<std::size_t> CanRouter::receive(const RouteToken &token, const std:
     staged.push_back({token, std::move(frame), source.value, timestamp});
   }
   const auto accepted = staged.size();
-  for (auto &frame : staged) slot.rx.push_back(std::move(frame));
+  for (auto &frame : staged) {
+    if (frame.frame.rejected) {
+      add(counters_.safety_rejections);
+      latest_rejection_ = RejectionEvidence{frame.token, frame.source, frame.frame.local_bus,
+                                           frame.frame.address, frame.receive_timestamp_us};
+    }
+    slot.rx.push_back(std::move(frame));
+  }
   return {accepted, RouterError::None};
 }
 

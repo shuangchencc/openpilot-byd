@@ -223,11 +223,24 @@ class HealthCapabilities:
   fan: bool | None = None
   sound: bool | None = None
   temperature: bool | None = None
+  spi_error_count: bool | None = None
 
   def __post_init__(self):
     for name in self.__dataclass_fields__:
       if getattr(self, name) is not None and type(getattr(self, name)) is not bool:
         raise HealthCodecError(f"{name}: capability must be bool or None")
+
+
+def decode_f4_capabilities(data: bytes) -> HealthCapabilities:
+  """Decode the exact P5 reference contract; connection binding lives in C++.
+
+  This pure codec alone grants no validity, role or control authorization.
+  """
+  expected = bytes.fromhex("46344331010010001f00000007000000")
+  if _bytes(data, len(expected)) != expected:
+    raise HealthCodecError("unknown F4 capability contract; no fallback")
+  return HealthCapabilities(voltage=True, current=False, harness=True, fan=True,
+                            sound=False, temperature=True, spi_error_count=False)
 
 
 @dataclass(frozen=True)
@@ -264,7 +277,7 @@ def normalize_health(packet: WireHealth, capabilities: HealthCapabilities) -> He
     "interrupt_load": raw["interrupt_load"] / 255.0 if current else raw["interrupt_load"],
     "fan_power_percent": raw["fan_power"] if capabilities.fan is True else None,
     "fan_stall_count": raw["fan_stall_count"] if not current and capabilities.fan is True else None,
-    "spi_error_count": raw["spi_error_count"] if current else None,
+    "spi_error_count": raw["spi_error_count"] if current and capabilities.spi_error_count is True else None,
     "spi_checksum_error_count": raw["spi_checksum_error_count"] if not current else None,
     # Firmware amplitude units, not dB or a proof of audible output.
     "sound_output_level": raw["sound_output_level"] if current and capabilities.sound is True else None,

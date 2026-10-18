@@ -59,10 +59,13 @@ public:
     if (r.kind == Kind::BulkWrite) return {Status::Ok,r.payload.size(),{}};
     if (r.kind == Kind::BulkRead) { auto data=can_bytes;can_bytes.clear(); return {Status::Short,data.size(),data}; }
     Bytes bytes(r.read_length);
-    if (r.request == 0xd2) {
+    if (r.request == 0xd5) {
+      CHECK(dos); bytes = {0x46,0x34,0x43,0x31,1,0,16,0,0x1f,0,0,0,7,0,0,0};
+    } else if (r.request == 0xd2) {
       bytes[0]=42; put16(bytes,4,dos ? 12001:13002); put16(bytes,6,dos ? 321:654);
       bytes[28]=dos ? 0:1; bytes[30]=dos ? 0:2;bytes[31]=model;
       put16(bytes,32,mismatched ? param+1:param);put16(bytes,35,alternative);bytes[47]=75;
+      put16(bytes,39,77);put16(bytes,45,1234);
     } else if (r.request == 0xc2) { put16(bytes,41,500); put16(bytes,43,2000); }
     else if (r.request == 0xb2) put16(bytes,0,2345);
     else throw std::runtime_error("unexpected request");
@@ -133,7 +136,10 @@ int pandad_compat_offline_main() {
       for(unsigned dos=0;dos<2;++dos){Rig r(dos);r.ready();
         trace_message(serialize_panda_states(r.runtime,r.clock.time),"pandaStates",dos,r.clock.time,true);
         read_event(serialize_panda_states(r.runtime,r.clock.time),[&](auto e){CHECK(e.getValid());auto ps=e.getPandaStates();CHECK(ps.size()==2);
-          CHECK(ps[dos].getPandaType()==cereal::PandaState::PandaType::DOS);CHECK(ps[dos].getVoltage()==12001);
+          CHECK(ps[dos].getPandaType()==cereal::PandaState::PandaType::DOS);CHECK(ps[dos].getVoltage()==12001);CHECK(ps[dos].getCurrent()==0);
+          CHECK(ps[1-dos].getCurrent()==654);
+          CHECK(ps[dos].getSpiErrorCount()==0);CHECK(ps[dos].getSoundOutputLevel()==0);
+          CHECK(ps[1-dos].getSpiErrorCount()==77);CHECK(ps[1-dos].getSoundOutputLevel()==1234);
           CHECK(ps[1-dos].getHarnessStatus()==cereal::PandaState::HarnessStatus::FLIPPED);CHECK(ps[0].getSafetyParam()==100);CHECK(ps[1].getSafetyParam()==101);});
       }
     });
@@ -239,8 +245,8 @@ int pandad_compat_offline_main() {
     });
     test("explicit_roles_aggregate_ignition_and_no_unsupported_ir",[]{
       for(unsigned dos=0;dos<2;++dos){Rig r(dos);r.ready();for(unsigned i=0;i<6;++i)r.runtime.peripheral_step();
-        const auto p=r.runtime.peripheral_snapshot();CHECK(p.valid);CHECK(p.fan_slot==int(dos));CHECK(p.ignition&&*p.ignition);CHECK(p.harness&&*p.harness==2);CHECK(p.voltage&&*p.voltage==12001);
-        read_event(serialize_peripheral_state(r.runtime,r.clock.time),[](auto e){CHECK(e.getValid());CHECK(e.getPeripheralState().getFanSpeedRpm()==2345);});
+        const auto p=r.runtime.peripheral_snapshot();CHECK(p.valid);CHECK(p.fan_slot==int(dos));CHECK(p.ignition&&*p.ignition);CHECK(p.harness&&*p.harness==2);CHECK(p.voltage&&*p.voltage==12001);CHECK(!p.current);CHECK(p.temperature&&*p.temperature==35);
+        read_event(serialize_peripheral_state(r.runtime,r.clock.time),[](auto e){CHECK(e.getValid());CHECK(e.getPeripheralState().getFanSpeedRpm()==2345);CHECK(e.getPeripheralState().getCurrent()==0);});
         auto &external=dos==0?r.b1:r.b0;for(const auto &c:external.calls)CHECK(c.request!=0xb1&&c.request!=0xb2&&c.request!=0xb0);
         for(auto *b:{&r.b0,&r.b1})for(const auto &c:b->calls)CHECK(c.request!=0xe7&&c.request!=0xb0);
       }
