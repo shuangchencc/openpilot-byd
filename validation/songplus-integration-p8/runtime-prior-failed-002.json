@@ -1,0 +1,242 @@
+{
+  "status": "FAIL",
+  "started_at": "2026-10-18T05:18:23.079561+00:00",
+  "completed_at": "2026-10-18T05:24:42.492268+00:00",
+  "error": "linux failed: Traceback (most recent call last):\n  File \"/home/shuang.guest/songplus-p2-build/p8-runtime-2beaa7aa6bcf487c8f8b6207df9fb6ef/build_p8_runtime.py\", line 77, in <module>\n    if __name__=='__main__':main()\n                            ^^^^^^\n  File \"/home/shuang.guest/songplus-p2-build/p8-runtime-2beaa7aa6bcf487c8f8b6207df9fb6ef/build_p8_runtime.py\", line 63, in main\n    run('compile-actual-main',[a.compiler,*flags,'-DSONGPLUS_P8_INTEGRATION','-isystem',a.prefix/'json11/install/include','-c',a.source/'openpilot/selfdrive/pandad/main.cc','-o',main])\n  File \"/home/shuang.guest/songplus-p2-build/p8-runtime-2beaa7aa6bcf487c8f8b6207df9fb6ef/build_p8_runtime.py\", line 27, in run\n    if r.returncode!=expected: raise RuntimeError(name+' failed: '+r.stderr.decode()[-2000:])\n                               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nRuntimeError: compile-actual-main failed: In file included from /home/shuang.guest/songplus-p2-build/p8-runtime-2beaa7aa6bcf487c8f8b6207df9fb6ef/source/openpilot/common/hardware/hw.h:5,\n                 from /home/shuang.guest/songplus-p2-build/p8-runtime-2beaa7aa6bcf487c8f8b6207df9fb6ef/source/openpilot/selfdrive/pandad/main.cc:10:\n/home/shuang.guest/songplus-p2-build/p8-runtime-2beaa7aa6bcf487c8f8b6207df9fb6ef/source/openpilot/common/hardware/base.h: In static member function \u2018static std::map<std::__cxx11::basic_string<char>, std::__cxx11::basic_string<char> > HardwareNone::get_init_logs(bool)\u2019:\n/home/shuang.guest/songplus-p2-build/p8-runtime-2beaa7aa6bcf487c8f8b6207df9fb6ef/source/openpilot/common/hardware/base.h:18:64: error: unused parameter \u2018route_log\u2019 [-Werror=unused-parameter]\n   18 |   static std::map<std::string, std::string> get_init_logs(bool route_log = false) {\n      |                                                           ~~~~~^~~~~~~~~~~~~~~~~\n/home/shuang.guest/songplus-p2-build/p8-runtime-2beaa7aa6bcf487c8f8b6207df9fb6ef/source/openpilot/common/hardware/base.h: In static member function \u2018static void HardwareNone::set_ir_power(int)\u2019:\n/home/shuang.guest/songplus-p2-build/p8-runtime-2beaa7aa6bcf487c8f8b6207df9fb6ef/source/openpilot/common/hardware/base.h:22:32: error: unused parameter \u2018percentage\u2019 [-Werror=unused-parameter]\n   22 |   static void set_ir_power(int percentage) {}\n      |                            ~~~~^~~~~~~~~~\ncc1plus: all warnings being treated as errors\n\n",
+  "commands": [
+    {
+      "name": "git-init",
+      "argv": [
+        "git",
+        "init",
+        "-q"
+      ],
+      "exit_code": 0,
+      "expected_exit_code": 0,
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "apply-0",
+      "argv": [
+        "git",
+        "apply",
+        "/Users/shuang/Code/openpilot/songplus-port-lab/patches/openpilot/p0p1/0001-offline-profile-registry-mock.patch"
+      ],
+      "exit_code": 0,
+      "expected_exit_code": 0,
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "apply-1",
+      "argv": [
+        "git",
+        "apply",
+        "/Users/shuang/Code/openpilot/songplus-port-lab/patches/openpilot/p0p1/0002-pinned-protocol-codecs-tests.patch"
+      ],
+      "exit_code": 0,
+      "expected_exit_code": 0,
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "apply-2",
+      "argv": [
+        "git",
+        "apply",
+        "/Users/shuang/Code/openpilot/songplus-port-lab/patches/openpilot/p2/0003-isolated-usb-spi-transport.patch"
+      ],
+      "exit_code": 0,
+      "expected_exit_code": 0,
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "apply-3",
+      "argv": [
+        "git",
+        "apply",
+        "/Users/shuang/Code/openpilot/songplus-port-lab/patches/openpilot/p3/0004-fixed-slot-epochs-and-can-routing.patch"
+      ],
+      "exit_code": 0,
+      "expected_exit_code": 0,
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "apply-4",
+      "argv": [
+        "git",
+        "apply",
+        "/Users/shuang/Code/openpilot/songplus-port-lab/patches/openpilot/p4/0005-pandad-health-safety-message-integration.patch"
+      ],
+      "exit_code": 0,
+      "expected_exit_code": 0,
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "330c51fd0d26ee153ff585a78121b4b72c2dbe8225faaedff304f69e1251d8a5"
+    },
+    {
+      "name": "apply-5",
+      "argv": [
+        "git",
+        "apply",
+        "/Users/shuang/Code/openpilot/songplus-port-lab/patches/openpilot/p6/0006-f4-capabilities-composite-fault-safety.patch"
+      ],
+      "exit_code": 0,
+      "expected_exit_code": 0,
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "apply-6",
+      "argv": [
+        "git",
+        "apply",
+        "/Users/shuang/Code/openpilot/songplus-port-lab/patches/openpilot/p8/0001-pandad-runtime-integration.patch"
+      ],
+      "exit_code": 0,
+      "expected_exit_code": 0,
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "macos",
+      "argv": [
+        "/usr/bin/sandbox-exec",
+        "-f",
+        "/Users/shuang/Code/openpilot/songplus-port-lab/tools/panda_firmware_offline.sb",
+        "/Users/shuang/Code/openpilot/songplus-port-lab/upstream-openpilot/.venv/bin/python",
+        "-S",
+        "/Users/shuang/Code/openpilot/songplus-port-lab/tools/build_p8_runtime.py",
+        "--source",
+        "/Users/shuang/Code/openpilot/songplus-port-lab/results/p8-runtime-20261018-002/source",
+        "--output",
+        "/Users/shuang/Code/openpilot/songplus-port-lab/results/p8-runtime-20261018-002/macos",
+        "--prefix",
+        "/Users/shuang/Code/openpilot/songplus-port-lab/upstream-openpilot/.venv/lib/python3.12/site-packages",
+        "--compiler",
+        "clang++",
+        "--usb-include",
+        "/opt/homebrew/Cellar/libusb/1.0.30/include/libusb-1.0",
+        "--usb-library",
+        "/opt/homebrew/Cellar/libusb/1.0.30/lib/libusb-1.0.0.dylib"
+      ],
+      "exit_code": 0,
+      "expected_exit_code": 0,
+      "stdout_sha256": "04f435b7fa8bb9d7160329a8c412f0c762d99491c53dc01ad456136ca35e51bf",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "vm-mkdir",
+      "argv": [
+        "limactl",
+        "shell",
+        "byd-recovery-311",
+        "--",
+        "mkdir",
+        "-p",
+        "/home/shuang.guest/songplus-p2-build/p8-runtime-2beaa7aa6bcf487c8f8b6207df9fb6ef"
+      ],
+      "exit_code": 0,
+      "expected_exit_code": 0,
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "vm-copy",
+      "argv": [
+        "limactl",
+        "copy",
+        "/Users/shuang/Code/openpilot/songplus-port-lab/results/p8-runtime-20261018-002/input.tar",
+        "byd-recovery-311:/home/shuang.guest/songplus-p2-build/p8-runtime-2beaa7aa6bcf487c8f8b6207df9fb6ef/input.tar"
+      ],
+      "exit_code": 0,
+      "expected_exit_code": 0,
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "vm-bundle-hash",
+      "argv": [
+        "limactl",
+        "shell",
+        "byd-recovery-311",
+        "--",
+        "sha256sum",
+        "/home/shuang.guest/songplus-p2-build/p8-runtime-2beaa7aa6bcf487c8f8b6207df9fb6ef/input.tar"
+      ],
+      "exit_code": 0,
+      "expected_exit_code": 0,
+      "stdout_sha256": "47dac19599c22716227030f03d04ef52a29c01111f68294fa74b63d5df9c1efd",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "vm-extract",
+      "argv": [
+        "limactl",
+        "shell",
+        "byd-recovery-311",
+        "--",
+        "tar",
+        "-xf",
+        "/home/shuang.guest/songplus-p2-build/p8-runtime-2beaa7aa6bcf487c8f8b6207df9fb6ef/input.tar",
+        "-C",
+        "/home/shuang.guest/songplus-p2-build/p8-runtime-2beaa7aa6bcf487c8f8b6207df9fb6ef"
+      ],
+      "exit_code": 0,
+      "expected_exit_code": 0,
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "vm-dependencies",
+      "argv": [
+        "limactl",
+        "shell",
+        "byd-recovery-311",
+        "--",
+        "python3",
+        "-S",
+        "-c",
+        "import json,hashlib,pathlib,sys; j=json.loads(pathlib.Path(sys.argv[1]).read_text()); items=[(pathlib.Path(j['daemon']['linux']['prefix'])/x['path'],x['sha256']) for x in j['daemon']['linux']['files']]+[(pathlib.Path(sys.argv[2])/x['path'],x['sha256']) for x in j['linux']['files']]; assert all(hashlib.sha256(p.read_bytes()).hexdigest()==h for p,h in items)",
+        "/home/shuang.guest/songplus-p2-build/p8-runtime-2beaa7aa6bcf487c8f8b6207df9fb6ef/dependencies.json",
+        "/home/shuang.guest/songplus-p2-build/deps/prefix"
+      ],
+      "exit_code": 0,
+      "expected_exit_code": 0,
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "linux",
+      "argv": [
+        "limactl",
+        "shell",
+        "byd-recovery-311",
+        "--",
+        "sh",
+        "/home/shuang.guest/songplus-p2-build/p8-runtime-2beaa7aa6bcf487c8f8b6207df9fb6ef/p8_runtime_linux_sandbox.sh",
+        "python3",
+        "-S",
+        "/home/shuang.guest/songplus-p2-build/p8-runtime-2beaa7aa6bcf487c8f8b6207df9fb6ef/build_p8_runtime.py",
+        "--source",
+        "/home/shuang.guest/songplus-p2-build/p8-runtime-2beaa7aa6bcf487c8f8b6207df9fb6ef/source",
+        "--output",
+        "/home/shuang.guest/songplus-p2-build/p8-runtime-2beaa7aa6bcf487c8f8b6207df9fb6ef/output",
+        "--prefix",
+        "/home/shuang.guest/songplus-p4-build/deps/prefix",
+        "--compiler",
+        "g++",
+        "--usb-include",
+        "/home/shuang.guest/songplus-p2-build/deps/prefix/usr/include/libusb-1.0",
+        "--usb-library",
+        "/home/shuang.guest/songplus-p2-build/deps/prefix/usr/lib/aarch64-linux-gnu/libusb-1.0.so.0.3.0"
+      ],
+      "exit_code": 1,
+      "expected_exit_code": 0,
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "7f29de2e834772813ceb13454f0e4b5dd1307783826ebb185af763dee1971136"
+    }
+  ]
+}

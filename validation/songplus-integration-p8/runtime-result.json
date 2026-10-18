@@ -1,0 +1,662 @@
+{
+  "schema": "songplus-p8-runtime-evidence-summary/v1",
+  "status": "PASS_OFFLINE_HOST_ONLY",
+  "formal_batch": "results/songplus-integration-p8-full-002/validation/runtime",
+  "formal_result_sha256": "18ea0bb267f7a545939e227a95ff06000b4b072d546d11f1710af29aa458094c",
+  "started_at": "2026-10-18T05:31:03.012615+00:00",
+  "completed_at": "2026-10-18T05:35:27.712434+00:00",
+  "host_result_commit": "46baabd4f71a876d22ad61ab33bd9a873a194ebf",
+  "patches": [
+    {
+      "stage": "P8",
+      "file": "0001-pandad-runtime-integration.patch",
+      "sha256": "89cf673cd0e03bf1813487d9a006715f35216aefbd8921b0b11c1379fe7bda88",
+      "commit": "46baabd4f71a876d22ad61ab33bd9a873a194ebf"
+    }
+  ],
+  "manifest_sha256": "8736cbb62cf7ff686aebd2d34ef90d4b88858b5c21efa812c1074d2252688157",
+  "worker_sha256": "35af9563b834139df00e924d07a2ea859cfd08cebd5088a94ec32e42e831b807",
+  "validation_inputs_sha256": {
+    "tools/validate_p8_runtime.py": "ce1bf6c0f68fa7030ce25e432eee6fac8b13fcceb4e1466a4e4f3fc16870a480",
+    "tools/build_p8_runtime.py": "35af9563b834139df00e924d07a2ea859cfd08cebd5088a94ec32e42e831b807",
+    "tools/run_panda_p6_host.py": "23e4b2edee9afb34a3a51af8bd426acebc6afdfc20031919168437729c740b43",
+    "tools/build_panda_daemon_p6.py": "22918a828fdac3ddd94ea6b82d991277b46fb50a7f3f7d5ee0cd5458c7d30680",
+    "tools/p8_runtime_linux_sandbox.sh": "bf82d2380a87c189776a151f24d0beb384cad3fa2b6495d1514ea1fb2c583625",
+    "tools/panda_firmware_offline.sb": "5d5c0ed3aff644e1f3497835c283eb7b9044c67851ec6c8856cc0db45c6fc818",
+    "patches/openpilot/p8/README.md": "aeb490431c379cc9679985cbed2867a053e63625f3110ad489a07a68b2782c43",
+    "patches/openpilot/p8/manifest.json": "8736cbb62cf7ff686aebd2d34ef90d4b88858b5c21efa812c1074d2252688157",
+    "patches/openpilot/p8/0001-pandad-runtime-integration.patch": "89cf673cd0e03bf1813487d9a006715f35216aefbd8921b0b11c1379fe7bda88",
+    "patches/openpilot/p6/manifest.json": "8f41f76fe47ce3329ae96bb8c23d0c6e8ca8456e5bda71f7abbf11b4f28c0587",
+    "patches/openpilot/p4/host-dependencies.json": "968ff8fdc945deed0f6f796239703bb94a8f1a5013109099a5f57b29ca5dca73"
+  },
+  "platforms": {
+    "macos": {
+      "summary": {
+        "suite": "p8_runtime_integration",
+        "passed": 28,
+        "failed": 0,
+        "skipped": 0,
+        "assertions": 1903,
+        "real_device_io": false,
+        "real_can_tx": false,
+        "schema_changed": false
+      },
+      "groups": [
+        "p8_owner_exact_binding_real_usb_backend_health_cereal",
+        "p8_discovery_order_never_assigns_roles",
+        "p8_identity_all_fields_rejected_before_factory",
+        "p8_duplicate_extra_and_missing_inventory_fail_closed",
+        "p8_discovery_stale_future_revision_rollback",
+        "p8_partial_open_cancels_owner_and_consumes_both_nonces",
+        "p8_reconnect_requires_fresh_pair_and_new_epochs",
+        "p8_revision_reuse_cannot_swap_handle",
+        "p8_unbound_profile_never_calls_discovery",
+        "p8_nooutput_rejects_sendcan_and_enabled_before_transfer",
+        "p8_wrong_topic_and_malformed_cereal_close_gate",
+        "p8_epoch_fence_drops_old_queue_and_carparams",
+        "p8_fence_backlog_bounded_and_fail_closed",
+        "p8_params_slot_nooutput_safety_not_relaxed",
+        "p8_shutdown_is_owner_serialized_cancels_no_rediscovery",
+        "p8_provider_and_publication_failure_close_group",
+        "p8_mixed_spi_usb_factory_inert_until_cycle",
+        "p8_factory_denies_alt_and_missing_spi_nonce",
+        "p8_activation_evidence_revocation_retires_same_nonce",
+        "p8_late_camera_from_previous_epoch_rejected",
+        "p8_ingress_bound_params_and_sink_type",
+        "p8_dual_usb_wire_to_actual_cereal_preserves_global_bus",
+        "p8_nooutput_preserves_rx_fragment_across_cycles",
+        "p8_reconnect_discards_old_rx_fragment",
+        "p8_owner_consumed_handle_history_is_bounded",
+        "p8_owner_destruction_cancels_before_backend_release",
+        "p8_discovery_exception_retires_live_handles",
+        "p8_actual_cereal_stale_future_inputs_rejected"
+      ],
+      "build_contract": {
+        "suite": "p8_build_contract",
+        "passed": 2,
+        "failed": 0,
+        "skipped": 0,
+        "groups": [
+          "p8_scons_darwin_preserves_original_exclusion",
+          "p8_scons_daemon_pinned_usb_does_not_leak_to_extras"
+        ],
+        "actual_scons_build": false
+      },
+      "actual_main_p8_summary": null,
+      "msgq_adapter_compiled": true,
+      "msgq_interface_executed": false,
+      "isolated_msgq_endpoints_opened": false,
+      "network_sockets_opened": false,
+      "actual_pandad_relinked_with_p8": false,
+      "actual_main_p8_binary_sha256": null,
+      "binary_sha256": "96add56fab74f8dd6ab909ebe31f67c60845c521d68295dee59435266ced84b0",
+      "result_sha256": "184e3c0438d537d0a2ac942237ac406afdc685513dad927ec1a40c977afefe0c",
+      "retained_files": 277,
+      "native_regression_summaries": {
+        "transport": {
+          "passed": 19,
+          "failed": 0,
+          "assertions": 443,
+          "device_access": false,
+          "clock": "deterministic_fake",
+          "hardware_timing_validated": false,
+          "cases": [
+            "constructor_and_wide_ingress_validation_have_no_io",
+            "exact_read_and_zero_payload_control_write",
+            "short_read_and_fragment_boundaries_are_preserved",
+            "read_retries_only_known_empty_timeout_and_is_paced",
+            "partial_unknown_or_non_timeout_reads_never_retry",
+            "confirmed_prefix_survives_unknown_later_chunk_delivery",
+            "late_fatal_backend_status_is_latched_before_deadline_override",
+            "failed_and_uncertain_writes_are_never_replayed_and_poison_session",
+            "deadline_minus_one_exact_and_plus_one_preserve_late_counts",
+            "submillisecond_remaining_budget_does_not_round_up",
+            "cancellation_before_during_after_and_between_retries_is_permanent",
+            "backward_or_wrapped_clock_fails_closed_without_losing_actual",
+            "nonadvancing_clock_does_not_create_unbounded_retry_loop",
+            "malformed_backend_results_never_become_success",
+            "backend_exceptions_preserve_unknown_delivery_and_never_retry",
+            "blocked_board_does_not_block_other_board_or_mix_bytes",
+            "same_board_contender_wait_is_bounded_without_queueing_io",
+            "lock_release_deadline_minus_one_exact_plus_one",
+            "disconnect_stall_and_poison_are_session_local"
+          ]
+        },
+        "usb_backend": {
+          "suite": "usb_backend",
+          "groups": 19,
+          "failed": 0,
+          "device_io": false
+        },
+        "spi_backend": {
+          "suite": "spi_backend",
+          "groups_passed": 16,
+          "assertions": 446,
+          "failures": 0,
+          "skipped": 0,
+          "hardware_access": false
+        },
+        "timing_budget": {
+          "suite": "timing_policy",
+          "passed": 4,
+          "failed": 0,
+          "assertions": 39,
+          "cases": [
+            "health_age_boundaries_wrap",
+            "heartbeat_boundaries_wrap",
+            "future_missing_rejected",
+            "queue_capacity_boundaries"
+          ]
+        },
+        "native_link": {
+          "suite": "native_link",
+          "passed": 1,
+          "failed": 0,
+          "device_open": false
+        },
+        "session_registry": {
+          "suite": "session_registry",
+          "groups": 19,
+          "cases": [
+            "unbound_and_permission_contract",
+            "profile_schema_fixed_topology_and_binding_rejections",
+            "explicit_role_capability_validation",
+            "both_dos_red_permutations_and_reversed_discovery",
+            "identical_models_distinct_identity_without_type_sorting",
+            "immutable_profile_and_snapshot_copies",
+            "idempotent_healthy_inventory_does_not_consume_epochs",
+            "missing_slot_never_promotes_survivor_and_late_discovery",
+            "drop_reconnect_epoch_trace_and_peer_generation",
+            "new_handle_same_identity_address_requires_new_token",
+            "replacement_identity_never_binds_without_new_profile",
+            "all_observed_identity_fields_revalidate_every_reconnect",
+            "same_token_descriptor_change_retires_connection",
+            "extra_and_duplicate_inventory_retire_existing_group",
+            "group_fault_requires_both_fresh_tokens_and_bounds_reason",
+            "duplicate_candidates_consume_both_known_identity_tokens",
+            "zero_older_and_wrap_tokens_cannot_reconnect",
+            "epoch_counter_exhaustion_is_permanent_and_never_wraps",
+            "generation_counter_exhaustion_closes_healthy_peer"
+          ],
+          "assertions": 503,
+          "failures": 0,
+          "skips": 0
+        },
+        "can_router": {
+          "passed": 22,
+          "failed": 0,
+          "assertions": 522,
+          "device_access": false,
+          "real_can_tx": false,
+          "cases": [
+            "unbound_and_missing_group_have_no_queues_or_tx_permission",
+            "six_tx_routes_use_fixed_slots_and_per_slot_fifo_once",
+            "six_rx_routes_preserve_ordinary_returned_and_rejected_flags",
+            "invalid_event_reserved_flagged_and_wide_tx_routes_are_atomic",
+            "fd_is_bound_capability_in_both_directions",
+            "fragmentation_is_per_slot_and_preserves_first_receive_timestamp",
+            "completion_and_next_fragment_use_separate_original_timestamps",
+            "sendcan_and_queue_age_threshold_minus_one_equal_plus_one",
+            "rx_queue_age_threshold_and_publication_never_refresh_age",
+            "expired_partial_prefix_closes_group_without_unsafe_resync",
+            "drop_and_reconnect_clear_both_queues_fragments_and_old_callbacks",
+            "unobserved_outage_and_reconnection_still_invalidate_queued_generation",
+            "caller_held_old_batch_cannot_enter_reconnected_generation",
+            "replacement_never_inherits_fixed_slot_or_queued_traffic",
+            "tx_capacity_and_mixed_batch_overflow_reject_atomically",
+            "rx_overflow_retires_group_and_requires_new_session_tokens",
+            "rx_malformed_batch_has_no_valid_prefix_publication",
+            "future_timestamps_rejected_and_stale_callbacks_cannot_poison_new_group",
+            "clock_rollback_and_wrap_fail_closed_without_unsigned_age_bypass",
+            "held_intent_is_revalidated_after_drop_expiry_and_mutation",
+            "held_rx_republication_preserves_age_and_rechecks_generation",
+            "empty_callbacks_do_not_refresh_partial_timestamp"
+          ]
+        },
+        "control_session": {
+          "suite": "control_session",
+          "groups": 27,
+          "assertions": 5916,
+          "failures": 0,
+          "skips": 0,
+          "device_open": false,
+          "real_can_tx": false
+        },
+        "p6_capabilities": {
+          "suite": "p6_capabilities",
+          "groups": 12,
+          "assertions": 1003,
+          "failures": 0,
+          "skips": 0,
+          "device_open": false,
+          "real_can_tx": false
+        },
+        "p6_single_spi": {
+          "suite": "p6_single_h7_spi",
+          "passed": 5,
+          "failed": 0,
+          "skipped": 0,
+          "assertions": 146,
+          "standalone_sessions": 1,
+          "dual_profile_used": false,
+          "device_access": false,
+          "real_can_tx": false,
+          "legacy_device_path_executed": false
+        },
+        "session_router_integration": {
+          "suite": "session_router_integration",
+          "passed": 11,
+          "failed": 0,
+          "skipped": 0,
+          "assertions": 1278,
+          "device_access": false,
+          "real_can_tx": false,
+          "transport": "P2_with_fake_backends_only",
+          "cases": [
+            "p0_contract_all_eight_profile_inventory_permutations",
+            "p2_short_reads_every_split_keep_per_board_parser_isolated",
+            "six_routes_reach_only_their_fake_p2_backend_with_mcu_local_buses",
+            "disconnect_reconnect_discards_partial_and_both_queued_slots",
+            "replacement_and_unknown_protocol_never_promote_survivor",
+            "uncertain_p2_write_closes_group_without_replay_or_sibling_fallback",
+            "held_intent_and_ingress_batch_cannot_cross_connection_generation",
+            "extra_inventory_retires_live_tokens_and_clears_both_queues",
+            "held_rx_publication_checks_original_age_and_connection_token",
+            "held_intent_final_dispatch_checks_queue_and_source_age",
+            "original_fragment_receive_age_is_not_renewed_by_transport_or_publication"
+          ]
+        },
+        "spi_golden": {
+          "matched": 5,
+          "vectors": [
+            "control_read:007856341207001300dd3412ceab0800d8008ba5",
+            "control_write:007856341207000b00dc3412ceab00000d613ddc",
+            "bulk_write:037856341203000b000102032d84265d",
+            "bulk_read:817856341200001b00c91c6a84",
+            "first_large_read:8178563412000000044a13312a"
+          ],
+          "original_handle_constructed": false
+        },
+        "firmware_liveness": {
+          "suite": "firmware_liveness",
+          "passed": 13,
+          "assertions": 343,
+          "failed": 0,
+          "skipped": 0,
+          "cases": [
+            "heartbeat_write_exact_semantics",
+            "ignition_on_counter_boundary",
+            "ignition_off_counter_boundary",
+            "heartbeat_saturates_and_repeated_timeout",
+            "engaged_false_third_mismatch",
+            "engaged_mismatch_reset",
+            "car_mode_cannot_disable_heartbeat",
+            "nooutput_disabled_and_lost_flag",
+            "timeout_peripheral_intents",
+            "watchdog_strict_threshold",
+            "watchdog_timer_wrap",
+            "watchdog_stall_only_observed_on_resume",
+            "watchdog_fault_does_not_prevent_later_heartbeat_timeout"
+          ],
+          "actual_pinned_c_executed": true,
+          "hardware_tested": false,
+          "real_can_tx": false
+        }
+      },
+      "daemon_regression_summary": {
+        "suite": "pandad_runtime_cereal",
+        "passed": 22,
+        "failed": 0,
+        "skipped": 0,
+        "assertions": 2137,
+        "device_access": false,
+        "real_can_tx": false,
+        "schema_changed": false,
+        "backend": "P2_fake_only"
+      },
+      "loop_summary": {
+        "suite": "pandad_loop",
+        "passed": 10,
+        "failed": 0,
+        "skipped": 0,
+        "assertions": 822,
+        "device_access": false,
+        "real_can_tx": false,
+        "schema_changed": false
+      },
+      "compound_fault_summary": {
+        "suite": "p6_compound_faults",
+        "passed": 22,
+        "failed": 0,
+        "skipped": 0,
+        "assertions": 3138,
+        "device_access": false,
+        "real_can_tx": false,
+        "schema_changed": false,
+        "abrupt_host_finally_claimed": false
+      }
+    },
+    "linux": {
+      "summary": {
+        "suite": "p8_runtime_integration",
+        "passed": 30,
+        "failed": 0,
+        "skipped": 0,
+        "assertions": 1937,
+        "real_device_io": false,
+        "real_can_tx": false,
+        "schema_changed": false
+      },
+      "groups": [
+        "p8_owner_exact_binding_real_usb_backend_health_cereal",
+        "p8_discovery_order_never_assigns_roles",
+        "p8_identity_all_fields_rejected_before_factory",
+        "p8_duplicate_extra_and_missing_inventory_fail_closed",
+        "p8_discovery_stale_future_revision_rollback",
+        "p8_partial_open_cancels_owner_and_consumes_both_nonces",
+        "p8_reconnect_requires_fresh_pair_and_new_epochs",
+        "p8_revision_reuse_cannot_swap_handle",
+        "p8_unbound_profile_never_calls_discovery",
+        "p8_nooutput_rejects_sendcan_and_enabled_before_transfer",
+        "p8_wrong_topic_and_malformed_cereal_close_gate",
+        "p8_epoch_fence_drops_old_queue_and_carparams",
+        "p8_fence_backlog_bounded_and_fail_closed",
+        "p8_params_slot_nooutput_safety_not_relaxed",
+        "p8_shutdown_is_owner_serialized_cancels_no_rediscovery",
+        "p8_provider_and_publication_failure_close_group",
+        "p8_mixed_spi_usb_factory_inert_until_cycle",
+        "p8_factory_denies_alt_and_missing_spi_nonce",
+        "p8_activation_evidence_revocation_retires_same_nonce",
+        "p8_late_camera_from_previous_epoch_rejected",
+        "p8_ingress_bound_params_and_sink_type",
+        "p8_dual_usb_wire_to_actual_cereal_preserves_global_bus",
+        "p8_nooutput_preserves_rx_fragment_across_cycles",
+        "p8_reconnect_discards_old_rx_fragment",
+        "p8_owner_consumed_handle_history_is_bounded",
+        "p8_owner_destruction_cancels_before_backend_release",
+        "p8_discovery_exception_retires_live_handles",
+        "p8_actual_cereal_stale_future_inputs_rejected",
+        "p8_actual_msgq_interface_nonblocking_owned_copy",
+        "p8_actual_msgq_private_shm_bidirectional"
+      ],
+      "build_contract": {
+        "suite": "p8_build_contract",
+        "passed": 2,
+        "failed": 0,
+        "skipped": 0,
+        "groups": [
+          "p8_scons_darwin_preserves_original_exclusion",
+          "p8_scons_daemon_pinned_usb_does_not_leak_to_extras"
+        ],
+        "actual_scons_build": false
+      },
+      "actual_main_p8_summary": {
+        "suite": "p8_actual_main",
+        "passed": 1,
+        "failed": 0,
+        "skipped": 0,
+        "real_device_io": false
+      },
+      "msgq_adapter_compiled": true,
+      "msgq_interface_executed": true,
+      "isolated_msgq_endpoints_opened": true,
+      "network_sockets_opened": false,
+      "actual_pandad_relinked_with_p8": true,
+      "actual_main_p8_binary_sha256": "30cc496783da87c1e281670aed511cffc1718fe5bffb9e9122a2af50fa65dec9",
+      "binary_sha256": "28e78780c153781bb847ef5cf78ef9d3a78a779f10ed145e0314b1d5bb319579",
+      "result_sha256": "aa35ca966e2f36fd59b98a08021a8056d2e013b247bc29ab139e722704f79f01",
+      "retained_files": 324,
+      "native_regression_summaries": {
+        "transport": {
+          "passed": 19,
+          "failed": 0,
+          "assertions": 443,
+          "device_access": false,
+          "clock": "deterministic_fake",
+          "hardware_timing_validated": false,
+          "cases": [
+            "constructor_and_wide_ingress_validation_have_no_io",
+            "exact_read_and_zero_payload_control_write",
+            "short_read_and_fragment_boundaries_are_preserved",
+            "read_retries_only_known_empty_timeout_and_is_paced",
+            "partial_unknown_or_non_timeout_reads_never_retry",
+            "confirmed_prefix_survives_unknown_later_chunk_delivery",
+            "late_fatal_backend_status_is_latched_before_deadline_override",
+            "failed_and_uncertain_writes_are_never_replayed_and_poison_session",
+            "deadline_minus_one_exact_and_plus_one_preserve_late_counts",
+            "submillisecond_remaining_budget_does_not_round_up",
+            "cancellation_before_during_after_and_between_retries_is_permanent",
+            "backward_or_wrapped_clock_fails_closed_without_losing_actual",
+            "nonadvancing_clock_does_not_create_unbounded_retry_loop",
+            "malformed_backend_results_never_become_success",
+            "backend_exceptions_preserve_unknown_delivery_and_never_retry",
+            "blocked_board_does_not_block_other_board_or_mix_bytes",
+            "same_board_contender_wait_is_bounded_without_queueing_io",
+            "lock_release_deadline_minus_one_exact_plus_one",
+            "disconnect_stall_and_poison_are_session_local"
+          ]
+        },
+        "usb_backend": {
+          "suite": "usb_backend",
+          "groups": 19,
+          "failed": 0,
+          "device_io": false
+        },
+        "spi_backend": {
+          "suite": "spi_backend",
+          "groups_passed": 16,
+          "assertions": 446,
+          "failures": 0,
+          "skipped": 0,
+          "hardware_access": false
+        },
+        "timing_budget": {
+          "suite": "timing_policy",
+          "passed": 4,
+          "failed": 0,
+          "assertions": 39,
+          "cases": [
+            "health_age_boundaries_wrap",
+            "heartbeat_boundaries_wrap",
+            "future_missing_rejected",
+            "queue_capacity_boundaries"
+          ]
+        },
+        "native_link": {
+          "suite": "native_link",
+          "passed": 1,
+          "failed": 0,
+          "device_open": false
+        },
+        "session_registry": {
+          "suite": "session_registry",
+          "groups": 19,
+          "cases": [
+            "unbound_and_permission_contract",
+            "profile_schema_fixed_topology_and_binding_rejections",
+            "explicit_role_capability_validation",
+            "both_dos_red_permutations_and_reversed_discovery",
+            "identical_models_distinct_identity_without_type_sorting",
+            "immutable_profile_and_snapshot_copies",
+            "idempotent_healthy_inventory_does_not_consume_epochs",
+            "missing_slot_never_promotes_survivor_and_late_discovery",
+            "drop_reconnect_epoch_trace_and_peer_generation",
+            "new_handle_same_identity_address_requires_new_token",
+            "replacement_identity_never_binds_without_new_profile",
+            "all_observed_identity_fields_revalidate_every_reconnect",
+            "same_token_descriptor_change_retires_connection",
+            "extra_and_duplicate_inventory_retire_existing_group",
+            "group_fault_requires_both_fresh_tokens_and_bounds_reason",
+            "duplicate_candidates_consume_both_known_identity_tokens",
+            "zero_older_and_wrap_tokens_cannot_reconnect",
+            "epoch_counter_exhaustion_is_permanent_and_never_wraps",
+            "generation_counter_exhaustion_closes_healthy_peer"
+          ],
+          "assertions": 503,
+          "failures": 0,
+          "skips": 0
+        },
+        "can_router": {
+          "passed": 22,
+          "failed": 0,
+          "assertions": 522,
+          "device_access": false,
+          "real_can_tx": false,
+          "cases": [
+            "unbound_and_missing_group_have_no_queues_or_tx_permission",
+            "six_tx_routes_use_fixed_slots_and_per_slot_fifo_once",
+            "six_rx_routes_preserve_ordinary_returned_and_rejected_flags",
+            "invalid_event_reserved_flagged_and_wide_tx_routes_are_atomic",
+            "fd_is_bound_capability_in_both_directions",
+            "fragmentation_is_per_slot_and_preserves_first_receive_timestamp",
+            "completion_and_next_fragment_use_separate_original_timestamps",
+            "sendcan_and_queue_age_threshold_minus_one_equal_plus_one",
+            "rx_queue_age_threshold_and_publication_never_refresh_age",
+            "expired_partial_prefix_closes_group_without_unsafe_resync",
+            "drop_and_reconnect_clear_both_queues_fragments_and_old_callbacks",
+            "unobserved_outage_and_reconnection_still_invalidate_queued_generation",
+            "caller_held_old_batch_cannot_enter_reconnected_generation",
+            "replacement_never_inherits_fixed_slot_or_queued_traffic",
+            "tx_capacity_and_mixed_batch_overflow_reject_atomically",
+            "rx_overflow_retires_group_and_requires_new_session_tokens",
+            "rx_malformed_batch_has_no_valid_prefix_publication",
+            "future_timestamps_rejected_and_stale_callbacks_cannot_poison_new_group",
+            "clock_rollback_and_wrap_fail_closed_without_unsigned_age_bypass",
+            "held_intent_is_revalidated_after_drop_expiry_and_mutation",
+            "held_rx_republication_preserves_age_and_rechecks_generation",
+            "empty_callbacks_do_not_refresh_partial_timestamp"
+          ]
+        },
+        "control_session": {
+          "suite": "control_session",
+          "groups": 27,
+          "assertions": 5916,
+          "failures": 0,
+          "skips": 0,
+          "device_open": false,
+          "real_can_tx": false
+        },
+        "p6_capabilities": {
+          "suite": "p6_capabilities",
+          "groups": 12,
+          "assertions": 1003,
+          "failures": 0,
+          "skips": 0,
+          "device_open": false,
+          "real_can_tx": false
+        },
+        "p6_single_spi": {
+          "suite": "p6_single_h7_spi",
+          "passed": 5,
+          "failed": 0,
+          "skipped": 0,
+          "assertions": 146,
+          "standalone_sessions": 1,
+          "dual_profile_used": false,
+          "device_access": false,
+          "real_can_tx": false,
+          "legacy_device_path_executed": false
+        },
+        "session_router_integration": {
+          "suite": "session_router_integration",
+          "passed": 11,
+          "failed": 0,
+          "skipped": 0,
+          "assertions": 1278,
+          "device_access": false,
+          "real_can_tx": false,
+          "transport": "P2_with_fake_backends_only",
+          "cases": [
+            "p0_contract_all_eight_profile_inventory_permutations",
+            "p2_short_reads_every_split_keep_per_board_parser_isolated",
+            "six_routes_reach_only_their_fake_p2_backend_with_mcu_local_buses",
+            "disconnect_reconnect_discards_partial_and_both_queued_slots",
+            "replacement_and_unknown_protocol_never_promote_survivor",
+            "uncertain_p2_write_closes_group_without_replay_or_sibling_fallback",
+            "held_intent_and_ingress_batch_cannot_cross_connection_generation",
+            "extra_inventory_retires_live_tokens_and_clears_both_queues",
+            "held_rx_publication_checks_original_age_and_connection_token",
+            "held_intent_final_dispatch_checks_queue_and_source_age",
+            "original_fragment_receive_age_is_not_renewed_by_transport_or_publication"
+          ]
+        },
+        "spi_golden": {
+          "matched": 5,
+          "vectors": [
+            "control_read:007856341207001300dd3412ceab0800d8008ba5",
+            "control_write:007856341207000b00dc3412ceab00000d613ddc",
+            "bulk_write:037856341203000b000102032d84265d",
+            "bulk_read:817856341200001b00c91c6a84",
+            "first_large_read:8178563412000000044a13312a"
+          ],
+          "original_handle_constructed": false
+        },
+        "firmware_liveness": {
+          "suite": "firmware_liveness",
+          "passed": 13,
+          "assertions": 343,
+          "failed": 0,
+          "skipped": 0,
+          "cases": [
+            "heartbeat_write_exact_semantics",
+            "ignition_on_counter_boundary",
+            "ignition_off_counter_boundary",
+            "heartbeat_saturates_and_repeated_timeout",
+            "engaged_false_third_mismatch",
+            "engaged_mismatch_reset",
+            "car_mode_cannot_disable_heartbeat",
+            "nooutput_disabled_and_lost_flag",
+            "timeout_peripheral_intents",
+            "watchdog_strict_threshold",
+            "watchdog_timer_wrap",
+            "watchdog_stall_only_observed_on_resume",
+            "watchdog_fault_does_not_prevent_later_heartbeat_timeout"
+          ],
+          "actual_pinned_c_executed": true,
+          "hardware_tested": false,
+          "real_can_tx": false
+        }
+      },
+      "daemon_regression_summary": {
+        "suite": "pandad_runtime_cereal",
+        "passed": 22,
+        "failed": 0,
+        "skipped": 0,
+        "assertions": 2137,
+        "device_access": false,
+        "real_can_tx": false,
+        "schema_changed": false,
+        "backend": "P2_fake_only"
+      },
+      "loop_summary": {
+        "suite": "pandad_loop",
+        "passed": 10,
+        "failed": 0,
+        "skipped": 0,
+        "assertions": 822,
+        "device_access": false,
+        "real_can_tx": false,
+        "schema_changed": false
+      },
+      "compound_fault_summary": {
+        "suite": "p6_compound_faults",
+        "passed": 22,
+        "failed": 0,
+        "skipped": 0,
+        "assertions": 3138,
+        "device_access": false,
+        "real_can_tx": false,
+        "schema_changed": false,
+        "abrupt_host_finally_claimed": false
+      }
+    }
+  },
+  "real_device_io": false,
+  "real_can_tx": false,
+  "deployment_ready": false,
+  "limitations": [
+    "No native physical discovery or I/O provider; only synthetic profiles",
+    "Actual msgq endpoint test runs in one process with private tmpfs; no target IPC or scheduling proof",
+    "No C3XL execution, MCU execution, firmware build, installation, reset, flashing or CAN TX in this host validation"
+  ]
+}

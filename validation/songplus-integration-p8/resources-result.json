@@ -1,0 +1,972 @@
+{
+  "schema": "songplus-p8-resources-summary/v1",
+  "status": "PASS_OFFLINE_CANDIDATE",
+  "utc": "2026-10-18T05:11:14.668488+00:00",
+  "source_commit": "c2aa3df08fe4864c9e4ecb4b4bbd150117ce2397",
+  "manifest_sha256": "c2ac067ff46a9fee7c1f863c97f04739f3aab92486fa009fb3317a4db50180ba",
+  "parent_manifest_sha256": "48b446043b8247c755521e64d87d8f064466f467f1376bc3b94440938bdfd1b9",
+  "baselines": {
+    "upstream-openpilot": "35e78a9d9518855ec0dacec919e719624a28131f",
+    "upstream-openpilot/opendbc_repo": "b3bd79a659dae961af169a3baac723961f720133",
+    "upstream-openpilot/panda": "a59195163c32a3a375ea6c86715dc08fd0984c1b",
+    "upstream-openpilot/msgq_repo": "0e266c1dbcf7328beee3e57b4a8688555387c877"
+  },
+  "formal_result": {
+    "path": "results/songplus-integration-p8-resources/formal-4/result.json",
+    "sha256": "6a00191cc160abdb3df58c01fe003c5fea9e2ba99f3c444b43a3ab5a100f2d66"
+  },
+  "summary": {
+    "arm_builds": 8,
+    "resource_audits": 8,
+    "identical_artifact_pairs": 12,
+    "resource_checks": 23,
+    "protocol_groups": 30,
+    "protocol_negative_abi_compiles": 6,
+    "bxcan_groups": 24,
+    "fdcan_groups": 14,
+    "bsp_groups": 23,
+    "capability_tests": 12,
+    "safety_tests": 49,
+    "liveness_groups": 26,
+    "failed": 0,
+    "skipped": 0,
+    "runtime_resource_proof_passed": false
+  },
+  "builds": {
+    "f4-debug": {
+      "raw_bytes": 70160,
+      "signed_bytes": 70296,
+      "allocated_ram_bytes": 86840,
+      "reserved_stack_bytes": 8192,
+      "maximum_single_frame_bytes": 288,
+      "maximum_known_direct_chain_bytes": 460,
+      "unresolved_call_sites": 19,
+      "vector_entries_without_compiler_frame": [],
+      "cookie_objects_overlap": false,
+      "startup_copy_zero_ranges": {
+        ".data": {
+          "start": 536870912,
+          "end_exclusive": 536894608,
+          "bytes": 23696
+        },
+        ".bss": {
+          "start": 536894608,
+          "end_exclusive": 536949552,
+          "bytes": 54944
+        }
+      },
+      "complete_worst_case_stack_bound": false
+    },
+    "f4-release": {
+      "raw_bytes": 68096,
+      "signed_bytes": 68232,
+      "allocated_ram_bytes": 85960,
+      "reserved_stack_bytes": 8192,
+      "maximum_single_frame_bytes": 224,
+      "maximum_known_direct_chain_bytes": 396,
+      "unresolved_call_sites": 19,
+      "vector_entries_without_compiler_frame": [],
+      "cookie_objects_overlap": false,
+      "startup_copy_zero_ranges": {
+        ".data": {
+          "start": 536870912,
+          "end_exclusive": 536893728,
+          "bytes": 22816
+        },
+        ".bss": {
+          "start": 536893728,
+          "end_exclusive": 536948672,
+          "bytes": 54944
+        }
+      },
+      "complete_worst_case_stack_bound": false
+    },
+    "h7-debug": {
+      "raw_bytes": 79184,
+      "signed_bytes": 79320,
+      "allocated_ram_bytes": 456553,
+      "reserved_stack_bytes": 1024,
+      "maximum_single_frame_bytes": 288,
+      "maximum_known_direct_chain_bytes": 468,
+      "unresolved_call_sites": 24,
+      "vector_entries_without_compiler_frame": [
+        {
+          "entry": "TIM1_UP_IRQHandler",
+          "address": 134349633,
+          "reason": "assembly/alias or missing compiler frame; no zero-cost assumption"
+        }
+      ],
+      "cookie_objects_overlap": false,
+      "startup_copy_zero_ranges": {
+        ".data": {
+          "start": 536870912,
+          "end_exclusive": 536894820,
+          "bytes": 23908
+        },
+        ".bss": {
+          "start": 536894820,
+          "end_exclusive": 536948720,
+          "bytes": 53900
+        }
+      },
+      "complete_worst_case_stack_bound": false
+    },
+    "h7-release": {
+      "raw_bytes": 77152,
+      "signed_bytes": 77288,
+      "allocated_ram_bytes": 455673,
+      "reserved_stack_bytes": 1024,
+      "maximum_single_frame_bytes": 224,
+      "maximum_known_direct_chain_bytes": 468,
+      "unresolved_call_sites": 23,
+      "vector_entries_without_compiler_frame": [
+        {
+          "entry": "TIM1_UP_IRQHandler",
+          "address": 134349633,
+          "reason": "assembly/alias or missing compiler frame; no zero-cost assumption"
+        }
+      ],
+      "cookie_objects_overlap": false,
+      "startup_copy_zero_ranges": {
+        ".data": {
+          "start": 536870912,
+          "end_exclusive": 536893940,
+          "bytes": 23028
+        },
+        ".bss": {
+          "start": 536893940,
+          "end_exclusive": 536947840,
+          "bytes": 53900
+        }
+      },
+      "complete_worst_case_stack_bound": false
+    }
+  },
+  "reproducibility": [
+    {
+      "artifact": "f4-debug/main.bin",
+      "sha256": "afc5299e03e7face644eae934cbc45148f9b9e0fdec570409edb3b9be7546477",
+      "byte_identical": true
+    },
+    {
+      "artifact": "f4-debug/main.bin.signed",
+      "sha256": "5a291805c13788873a116739358ce5098891912eb346aab68e7552356dbfc558",
+      "byte_identical": true
+    },
+    {
+      "artifact": "f4-debug/main.elf",
+      "sha256": "8be9a4650a3b99b93dc7eb3f3d8aa6b45010e62839cfbc24d5c3b705691be17b",
+      "byte_identical": true
+    },
+    {
+      "artifact": "f4-release/main.bin",
+      "sha256": "7c1449066922673fb9fd6bcc7aa2c0c4369d6cc5aebbf9bb9f212e69855fd7c5",
+      "byte_identical": true
+    },
+    {
+      "artifact": "f4-release/main.bin.signed",
+      "sha256": "468edb8a2bb18cd81303dd07d0e240f24df10bdc0c7ff094b727578d480c45ad",
+      "byte_identical": true
+    },
+    {
+      "artifact": "f4-release/main.elf",
+      "sha256": "ded4769556a1728b3500d1d2e4fa8874ba6d2312013be6f15f57cd342a611577",
+      "byte_identical": true
+    },
+    {
+      "artifact": "h7-debug/main.bin",
+      "sha256": "d99f741d3578d8c3e11800d2f06519475bee2252557bed0ca215fdff1e59d891",
+      "byte_identical": true
+    },
+    {
+      "artifact": "h7-debug/main.bin.signed",
+      "sha256": "7f9dce15449fd88baa1e672d855b0d4bf56f889173aab6c59d92dc8621802272",
+      "byte_identical": true
+    },
+    {
+      "artifact": "h7-debug/main.elf",
+      "sha256": "7e12e0e9ee903ed40d9df72549c491602808b5f1b1e3b3d65b3685441a089448",
+      "byte_identical": true
+    },
+    {
+      "artifact": "h7-release/main.bin",
+      "sha256": "16a9eba682602689676cee542bdc8f1f19b2b9f03dde9da26d51d93b679db243",
+      "byte_identical": true
+    },
+    {
+      "artifact": "h7-release/main.bin.signed",
+      "sha256": "0b11f8935ee304abf727f696ba5a2d9c53900f0d1dd382f5f96cab6c53bca259",
+      "byte_identical": true
+    },
+    {
+      "artifact": "h7-release/main.elf",
+      "sha256": "b13d64216889b8088c06190df0a57fa9a4894f5d9a400a9c79b0656701dcd195",
+      "byte_identical": true
+    }
+  ],
+  "resource_checks": [
+    {
+      "name": "f4-flash-exact",
+      "passed": true,
+      "kind": "exact-boundary-accepted"
+    },
+    {
+      "name": "f4-flash-overflow",
+      "passed": true,
+      "kind": "overflow-rejected"
+    },
+    {
+      "name": "f4-static-exact",
+      "passed": true,
+      "kind": "exact-boundary-accepted"
+    },
+    {
+      "name": "f4-static-overflow",
+      "passed": true,
+      "kind": "overflow-rejected"
+    },
+    {
+      "name": "h7-flash-exact",
+      "passed": true,
+      "kind": "exact-boundary-accepted"
+    },
+    {
+      "name": "h7-flash-overflow",
+      "passed": true,
+      "kind": "overflow-rejected"
+    },
+    {
+      "name": "h7-static-heap-exact",
+      "passed": true,
+      "kind": "exact-boundary-accepted"
+    },
+    {
+      "name": "h7-static-heap-overflow",
+      "passed": true,
+      "kind": "overflow-rejected"
+    },
+    {
+      "name": "h7-sram4-rx-exact",
+      "passed": true,
+      "kind": "exact-boundary-accepted"
+    },
+    {
+      "name": "h7-sram4-rx-overflow",
+      "passed": true,
+      "kind": "overflow-rejected"
+    },
+    {
+      "name": "h7-sram4-tx-exact",
+      "passed": true,
+      "kind": "exact-boundary-accepted"
+    },
+    {
+      "name": "h7-sram4-tx-overflow",
+      "passed": true,
+      "kind": "overflow-rejected"
+    },
+    {
+      "name": "f4-frame-overflow",
+      "passed": true,
+      "kind": "audit-rejection"
+    },
+    {
+      "name": "f4-unbounded-frame",
+      "passed": true,
+      "kind": "audit-rejection"
+    },
+    {
+      "name": "f4-direct-chain-overflow",
+      "passed": true,
+      "kind": "audit-rejection"
+    },
+    {
+      "name": "f4-recursive-chain",
+      "passed": true,
+      "kind": "audit-rejection"
+    },
+    {
+      "name": "f4-runtime-proof",
+      "passed": true,
+      "kind": "unresolved-runtime-gate-rejected",
+      "runtime_proof_completed": false
+    },
+    {
+      "name": "h7-frame-overflow",
+      "passed": true,
+      "kind": "audit-rejection"
+    },
+    {
+      "name": "h7-unbounded-frame",
+      "passed": true,
+      "kind": "audit-rejection"
+    },
+    {
+      "name": "h7-direct-chain-overflow",
+      "passed": true,
+      "kind": "audit-rejection"
+    },
+    {
+      "name": "h7-recursive-chain",
+      "passed": true,
+      "kind": "audit-rejection"
+    },
+    {
+      "name": "h7-runtime-proof",
+      "passed": true,
+      "kind": "unresolved-runtime-gate-rejected",
+      "runtime_proof_completed": false
+    },
+    {
+      "name": "inherited-overlap-rejected",
+      "passed": true,
+      "kind": "audit-rejection"
+    }
+  ],
+  "commands": [
+    {
+      "name": "build-first-f4-debug",
+      "argv": [
+        "/usr/bin/sandbox-exec",
+        "-f",
+        "/Users/shuang/Code/openpilot/songplus-port-lab/tools/panda_firmware_offline.sb",
+        "/Users/shuang/Code/openpilot/songplus-port-lab/upstream-openpilot/.venv/bin/python",
+        "/Users/shuang/Code/openpilot/songplus-port-lab/results/songplus-integration-p8-resources/formal-4/first/panda/tools/p5/build_candidate.py",
+        "--source",
+        "/Users/shuang/Code/openpilot/songplus-port-lab/results/songplus-integration-p8-resources/formal-4/first/panda",
+        "--opendbc",
+        "/Users/shuang/Code/openpilot/songplus-port-lab/results/songplus-integration-p8-resources/formal-4/first/opendbc",
+        "--arm-prefix",
+        "/Users/shuang/Code/openpilot/songplus-port-lab/upstream-openpilot/.venv/bin",
+        "--output",
+        "/Users/shuang/Code/openpilot/songplus-port-lab/results/songplus-integration-p8-resources/formal-4/first/f4-debug",
+        "--target",
+        "f4",
+        "--policy",
+        "debug"
+      ],
+      "exit_code": 0,
+      "log": "build-first-f4-debug.log",
+      "log_sha256": "1b98d2bf099591d951e2a4e668a434ebb8ab5ba8d4d9ee065353ac1d2920f641"
+    },
+    {
+      "name": "audit-first-f4-debug",
+      "argv": [
+        "/usr/bin/sandbox-exec",
+        "-f",
+        "/Users/shuang/Code/openpilot/songplus-port-lab/tools/panda_firmware_offline.sb",
+        "/Users/shuang/Code/openpilot/songplus-port-lab/upstream-openpilot/.venv/bin/python",
+        "/Users/shuang/Code/openpilot/songplus-port-lab/results/songplus-integration-p8-resources/formal-4/first/panda/tests/p5/audit_resources.py",
+        "--target",
+        "f4",
+        "--elf",
+        "/Users/shuang/Code/openpilot/songplus-port-lab/results/songplus-integration-p8-resources/formal-4/first/f4-debug/main.elf",
+        "--map",
+        "/Users/shuang/Code/openpilot/songplus-port-lab/results/songplus-integration-p8-resources/formal-4/first/f4-debug/main.map",
+        "--raw",
+        "/Users/shuang/Code/openpilot/songplus-port-lab/results/songplus-integration-p8-resources/formal-4/first/f4-debug/main.bin",
+        "--signed",
+        "/Users/shuang/Code/openpilot/songplus-port-lab/results/songplus-integration-p8-resources/formal-4/first/f4-debug/main.bin.signed",
+        "--public-key",
+        "/Users/shuang/Code/openpilot/songplus-port-lab/results/songplus-integration-p8-resources/formal-4/first/panda/board/crypto/certs/debug.pub",
+        "--stack-dir",
+        "/Users/shuang/Code/openpilot/songplus-port-lab/results/songplus-integration-p8-resources/formal-4/first/f4-debug",
+        "--output",
+        "/Users/shuang/Code/openpilot/songplus-port-lab/results/songplus-integration-p8-resources/formal-4/first/f4-debug/resources.json"
+      ],
+      "exit_code": 0,
+      "log": "audit-first-f4-debug.log",
+      "log_sha256": "c74455f1495727cd75611517bde9fdabf30fb727781706ebde03871b65376da7"
+    },
+    {
+      "name": "build-first-f4-release",
+      "argv": [
+        "/usr/bin/sandbox-exec",
+        "-f",
+        "/Users/shuang/Code/openpilot/songplus-port-lab/tools/panda_firmware_offline.sb",
+        "/Users/shuang/Code/openpilot/songplus-port-lab/upstream-openpilot/.venv/bin/python",
+        "/Users/shuang/Code/openpilot/songplus-port-lab/results/songplus-integration-p8-resources/formal-4/first/panda/tools/p5/build_candidate.py",
+        "--source",
+        "/Users/shuang/Code/openpilot/songplus-port-lab/results/songplus-integration-p8-resources/formal-4/first/panda",
+        "--opendbc",
+        "/Users/shuang/Code/openpilot/songplus-port-lab/results/songplus-integration-p8-resources/formal-4/first/opendbc",
+        "--arm-prefix",
+        "/Users/shuang/Code/openpilot/songplus-port-lab/upstream-openpilot/.venv/bin",
+        "--output",
+        "/Users/shuang/Code/openpilot/songplus-port-lab/results/songplus-integration-p8-resources/formal-4/first/f4-release",
+        "--target",
+        "f4",
+        "--policy",
+        "release"
+      ],
+      "exit_code": 0,
+      "log": "build-first-f4-release.log",
+      "log_sha256": "d32427b98c4370585f0729bb4963e89f955add57bb1346a3350d2e4b8d59998b"
+    },
+    {
+      "name": "audit-first-f4-release",
+      "argv": [
+        "/usr/bin/sandbox-exec",
+        "-f",
+        "/Users/shuang/Code/openpilot/songplus-port-lab/tools/panda_firmware_offline.sb",
+        "/Users/shuang/Code/openpilot/songplus-port-lab/upstream-openpilot/.venv/bin/python",
+        "/Users/shuang/Code/openpilot/songplus-port-lab/results/songplus-integration-p8-resources/formal-4/first/panda/tests/p5/audit_resources.py",
+        "--target",
+        "f4",
+        "--elf",
+        "/Users/shuang/Code/openpilot/songplus-port-lab/results/songplus-integration-p8-resources/formal-4/first/f4-release/main.elf",
+        "--map",
+        "/Users/shuang/Code/openpilot/songplus-port-lab/results/songplus-integration-p8-resources/formal-4/first/f4-release/main.map",
+        "--raw",
+        "/Users/shuang/Code/openpilot/songplus-port-lab/results/songplus-integration-p8-resources/formal-4/first/f4-release/main.bin",
+        "--signed",
+        "/Users/shuang/Code/openpilot/songplus-port-lab/results/songplus-integration-p8-resources/formal-4/first/f4-release/main.bin.signed",
+        "--public-key",
+        "/Users/shuang/Code/openpilot/songplus-port-lab/results/songplus-integration-p8-resources/formal-4/first/panda/board/crypto/certs/debug.pub",
+        "--stack-dir",
+        "/Users/shuang/Code/openpilot/songplus-port-lab/results/songplus-integration-p8-resources/formal-4/first/f4-release",
+        "--output",
+        "/Users/shuang/Code/openpilot/songplus-port-lab/results/songplus-integration-p8-resources/formal-4/first/f4-release/resources.json"
+      ],
+      "exit_code": 0,
+      "log": "audit-first-f4-release.log",
+      "log_sha256": "47973e25462205c3f9f2958f318c0d1bfb1ad563790aaa58465a4e2feb170940"
+    },
+    {
+      "name": "build-first-h7-debug",
+      "argv": [
+        "/usr/bin/sandbox-exec",
+        "-f",
+        "/Users/shuang/Code/openpilot/songplus-port-lab/tools/panda_firmware_offline.sb",
+        "/Users/shuang/Code/openpilot/songplus-port-lab/upstream-openpilot/.venv/bin/python",
+        "/Users/shuang/Code/openpilot/songplus-port-lab/results/songplus-integration-p8-resources/formal-4/first/panda/tools/p5/build_candidate.py",
+        "--source",
+        "/Users/shuang/Code/openpilot/songplus-port-lab/results/songplus-integration-p8-resources/formal-4/first/panda",
+        "--opendbc",
+        "/Users/shuang/Code/openpilot/songplus-port-lab/results/songplus-integration-p8-resources/formal-4/first/opendbc",
+        "--arm-prefix",
+        "/Users/shuang/Code/openpilot/songplus-port-lab/upstream-openpilot/.venv/bin",
+        "--output",
+        "/Users/shuang/Code/openpilot/songplus-port-lab/results/songplus-integration-p8-resources/formal-4/first/h7-debug",
+        "--target",
+        "h7",
+        "--policy",
+        "debug"
+      ],
+      "exit_code": 0,
+      "log": "build-first-h7-debug.log",
+      "log_sha256": "719611fca082539052a3c1ad0503d40dd4ebcc5b18187df1e94992b990988116"
+    },
+    {
+      "name": "audit-first-h7-debug",
+      "argv": [
+        "/usr/bin/sandbox-exec",
+        "-f",
+        "/Users/shuang/Code/openpilot/songplus-port-lab/tools/panda_firmware_offline.sb",
+        "/Users/shuang/Code/openpilot/songplus-port-lab/upstream-openpilot/.venv/bin/python",
+        "/Users/shuang/Code/openpilot/songplus-port-lab/results/songplus-integration-p8-resources/formal-4/first/panda/tests/p5/audit_resources.py",
+        "--target",
+        "h7",
+        "--elf",
+        "/Users/shuang/Code/openpilot/songplus-port-lab/results/songplus-integration-p8-resources/formal-4/first/h7-debug/main.elf",
+        "--map",
+        "/Users/shuang/Code/openpilot/songplus-port-lab/results/songplus-integration-p8-resources/formal-4/first/h7-debug/main.map",
+        "--raw",
+        "/Users/shuang/Code/openpilot/songplus-port-lab/results/songplus-integration-p8-resources/formal-4/first/h7-debug/main.bin",
+        "--signed",
+        "/Users/shuang/Code/openpilot/songplus-port-lab/results/songplus-integration-p8-resources/formal-4/first/h7-debug/main.bin.signed",
+        "--public-key",
+        "/Users/shuang/Code/openpilot/songplus-port-lab/results/songplus-integration-p8-resources/formal-4/first/panda/board/crypto/certs/debug.pub",
+        "--stack-dir",
+        "/Users/shuang/Code/openpilot/songplus-port-lab/results/songplus-integration-p8-resources/formal-4/first/h7-debug",
+        "--output",
+        "/Users/shuang/Code/openpilot/songplus-port-lab/results/songplus-integration-p8-resources/formal-4/first/h7-debug/resources.json"
+      ],
+      "exit_code": 0,
+      "log": "audit-first-h7-debug.log",
+      "log_sha256": "c84c190c46e373bd21d06122f2013e8b429df827b5945ee94efcb5323288bfab"
+    },
+    {
+      "name": "build-first-h7-release",
+      "argv": [
+        "/usr/bin/sandbox-exec",
+        "-f",
+        "/Users/shuang/Code/openpilot/songplus-port-lab/tools/panda_firmware_offline.sb",
+        "/Users/shuang/Code/openpilot/songplus-port-lab/upstream-openpilot/.venv/bin/python",
+        "/Users/shuang/Code/openpilot/songplus-port-lab/results/songplus-integration-p8-resources/formal-4/first/panda/tools/p5/build_candidate.py",
+        "--source",
+        "/Users/shuang/Code/openpilot/songplus-port-lab/results/songplus-integration-p8-resources/formal-4/first/panda",
+        "--opendbc",
+        "/Users/shuang/Code/openpilot/songplus-port-lab/results/songplus-integration-p8-resources/formal-4/first/opendbc",
+        "--arm-prefix",
+        "/Users/shuang/Code/openpilot/songplus-port-lab/upstream-openpilot/.venv/bin",
+        "--output",
+        "/Users/shuang/Code/openpilot/songplus-port-lab/results/songplus-integration-p8-resources/formal-4/first/h7-release",
+        "--target",
+        "h7",
+        "--policy",
+        "release"
+      ],
+      "exit_code": 0,
+      "log": "build-first-h7-release.log",
+      "log_sha256": "2ff6402a085387fd46b5555071bc3d4b950c0a04b797d9144ba2ec8759f8b7c8"
+    },
+    {
+      "name": "audit-first-h7-release",
+      "argv": [
+        "/usr/bin/sandbox-exec",
+        "-f",
+        "/Users/shuang/Code/openpilot/songplus-port-lab/tools/panda_firmware_offline.sb",
+        "/Users/shuang/Code/openpilot/songplus-port-lab/upstream-openpilot/.venv/bin/python",
+        "/Users/shuang/Code/openpilot/songplus-port-lab/results/songplus-integration-p8-resources/formal-4/first/panda/tests/p5/audit_resources.py",
+        "--target",
+        "h7",
+        "--elf",
+        "/Users/shuang/Code/openpilot/songplus-port-lab/results/songplus-integration-p8-resources/formal-4/first/h7-release/main.elf",
+        "--map",
+        "/Users/shuang/Code/openpilot/songplus-port-lab/results/songplus-integration-p8-resources/formal-4/first/h7-release/main.map",
+        "--raw",
+        "/Users/shuang/Code/openpilot/songplus-port-lab/results/songplus-integration-p8-resources/formal-4/first/h7-release/main.bin",
+        "--signed",
+        "/Users/shuang/Code/openpilot/songplus-port-lab/results/songplus-integration-p8-resources/formal-4/first/h7-release/main.bin.signed",
+        "--public-key",
+        "/Users/shuang/Code/openpilot/songplus-port-lab/results/songplus-integration-p8-resources/formal-4/first/panda/board/crypto/certs/debug.pub",
+        "--stack-dir",
+        "/Users/shuang/Code/openpilot/songplus-port-lab/results/songplus-integration-p8-resources/formal-4/first/h7-release",
+        "--output",
+        "/Users/shuang/Code/openpilot/songplus-port-lab/results/songplus-integration-p8-resources/formal-4/first/h7-release/resources.json"
+      ],
+      "exit_code": 0,
+      "log": "audit-first-h7-release.log",
+      "log_sha256": "d2266482ad7149769e69299a50b54085b24a0ce6919126988a8377311e0c6f31"
+    },
+    {
+      "name": "build-second-f4-debug",
+      "argv": [
+        "/usr/bin/sandbox-exec",
+        "-f",
+        "/Users/shuang/Code/openpilot/songplus-port-lab/tools/panda_firmware_offline.sb",
+        "/Users/shuang/Code/openpilot/songplus-port-lab/upstream-openpilot/.venv/bin/python",
+        "/Users/shuang/Code/openpilot/songplus-port-lab/results/songplus-integration-p8-resources/formal-4/second/panda/tools/p5/build_candidate.py",
+        "--source",
+        "/Users/shuang/Code/openpilot/songplus-port-lab/results/songplus-integration-p8-resources/formal-4/second/panda",
+        "--opendbc",
+        "/Users/shuang/Code/openpilot/songplus-port-lab/results/songplus-integration-p8-resources/formal-4/second/opendbc",
+        "--arm-prefix",
+        "/Users/shuang/Code/openpilot/songplus-port-lab/upstream-openpilot/.venv/bin",
+        "--output",
+        "/Users/shuang/Code/openpilot/songplus-port-lab/results/songplus-integration-p8-resources/formal-4/second/f4-debug",
+        "--target",
+        "f4",
+        "--policy",
+        "debug"
+      ],
+      "exit_code": 0,
+      "log": "build-second-f4-debug.log",
+      "log_sha256": "1b98d2bf099591d951e2a4e668a434ebb8ab5ba8d4d9ee065353ac1d2920f641"
+    },
+    {
+      "name": "audit-second-f4-debug",
+      "argv": [
+        "/usr/bin/sandbox-exec",
+        "-f",
+        "/Users/shuang/Code/openpilot/songplus-port-lab/tools/panda_firmware_offline.sb",
+        "/Users/shuang/Code/openpilot/songplus-port-lab/upstream-openpilot/.venv/bin/python",
+        "/Users/shuang/Code/openpilot/songplus-port-lab/results/songplus-integration-p8-resources/formal-4/second/panda/tests/p5/audit_resources.py",
+        "--target",
+        "f4",
+        "--elf",
+        "/Users/shuang/Code/openpilot/songplus-port-lab/results/songplus-integration-p8-resources/formal-4/second/f4-debug/main.elf",
+        "--map",
+        "/Users/shuang/Code/openpilot/songplus-port-lab/results/songplus-integration-p8-resources/formal-4/second/f4-debug/main.map",
+        "--raw",
+        "/Users/shuang/Code/openpilot/songplus-port-lab/results/songplus-integration-p8-resources/formal-4/second/f4-debug/main.bin",
+        "--signed",
+        "/Users/shuang/Code/openpilot/songplus-port-lab/results/songplus-integration-p8-resources/formal-4/second/f4-debug/main.bin.signed",
+        "--public-key",
+        "/Users/shuang/Code/openpilot/songplus-port-lab/results/songplus-integration-p8-resources/formal-4/second/panda/board/crypto/certs/debug.pub",
+        "--stack-dir",
+        "/Users/shuang/Code/openpilot/songplus-port-lab/results/songplus-integration-p8-resources/formal-4/second/f4-debug",
+        "--output",
+        "/Users/shuang/Code/openpilot/songplus-port-lab/results/songplus-integration-p8-resources/formal-4/second/f4-debug/resources.json"
+      ],
+      "exit_code": 0,
+      "log": "audit-second-f4-debug.log",
+      "log_sha256": "c74455f1495727cd75611517bde9fdabf30fb727781706ebde03871b65376da7"
+    },
+    {
+      "name": "build-second-f4-release",
+      "argv": [
+        "/usr/bin/sandbox-exec",
+        "-f",
+        "/Users/shuang/Code/openpilot/songplus-port-lab/tools/panda_firmware_offline.sb",
+        "/Users/shuang/Code/openpilot/songplus-port-lab/upstream-openpilot/.venv/bin/python",
+        "/Users/shuang/Code/openpilot/songplus-port-lab/results/songplus-integration-p8-resources/formal-4/second/panda/tools/p5/build_candidate.py",
+        "--source",
+        "/Users/shuang/Code/openpilot/songplus-port-lab/results/songplus-integration-p8-resources/formal-4/second/panda",
+        "--opendbc",
+        "/Users/shuang/Code/openpilot/songplus-port-lab/results/songplus-integration-p8-resources/formal-4/second/opendbc",
+        "--arm-prefix",
+        "/Users/shuang/Code/openpilot/songplus-port-lab/upstream-openpilot/.venv/bin",
+        "--output",
+        "/Users/shuang/Code/openpilot/songplus-port-lab/results/songplus-integration-p8-resources/formal-4/second/f4-release",
+        "--target",
+        "f4",
+        "--policy",
+        "release"
+      ],
+      "exit_code": 0,
+      "log": "build-second-f4-release.log",
+      "log_sha256": "d32427b98c4370585f0729bb4963e89f955add57bb1346a3350d2e4b8d59998b"
+    },
+    {
+      "name": "audit-second-f4-release",
+      "argv": [
+        "/usr/bin/sandbox-exec",
+        "-f",
+        "/Users/shuang/Code/openpilot/songplus-port-lab/tools/panda_firmware_offline.sb",
+        "/Users/shuang/Code/openpilot/songplus-port-lab/upstream-openpilot/.venv/bin/python",
+        "/Users/shuang/Code/openpilot/songplus-port-lab/results/songplus-integration-p8-resources/formal-4/second/panda/tests/p5/audit_resources.py",
+        "--target",
+        "f4",
+        "--elf",
+        "/Users/shuang/Code/openpilot/songplus-port-lab/results/songplus-integration-p8-resources/formal-4/second/f4-release/main.elf",
+        "--map",
+        "/Users/shuang/Code/openpilot/songplus-port-lab/results/songplus-integration-p8-resources/formal-4/second/f4-release/main.map",
+        "--raw",
+        "/Users/shuang/Code/openpilot/songplus-port-lab/results/songplus-integration-p8-resources/formal-4/second/f4-release/main.bin",
+        "--signed",
+        "/Users/shuang/Code/openpilot/songplus-port-lab/results/songplus-integration-p8-resources/formal-4/second/f4-release/main.bin.signed",
+        "--public-key",
+        "/Users/shuang/Code/openpilot/songplus-port-lab/results/songplus-integration-p8-resources/formal-4/second/panda/board/crypto/certs/debug.pub",
+        "--stack-dir",
+        "/Users/shuang/Code/openpilot/songplus-port-lab/results/songplus-integration-p8-resources/formal-4/second/f4-release",
+        "--output",
+        "/Users/shuang/Code/openpilot/songplus-port-lab/results/songplus-integration-p8-resources/formal-4/second/f4-release/resources.json"
+      ],
+      "exit_code": 0,
+      "log": "audit-second-f4-release.log",
+      "log_sha256": "47973e25462205c3f9f2958f318c0d1bfb1ad563790aaa58465a4e2feb170940"
+    },
+    {
+      "name": "build-second-h7-debug",
+      "argv": [
+        "/usr/bin/sandbox-exec",
+        "-f",
+        "/Users/shuang/Code/openpilot/songplus-port-lab/tools/panda_firmware_offline.sb",
+        "/Users/shuang/Code/openpilot/songplus-port-lab/upstream-openpilot/.venv/bin/python",
+        "/Users/shuang/Code/openpilot/songplus-port-lab/results/songplus-integration-p8-resources/formal-4/second/panda/tools/p5/build_candidate.py",
+        "--source",
+        "/Users/shuang/Code/openpilot/songplus-port-lab/results/songplus-integration-p8-resources/formal-4/second/panda",
+        "--opendbc",
+        "/Users/shuang/Code/openpilot/songplus-port-lab/results/songplus-integration-p8-resources/formal-4/second/opendbc",
+        "--arm-prefix",
+        "/Users/shuang/Code/openpilot/songplus-port-lab/upstream-openpilot/.venv/bin",
+        "--output",
+        "/Users/shuang/Code/openpilot/songplus-port-lab/results/songplus-integration-p8-resources/formal-4/second/h7-debug",
+        "--target",
+        "h7",
+        "--policy",
+        "debug"
+      ],
+      "exit_code": 0,
+      "log": "build-second-h7-debug.log",
+      "log_sha256": "719611fca082539052a3c1ad0503d40dd4ebcc5b18187df1e94992b990988116"
+    },
+    {
+      "name": "audit-second-h7-debug",
+      "argv": [
+        "/usr/bin/sandbox-exec",
+        "-f",
+        "/Users/shuang/Code/openpilot/songplus-port-lab/tools/panda_firmware_offline.sb",
+        "/Users/shuang/Code/openpilot/songplus-port-lab/upstream-openpilot/.venv/bin/python",
+        "/Users/shuang/Code/openpilot/songplus-port-lab/results/songplus-integration-p8-resources/formal-4/second/panda/tests/p5/audit_resources.py",
+        "--target",
+        "h7",
+        "--elf",
+        "/Users/shuang/Code/openpilot/songplus-port-lab/results/songplus-integration-p8-resources/formal-4/second/h7-debug/main.elf",
+        "--map",
+        "/Users/shuang/Code/openpilot/songplus-port-lab/results/songplus-integration-p8-resources/formal-4/second/h7-debug/main.map",
+        "--raw",
+        "/Users/shuang/Code/openpilot/songplus-port-lab/results/songplus-integration-p8-resources/formal-4/second/h7-debug/main.bin",
+        "--signed",
+        "/Users/shuang/Code/openpilot/songplus-port-lab/results/songplus-integration-p8-resources/formal-4/second/h7-debug/main.bin.signed",
+        "--public-key",
+        "/Users/shuang/Code/openpilot/songplus-port-lab/results/songplus-integration-p8-resources/formal-4/second/panda/board/crypto/certs/debug.pub",
+        "--stack-dir",
+        "/Users/shuang/Code/openpilot/songplus-port-lab/results/songplus-integration-p8-resources/formal-4/second/h7-debug",
+        "--output",
+        "/Users/shuang/Code/openpilot/songplus-port-lab/results/songplus-integration-p8-resources/formal-4/second/h7-debug/resources.json"
+      ],
+      "exit_code": 0,
+      "log": "audit-second-h7-debug.log",
+      "log_sha256": "c84c190c46e373bd21d06122f2013e8b429df827b5945ee94efcb5323288bfab"
+    },
+    {
+      "name": "build-second-h7-release",
+      "argv": [
+        "/usr/bin/sandbox-exec",
+        "-f",
+        "/Users/shuang/Code/openpilot/songplus-port-lab/tools/panda_firmware_offline.sb",
+        "/Users/shuang/Code/openpilot/songplus-port-lab/upstream-openpilot/.venv/bin/python",
+        "/Users/shuang/Code/openpilot/songplus-port-lab/results/songplus-integration-p8-resources/formal-4/second/panda/tools/p5/build_candidate.py",
+        "--source",
+        "/Users/shuang/Code/openpilot/songplus-port-lab/results/songplus-integration-p8-resources/formal-4/second/panda",
+        "--opendbc",
+        "/Users/shuang/Code/openpilot/songplus-port-lab/results/songplus-integration-p8-resources/formal-4/second/opendbc",
+        "--arm-prefix",
+        "/Users/shuang/Code/openpilot/songplus-port-lab/upstream-openpilot/.venv/bin",
+        "--output",
+        "/Users/shuang/Code/openpilot/songplus-port-lab/results/songplus-integration-p8-resources/formal-4/second/h7-release",
+        "--target",
+        "h7",
+        "--policy",
+        "release"
+      ],
+      "exit_code": 0,
+      "log": "build-second-h7-release.log",
+      "log_sha256": "2ff6402a085387fd46b5555071bc3d4b950c0a04b797d9144ba2ec8759f8b7c8"
+    },
+    {
+      "name": "audit-second-h7-release",
+      "argv": [
+        "/usr/bin/sandbox-exec",
+        "-f",
+        "/Users/shuang/Code/openpilot/songplus-port-lab/tools/panda_firmware_offline.sb",
+        "/Users/shuang/Code/openpilot/songplus-port-lab/upstream-openpilot/.venv/bin/python",
+        "/Users/shuang/Code/openpilot/songplus-port-lab/results/songplus-integration-p8-resources/formal-4/second/panda/tests/p5/audit_resources.py",
+        "--target",
+        "h7",
+        "--elf",
+        "/Users/shuang/Code/openpilot/songplus-port-lab/results/songplus-integration-p8-resources/formal-4/second/h7-release/main.elf",
+        "--map",
+        "/Users/shuang/Code/openpilot/songplus-port-lab/results/songplus-integration-p8-resources/formal-4/second/h7-release/main.map",
+        "--raw",
+        "/Users/shuang/Code/openpilot/songplus-port-lab/results/songplus-integration-p8-resources/formal-4/second/h7-release/main.bin",
+        "--signed",
+        "/Users/shuang/Code/openpilot/songplus-port-lab/results/songplus-integration-p8-resources/formal-4/second/h7-release/main.bin.signed",
+        "--public-key",
+        "/Users/shuang/Code/openpilot/songplus-port-lab/results/songplus-integration-p8-resources/formal-4/second/panda/board/crypto/certs/debug.pub",
+        "--stack-dir",
+        "/Users/shuang/Code/openpilot/songplus-port-lab/results/songplus-integration-p8-resources/formal-4/second/h7-release",
+        "--output",
+        "/Users/shuang/Code/openpilot/songplus-port-lab/results/songplus-integration-p8-resources/formal-4/second/h7-release/resources.json"
+      ],
+      "exit_code": 0,
+      "log": "audit-second-h7-release.log",
+      "log_sha256": "d2266482ad7149769e69299a50b54085b24a0ce6919126988a8377311e0c6f31"
+    },
+    {
+      "name": "resource-faults",
+      "argv": [
+        "/usr/bin/sandbox-exec",
+        "-f",
+        "/Users/shuang/Code/openpilot/songplus-port-lab/tools/panda_firmware_offline.sb",
+        "/Users/shuang/Code/openpilot/songplus-port-lab/upstream-openpilot/.venv/bin/python",
+        "/Users/shuang/Code/openpilot/songplus-port-lab/results/songplus-integration-p8-resources/formal-4/first/panda/tests/p8/run_resources.py",
+        "--source",
+        "/Users/shuang/Code/openpilot/songplus-port-lab/results/songplus-integration-p8-resources/formal-4/first/panda",
+        "--arm-prefix",
+        "/Users/shuang/Code/openpilot/songplus-port-lab/upstream-openpilot/.venv/bin",
+        "--f4-build",
+        "/Users/shuang/Code/openpilot/songplus-port-lab/results/songplus-integration-p8-resources/formal-4/first/f4-debug",
+        "--h7-build",
+        "/Users/shuang/Code/openpilot/songplus-port-lab/results/songplus-integration-p8-resources/formal-4/first/h7-debug",
+        "--output",
+        "/Users/shuang/Code/openpilot/songplus-port-lab/results/songplus-integration-p8-resources/formal-4/resource-faults"
+      ],
+      "exit_code": 0,
+      "log": "resource-faults.log",
+      "log_sha256": "6a99e0335a2c2d6936c5d2ad09d1a8ee061f71f1e60288c714c73cd1de61be06"
+    },
+    {
+      "name": "protocol",
+      "argv": [
+        "/usr/bin/sandbox-exec",
+        "-f",
+        "/Users/shuang/Code/openpilot/songplus-port-lab/tools/panda_firmware_offline.sb",
+        "/Users/shuang/Code/openpilot/songplus-port-lab/upstream-openpilot/.venv/bin/python",
+        "/Users/shuang/Code/openpilot/songplus-port-lab/results/songplus-integration-p8-resources/formal-4/first/panda/tests/p5/run_validation.py",
+        "--panda",
+        "/Users/shuang/Code/openpilot/songplus-port-lab/results/songplus-integration-p8-resources/formal-4/first/panda",
+        "--opendbc",
+        "/Users/shuang/Code/openpilot/songplus-port-lab/results/songplus-integration-p8-resources/formal-4/first/opendbc",
+        "--arm-prefix",
+        "/Users/shuang/Code/openpilot/songplus-port-lab/upstream-openpilot/.venv/bin",
+        "--output",
+        "/Users/shuang/Code/openpilot/songplus-port-lab/results/songplus-integration-p8-resources/formal-4/protocol"
+      ],
+      "exit_code": 0,
+      "log": "protocol.log",
+      "log_sha256": "5eee7c8ec43ef20f5a70fc72fc90dba2fdd424f8931d06d325a75f9e77c05b68"
+    },
+    {
+      "name": "bxcan",
+      "argv": [
+        "/usr/bin/sandbox-exec",
+        "-f",
+        "/Users/shuang/Code/openpilot/songplus-port-lab/tools/panda_firmware_offline.sb",
+        "/Users/shuang/Code/openpilot/songplus-port-lab/upstream-openpilot/.venv/bin/python",
+        "/Users/shuang/Code/openpilot/songplus-port-lab/results/songplus-integration-p8-resources/formal-4/first/panda/tests/p5/run_bxcan.py",
+        "--source",
+        "/Users/shuang/Code/openpilot/songplus-port-lab/results/songplus-integration-p8-resources/formal-4/first/panda",
+        "--opendbc",
+        "/Users/shuang/Code/openpilot/songplus-port-lab/results/songplus-integration-p8-resources/formal-4/first/opendbc",
+        "--output",
+        "/Users/shuang/Code/openpilot/songplus-port-lab/results/songplus-integration-p8-resources/formal-4/bxcan"
+      ],
+      "exit_code": 0,
+      "log": "bxcan.log",
+      "log_sha256": "92f1d41eb25d7b01ab1118620aa7c3efa42c17d6bc6553a77b535fa165c7b008"
+    },
+    {
+      "name": "fdcan",
+      "argv": [
+        "/usr/bin/sandbox-exec",
+        "-f",
+        "/Users/shuang/Code/openpilot/songplus-port-lab/tools/panda_firmware_offline.sb",
+        "/Users/shuang/Code/openpilot/songplus-port-lab/upstream-openpilot/.venv/bin/python",
+        "/Users/shuang/Code/openpilot/songplus-port-lab/results/songplus-integration-p8-resources/formal-4/first/panda/tests/p5/run_fdcan.py",
+        "--source",
+        "/Users/shuang/Code/openpilot/songplus-port-lab/results/songplus-integration-p8-resources/formal-4/first/panda",
+        "--opendbc",
+        "/Users/shuang/Code/openpilot/songplus-port-lab/results/songplus-integration-p8-resources/formal-4/first/opendbc",
+        "--output",
+        "/Users/shuang/Code/openpilot/songplus-port-lab/results/songplus-integration-p8-resources/formal-4/fdcan"
+      ],
+      "exit_code": 0,
+      "log": "fdcan.log",
+      "log_sha256": "7556316762846dc282968eda639682c0f6379f7b190cb4df12c9ac287faad2b1"
+    },
+    {
+      "name": "bsp",
+      "argv": [
+        "/usr/bin/sandbox-exec",
+        "-f",
+        "/Users/shuang/Code/openpilot/songplus-port-lab/tools/panda_firmware_offline.sb",
+        "/Users/shuang/Code/openpilot/songplus-port-lab/upstream-openpilot/.venv/bin/python",
+        "/Users/shuang/Code/openpilot/songplus-port-lab/results/songplus-integration-p8-resources/formal-4/first/panda/tests/f4_bsp/run_bsp.py",
+        "--source",
+        "/Users/shuang/Code/openpilot/songplus-port-lab/results/songplus-integration-p8-resources/formal-4/first/panda",
+        "--opendbc",
+        "/Users/shuang/Code/openpilot/songplus-port-lab/results/songplus-integration-p8-resources/formal-4/first/opendbc",
+        "--arm-prefix",
+        "/Users/shuang/Code/openpilot/songplus-port-lab/upstream-openpilot/.venv/bin",
+        "--output",
+        "/Users/shuang/Code/openpilot/songplus-port-lab/results/songplus-integration-p8-resources/formal-4/bsp"
+      ],
+      "exit_code": 0,
+      "log": "bsp.log",
+      "log_sha256": "d4034503cf2ce5e2717b80f31d414bc9fbb82f50e06d4560a701f9ee4aa033d4"
+    },
+    {
+      "name": "capabilities",
+      "argv": [
+        "/usr/bin/sandbox-exec",
+        "-f",
+        "/Users/shuang/Code/openpilot/songplus-port-lab/tools/panda_firmware_offline.sb",
+        "/Users/shuang/Code/openpilot/songplus-port-lab/upstream-openpilot/.venv/bin/python",
+        "/Users/shuang/Code/openpilot/songplus-port-lab/results/songplus-integration-p8-resources/formal-4/first/panda/tests/p5/run_capabilities.py",
+        "--panda",
+        "/Users/shuang/Code/openpilot/songplus-port-lab/results/songplus-integration-p8-resources/formal-4/first/panda",
+        "--output",
+        "/Users/shuang/Code/openpilot/songplus-port-lab/results/songplus-integration-p8-resources/formal-4/capabilities"
+      ],
+      "exit_code": 0,
+      "log": "capabilities.log",
+      "log_sha256": "c75d4edf6d29dd593dda8711a60e7624d1c8e2cc1fc9a124e840fa1596c75cbc"
+    },
+    {
+      "name": "safety",
+      "argv": [
+        "/usr/bin/sandbox-exec",
+        "-f",
+        "/Users/shuang/Code/openpilot/songplus-port-lab/tools/panda_firmware_offline.sb",
+        "/Users/shuang/Code/openpilot/songplus-port-lab/upstream-openpilot/.venv/bin/python",
+        "/Users/shuang/Code/openpilot/songplus-port-lab/results/songplus-integration-p8-resources/formal-4/first/panda/tests/p5/run_safety.py",
+        "--opendbc",
+        "/Users/shuang/Code/openpilot/songplus-port-lab/results/songplus-integration-p8-resources/formal-4/first/opendbc",
+        "--output",
+        "/Users/shuang/Code/openpilot/songplus-port-lab/results/songplus-integration-p8-resources/formal-4/safety"
+      ],
+      "exit_code": 0,
+      "log": "safety.log",
+      "log_sha256": "87bf6620e408bdd64cf714615dea85ae44e0c8856fbc844c2118c97cfcd777ce"
+    },
+    {
+      "name": "liveness-f4",
+      "argv": [
+        "/usr/bin/sandbox-exec",
+        "-f",
+        "/Users/shuang/Code/openpilot/songplus-port-lab/tools/panda_firmware_offline.sb",
+        "/Users/shuang/Code/openpilot/songplus-port-lab/upstream-openpilot/.venv/bin/python",
+        "/Users/shuang/Code/openpilot/songplus-port-lab/results/songplus-integration-p8-resources/formal-4/first/panda/tests/p5/run_firmware_liveness.py",
+        "--panda",
+        "/Users/shuang/Code/openpilot/songplus-port-lab/results/songplus-integration-p8-resources/formal-4/first/panda",
+        "--opendbc",
+        "/Users/shuang/Code/openpilot/songplus-port-lab/results/songplus-integration-p8-resources/formal-4/first/opendbc",
+        "--target",
+        "f4",
+        "--output",
+        "/Users/shuang/Code/openpilot/songplus-port-lab/results/songplus-integration-p8-resources/formal-4/liveness-f4"
+      ],
+      "exit_code": 0,
+      "log": "liveness-f4.log",
+      "log_sha256": "b68f31e97f6cddfba7222578f76d6d88b3baa3781d61d2394620876117cd2626"
+    },
+    {
+      "name": "liveness-h7",
+      "argv": [
+        "/usr/bin/sandbox-exec",
+        "-f",
+        "/Users/shuang/Code/openpilot/songplus-port-lab/tools/panda_firmware_offline.sb",
+        "/Users/shuang/Code/openpilot/songplus-port-lab/upstream-openpilot/.venv/bin/python",
+        "/Users/shuang/Code/openpilot/songplus-port-lab/results/songplus-integration-p8-resources/formal-4/first/panda/tests/p5/run_firmware_liveness.py",
+        "--panda",
+        "/Users/shuang/Code/openpilot/songplus-port-lab/results/songplus-integration-p8-resources/formal-4/first/panda",
+        "--opendbc",
+        "/Users/shuang/Code/openpilot/songplus-port-lab/results/songplus-integration-p8-resources/formal-4/first/opendbc",
+        "--target",
+        "h7",
+        "--output",
+        "/Users/shuang/Code/openpilot/songplus-port-lab/results/songplus-integration-p8-resources/formal-4/liveness-h7"
+      ],
+      "exit_code": 0,
+      "log": "liveness-h7.log",
+      "log_sha256": "4eb94f9905ae79cf9df3571c0e2b91fa6283dad6e39767ef22e23c2cc1d68c6a"
+    }
+  ],
+  "sandbox": "macos-seatbelt: network, device files and IOKit denied",
+  "device_access": false,
+  "mcu_executed": false,
+  "bootstub_built": false,
+  "deployable": false,
+  "runtime_resource_gate": "BLOCKED",
+  "scope": "Application candidates via explicit P8 builder; generic SCons, bootstub, physical memory, DMA/audio behavior and worst-case stack remain unvalidated",
+  "historical_attempts": [
+    {
+      "path": "results/songplus-integration-p8-resources/formal-1/result.json",
+      "sha256": "1408a7f204291d95d4dd4be3c17a9f4b1edd458048d24ee7eb222b060c6b653f",
+      "status": "FAIL",
+      "error": "RuntimeError: safety failed (1); see /Users/shuang/Code/openpilot/songplus-port-lab/results/songplus-integration-p8-resources/formal-1/safety.log",
+      "source_commit": "fb738201f9757972fc83aabe35edda97b9cc20e6",
+      "superseded": true
+    },
+    {
+      "path": "results/songplus-integration-p8-resources/formal-2/result.json",
+      "sha256": "d7c726da43d43f999df98e785e33f439d18f43f2de6c7161bd7719c34539a54f",
+      "status": "PASS_OFFLINE_CANDIDATE",
+      "error": null,
+      "source_commit": "fb738201f9757972fc83aabe35edda97b9cc20e6",
+      "superseded": true
+    },
+    {
+      "path": "results/songplus-integration-p8-resources/formal-3/result.json",
+      "sha256": "a5d5951738069e1cc2cdd023af5a3d1e1a47902541466866509de7332223bebb",
+      "status": "FAIL",
+      "error": "RuntimeError: resource-faults failed (1); see /Users/shuang/Code/openpilot/songplus-port-lab/results/songplus-integration-p8-resources/formal-3/resource-faults.log",
+      "source_commit": "039190e2f8e31ecb9dca8cc4ce0ef3231d0002b8",
+      "superseded": true
+    }
+  ]
+}

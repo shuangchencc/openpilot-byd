@@ -1,0 +1,106 @@
+{
+  "status": "PASS",
+  "source_only": true,
+  "official_checkout_present": false,
+  "private_logs_present": false,
+  "remote_ci_executed": false,
+  "local_vm": "byd-recovery-311",
+  "source_commit": "674721a0408e2a0153757a6eba569247f4784b08",
+  "source_archive_sha256": "43f6a7a471e339af44ad36f77714d0f391cb59d8f926317dd2c23605635339ea",
+  "commands": [
+    {
+      "name": "archive",
+      "argv": [
+        "git",
+        "archive",
+        "--format=tar",
+        "--output=/Users/shuang/Code/openpilot/songplus-port-lab/results/songplus-integration-p8-linux-source-002/source.tar",
+        "HEAD"
+      ],
+      "exit_code": 0,
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "mkdir",
+      "argv": [
+        "limactl",
+        "shell",
+        "byd-recovery-311",
+        "--",
+        "mkdir",
+        "/home/shuang.guest/songplus-p2-build/p8-source-only-674721a"
+      ],
+      "exit_code": 0,
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "copy",
+      "argv": [
+        "limactl",
+        "copy",
+        "/Users/shuang/Code/openpilot/songplus-port-lab/results/songplus-integration-p8-linux-source-002/source.tar",
+        "byd-recovery-311:/home/shuang.guest/songplus-p2-build/p8-source-only-674721a/source.tar"
+      ],
+      "exit_code": 0,
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "extract",
+      "argv": [
+        "limactl",
+        "shell",
+        "byd-recovery-311",
+        "--",
+        "tar",
+        "-xf",
+        "/home/shuang.guest/songplus-p2-build/p8-source-only-674721a/source.tar",
+        "-C",
+        "/home/shuang.guest/songplus-p2-build/p8-source-only-674721a"
+      ],
+      "exit_code": 0,
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "source-ci",
+      "argv": [
+        "limactl",
+        "shell",
+        "byd-recovery-311",
+        "--",
+        "python3",
+        "-S",
+        "-c",
+        "import os,sys; os.chdir(sys.argv[1]); os.execv('/bin/sh',['sh','tools/panda_transport_linux_sandbox.sh','python3','-B','tools/check_songplus_integration_ci.py','--mode','contract','--output','results/source-only'])",
+        "/home/shuang.guest/songplus-p2-build/p8-source-only-674721a"
+      ],
+      "exit_code": 0,
+      "stdout_sha256": "b373d2cdf677685d456f8dfa942face6bc107b7a51eee77f0c19edb66f8e9358",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "copy-results",
+      "argv": [
+        "limactl",
+        "copy",
+        "-r",
+        "byd-recovery-311:/home/shuang.guest/songplus-p2-build/p8-source-only-674721a/results/source-only",
+        "/Users/shuang/Code/openpilot/songplus-port-lab/results/songplus-integration-p8-linux-source-002/contract"
+      ],
+      "exit_code": 0,
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ],
+  "contract_sha256": "b373d2cdf677685d456f8dfa942face6bc107b7a51eee77f0c19edb66f8e9358",
+  "independently_checked": {
+    "commands": 8,
+    "tests": {
+      "maintenance-tests": 214,
+      "integration-ci-tests": 7
+    }
+  }
+}

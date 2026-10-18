@@ -1,0 +1,10 @@
+{
+  "status": "CANCELLED_SOURCE_FIX",
+  "completed_at_utc": "2026-10-18T05:25:24.614821+00:00",
+  "reason": "Independent runtime batch 002 exposed -Werror applied to official main/header warnings; stop before changing locked worker, refreeze and repeat fresh full acceptance.",
+  "maintenance_commit": "bcf2a61d518c9cb7216e6e2232d78776cb1ce68c",
+  "failed": 1,
+  "offline_integration_complete": false,
+  "deployment_ready": false,
+  "device_access": false
+}

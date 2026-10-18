@@ -1,0 +1,50 @@
+{
+  "status": "BLOCKED_FOR_DEPLOYMENT",
+  "offline_integration_complete": true,
+  "offline_compatibility_complete": true,
+  "deployment_ready": false,
+  "deployment_blockers": [
+    {
+      "id": "PHYSICAL_IDENTITY",
+      "status": "UNVERIFIED",
+      "detail": "DOS/F413 and external Panda physical identities and wiring remain unconfirmed."
+    },
+    {
+      "id": "TARGET_RUNTIME",
+      "status": "NOT_TESTED",
+      "detail": "C3XL OS/camera/USB/SPI/thermal runtime has not executed these candidates."
+    },
+    {
+      "id": "RECOVERY_CHAIN",
+      "status": "UNVERIFIED",
+      "detail": "Installed bootstub/app ABI, trusted signing and independently tested recovery are not established."
+    },
+    {
+      "id": "DRIVER_MONITORING",
+      "status": "MISSING_HARDWARE",
+      "detail": "C3XL was sold without a driver camera; equivalent validated driver monitoring is unresolved."
+    },
+    {
+      "id": "AUDIBLE_ALERTS",
+      "status": "UNVERIFIED",
+      "detail": "Required audible alert output and failure handling remain unvalidated."
+    },
+    {
+      "id": "VEHICLE_CONTROL_SAFETY",
+      "status": "UNAVAILABLE",
+      "detail": "Song PLUS controller, signal validation and dedicated independent safety are not implemented or vehicle-validated."
+    },
+    {
+      "id": "RESOURCE_RUNTIME_LIMITS",
+      "status": "UNRESOLVED",
+      "detail": "P8 removes the candidate H7 cookie/buffer overlap. Physical MCU capacity and complete nested stack/target runtime proof remain unverified."
+    },
+    {
+      "id": "CANDIDATE_TRUST",
+      "status": "NONDEPLOYABLE",
+      "detail": "Both debug and nondebug candidates use the public development key; no deployment trust chain or install package exists."
+    }
+  ],
+  "runtime_resource_proof_complete": false,
+  "note": "Offline integration and layout fixes do not prove target runtime, worst-case stack, identity or vehicle semantics."
+}

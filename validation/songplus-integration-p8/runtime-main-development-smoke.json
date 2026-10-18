@@ -1,0 +1,160 @@
+{
+  "status": "PASS_DEVELOPMENT_SMOKE_ONLY",
+  "commands": [
+    {
+      "name": "compile-actual-main",
+      "argv": [
+        "g++",
+        "-std=c++17",
+        "-Wall",
+        "-Wextra",
+        "-O1",
+        "-g",
+        "-fno-omit-frame-pointer",
+        "-fsanitize=address,undefined",
+        "-pthread",
+        "-D__COMMA_HARDWARE__=0",
+        "-I",
+        "/home/shuang.guest/songplus-p2-build/p8-runtime-2beaa7aa6bcf487c8f8b6207df9fb6ef/output/daemon-regression/generated",
+        "-I",
+        "/home/shuang.guest/songplus-p2-build/p8-runtime-2beaa7aa6bcf487c8f8b6207df9fb6ef/output/daemon-regression/generated/openpilot",
+        "-I",
+        "/home/shuang.guest/songplus-p2-build/p8-runtime-2beaa7aa6bcf487c8f8b6207df9fb6ef/output/daemon-regression/generated/openpilot/cereal/gen/cpp",
+        "-I",
+        "/home/shuang.guest/songplus-p2-build/p8-runtime-2beaa7aa6bcf487c8f8b6207df9fb6ef/source",
+        "-I",
+        "/home/shuang.guest/songplus-p2-build/p8-runtime-2beaa7aa6bcf487c8f8b6207df9fb6ef/source/openpilot",
+        "-I",
+        "/home/shuang.guest/songplus-p2-build/p8-runtime-2beaa7aa6bcf487c8f8b6207df9fb6ef/source/openpilot/selfdrive/pandad/compatibility",
+        "-I",
+        "/home/shuang.guest/songplus-p2-build/p8-runtime-2beaa7aa6bcf487c8f8b6207df9fb6ef/source/msgq_repo",
+        "-I",
+        "/home/shuang.guest/songplus-p2-build/p8-runtime-2beaa7aa6bcf487c8f8b6207df9fb6ef/source/opendbc_repo",
+        "-I",
+        "/home/shuang.guest/songplus-p2-build/deps/prefix/usr/include/libusb-1.0",
+        "-isystem",
+        "/home/shuang.guest/songplus-p4-build/deps/prefix/capnproto/install/include",
+        "-DSONGPLUS_P8_INTEGRATION",
+        "-isystem",
+        "/home/shuang.guest/songplus-p4-build/deps/prefix/json11/install/include",
+        "-c",
+        "/home/shuang.guest/songplus-p2-build/p8-runtime-2beaa7aa6bcf487c8f8b6207df9fb6ef/source/openpilot/selfdrive/pandad/main.cc",
+        "-o",
+        "/home/shuang.guest/songplus-p2-build/p8-runtime-2beaa7aa6bcf487c8f8b6207df9fb6ef/main-smoke/main.o"
+      ],
+      "exit_code": 0,
+      "expected_exit_code": 0,
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "ed63a881a935e153fc0c3111d5ad8e0350b21f8de3752b4e44af16c9167de592"
+    },
+    {
+      "name": "link-actual-pandad-p8",
+      "argv": [
+        "g++",
+        "-fsanitize=address,undefined",
+        "-pthread",
+        "/home/shuang.guest/songplus-p2-build/p8-runtime-2beaa7aa6bcf487c8f8b6207df9fb6ef/output/daemon-regression/00.o",
+        "/home/shuang.guest/songplus-p2-build/p8-runtime-2beaa7aa6bcf487c8f8b6207df9fb6ef/output/daemon-regression/01.o",
+        "/home/shuang.guest/songplus-p2-build/p8-runtime-2beaa7aa6bcf487c8f8b6207df9fb6ef/output/daemon-regression/02.o",
+        "/home/shuang.guest/songplus-p2-build/p8-runtime-2beaa7aa6bcf487c8f8b6207df9fb6ef/output/daemon-regression/03.o",
+        "/home/shuang.guest/songplus-p2-build/p8-runtime-2beaa7aa6bcf487c8f8b6207df9fb6ef/output/daemon-regression/04.o",
+        "/home/shuang.guest/songplus-p2-build/p8-runtime-2beaa7aa6bcf487c8f8b6207df9fb6ef/output/daemon-regression/05.o",
+        "/home/shuang.guest/songplus-p2-build/p8-runtime-2beaa7aa6bcf487c8f8b6207df9fb6ef/output/daemon-regression/06.o",
+        "/home/shuang.guest/songplus-p2-build/p8-runtime-2beaa7aa6bcf487c8f8b6207df9fb6ef/output/daemon-regression/07.o",
+        "/home/shuang.guest/songplus-p2-build/p8-runtime-2beaa7aa6bcf487c8f8b6207df9fb6ef/output/daemon-regression/08.o",
+        "/home/shuang.guest/songplus-p2-build/p8-runtime-2beaa7aa6bcf487c8f8b6207df9fb6ef/output/daemon-regression/09.o",
+        "/home/shuang.guest/songplus-p2-build/p8-runtime-2beaa7aa6bcf487c8f8b6207df9fb6ef/output/daemon-regression/10.o",
+        "/home/shuang.guest/songplus-p2-build/p8-runtime-2beaa7aa6bcf487c8f8b6207df9fb6ef/output/daemon-regression/11.o",
+        "/home/shuang.guest/songplus-p2-build/p8-runtime-2beaa7aa6bcf487c8f8b6207df9fb6ef/output/daemon-regression/12.o",
+        "/home/shuang.guest/songplus-p2-build/p8-runtime-2beaa7aa6bcf487c8f8b6207df9fb6ef/output/daemon-regression/14.o",
+        "/home/shuang.guest/songplus-p2-build/p8-runtime-2beaa7aa6bcf487c8f8b6207df9fb6ef/output/daemon-regression/15.o",
+        "/home/shuang.guest/songplus-p2-build/p8-runtime-2beaa7aa6bcf487c8f8b6207df9fb6ef/output/daemon-regression/16.o",
+        "/home/shuang.guest/songplus-p2-build/p8-runtime-2beaa7aa6bcf487c8f8b6207df9fb6ef/output/daemon-regression/17.o",
+        "/home/shuang.guest/songplus-p2-build/p8-runtime-2beaa7aa6bcf487c8f8b6207df9fb6ef/output/daemon-regression/18.o",
+        "/home/shuang.guest/songplus-p2-build/p8-runtime-2beaa7aa6bcf487c8f8b6207df9fb6ef/output/daemon-regression/19.o",
+        "/home/shuang.guest/songplus-p2-build/p8-runtime-2beaa7aa6bcf487c8f8b6207df9fb6ef/output/daemon-regression/20.o",
+        "/home/shuang.guest/songplus-p2-build/p8-runtime-2beaa7aa6bcf487c8f8b6207df9fb6ef/output/daemon-regression/21.o",
+        "/home/shuang.guest/songplus-p2-build/p8-runtime-2beaa7aa6bcf487c8f8b6207df9fb6ef/output/daemon-regression/22.o",
+        "/home/shuang.guest/songplus-p2-build/p8-runtime-2beaa7aa6bcf487c8f8b6207df9fb6ef/output/daemon-regression/23.o",
+        "/home/shuang.guest/songplus-p2-build/p8-runtime-2beaa7aa6bcf487c8f8b6207df9fb6ef/output/daemon-regression/24.o",
+        "/home/shuang.guest/songplus-p2-build/p8-runtime-2beaa7aa6bcf487c8f8b6207df9fb6ef/output/daemon-regression/25.o",
+        "/home/shuang.guest/songplus-p2-build/p8-runtime-2beaa7aa6bcf487c8f8b6207df9fb6ef/output/daemon-regression/26.o",
+        "/home/shuang.guest/songplus-p2-build/p8-runtime-2beaa7aa6bcf487c8f8b6207df9fb6ef/output/daemon-regression/27.o",
+        "/home/shuang.guest/songplus-p2-build/p8-runtime-2beaa7aa6bcf487c8f8b6207df9fb6ef/main-smoke/main.o",
+        "/home/shuang.guest/songplus-p2-build/p8-runtime-2beaa7aa6bcf487c8f8b6207df9fb6ef/output/0.o",
+        "/home/shuang.guest/songplus-p2-build/p8-runtime-2beaa7aa6bcf487c8f8b6207df9fb6ef/output/1.o",
+        "/home/shuang.guest/songplus-p2-build/p8-runtime-2beaa7aa6bcf487c8f8b6207df9fb6ef/output/2.o",
+        "/home/shuang.guest/songplus-p2-build/p8-runtime-2beaa7aa6bcf487c8f8b6207df9fb6ef/output/3.o",
+        "/home/shuang.guest/songplus-p2-build/p8-runtime-2beaa7aa6bcf487c8f8b6207df9fb6ef/output/4.o",
+        "/home/shuang.guest/songplus-p2-build/p8-runtime-2beaa7aa6bcf487c8f8b6207df9fb6ef/output/5.o",
+        "/home/shuang.guest/songplus-p4-build/deps/prefix/capnproto/install/lib/libcapnp.a",
+        "/home/shuang.guest/songplus-p4-build/deps/prefix/capnproto/install/lib/libkj.a",
+        "/home/shuang.guest/songplus-p2-build/deps/prefix/usr/lib/aarch64-linux-gnu/libusb-1.0.so.0.3.0",
+        "/home/shuang.guest/songplus-p4-build/deps/prefix/json11/install/lib/libjson11.a",
+        "/home/shuang.guest/songplus-p4-build/deps/prefix/zeromq/install/lib/libzmq.a",
+        "-lz",
+        "-Wl,-rpath,/home/shuang.guest/songplus-p2-build/deps/prefix/usr/lib/aarch64-linux-gnu",
+        "-ldl",
+        "-lrt",
+        "-o",
+        "/home/shuang.guest/songplus-p2-build/p8-runtime-2beaa7aa6bcf487c8f8b6207df9fb6ef/main-smoke/pandad-p8"
+      ],
+      "exit_code": 0,
+      "expected_exit_code": 0,
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "actual-pandad-offline",
+      "argv": [
+        "/home/shuang.guest/songplus-p2-build/p8-runtime-2beaa7aa6bcf487c8f8b6207df9fb6ef/main-smoke/pandad-p8",
+        "--compat-offline"
+      ],
+      "exit_code": 0,
+      "expected_exit_code": 0,
+      "stdout_sha256": "f9346a2b9fd786a22cbbbd600bca25433e7abb355f5bd6a59b2a30f7d35a3084",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "actual-pandad-p8-owner",
+      "argv": [
+        "/home/shuang.guest/songplus-p2-build/p8-runtime-2beaa7aa6bcf487c8f8b6207df9fb6ef/main-smoke/pandad-p8",
+        "--compat-runtime-offline"
+      ],
+      "exit_code": 0,
+      "expected_exit_code": 0,
+      "stdout_sha256": "78e0dc1af01f83c38923c3a8493e59603c9e659b9b4143cfbc9f6e3894fa8bf0",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "deny---compat-runtime",
+      "argv": [
+        "/home/shuang.guest/songplus-p2-build/p8-runtime-2beaa7aa6bcf487c8f8b6207df9fb6ef/main-smoke/pandad-p8",
+        "--compat-runtime"
+      ],
+      "exit_code": 2,
+      "expected_exit_code": 2,
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "deny---compat-device",
+      "argv": [
+        "/home/shuang.guest/songplus-p2-build/p8-runtime-2beaa7aa6bcf487c8f8b6207df9fb6ef/main-smoke/pandad-p8",
+        "--compat-device"
+      ],
+      "exit_code": 2,
+      "expected_exit_code": 2,
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ],
+  "actual_main_p8_summary": {
+    "suite": "p8_actual_main",
+    "passed": 1,
+    "failed": 0,
+    "skipped": 0,
+    "real_device_io": false
+  },
+  "binary_sha256": "a7d05f3bc86604d6fcbc990ae6d35bb45accc65b6588faf68dac5d8405c2b622"
+}

@@ -1,0 +1,207 @@
+{
+  "schema": "songplus-integration-validation/v1",
+  "status": "PASS_OFFLINE_INTEGRATION",
+  "run_id": "p8-d1bdcadf11af4f3cafc5eca3508586ca",
+  "started_at_utc": "2026-10-18T05:26:00.812267+00:00",
+  "completed_at_utc": "2026-10-18T05:35:28.760781+00:00",
+  "lock_sha256": "1ee1afdd5a7931128f1f3aaaca1facdef4570858ea1dcb1815556f4c024d2838",
+  "parent_lock_sha256": "3ee3704aeaad414e0024f7e4c246b58cea84c54a970ddba2ee3c4a346b6c5806",
+  "maintenance_commit": "674721a0408e2a0153757a6eba569247f4784b08",
+  "protected_files_match_commit": true,
+  "baselines": {
+    "upstream-openpilot": "35e78a9d9518855ec0dacec919e719624a28131f",
+    "upstream-openpilot/opendbc_repo": "b3bd79a659dae961af169a3baac723961f720133",
+    "upstream-openpilot/panda": "a59195163c32a3a375ea6c86715dc08fd0984c1b",
+    "upstream-openpilot/msgq_repo": "0e266c1dbcf7328beee3e57b4a8688555387c877"
+  },
+  "acceptance": [
+    {
+      "id": "B80",
+      "status": "PASS",
+      "executed": 2,
+      "failed": 0,
+      "skipped": 0,
+      "run_id": "p8-d1bdcadf11af4f3cafc5eca3508586ca",
+      "lock_sha256": "1ee1afdd5a7931128f1f3aaaca1facdef4570858ea1dcb1815556f4c024d2838"
+    },
+    {
+      "id": "B81",
+      "status": "PASS",
+      "executed": 55,
+      "failed": 0,
+      "skipped": 0,
+      "run_id": "p8-d1bdcadf11af4f3cafc5eca3508586ca",
+      "lock_sha256": "1ee1afdd5a7931128f1f3aaaca1facdef4570858ea1dcb1815556f4c024d2838"
+    },
+    {
+      "id": "B82",
+      "status": "PASS",
+      "executed": 98,
+      "failed": 0,
+      "skipped": 0,
+      "run_id": "p8-d1bdcadf11af4f3cafc5eca3508586ca",
+      "lock_sha256": "1ee1afdd5a7931128f1f3aaaca1facdef4570858ea1dcb1815556f4c024d2838"
+    },
+    {
+      "id": "B83",
+      "status": "PASS",
+      "executed": 58,
+      "failed": 0,
+      "skipped": 0,
+      "run_id": "p8-d1bdcadf11af4f3cafc5eca3508586ca",
+      "lock_sha256": "1ee1afdd5a7931128f1f3aaaca1facdef4570858ea1dcb1815556f4c024d2838"
+    },
+    {
+      "id": "B84",
+      "status": "PASS",
+      "executed": 8,
+      "failed": 0,
+      "skipped": 0,
+      "run_id": "p8-d1bdcadf11af4f3cafc5eca3508586ca",
+      "lock_sha256": "1ee1afdd5a7931128f1f3aaaca1facdef4570858ea1dcb1815556f4c024d2838"
+    },
+    {
+      "id": "B85",
+      "status": "PASS",
+      "executed": 23,
+      "failed": 0,
+      "skipped": 0,
+      "run_id": "p8-d1bdcadf11af4f3cafc5eca3508586ca",
+      "lock_sha256": "1ee1afdd5a7931128f1f3aaaca1facdef4570858ea1dcb1815556f4c024d2838"
+    },
+    {
+      "id": "B86",
+      "status": "PASS",
+      "executed": 8,
+      "failed": 0,
+      "skipped": 0,
+      "run_id": "p8-d1bdcadf11af4f3cafc5eca3508586ca",
+      "lock_sha256": "1ee1afdd5a7931128f1f3aaaca1facdef4570858ea1dcb1815556f4c024d2838"
+    }
+  ],
+  "evidence": {
+    "p7": {
+      "path": "p7/validation/result.json",
+      "sha256": "bf9b24f88f397cf2b78a38006fbcf6fa98c90598e6e00e0204f8877f96b31163",
+      "run_id": "p8-d1bdcadf11af4f3cafc5eca3508586ca",
+      "lock_sha256": "1ee1afdd5a7931128f1f3aaaca1facdef4570858ea1dcb1815556f4c024d2838"
+    },
+    "runtime": {
+      "path": "runtime/result.json",
+      "sha256": "18ea0bb267f7a545939e227a95ff06000b4b072d546d11f1710af29aa458094c",
+      "run_id": "p8-d1bdcadf11af4f3cafc5eca3508586ca",
+      "lock_sha256": "1ee1afdd5a7931128f1f3aaaca1facdef4570858ea1dcb1815556f4c024d2838"
+    },
+    "resources": {
+      "path": "resources/result.json",
+      "sha256": "df6a9399c7724b149abb4e9aed486dbe91e3488ca38e6416735a817281dd6435",
+      "run_id": "p8-d1bdcadf11af4f3cafc5eca3508586ca",
+      "lock_sha256": "1ee1afdd5a7931128f1f3aaaca1facdef4570858ea1dcb1815556f4c024d2838"
+    },
+    "vehicle": {
+      "path": "vehicle/acceptance.json",
+      "sha256": "75e54cd4463db6c534e05536b917a78aa478a72f78949745f545a903e3144d3f",
+      "run_id": "p8-d1bdcadf11af4f3cafc5eca3508586ca",
+      "lock_sha256": "1ee1afdd5a7931128f1f3aaaca1facdef4570858ea1dcb1815556f4c024d2838"
+    },
+    "contract": {
+      "path": "contract/result.json",
+      "sha256": "2fbfc8e39d232466c7b43ded3716cd9eb8a5ed90407ca051fc7152da3ddc7bd1",
+      "run_id": "p8-d1bdcadf11af4f3cafc5eca3508586ca",
+      "lock_sha256": "1ee1afdd5a7931128f1f3aaaca1facdef4570858ea1dcb1815556f4c024d2838"
+    },
+    "source_replay": {
+      "path": "source-replay.json",
+      "sha256": "b048f9e04e666a2b1ac2c99d34ccfd695fc6e0152f1cee448d0a0e62e0b26371",
+      "run_id": "p8-d1bdcadf11af4f3cafc5eca3508586ca",
+      "lock_sha256": "1ee1afdd5a7931128f1f3aaaca1facdef4570858ea1dcb1815556f4c024d2838"
+    }
+  },
+  "commands": [
+    {
+      "name": "contract",
+      "argv": [
+        "/usr/bin/sandbox-exec",
+        "-f",
+        "/Users/shuang/Code/openpilot/songplus-port-lab/tools/panda_firmware_offline.sb",
+        "/Users/shuang/Code/openpilot/songplus-port-lab/upstream-openpilot/.venv/bin/python",
+        "-B",
+        "/Users/shuang/Code/openpilot/songplus-port-lab/tools/check_songplus_integration_ci.py",
+        "--mode",
+        "contract",
+        "--output",
+        "/Users/shuang/Code/openpilot/songplus-port-lab/results/songplus-integration-p8-full-002/validation/contract"
+      ],
+      "exit_code": 0,
+      "log_sha256": "2fbfc8e39d232466c7b43ded3716cd9eb8a5ed90407ca051fc7152da3ddc7bd1"
+    },
+    {
+      "name": "p7",
+      "argv": [
+        "/Users/shuang/Code/openpilot/songplus-port-lab/upstream-openpilot/.venv/bin/python",
+        "-B",
+        "/Users/shuang/Code/openpilot/songplus-port-lab/tools/check_panda_ci.py",
+        "--mode",
+        "full",
+        "--linux-instance",
+        "byd-recovery-311",
+        "--linux-root",
+        "/home/shuang.guest/songplus-p2-build",
+        "--output",
+        "/Users/shuang/Code/openpilot/songplus-port-lab/results/songplus-integration-p8-full-002/validation/p7"
+      ],
+      "exit_code": 0,
+      "log_sha256": "051c8c3dbe9d9238c49dc55cc6463e6cc1e1b15aafceb06f42c2fdf65559cb45"
+    },
+    {
+      "name": "resources",
+      "argv": [
+        "/Users/shuang/Code/openpilot/songplus-port-lab/upstream-openpilot/.venv/bin/python",
+        "-B",
+        "/Users/shuang/Code/openpilot/songplus-port-lab/tools/validate_p8_resources.py",
+        "--output",
+        "/Users/shuang/Code/openpilot/songplus-port-lab/results/songplus-integration-p8-full-002/validation/resources"
+      ],
+      "exit_code": 0,
+      "log_sha256": "e678e6ccd39fd7a77882f37b8e33b8d005584006e31e936d5e2a29f69ffaacb9"
+    },
+    {
+      "name": "runtime",
+      "argv": [
+        "/Users/shuang/Code/openpilot/songplus-port-lab/upstream-openpilot/.venv/bin/python",
+        "-B",
+        "/Users/shuang/Code/openpilot/songplus-port-lab/tools/validate_p8_runtime.py",
+        "--output",
+        "/Users/shuang/Code/openpilot/songplus-port-lab/results/songplus-integration-p8-full-002/validation/runtime",
+        "--linux-instance",
+        "byd-recovery-311",
+        "--linux-root",
+        "/home/shuang.guest/songplus-p2-build"
+      ],
+      "exit_code": 0,
+      "log_sha256": "86ba94184dcd79fe41aa7e09d0b26df1601553deec6b0c7e9371dd6888c88466"
+    },
+    {
+      "name": "vehicle",
+      "argv": [
+        "/Users/shuang/Code/openpilot/songplus-port-lab/upstream-openpilot/.venv/bin/python",
+        "-B",
+        "-m",
+        "maintenance.vehicle_readonly",
+        "acceptance",
+        "--out",
+        "/Users/shuang/Code/openpilot/songplus-port-lab/results/songplus-integration-p8-full-002/validation/vehicle"
+      ],
+      "exit_code": 0,
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ],
+  "failed": 0,
+  "skipped": 0,
+  "remote_ci_executed": false,
+  "device_access": false,
+  "real_can_tx": false,
+  "deployment_ready": false,
+  "actual_mcu_executed": false,
+  "vehicle_validated": false
+}

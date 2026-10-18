@@ -1,0 +1,139 @@
+{
+  "schema": "songplus-integration-ci/v1",
+  "mode": "contract",
+  "started_at_utc": "2026-10-18T05:26:05.978924+00:00",
+  "commands": [
+    {
+      "name": "integration-metadata",
+      "argv": [
+        "/Users/shuang/Code/openpilot/songplus-port-lab/upstream-openpilot/.venv/bin/python",
+        "-B",
+        "tools/songplus_integration.py",
+        "verify-lock",
+        "--metadata-only"
+      ],
+      "returncode": 0,
+      "expected_returncode": 0,
+      "stdout_sha256": "323a77a3e68aaccfcaff4534b9cb0eaeda16d9b48431ad9a6a1d05b2d8f960f7",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "help-root",
+      "argv": [
+        "/Users/shuang/Code/openpilot/songplus-port-lab/upstream-openpilot/.venv/bin/python",
+        "-B",
+        "tools/songplus_integration.py",
+        "--help"
+      ],
+      "returncode": 0,
+      "expected_returncode": 0,
+      "stdout_sha256": "cc91d72ea3f777c2daea874cab6532e583048e93c3d6188e323a82b48ae0878d",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "help-verify-lock",
+      "argv": [
+        "/Users/shuang/Code/openpilot/songplus-port-lab/upstream-openpilot/.venv/bin/python",
+        "-B",
+        "tools/songplus_integration.py",
+        "verify-lock",
+        "--help"
+      ],
+      "returncode": 0,
+      "expected_returncode": 0,
+      "stdout_sha256": "fbc6cb88b030bba187b1eb6f12fa9c2d60c6132e043d6da5fc2dfbe0163f24c2",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "help-replay",
+      "argv": [
+        "/Users/shuang/Code/openpilot/songplus-port-lab/upstream-openpilot/.venv/bin/python",
+        "-B",
+        "tools/songplus_integration.py",
+        "replay",
+        "--help"
+      ],
+      "returncode": 0,
+      "expected_returncode": 0,
+      "stdout_sha256": "b57e6f3f51880aebd2da6706e1bfec55dd7bd652fe7ba9512c495c9dd9aee214",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "help-validate",
+      "argv": [
+        "/Users/shuang/Code/openpilot/songplus-port-lab/upstream-openpilot/.venv/bin/python",
+        "-B",
+        "tools/songplus_integration.py",
+        "validate",
+        "--help"
+      ],
+      "returncode": 0,
+      "expected_returncode": 0,
+      "stdout_sha256": "b5127a7f3d079c8cc9a2f7be7c71d6ad492cbedf89c3bf7b4adcfd90e0975464",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "help-release-check",
+      "argv": [
+        "/Users/shuang/Code/openpilot/songplus-port-lab/upstream-openpilot/.venv/bin/python",
+        "-B",
+        "tools/songplus_integration.py",
+        "release-check",
+        "--help"
+      ],
+      "returncode": 0,
+      "expected_returncode": 0,
+      "stdout_sha256": "f0bb40a29f4e2759f4feecd171215fa01e60554a58be116078d1cceb21047b0a",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "maintenance-tests",
+      "argv": [
+        "/Users/shuang/Code/openpilot/songplus-port-lab/upstream-openpilot/.venv/bin/python",
+        "-B",
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        "maintenance",
+        "-p",
+        "test_*.py",
+        "-v"
+      ],
+      "returncode": 0,
+      "expected_returncode": 0,
+      "tests_passed": 214,
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "fe57f2c8ecd3a7050aa24e8d2e2a5cc94a9a8424940a3a2c961a3b8a1363757a"
+    },
+    {
+      "name": "integration-ci-tests",
+      "argv": [
+        "/Users/shuang/Code/openpilot/songplus-port-lab/upstream-openpilot/.venv/bin/python",
+        "-B",
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        "tests",
+        "-p",
+        "test_songplus_integration_ci.py",
+        "-v"
+      ],
+      "returncode": 0,
+      "expected_returncode": 0,
+      "tests_passed": 7,
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "9fe4cda53df1548b0a76fc97761fb8f9587d081b549554aab174679d3b0aa58f"
+    }
+  ],
+  "status": "PASS",
+  "device_access": false,
+  "deployment_ready": false,
+  "remote_ci_executed": false,
+  "sandbox": "macos-seatbelt",
+  "passed_commands": 8,
+  "failed": 0,
+  "skipped": 0,
+  "completed_at_utc": "2026-10-18T05:26:09.417762+00:00"
+}

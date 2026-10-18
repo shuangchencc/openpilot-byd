@@ -1,0 +1,112 @@
+{
+  "schema": "songplus-integration-ci/v1",
+  "mode": "full",
+  "started_at_utc": "2026-10-18T05:25:59.306105+00:00",
+  "commands": [
+    {
+      "name": "verify-lock",
+      "argv": [
+        "/Users/shuang/Code/openpilot/songplus-port-lab/upstream-openpilot/.venv/bin/python",
+        "-B",
+        "tools/songplus_integration.py",
+        "verify-lock"
+      ],
+      "returncode": 0,
+      "expected_returncode": 0,
+      "stdout_sha256": "12125d03bcdcaa57a52f6ea065a3674021587ac37ee7b7ae9d9c75e990d5214b",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "validate",
+      "argv": [
+        "/Users/shuang/Code/openpilot/songplus-port-lab/upstream-openpilot/.venv/bin/python",
+        "-B",
+        "tools/songplus_integration.py",
+        "validate",
+        "--output",
+        "/Users/shuang/Code/openpilot/songplus-port-lab/results/songplus-integration-p8-full-002/validation",
+        "--linux-instance",
+        "byd-recovery-311",
+        "--linux-root",
+        "/home/shuang.guest/songplus-p2-build"
+      ],
+      "returncode": 0,
+      "expected_returncode": 0,
+      "stdout_sha256": "b910cf6cea73b52fd82ac94461257040b52718405504bdf211769705e9503154",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "release-check",
+      "argv": [
+        "/Users/shuang/Code/openpilot/songplus-port-lab/upstream-openpilot/.venv/bin/python",
+        "-B",
+        "tools/songplus_integration.py",
+        "release-check",
+        "--report",
+        "/Users/shuang/Code/openpilot/songplus-port-lab/results/songplus-integration-p8-full-002/validation/result.json"
+      ],
+      "returncode": 3,
+      "expected_returncode": 3,
+      "stdout_sha256": "10e99b47a08ee648c8d6c637e034398afd271d5e7796dada474a00502071810a",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ],
+  "status": "PASS",
+  "device_access": false,
+  "deployment_ready": false,
+  "remote_ci_executed": false,
+  "release": {
+    "status": "BLOCKED_FOR_DEPLOYMENT",
+    "offline_integration_complete": true,
+    "offline_compatibility_complete": true,
+    "deployment_ready": false,
+    "deployment_blockers": [
+      {
+        "id": "PHYSICAL_IDENTITY",
+        "status": "UNVERIFIED",
+        "detail": "DOS/F413 and external Panda physical identities and wiring remain unconfirmed."
+      },
+      {
+        "id": "TARGET_RUNTIME",
+        "status": "NOT_TESTED",
+        "detail": "C3XL OS/camera/USB/SPI/thermal runtime has not executed these candidates."
+      },
+      {
+        "id": "RECOVERY_CHAIN",
+        "status": "UNVERIFIED",
+        "detail": "Installed bootstub/app ABI, trusted signing and independently tested recovery are not established."
+      },
+      {
+        "id": "DRIVER_MONITORING",
+        "status": "MISSING_HARDWARE",
+        "detail": "C3XL was sold without a driver camera; equivalent validated driver monitoring is unresolved."
+      },
+      {
+        "id": "AUDIBLE_ALERTS",
+        "status": "UNVERIFIED",
+        "detail": "Required audible alert output and failure handling remain unvalidated."
+      },
+      {
+        "id": "VEHICLE_CONTROL_SAFETY",
+        "status": "UNAVAILABLE",
+        "detail": "Song PLUS controller, signal validation and dedicated independent safety are not implemented or vehicle-validated."
+      },
+      {
+        "id": "RESOURCE_RUNTIME_LIMITS",
+        "status": "UNRESOLVED",
+        "detail": "P8 removes the candidate H7 cookie/buffer overlap. Physical MCU capacity and complete nested stack/target runtime proof remain unverified."
+      },
+      {
+        "id": "CANDIDATE_TRUST",
+        "status": "NONDEPLOYABLE",
+        "detail": "Both debug and nondebug candidates use the public development key; no deployment trust chain or install package exists."
+      }
+    ],
+    "runtime_resource_proof_complete": false,
+    "note": "Offline integration and layout fixes do not prove target runtime, worst-case stack, identity or vehicle semantics."
+  },
+  "passed_commands": 3,
+  "failed": 0,
+  "skipped": 0,
+  "completed_at_utc": "2026-10-18T05:35:30.959456+00:00"
+}

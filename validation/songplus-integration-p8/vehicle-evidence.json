@@ -1,0 +1,67 @@
+{
+  "schema": "songplus-integration-p8-vehicle-evidence/v1",
+  "scope": "fresh macOS offline source/test/replay execution only",
+  "acceptance_report": "results/songplus-integration-p8-vehicle-frozen-20261018/acceptance.json",
+  "acceptance_sha256": "eb4d4b0799417fa4e97fb4698280ecaf18bc0ca3b6fcac21d50493f3621d8b2b",
+  "source_contract_tests": {
+    "path": "results/songplus-integration-p8-vehicle-contract-20261018/tests.json",
+    "sha256": "e51df0c478d90ae19edd7c3c205a6bb81dd4777f42d2c03745ad45f88993a377",
+    "passed": 34,
+    "failed": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "summary": {
+    "status": "PASS_RECORDED_OFFLINE_BATCH",
+    "segments": 98,
+    "rlogs_rehashed": 98,
+    "caches_rehashed": 98,
+    "original_can_events": 699380,
+    "omitted_can_events": 0,
+    "projection_samples": 3780,
+    "unknown_snapshots": 698957,
+    "historical_labels_only": true,
+    "vehicle_semantics_independently_confirmed": false,
+    "tests_passed": 55,
+    "failed": 0,
+    "skipped": 0
+  },
+  "commands": [
+    {
+      "name": "vehicle-tests",
+      "returncode": 0,
+      "elapsed_seconds": 0.57,
+      "log_sha256": "fca6a2115d86c13df4486ce0520d90c001f44e40ba6b8f44e4ef289053244664"
+    },
+    {
+      "name": "vehicle-replay",
+      "returncode": 0,
+      "elapsed_seconds": 129.283,
+      "log_sha256": "cc9395a49d93ef43eba75fda4a31d02e1c81a73aa743f7014ed9a57b2b92391a"
+    }
+  ],
+  "validator_source_sha256": {
+    "maintenance/vehicle_readonly.py": "75defba192ef0510fda51e461ee0d8f206264e1c8d36040104923c67a89b6816",
+    "tools/panda_firmware_offline.sb": "5d5c0ed3aff644e1f3497835c283eb7b9044c67851ec6c8856cc0db45c6fc818"
+  },
+  "runtime": {
+    "opendbc_path": "/Users/shuang/Code/openpilot/songplus-port-lab/upstream-openpilot/opendbc_repo",
+    "opendbc_commit": "b3bd79a659dae961af169a3baac723961f720133",
+    "tracked_source_clean": true
+  },
+  "python_version": "3.12.13 (main, Aug  7 2026, 02:15:23) [Clang 22.1.3 ]",
+  "numpy_version": "2.5.3",
+  "sandbox": "macos-seatbelt-network-device-iokit-denied",
+  "permissions": {
+    "device_access": false,
+    "network_access": false,
+    "real_can_tx": false,
+    "runtime_launch": false,
+    "firmware_flash": false,
+    "system_write": false,
+    "deployment_ready": false,
+    "vehicle_semantics_independently_confirmed": false
+  },
+  "raw_logs_copied_into_repository": false,
+  "historical_raw_schema_reextracted": false
+}
