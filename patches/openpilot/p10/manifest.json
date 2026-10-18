@@ -8,13 +8,19 @@
   },
   "parent_manifest_sha256": "fa2f32bd968073b6fe70a45bb537c946dc0497a86dd71e656490641b042cd829",
   "parent_commit": "06fd6e68223c6ad6caabc7f64d2f032445a42095",
-  "result_commit": "a321ad6ea308f79ffbbc04bde2ed652315d57286",
+  "result_commit": "8cb3acecc0189d62920144cdc27b7d58ea69f8b4",
   "series": [
     {
       "stage": "P10",
       "file": "0001-discovery-lifecycle-spi-freshness-launch-gate.patch",
       "sha256": "0621fbed6565d1d8a02f81d9ef104f883edecef46774f482cb009d365d8d6910",
       "commit": "a321ad6ea308f79ffbbc04bde2ed652315d57286"
+    },
+    {
+      "stage": "P10",
+      "file": "0002-strict-gcc-control-flow.patch",
+      "sha256": "d803d005d3b07b83eb25c6d077fcec0f92c6e9a9bd1b8b28b17a78aeaeed287b",
+      "commit": "8cb3acecc0189d62920144cdc27b7d58ea69f8b4"
     }
   ],
   "additional_baseline_inputs": {
@@ -25,7 +31,7 @@
     "openpilot/selfdrive/pandad/compatibility/P10-LAUNCH-GATES.md": "b40a2dc758738af91a9391899af327267b4db7a3a443f68c2e6effe58a8caecf",
     "openpilot/selfdrive/pandad/compatibility/discovery_scheduler.cc": "a07a8c96d99bf4df2a3d5b5cb19013dc4f662e6ea9ec39c5c89f7427b93feb4d",
     "openpilot/selfdrive/pandad/compatibility/discovery_scheduler.h": "630ce81ef29ae92c3f16ff0d34750d279aa5bd16190cf064c10f10cd634c7b7c",
-    "openpilot/selfdrive/pandad/compatibility/native_discovery_executor.cc": "855e2b0c9084e0fd21f49d30a05f06dc360f90d32ca85ea33b02198acd568664",
+    "openpilot/selfdrive/pandad/compatibility/native_discovery_executor.cc": "50bbd37e6d5c5cccb032faf8e79600bc0085c9329356a9023e114970a27a0194",
     "openpilot/selfdrive/pandad/compatibility/native_discovery_executor.h": "bf69e7a96bedeb9857cbccad8fe5364aac3f0c9697809818ad6f3ec42cf84c62",
     "openpilot/selfdrive/pandad/compatibility/production_gate.cc": "437563e8b3d71dca34f7fe38405656842350fecd923d2c7b6bd5ac42558643b3",
     "openpilot/selfdrive/pandad/compatibility/production_gate.h": "3ba04850fd372d4b9af8a35930c0c04b6a22dcb4ce3d640de6e71da5f917ad12",
@@ -34,12 +40,12 @@
     "openpilot/selfdrive/pandad/compatibility/tests/native_discovery_spi_fixture.h": "817961b71b4580a0c497a8d1cd9ff324a2018f3713cb27e3cbab692e2fd8ed9d",
     "openpilot/selfdrive/pandad/compatibility/tests/spi_freshness_firmware_oracle.c": "4d5e47ef7e8f0392017e7a26958c3aa9e6969e91f4f2c22b2fb581776e51408d",
     "openpilot/selfdrive/pandad/compatibility/tests/spi_freshness_oracle/board/drivers/drivers.h": "cabae3f5081e66810a63040afdd4210870aef79576ac476aeea94d70b9fd8ee6",
-    "openpilot/selfdrive/pandad/compatibility/tests/test_discovery_scheduler.cc": "d306305b024c3f2042f31ffbbd0fe485902dd23c93d594b4c3453c5fecf4bbfe",
+    "openpilot/selfdrive/pandad/compatibility/tests/test_discovery_scheduler.cc": "69df571a053786912a68122d9c68554d1f5dac177eb4d1600cab124fb295a060",
     "openpilot/selfdrive/pandad/compatibility/tests/test_native_discovery_engine.cc": "ac002e48328a286da84962da9bf0b6623e2cb447c78af5bba3266988b7a90400",
     "openpilot/selfdrive/pandad/compatibility/tests/test_native_discovery_executor.cc": "49923d51719c6e2ed3b71716b65824c1d5cd0684ee83fad5e990a03dce732549",
     "openpilot/selfdrive/pandad/compatibility/tests/test_p8_build_contract.py": "0e63fcba346c7538615d681c915a71e927c6917fe42870effe27194da018b37f",
     "openpilot/selfdrive/pandad/compatibility/tests/test_production_gate.cc": "be4713093df80830a72ea04fd414e0f7b77c7de6d6f2397ce4612e461eb44c17",
-    "openpilot/selfdrive/pandad/compatibility/tests/test_spi_freshness.cc": "784ef646d3681e81ebf0ce6d0b8e9ef3920dba4e84068ac89cb3d5e8d3769369",
+    "openpilot/selfdrive/pandad/compatibility/tests/test_spi_freshness.cc": "93faa15e9ce12402ef93f075399c8a40b7f1e32ef23313a1d07b83634f8ba896",
     "openpilot/selfdrive/pandad/main.cc": "277f9753ccc33d4554619edb7084040b4564df86fc2a562db9508189e0c0298a"
   },
   "required_groups": {

@@ -1,0 +1,71 @@
+From 8cb3acecc0189d62920144cdc27b7d58ea69f8b4 Mon Sep 17 00:00:00 2001
+From: scarvito <7883167+scarvito@user.noreply.gitee.com>
+Date: Sun, 18 Oct 2026 15:07:05 +0800
+Subject: [PATCH] Clarify P10 control flow for strict GCC compilation
+
+---
+ .../pandad/compatibility/native_discovery_executor.cc  |  7 +++++--
+ .../compatibility/tests/test_discovery_scheduler.cc    |  3 ++-
+ .../pandad/compatibility/tests/test_spi_freshness.cc   | 10 +++++++---
+ 3 files changed, 14 insertions(+), 6 deletions(-)
+
+diff --git a/openpilot/selfdrive/pandad/compatibility/native_discovery_executor.cc b/openpilot/selfdrive/pandad/compatibility/native_discovery_executor.cc
+index 7d5f94c..7f400d1 100644
+--- a/openpilot/selfdrive/pandad/compatibility/native_discovery_executor.cc
++++ b/openpilot/selfdrive/pandad/compatibility/native_discovery_executor.cc
+@@ -351,7 +351,9 @@ bool NativeDiscoveryExecutor::commit(const DiscoveryTaskRequest &r,DiscoveryTask
+   if(handoff->profile.binding_status!="NATIVE_READ_ONLY_BOUND")return false;
+   std::array<DiscoveryItem,2> items;
+   for(unsigned slot=0;slot<2;++slot){const auto it=std::find_if(result.snapshot.items.begin(),result.snapshot.items.end(),[&](const auto &item){return item.identity==handoff->profile.slots[slot].expected;});
+-    if(it==result.snapshot.items.end() || !handoff->ports[slot] || !handoff->ports[slot]->active())return false;items[slot]=*it;}
++    if(it==result.snapshot.items.end() || !handoff->ports[slot] || !handoff->ports[slot]->active()) return false;
++    items[slot]=*it;
++  }
+   if(r.kind==DiscoveryTaskKind::Reprobe){if(committed_.items.size()!=2)return false;for(unsigned slot=0;slot<2;++slot)if(ports_[slot]!=handoff->ports[slot] || !same_item(committed_.items[slot],items[slot]))return false;}
+   else {if(!committed_.items.empty())return false;ports_=handoff->ports;opened_={};}
+   committed_=result.snapshot;committed_.items={items[0],items[1]};committed_profile_=handoff->profile;last_committed_revision_=result.snapshot.revision;return true;
+@@ -359,7 +361,8 @@ bool NativeDiscoveryExecutor::commit(const DiscoveryTaskRequest &r,DiscoveryTask
+ void NativeDiscoveryExecutor::retire(const char *reason) noexcept {
+   if(getpid()!=state_->process)return;
+   if(!committed_.items.empty() || state_->busy){try{if(revoke_)revoke_(reason);}catch(...){/* still revoke all ports */}}
+-  for(auto &p:ports_)if(p)p->cancel();ports_={};opened_={};committed_={};committed_profile_={};
++  for(auto &p:ports_) { if(p) p->cancel(); }
++  ports_={};opened_={};committed_={};committed_profile_={};
+   if(state_->owner_mailbox)state_->owner_mailbox->cancelled=true;
+   if(state_->worker_started){state_->busy=true;state_->retire_requested=true;state_->wake.notify_one();}
+ }
+diff --git a/openpilot/selfdrive/pandad/compatibility/tests/test_discovery_scheduler.cc b/openpilot/selfdrive/pandad/compatibility/tests/test_discovery_scheduler.cc
+index 2961a93..44eea50 100644
+--- a/openpilot/selfdrive/pandad/compatibility/tests/test_discovery_scheduler.cc
++++ b/openpilot/selfdrive/pandad/compatibility/tests/test_discovery_scheduler.cc
+@@ -52,7 +52,8 @@ struct FakeSink final:DiscoveryCommitSink {
+   explicit FakeSink(FakeClock &c):clock(c){}
+   bool commit(const DiscoveryTaskRequest &,DiscoveryTaskResult &r) override {
+     ++commits;clock.value+=cost;if(throws)throw std::runtime_error("commit");accepted=r.snapshot;
+-    if(mutate)r.snapshot={};return accept;
++    if(mutate)r.snapshot={};
++    return accept;
+   }
+   void retire(const char *r) noexcept override {++retires;accepted={};reason=r;}
+ };
+diff --git a/openpilot/selfdrive/pandad/compatibility/tests/test_spi_freshness.cc b/openpilot/selfdrive/pandad/compatibility/tests/test_spi_freshness.cc
+index f447493..69ceca3 100644
+--- a/openpilot/selfdrive/pandad/compatibility/tests/test_spi_freshness.cc
++++ b/openpilot/selfdrive/pandad/compatibility/tests/test_spi_freshness.cc
+@@ -212,9 +212,13 @@ void id_exhaustion_refuses_wrap_before_io() {
+ void invalid_seed_config_or_identity_never_opens() {
+   for(unsigned variant=0;variant<8;++variant) {
+     Fixture f; auto backend=f.backend(); auto expected=uid(); auto id=100U;
+-    if(variant==0) id=0; if(variant==1) id=UINT32_MAX; if(variant==2) id=UINT32_MAX-1;
+-    if(variant==3) expected.fill(0); if(variant==4) expected.fill(0xff);
+-    if(variant==5) f.options.selector.expected_mode=1; if(variant==6) f.options.selector.expected_bits_per_word=16;
++    if(variant==0) id=0;
++    if(variant==1) id=UINT32_MAX;
++    if(variant==2) id=UINT32_MAX-1;
++    if(variant==3) expected.fill(0);
++    if(variant==4) expected.fill(0xff);
++    if(variant==5) f.options.selector.expected_mode=1;
++    if(variant==6) f.options.selector.expected_bits_per_word=16;
+     if(variant==7) f.options.selector.physical_identity_verified=false;
+     CHECK(backend->activate(f.options.selector,expected,id,100,true,true)==Status::Invalid && f.calls->opens==0);
+   }

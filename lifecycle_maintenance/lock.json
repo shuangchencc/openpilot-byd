@@ -20,6 +20,12 @@
       "file": "patches/openpilot/p10/0001-discovery-lifecycle-spi-freshness-launch-gate.patch",
       "sha256": "0621fbed6565d1d8a02f81d9ef104f883edecef46774f482cb009d365d8d6910",
       "commit": "a321ad6ea308f79ffbbc04bde2ed652315d57286"
+    },
+    {
+      "stage": "P10",
+      "file": "patches/openpilot/p10/0002-strict-gcc-control-flow.patch",
+      "sha256": "d803d005d3b07b83eb25c6d077fcec0f92c6e9a9bd1b8b28b17a78aeaeed287b",
+      "commit": "8cb3acecc0189d62920144cdc27b7d58ea69f8b4"
     }
   ],
   "prerequisite": {
@@ -99,7 +105,8 @@
     "lifecycle_maintenance/test_contract.py": "1f1e89215e712b0f3db0a556a92a94281a4c857d4d8776d8c6b7d509e2ffd30c",
     "lifecycle_maintenance/test_profile.py": "3cec1843163695e55d719aeaf0791e045dc2bcc421f9c4c860c699d6f9201e5d",
     "patches/openpilot/p10/0001-discovery-lifecycle-spi-freshness-launch-gate.patch": "0621fbed6565d1d8a02f81d9ef104f883edecef46774f482cb009d365d8d6910",
-    "patches/openpilot/p10/manifest.json": "39cb05f25d7a5d3b6e7594e4067254266b9cbe3323dc99c4a80c443beaf1e682",
+    "patches/openpilot/p10/0002-strict-gcc-control-flow.patch": "d803d005d3b07b83eb25c6d077fcec0f92c6e9a9bd1b8b28b17a78aeaeed287b",
+    "patches/openpilot/p10/manifest.json": "0b98f22445d3f3ca1b965efac7c73f6d22f18c7bffed81c9d70951c29b10f018",
     "tools/build_p10_lifecycle.py": "a0d6e3eb66c1bdab358a79e5a2ae255cd91423363aab145642e4c8c896895653",
     "tools/check_songplus_lifecycle_ci.py": "05670a38a69435f372332182766fa22ff27dc54cf66c4e811cdeb04e83ac2b37",
     "tools/songplus_lifecycle.py": "7c35541fe3759ebab8246cd8054de6b7cfb157989a0381bc24e1276562991a6a",
