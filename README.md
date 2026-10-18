@@ -104,3 +104,11 @@ python3 tools/validate_project.py
 真实 profile 保持 [UNBOUND](native_maintenance/profiles/unbound.json)。
 [必须实机核实的条件](native_maintenance/HARDWARE_GATES.md) 区分原生代码已实现、
 离线注入测试已验证和仍待台架/车辆证明的事项。P0–P8 历史锁与补丁保持原样。
+
+## P10：生命周期与生产启动门槛
+
+当前阶段在冻结 P0–P9 之上维护持续发现/重探测、跨进程 SPI 新鲜性和默认拒绝的
+生产启动门槛。实现、可复现入口与旧时间常量勘误见
+[lifecycle_maintenance/README.md](lifecycle_maintenance/README.md)，
+实机条件见 [HARDWARE_GATES.md](lifecycle_maintenance/HARDWARE_GATES.md)。
+真实 profile 保持 UNBOUND；离线验收不授权安装或车辆控制。

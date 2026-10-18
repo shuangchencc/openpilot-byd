@@ -21,6 +21,17 @@ Flagship PLUS, with the user's existing Mr One C3XL and Panda hardware.
 
 ## Current execution boundary
 
+- P10 is the newest scope: implement continuous discovery/reprobe scheduling,
+  cross-process SPI freshness and a fail-closed production launch gate on the
+  frozen P0–P9 chain. Acceptance remains offline with injected devices. The user
+  now permits C3XL testing when necessary; any such session must be an explicit,
+  bounded read-only diagnostic using existing authentication. Do not change its
+  system/slots, reset or flash, start/stop services or transmit CAN. Unknown real
+  identities remain UNBOUND. Keep previous locks/patches immutable and record
+  the boundary between fresh host tests and retained historical prerequisites.
+  The older phase-specific no-connect statements below describe their original
+  scopes and do not revoke the latest conditional diagnostic authorization.
+
 - The current request authorizes P9 native device discovery, USB/SPI I/O
   providers and profile-binding validation on the locked P0–P8 chain. Implement
   native calls but execute acceptance only through injected APIs/syscalls in

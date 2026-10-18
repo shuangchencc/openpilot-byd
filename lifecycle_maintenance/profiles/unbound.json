@@ -1,0 +1,12 @@
+{
+  "schema": "songplus-lifecycle-binding/v1",
+  "binding_status": "UNBOUND",
+  "device_access_enabled": false,
+  "can_tx_enabled": false,
+  "firmware_install_enabled": false,
+  "slots": [
+    {"slot": 0, "expected": null, "transport": null, "exact_mcu": null, "capabilities": null, "physical_evidence_sha256": null, "spi_selector": null},
+    {"slot": 1, "expected": null, "transport": null, "exact_mcu": null, "capabilities": null, "physical_evidence_sha256": null, "spi_selector": null}
+  ],
+  "roles": {"vehicle_can": -1, "diagnostic": -1, "harness": -1, "fan_control": -1, "power_monitor": -1, "ir_control": -1, "ignition_sources": []}
+}

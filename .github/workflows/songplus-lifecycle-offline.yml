@@ -1,0 +1,58 @@
+# Generated contract: python3 tools/check_songplus_lifecycle_ci.py --print-workflow
+name: Song PLUS lifecycle and production gate
+
+on:
+  pull_request:
+  push:
+    branches: [songplus-offline-research]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  source-contract:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # Existing project pin, v6
+        with:
+          submodules: false
+          lfs: false
+          persist-credentials: false
+      - name: Offline metadata, release-gate and reproducibility contract
+        run: >-
+          sudo -n -- unshare --user --map-root-user --net --mount --fork env P2_IN_NAMESPACE=1
+          sh tools/panda_transport_linux_sandbox.sh
+          python3 -B tools/check_songplus_lifecycle_ci.py --mode contract
+          --output results/songplus-lifecycle-ci-hosted
+
+  prepared-offline:
+    if: >-
+      github.event_name == 'workflow_dispatch' &&
+      github.ref == 'refs/heads/songplus-offline-research' &&
+      github.repository == vars.PANDA_MAINTENANCE_REPOSITORY
+    needs: source-contract
+    environment: panda-offline-maintainers
+    runs-on: [self-hosted, macOS, ARM64, songplus-panda-offline]
+    timeout-minutes: 120
+    concurrency:
+      group: panda-prepared-offline
+      cancel-in-progress: false
+    env:
+      PANDA_WORKSPACE: ${{ vars.PANDA_WORKSPACE }}
+      PANDA_LINUX_INSTANCE: ${{ vars.PANDA_LINUX_INSTANCE }}
+      PANDA_LINUX_ROOT: ${{ vars.PANDA_LINUX_ROOT }}
+      EXPECTED_COMMIT: ${{ github.sha }}
+      CI_RUN_ID: ${{ github.run_id }}-${{ github.run_attempt }}
+    defaults:
+      run:
+        working-directory: ${{ vars.PANDA_WORKSPACE }}
+    steps:
+      - name: Verify prepared checkout and run complete offline acceptance
+        run: >-
+          upstream-openpilot/.venv/bin/python -B tools/check_songplus_lifecycle_ci.py
+          --mode full --expected-commit "$EXPECTED_COMMIT"
+          --linux-instance "$PANDA_LINUX_INSTANCE"
+          --linux-root "$PANDA_LINUX_ROOT"
+          --output "results/songplus-lifecycle-ci-$CI_RUN_ID"
