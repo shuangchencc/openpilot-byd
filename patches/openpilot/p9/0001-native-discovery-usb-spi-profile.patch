@@ -1,0 +1,2624 @@
+From 06fd6e68223c6ad6caabc7f64d2f032445a42095 Mon Sep 17 00:00:00 2001
+From: scarvito <7883167+scarvito@user.noreply.gitee.com>
+Date: Sun, 18 Oct 2026 14:21:26 +0800
+Subject: [PATCH] Add guarded native USB/SPI discovery and read-only profile
+ handoff
+
+---
+ openpilot/selfdrive/pandad/SConscript         |   1 +
+ .../pandad/compatibility/libusb_api.cc        |  25 +-
+ .../pandad/compatibility/libusb_api.h         |   3 +
+ .../pandad/compatibility/native_binding.cc    | 187 +++++++++
+ .../pandad/compatibility/native_binding.h     |  80 ++++
+ .../pandad/compatibility/native_spi.cc        | 220 +++++++++++
+ .../pandad/compatibility/native_spi.h         |  84 ++++
+ .../pandad/compatibility/native_spi_probe.cc  | 136 +++++++
+ .../pandad/compatibility/native_spi_probe.h   |  41 ++
+ .../pandad/compatibility/native_usb.cc        | 314 +++++++++++++++
+ .../pandad/compatibility/native_usb.h         | 103 +++++
+ .../compatibility/runtime_integration.cc      |   4 +-
+ .../compatibility/runtime_integration.h       |  18 +-
+ .../pandad/compatibility/session_registry.cc  |  20 +-
+ .../pandad/compatibility/session_registry.h   |   1 +
+ .../pandad/compatibility/spi_backend.h        |   4 +-
+ .../tests/test_native_binding.cc              | 109 ++++++
+ .../compatibility/tests/test_native_spi.cc    | 360 ++++++++++++++++++
+ .../tests/test_native_spi_probe.cc            | 274 +++++++++++++
+ .../compatibility/tests/test_native_usb.cc    | 326 ++++++++++++++++
+ 20 files changed, 2294 insertions(+), 16 deletions(-)
+ create mode 100644 openpilot/selfdrive/pandad/compatibility/native_binding.cc
+ create mode 100644 openpilot/selfdrive/pandad/compatibility/native_binding.h
+ create mode 100644 openpilot/selfdrive/pandad/compatibility/native_spi.cc
+ create mode 100644 openpilot/selfdrive/pandad/compatibility/native_spi.h
+ create mode 100644 openpilot/selfdrive/pandad/compatibility/native_spi_probe.cc
+ create mode 100644 openpilot/selfdrive/pandad/compatibility/native_spi_probe.h
+ create mode 100644 openpilot/selfdrive/pandad/compatibility/native_usb.cc
+ create mode 100644 openpilot/selfdrive/pandad/compatibility/native_usb.h
+ create mode 100644 openpilot/selfdrive/pandad/compatibility/tests/test_native_binding.cc
+ create mode 100644 openpilot/selfdrive/pandad/compatibility/tests/test_native_spi.cc
+ create mode 100644 openpilot/selfdrive/pandad/compatibility/tests/test_native_spi_probe.cc
+ create mode 100644 openpilot/selfdrive/pandad/compatibility/tests/test_native_usb.cc
+
+diff --git a/openpilot/selfdrive/pandad/SConscript b/openpilot/selfdrive/pandad/SConscript
+index 877ce94..8020ad8 100644
+--- a/openpilot/selfdrive/pandad/SConscript
++++ b/openpilot/selfdrive/pandad/SConscript
+@@ -12,6 +12,7 @@ if arch != "Darwin":
+     'pandad_runtime', 'cereal_bridge', 'pandad_loop', 'offline_entry',
+     'runtime_integration', 'realtime_bridge', 'msgq_adapter',
+     'usb_backend', 'libusb_api', 'spi_backend',
++    'native_usb', 'native_spi', 'native_spi_probe', 'native_binding',
+   ]]
+   pandad_env.Program('pandad', ['main.cc', 'pandad.cc', 'panda_safety.cc'] + compatibility, LIBS=[panda] + libs + ['usb-1.0'])
+ 
+diff --git a/openpilot/selfdrive/pandad/compatibility/libusb_api.cc b/openpilot/selfdrive/pandad/compatibility/libusb_api.cc
+index 9db86bb..2dc2514 100644
+--- a/openpilot/selfdrive/pandad/compatibility/libusb_api.cc
++++ b/openpilot/selfdrive/pandad/compatibility/libusb_api.cc
+@@ -1,6 +1,7 @@
+ #include "libusb_api.h"
+ 
+ #include <array>
++#include <chrono>
+ #include <utility>
+ 
+ #include <libusb.h>
+@@ -19,10 +20,16 @@ public:
+   }
+   int enumerate(std::vector<UsbDeviceInfo> &devices) override {
+     if (!context_) return kUsbInvalid;
++    if (enumerated_) return kUsbBusy;
++    enumerated_ = true;  // One bounded inventory per context; no ref accumulation.
+     devices.clear();
+     libusb_device **list = nullptr;
+     const auto count = libusb_get_device_list(context_, &list);
+     if (count < 0) return static_cast<int>(count);
++    if (static_cast<std::size_t>(count) > kUsbMaxInventoryDevices) {
++      libusb_free_device_list(list, 1);
++      return kUsbOverflow;
++    }
+     int result = kUsbSuccess;
+     for (decltype(count + 0) i = 0; i < count; ++i) {
+       libusb_device_descriptor desc{};
+@@ -43,8 +50,13 @@ public:
+         info.active_configuration_known = true;
+         for (int n = 0; n < config->bNumInterfaces; ++n) {
+           const auto &interface = config->interface[n];
++          if (interface.num_altsetting < 0 ||
++              static_cast<std::size_t>(interface.num_altsetting) > kUsbMaxAlternates - info.alternates.size()) {
++            result = kUsbOverflow; break;
++          }
+           for (int a = 0; a < interface.num_altsetting; ++a) {
+             const auto &alt = interface.altsetting[a];
++            if (alt.bNumEndpoints > kUsbMaxEndpoints) { result = kUsbOverflow; break; }
+             UsbAlternate item{alt.bInterfaceNumber, alt.bAlternateSetting, {}};
+             for (int e = 0; e < alt.bNumEndpoints; ++e) {
+               const auto &endpoint = alt.endpoint[e];
+@@ -52,9 +64,11 @@ public:
+             }
+             info.alternates.push_back(std::move(item));
+           }
++          if (result != 0) break;
+         }
+         libusb_free_config_descriptor(config);
+       }
++      if (result != 0) break;
+       devices.push_back(std::move(info));
+     }
+     libusb_free_device_list(list, 1);
+@@ -70,19 +84,24 @@ public:
+   int serial(UsbHandle handle, std::uint8_t index, std::string &value,
+              std::uint32_t timeout_ms) override {
+     value.clear();
+-    if (index == 0) return kUsbInvalid;
++    if (index == 0 || timeout_ms == 0) return kUsbInvalid;
+     // libusb_get_string_descriptor_ascii uses an internal 1000ms timeout.
+     // Read LANGID and UTF-16LE descriptors explicitly with the requested slice.
+     std::array<unsigned char, 255> buffer{};
+     auto *native = reinterpret_cast<libusb_device_handle *>(handle);
++    const auto started = std::chrono::steady_clock::now();
+     int count = libusb_control_transfer(native, 0x80, LIBUSB_REQUEST_GET_DESCRIPTOR,
+                                        LIBUSB_DT_STRING << 8, 0, buffer.data(), buffer.size(), timeout_ms);
+     if (count < 0) return count;
+     if (count < 4 || buffer[1] != LIBUSB_DT_STRING || buffer[0] < 4 || buffer[0] != count || (buffer[0] & 1)) return kUsbIo;
+     const auto language = static_cast<std::uint16_t>(buffer[2] | (buffer[3] << 8));
++    const auto elapsed_us = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::steady_clock::now() - started).count();
++    const auto budget_us = static_cast<std::int64_t>(timeout_ms) * 1000;
++    if (elapsed_us < 0 || elapsed_us >= budget_us || budget_us - elapsed_us < 1000) return kUsbTimeout;
++    const auto remaining_ms = static_cast<std::uint32_t>((budget_us - elapsed_us) / 1000);
+     count = libusb_control_transfer(native, 0x80, LIBUSB_REQUEST_GET_DESCRIPTOR,
+                                    static_cast<std::uint16_t>((LIBUSB_DT_STRING << 8) | index),
+-                                   language, buffer.data(), buffer.size(), timeout_ms);
++                                   language, buffer.data(), buffer.size(), remaining_ms);
+     if (count < 0) return count;
+     if (count < 2 || buffer[1] != LIBUSB_DT_STRING || buffer[0] < 2 || buffer[0] != count || (buffer[0] & 1)) return kUsbIo;
+     for (int n = 2; n < buffer[0]; n += 2) {
+@@ -115,10 +134,12 @@ public:
+   void shutdown() override {
+     for (auto *device : retained_) libusb_unref_device(device);
+     retained_.clear();
++    enumerated_ = false;
+     if (context_) libusb_exit(std::exchange(context_, nullptr));
+   }
+ private:
+   libusb_context *context_ = nullptr;
++  bool enumerated_ = false;
+   std::vector<libusb_device *> retained_;
+ };
+ }  // namespace
+diff --git a/openpilot/selfdrive/pandad/compatibility/libusb_api.h b/openpilot/selfdrive/pandad/compatibility/libusb_api.h
+index 375f8f5..d4f31b6 100644
+--- a/openpilot/selfdrive/pandad/compatibility/libusb_api.h
++++ b/openpilot/selfdrive/pandad/compatibility/libusb_api.h
+@@ -20,6 +20,9 @@ inline constexpr int kUsbTimeout = -7;
+ inline constexpr int kUsbOverflow = -8;
+ inline constexpr int kUsbPipe = -9;
+ inline constexpr int kUsbInterrupted = -10;
++inline constexpr std::size_t kUsbMaxInventoryDevices = 64;
++inline constexpr std::size_t kUsbMaxAlternates = 32;
++inline constexpr std::size_t kUsbMaxEndpoints = 16;
+ 
+ using UsbDeviceId = std::uintptr_t;
+ using UsbHandle = std::uintptr_t;
+diff --git a/openpilot/selfdrive/pandad/compatibility/native_binding.cc b/openpilot/selfdrive/pandad/compatibility/native_binding.cc
+new file mode 100644
+index 0000000..c8ef3d2
+--- /dev/null
++++ b/openpilot/selfdrive/pandad/compatibility/native_binding.cc
+@@ -0,0 +1,187 @@
++#include "native_binding.h"
++#include <algorithm>
++
++namespace openpilot::pandad::compatibility {
++namespace {
++template <class T> std::string hex(const T &bytes) {
++  constexpr char chars[] = "0123456789abcdef";
++  std::string out;
++  for (auto byte : bytes) { out += chars[byte >> 4]; out += chars[byte & 15]; }
++  return out;
++}
++bool digest(const std::string &s) {
++  return s.size() == 64 && std::any_of(s.begin(),s.end(),[](char c){return c != '0';}) &&
++    std::all_of(s.begin(),s.end(),[](char c){return (c>='0' && c<='9') || (c>='a' && c<='f');});
++}
++bool printable(const std::string &s) {
++  return !s.empty() && s.size() <= 128 && std::all_of(s.begin(),s.end(),[](unsigned char c){return c>32 && c<127;});
++}
++bool same_raw(NativeUsbObservation a, NativeUsbObservation b) {
++  a.lease_nonce = b.lease_nonce = 0;
++  return a == b;
++}
++bool raw_valid(const NativeUsbObservation &r, const std::string &transport) {
++  const std::array<std::uint8_t,8> protocol{{0xf5,0x12,0xbc,0xff,0x76,0xf2,0xab,0x75}};
++  const std::vector<std::uint8_t> f4{'F','4','C','1',1,0,16,0,31,0,0,0,7,0,0,0};
++  const auto nonblank=[](const auto &a) {
++    return !std::all_of(a.begin(),a.end(),[](auto b){return b==0;}) && !std::all_of(a.begin(),a.end(),[](auto b){return b==255;});
++  };
++  return (transport == "USB" ? printable(r.serial) : transport == "SPI" && r.serial.empty()) &&
++    nonblank(r.uid) && nonblank(r.application_signature) && r.protocol == protocol &&
++    ((r.board_type == 6 && r.f4_capabilities == f4) || (r.board_type == 7 && r.f4_capabilities.empty()));
++}
++std::string nonce(const NativeObservedBoard &o) { return o.transport + ":" + std::to_string(o.raw.lease_nonce); }
++class ReadOnlyHandoff final : public Backend {
++public:
++  explicit ReadOnlyHandoff(std::unique_ptr<Backend> inner) : inner_(std::move(inner)) {}
++  Result transact(const Request &r, std::uint32_t budget) override {
++    if (!valid_request(r) || !budget || budget>kBackendSliceMs) return {Status::Invalid,0,{},true,false};
++    bool allowed=r.kind==Kind::BulkRead && r.endpoint==0x81;
++    if (r.kind==Kind::ControlRead && r.payload.empty()) {
++      const auto length=r.request==0xc1 ? 1U : r.request==0xc3 ? 12U : r.request==0xdd ? 8U :
++        (r.request==0xd3 || r.request==0xd4 || r.request==0xc2) ? 64U : r.request==0xd5 ? 16U : r.request==0xd2 ? 48U : r.request==0xb2 ? 2U : 0U;
++      allowed=(length && !r.index && r.read_length==length && (r.request==0xc2 ? r.value<3 : r.value==0));
++    }
++    if (!allowed || cancelled_) return {cancelled_ ? Status::Cancelled : Status::Invalid,0,{},true,false};
++    return inner_->transact(r,budget);
++  }
++  void cancel() noexcept override { cancelled_=true; inner_->cancel(); }
++private:
++  std::unique_ptr<Backend> inner_;
++  std::atomic<bool> cancelled_{false};
++};
++SessionIdentity identity(const NativeBoardBinding &b) {
++  return {"uid:"+hex(b.expected.uid), b.expected.board_type==6 ? "DOS":"RED_PANDA",
++    b.expected.board_type==6 ? "F4":"H7",b.exact_mcu,b.transport,kSessionProtocol,b.capabilities,hex(b.expected.application_signature)};
++}
++}  // namespace
++
++NativeBindingResult validate_native_binding(const NativeBindingProfile &p, const std::vector<NativeObservedBoard> &inventory,
++                                            const NativeEvidenceVerifier &verify) {
++  NativeBindingResult result;
++  result.profile.schema = kNativeSessionProfileSchema;
++  result.profile.purpose = "native_read_only_candidate";
++  const auto reject=[&](const char *reason) { result.reason=reason; return result; };
++  if (p.schema != "songplus-native-binding/v1" || p.device_access_enabled || p.can_tx_enabled || p.firmware_install_enabled)
++    return reject("INVALID_SCHEMA_OR_PERMISSION");
++  if (p.binding_status == "UNBOUND") {
++    const SessionCapabilities empty_caps;
++    for (std::size_t i=0;i<2;++i) {
++      const auto &b=p.slots[i];
++      if (b.slot!=i || !(b.expected==NativeUsbObservation{}) || b.expected.observed_us || !b.transport.empty() || !b.exact_mcu.empty() ||
++          !(b.capabilities==empty_caps) || !b.physical_evidence_sha256.empty() || !b.spi_selector.path.empty() ||
++          !b.spi_selector.identity_evidence_sha256.empty() || b.spi_selector.physical_identity_verified ||
++          b.spi_selector.expected_major || b.spi_selector.expected_minor || b.spi_selector.expected_mode ||
++          b.spi_selector.expected_bits_per_word || b.spi_selector.expected_max_speed_hz) return reject("PARTIAL_UNBOUND_PROFILE");
++    }
++    SessionProfile empty; empty.roles=p.roles;
++    try { const SessionRegistry checked(empty); (void)checked; }
++    catch (...) { return reject("PARTIAL_UNBOUND_ROLES"); }
++    return result;
++  }
++  if (p.binding_status != "CANDIDATE" || !verify) return reject("PHYSICAL_EVIDENCE_VERIFIER_REQUIRED");
++  if (inventory.size() != 2) return reject("COMPLETE_TWO_BOARD_INVENTORY_REQUIRED");
++  if (!inventory[0].raw.lease_nonce || !inventory[1].raw.lease_nonce ||
++      inventory[0].raw.lease_nonce == inventory[1].raw.lease_nonce || inventory[0].raw.uid == inventory[1].raw.uid)
++    return reject("DUPLICATE_OR_INVALID_LEASE_IDENTITY");
++  if (p.slots[0].expected.uid == p.slots[1].expected.uid) return reject("DUPLICATE_BOUND_UID");
++  if (inventory[0].transport == "USB" && inventory[1].transport == "USB" && inventory[0].raw.serial == inventory[1].raw.serial)
++    return reject("DUPLICATE_USB_SERIAL");
++  SessionProfile candidate = result.profile;
++  candidate.binding_status = "NATIVE_READ_ONLY_BOUND";
++  candidate.roles = p.roles;
++  for (std::size_t slot=0;slot<2;++slot) {
++    const auto &b=p.slots[slot];
++    if (b.slot != slot || b.expected.lease_nonce || b.expected.observed_us || !raw_valid(b.expected,b.transport)) return reject("INVALID_EXPECTED_IDENTITY");
++    if (!digest(b.physical_evidence_sha256) || !printable(b.exact_mcu) ||
++        (b.expected.board_type==6 ? b.exact_mcu.rfind("STM32F413",0)!=0 : b.exact_mcu.rfind("STM32H7",0)!=0))
++      return reject("EXACT_MCU_OR_PHYSICAL_EVIDENCE_MISSING");
++    if (b.expected.board_type==6 && (b.capabilities.can_fd || b.capabilities.ir || b.transport=="SPI"))
++      return reject("F4_UNSUPPORTED_CAPABILITY_OR_TRANSPORT");
++    if (b.transport=="SPI" && (!valid_native_spi_selector(b.spi_selector) || *b.spi_selector.expected_mode!=0 ||
++        *b.spi_selector.expected_bits_per_word!=8 || *b.spi_selector.expected_max_speed_hz>50000000 || b.spi_selector.identity_evidence_sha256 != b.physical_evidence_sha256))
++      return reject("SPI_NODE_CONFIGURATION_EVIDENCE_MISSING");
++    try { if (!verify(b)) return reject("PHYSICAL_EVIDENCE_NOT_VERIFIED"); }
++    catch (...) { return reject("PHYSICAL_EVIDENCE_VERIFIER_FAILED"); }
++    const auto found=std::find_if(inventory.begin(),inventory.end(),[&](const auto &o){return o.raw.uid==b.expected.uid;});
++    if (found==inventory.end() || found->transport!=b.transport || !same_raw(found->raw,b.expected)) return reject("OBSERVED_IDENTITY_MISMATCH");
++    if ((b.transport=="USB" && (!found->usb_alt0_verified || found->spi_first_request_id)) ||
++        (b.transport=="SPI" && (!found->spi_first_request_id || found->usb_alt0_verified || !(found->spi_selector==b.spi_selector)))) return reject("SESSION_ACTIVATION_EVIDENCE_MISSING");
++    result.observations[slot]=*found;
++    candidate.slots[slot]={static_cast<std::uint32_t>(slot),identity(b),"noOutput"};
++  }
++  try { const SessionRegistry checked(candidate); (void)checked; }
++  catch (...) { return reject("INVALID_ROLES_OR_CAPABILITIES"); }
++  result.profile=std::move(candidate); result.bound=true; result.reason="MATCHED_READ_ONLY_CANDIDATE_NO_DEPLOYMENT_PERMISSION";
++  return result;
++}
++NativeLease native_usb_read_only_lease(NativeUsbInventory &inventory, std::size_t index, const NativeBindingResult &binding, std::size_t slot,
++                                       Clock &clock, bool allow) {
++  NativeLease result;
++  if (!binding.bound || slot>=2) return result;
++  const auto &observed=binding.observations[slot]; result.observed=observed;
++  if (!allow || observed.transport!="USB" || !observed.usb_alt0_verified || observed.spi_first_request_id) return result;
++  NativeUsbActivation activation;
++  activation.lease_nonce=observed.raw.lease_nonce; activation.allow_device_io=true;
++  activation.profile_validated=true; activation.bulk_alt0_verified=true;
++  std::uint64_t activated_us=0;
++  auto backend=inventory.activate(index,observed.raw,activation,clock,&activated_us);
++  if (!backend) return result;
++  result.observed_us=activated_us;
++  result.io=std::make_unique<OwnedTransport>(); result.io->backend=std::move(backend);
++  result.io->transport=std::make_unique<Transport>(*result.io->backend,clock);
++  return result;
++}
++NativeLease native_spi_read_only_lease(NativeSpiProbeResult &&probe, const NativeObservedBoard &observed) {
++  NativeLease result; result.observed=observed;
++  if (probe.complete() && observed.transport=="SPI" && observed.spi_first_request_id && !observed.usb_alt0_verified &&
++      probe.observation == observed.raw && probe.first_request_id==observed.spi_first_request_id &&
++      probe.validated_selector==observed.spi_selector) {
++    result.observed_us=probe.completed_us; result.io=std::move(probe.transport);
++  }
++  return result;
++}
++bool NativeReadOnlyProviders::stage(std::vector<NativeLease> leases, std::uint64_t revision, std::uint64_t observed_us, bool allow) {
++  leases_={}; snapshot_={}; binding_={};
++  const auto now=clock_.now_us();
++  if (!allow || !revision || revision<=last_revision_ || !observed_us || observed_us>now || now-observed_us>=kLoopMaxGapUs || leases.size()!=2)
++    return false;
++  std::vector<NativeObservedBoard> observations;
++  std::uint64_t oldest=now;
++  for (const auto &lease:leases) {
++    if (!lease.io || !lease.io->backend || !lease.io->transport || !lease.io->transport->healthy() ||
++        !lease.observed_us || lease.observed_us>now || now-lease.observed_us>=kLoopMaxGapUs ||
++        !lease.observed.raw.lease_nonce || consumed_.count(lease.observed.raw.lease_nonce) || consumed_.size()>126) return false;
++    oldest=std::min(oldest,lease.observed_us);
++    observations.push_back(lease.observed);
++  }
++  if (observed_us!=oldest) return false;
++  last_revision_=revision;
++  for (const auto &o:observations) consumed_.insert(o.raw.lease_nonce);
++  binding_=validate_native_binding(profile_,observations,verifier_);
++  if (!binding_.bound) return false;
++  snapshot_.revision=revision; snapshot_.observed_us=observed_us;
++  for (std::size_t slot=0;slot<2;++slot) {
++    const auto &o=binding_.observations[slot];
++    const auto it=std::find_if(leases.begin(),leases.end(),[&](const auto &l){return l.observed.raw.lease_nonce==o.raw.lease_nonce;});
++    leases_[slot]=std::move(it->io);
++    // Enforce receive-only at the final handoff as well, even if a caller
++    // accidentally supplies a provider created with a broader grant.
++    leases_[slot]->transport.reset();
++    leases_[slot]->backend=std::make_unique<ReadOnlyHandoff>(std::move(leases_[slot]->backend));
++    leases_[slot]->transport=std::make_unique<Transport>(*leases_[slot]->backend,clock_);
++    snapshot_.items.push_back({binding_.profile.slots[slot].expected,nonce(o),o.usb_alt0_verified,o.spi_first_request_id});
++  }
++  return true;
++}
++std::unique_ptr<OwnedTransport> NativeReadOnlyProviders::open(const DiscoveryItem &item, const SessionBinding &binding) {
++  if (!binding_.bound || binding.slot>=2 || binding.safety_config_semantics!="noOutput") return nullptr;
++  const auto slot=binding.slot;
++  const auto &expected=snapshot_.items[slot];
++  const auto now=clock_.now_us();
++  if (now<snapshot_.observed_us || now-snapshot_.observed_us>=kLoopMaxGapUs ||
++      !(item.identity==binding.expected) || !(item.identity==expected.identity) || item.handle_nonce!=expected.handle_nonce ||
++      item.usb_alt0_verified!=expected.usb_alt0_verified || item.spi_first_request_id!=expected.spi_first_request_id) return nullptr;
++  return std::move(leases_[slot]);
++}
++}  // namespace openpilot::pandad::compatibility
+diff --git a/openpilot/selfdrive/pandad/compatibility/native_binding.h b/openpilot/selfdrive/pandad/compatibility/native_binding.h
+new file mode 100644
+index 0000000..7074c85
+--- /dev/null
++++ b/openpilot/selfdrive/pandad/compatibility/native_binding.h
+@@ -0,0 +1,80 @@
++#pragma once
++
++#include <functional>
++#include "native_usb.h"
++#include "native_spi_probe.h"
++
++namespace openpilot::pandad::compatibility {
++struct NativeObservedBoard {
++  NativeUsbObservation raw;
++  std::string transport;
++  bool usb_alt0_verified = false;
++  std::uint32_t spi_first_request_id = 0;
++  NativeSpiSelector spi_selector;
++};
++struct NativeBoardBinding {
++  std::uint32_t slot = 0;
++  // Expected raw identity must have nonce zero: leases belong to discovery,
++  // never to persisted profiles. SPI serial is empty; USB serial is explicit.
++  NativeUsbObservation expected;
++  std::string transport;
++  std::string exact_mcu;
++  SessionCapabilities capabilities;
++  std::string physical_evidence_sha256;
++  NativeSpiSelector spi_selector;
++};
++struct NativeBindingProfile {
++  NativeBindingProfile() { slots[1].slot = 1; }
++  std::string schema = "songplus-native-binding/v1";
++  std::string binding_status = "UNBOUND";
++  std::array<NativeBoardBinding,2> slots{{NativeBoardBinding{},NativeBoardBinding{}}};
++  SessionRoles roles;
++  bool device_access_enabled = false, can_tx_enabled = false, firmware_install_enabled = false;
++};
++// This callback must check the referenced evidence content AND its association
++// with this exact board/MCU/capability/transport tuple. A digest or true boolean
++// in a JSON file is not verification. No production verifier ships in P9.
++using NativeEvidenceVerifier = std::function<bool(const NativeBoardBinding &)>;
++struct NativeBindingResult {
++  bool bound = false;
++  std::string reason = "UNBOUND_PROFILE";
++  SessionProfile profile;
++  std::array<NativeObservedBoard,2> observations;
++};
++NativeBindingResult validate_native_binding(const NativeBindingProfile &,
++  const std::vector<NativeObservedBoard> &, const NativeEvidenceVerifier & = {});
++
++struct NativeLease {
++  NativeObservedBoard observed;
++  std::uint64_t observed_us = 0;
++  std::unique_ptr<OwnedTransport> io;
++};
++// Adapter helpers never discover/reopen devices and default-deny activation.
++NativeLease native_usb_read_only_lease(NativeUsbInventory &, std::size_t,
++  const NativeBindingResult &, std::size_t slot, Clock &, bool allow_read_only_activation = false);
++NativeLease native_spi_read_only_lease(NativeSpiProbeResult &&, const NativeObservedBoard &);
++
++// Bridges retained native providers to the existing epoch/whole-group owner.
++// Staging requires all two identities and transfers each lease exactly once.
++// Snapshot timestamps are NOT renewed without a new complete probe: the P8
++// freshness barrier will retire a stale group. There is no production launcher.
++class NativeReadOnlyProviders final : public DiscoveryProvider, public TransportFactory {
++public:
++  NativeReadOnlyProviders(const NativeBindingProfile &profile, NativeEvidenceVerifier verifier, Clock &clock)
++    : profile_(profile), verifier_(std::move(verifier)), clock_(clock) {}
++  bool stage(std::vector<NativeLease> leases, std::uint64_t revision,
++             std::uint64_t observed_us, bool allow_read_only_handoff = false);
++  DiscoverySnapshot snapshot() override { return snapshot_; }
++  std::unique_ptr<OwnedTransport> open(const DiscoveryItem &, const SessionBinding &) override;
++  NativeBindingResult binding() const { return binding_; }
++private:
++  const NativeBindingProfile profile_;
++  NativeEvidenceVerifier verifier_;
++  Clock &clock_;
++  NativeBindingResult binding_;
++  DiscoverySnapshot snapshot_;
++  std::array<std::unique_ptr<OwnedTransport>,2> leases_;
++  std::set<std::uint64_t> consumed_;
++  std::uint64_t last_revision_ = 0;
++};
++}  // namespace openpilot::pandad::compatibility
+diff --git a/openpilot/selfdrive/pandad/compatibility/native_spi.cc b/openpilot/selfdrive/pandad/compatibility/native_spi.cc
+new file mode 100644
+index 0000000..d9d3300
+--- /dev/null
++++ b/openpilot/selfdrive/pandad/compatibility/native_spi.cc
+@@ -0,0 +1,220 @@
++#include "native_spi.h"
++
++#include <algorithm>
++#include <cerrno>
++#include <fcntl.h>
++#include <limits>
++
++#ifdef __linux__
++#include <linux/spi/spidev.h>
++#include <sys/file.h>
++#include <sys/ioctl.h>
++#include <sys/stat.h>
++#include <sys/sysmacros.h>
++#include <unistd.h>
++#endif
++
++namespace openpilot::pandad::compatibility {
++namespace {
++Status error_status(int error) {
++  if (error == ENODEV || error == ENXIO || error == EBADF) return Status::Disconnected;
++  if (error == ETIMEDOUT) return Status::Timeout;
++  if (error == EAGAIN || error == EWOULDBLOCK) return Status::Busy;
++  return Status::IoError;
++}
++Result rejected(Status status) { return {status, 0, {}, true, false}; }
++bool canonical_number(const std::string &value) {
++  if (value.empty() || (value.size() > 1 && value.front() == '0') || value.size() > 10) return false;
++  std::uint64_t number = 0;
++  for (const char ch : value) {
++    if (ch < '0' || ch > '9') return false;
++    number = number * 10 + static_cast<unsigned>(ch - '0');
++    if (number > std::numeric_limits<std::uint32_t>::max()) return false;
++  }
++  return true;
++}
++class LinuxSpiSyscalls final : public NativeSpiSyscalls {
++public:
++#ifdef __linux__
++  NativeSpiCall open_device(const std::string &path, int flags) override { return result(::open(path.c_str(), flags)); }
++  NativeSpiCall stat_device(int fd, NativeSpiNode &node) override {
++    struct stat metadata{};
++    auto call = result(::fstat(fd, &metadata));
++    if (call.value == 0) node = {S_ISCHR(metadata.st_mode), static_cast<std::uint32_t>(::major(metadata.st_rdev)), static_cast<std::uint32_t>(::minor(metadata.st_rdev))};
++    return call;
++  }
++  NativeSpiCall read_mode(int fd, std::uint32_t &mode) override { return result(::ioctl(fd, SPI_IOC_RD_MODE32, &mode)); }
++  NativeSpiCall read_bits(int fd, std::uint8_t &bits) override { return result(::ioctl(fd, SPI_IOC_RD_BITS_PER_WORD, &bits)); }
++  NativeSpiCall read_speed(int fd, std::uint32_t &speed) override { return result(::ioctl(fd, SPI_IOC_RD_MAX_SPEED_HZ, &speed)); }
++  NativeSpiCall lock_device(int fd, bool acquire) override { return result(::flock(fd, acquire ? LOCK_EX | LOCK_NB : LOCK_UN)); }
++  NativeSpiCall message(int fd, const std::uint8_t *tx, std::uint8_t *rx, std::size_t bytes) override {
++    struct spi_ioc_transfer transfer{};
++    transfer.tx_buf = reinterpret_cast<std::uintptr_t>(tx);
++    transfer.rx_buf = reinterpret_cast<std::uintptr_t>(rx);
++    transfer.len = static_cast<std::uint32_t>(bytes);
++    // speed_hz/bits_per_word/delay/cs_change remain zero: retain the inspected
++    // driver configuration and use one full-duplex CS assertion, no overrides.
++    return result(::ioctl(fd, SPI_IOC_MESSAGE(1), &transfer));
++  }
++  NativeSpiCall close_device(int fd) override { return result(::close(fd)); }
++private:
++  static NativeSpiCall result(int value) { return {value, value < 0 ? errno : 0}; }
++#else
++  NativeSpiCall open_device(const std::string &, int) override { return unsupported(); }
++  NativeSpiCall stat_device(int, NativeSpiNode &) override { return unsupported(); }
++  NativeSpiCall read_mode(int, std::uint32_t &) override { return unsupported(); }
++  NativeSpiCall read_bits(int, std::uint8_t &) override { return unsupported(); }
++  NativeSpiCall read_speed(int, std::uint32_t &) override { return unsupported(); }
++  NativeSpiCall lock_device(int, bool) override { return unsupported(); }
++  NativeSpiCall message(int, const std::uint8_t *, std::uint8_t *, std::size_t) override { return unsupported(); }
++  NativeSpiCall close_device(int) override { return unsupported(); }
++private:
++  static NativeSpiCall unsupported() { return {-1, ENOTSUP}; }
++#endif
++};
++}  // namespace
++
++std::shared_ptr<NativeSpiSyscalls> make_linux_spi_syscalls() { return std::make_shared<LinuxSpiSyscalls>(); }
++
++bool operator==(const NativeSpiSelector &a, const NativeSpiSelector &b) {
++  return a.path == b.path && a.identity_evidence_sha256 == b.identity_evidence_sha256 &&
++    a.physical_identity_verified == b.physical_identity_verified && a.expected_major == b.expected_major &&
++    a.expected_minor == b.expected_minor && a.expected_mode == b.expected_mode &&
++    a.expected_bits_per_word == b.expected_bits_per_word && a.expected_max_speed_hz == b.expected_max_speed_hz;
++}
++
++bool valid_native_spi_selector(const NativeSpiSelector &selector) {
++  constexpr const char *prefix = "/dev/spidev";
++  constexpr std::size_t prefix_size = 11;
++  if (selector.path.compare(0, prefix_size, prefix) != 0 || selector.path.size() > 32) return false;
++  const auto dot = selector.path.find('.', prefix_size);
++  if (dot == std::string::npos || !canonical_number(selector.path.substr(prefix_size, dot - prefix_size)) ||
++      !canonical_number(selector.path.substr(dot + 1))) return false;
++  if (!selector.physical_identity_verified || selector.identity_evidence_sha256.size() != 64 ||
++      !std::all_of(selector.identity_evidence_sha256.begin(), selector.identity_evidence_sha256.end(),
++                   [](char ch) { return (ch >= '0' && ch <= '9') || (ch >= 'a' && ch <= 'f'); })) return false;
++  return selector.expected_major && *selector.expected_major > 0 && selector.expected_minor &&
++         selector.expected_mode && selector.expected_bits_per_word && *selector.expected_bits_per_word > 0 &&
++         *selector.expected_bits_per_word <= 32 && selector.expected_max_speed_hz && *selector.expected_max_speed_hz > 0;
++}
++
++NativeSpiIo::~NativeSpiIo() { end(); close(); }
++void NativeSpiIo::close() noexcept {
++  if (fd_ >= 0) {
++    // Never retry close: Linux may already have released the descriptor on EINTR.
++    (void)calls_->close_device(fd_);
++    fd_ = -1;
++  }
++}
++
++Status NativeSpiIo::check_node_and_configuration() {
++  if (cancelled_.load()) return Status::Cancelled;
++  NativeSpiNode node;
++  auto call = calls_->stat_device(fd_, node);
++  if (call.value != 0) return error_status(call.error);
++  if (cancelled_.load()) return Status::Cancelled;
++  if (!node.character_device || node.major != *selector_.expected_major || node.minor != *selector_.expected_minor) return Status::Invalid;
++  std::uint32_t mode = 0, speed = 0;
++  std::uint8_t bits = 0;
++  call = calls_->read_mode(fd_, mode);
++  if (call.value != 0) return error_status(call.error);
++  if (cancelled_.load()) return Status::Cancelled;
++  call = calls_->read_bits(fd_, bits);
++  if (call.value != 0) return error_status(call.error);
++  if (cancelled_.load()) return Status::Cancelled;
++  call = calls_->read_speed(fd_, speed);
++  if (call.value != 0) return error_status(call.error);
++  if (cancelled_.load()) return Status::Cancelled;
++  return mode == *selector_.expected_mode && bits == *selector_.expected_bits_per_word &&
++         speed == *selector_.expected_max_speed_hz ? Status::Ok : Status::Invalid;
++}
++
++Status NativeSpiIo::activate(const NativeSpiSelector &selector, NativeSpiActivation permit) {
++  if (cancelled_.load()) return Status::Cancelled;
++  if (permit != NativeSpiActivation::VerifiedProfile || !valid_native_spi_selector(selector) || !calls_ || activated_once_) return Status::Invalid;
++  activated_once_ = true;
++  selector_ = selector;
++  const auto opened = calls_->open_device(selector.path, O_RDWR | O_NOFOLLOW | O_CLOEXEC | O_NONBLOCK);
++  if (opened.value < 0) return error_status(opened.error);
++  fd_ = opened.value;
++  if (cancelled_.load()) { close(); return Status::Cancelled; }
++  const auto locked = calls_->lock_device(fd_, true);
++  if (locked.value != 0) { close(); return error_status(locked.error); }
++  lease_ = true;
++  const auto status = check_node_and_configuration();
++  end();
++  if (status != Status::Ok || poisoned_ || cancelled_.load()) {
++    close();
++    return cancelled_.load() ? Status::Cancelled : (poisoned_ ? Status::IoError : status);
++  }
++  return Status::Ok;
++}
++
++Status NativeSpiIo::begin(std::uint32_t timeout_ms) {
++  if (cancelled_.load()) return Status::Cancelled;
++  if (fd_ < 0 || poisoned_) return Status::Disconnected;
++  if (lease_) return Status::Busy;
++  if (timeout_ms == 0 || timeout_ms > kBackendSliceMs) return Status::Invalid;
++  const auto start = clock_.now_us();
++  auto previous = start;
++  const auto budget = static_cast<std::uint64_t>(timeout_ms) * 1000;
++  auto elapsed = [&](std::uint64_t &spent) {
++    const auto now = clock_.now_us();
++    if (now < previous) { poisoned_ = true; return false; }
++    previous = now; spent = now - start; return true;
++  };
++  for (std::uint32_t attempt = 0; attempt < kNativeSpiLockAttempts; ++attempt) {
++    if (cancelled_.load()) return Status::Cancelled;
++    std::uint64_t spent = 0;
++    if (!elapsed(spent)) return Status::IoError;
++    if (spent >= budget) return Status::Timeout;
++    const auto locked = calls_->lock_device(fd_, true);
++    if (locked.value == 0) {
++      lease_ = true;
++      auto status = check_node_and_configuration();
++      if (cancelled_.load()) status = Status::Cancelled;
++      else if (!elapsed(spent)) status = Status::IoError;
++      else if (spent >= budget) status = Status::Timeout;
++      if (status != Status::Ok) {
++        poisoned_ = true;
++        end();
++      }
++      return status;
++    }
++    if (locked.error != EAGAIN && locked.error != EWOULDBLOCK) return error_status(locked.error);
++    if (attempt + 1 < kNativeSpiLockAttempts) {
++      if (!elapsed(spent)) return Status::IoError;
++      if (spent >= budget) return Status::Timeout;
++      clock_.wait_us(static_cast<std::uint32_t>(std::min<std::uint64_t>(kNativeSpiLockWaitUs, budget - spent)));
++    }
++  }
++  return Status::Busy;
++}
++
++void NativeSpiIo::end() noexcept {
++  if (lease_) {
++    lease_ = false;
++    if (calls_->lock_device(fd_, false).value != 0) { poisoned_ = true; close(); }
++  }
++}
++
++Result NativeSpiIo::exchange(const std::vector<std::uint8_t> &tx, std::uint32_t timeout_ms) {
++  if (cancelled_.load()) return rejected(Status::Cancelled);
++  if (fd_ < 0 || poisoned_) return rejected(Status::Disconnected);
++  if (!lease_ || tx.empty() || tx.size() > kSpiBufferBytes || timeout_ms == 0 || timeout_ms > kBackendSliceMs) return rejected(Status::Invalid);
++  const auto started = clock_.now_us();
++  std::vector<std::uint8_t> rx(tx.size());
++  const auto call = calls_->message(fd_, tx.data(), rx.data(), tx.size());
++  if (call.value < 0) { poisoned_ = true; return {error_status(call.error), 0, {}, false, true}; }
++  if (static_cast<std::size_t>(call.value) > tx.size()) { poisoned_ = true; return {Status::IoError, 0, {}, false, true}; }
++  rx.resize(static_cast<std::size_t>(call.value));
++  auto status = rx.size() == tx.size() ? Status::Ok : Status::Short;
++  const auto completed = clock_.now_us();
++  if (cancelled_.load()) status = Status::Cancelled;
++  else if (completed < started) status = Status::IoError;
++  else if (completed - started >= static_cast<std::uint64_t>(timeout_ms) * 1000) status = Status::Timeout;
++  if (status != Status::Ok) poisoned_ = true;
++  return {status, rx.size(), std::move(rx), true, static_cast<std::size_t>(call.value) != tx.size()};
++}
++
++}  // namespace openpilot::pandad::compatibility
+diff --git a/openpilot/selfdrive/pandad/compatibility/native_spi.h b/openpilot/selfdrive/pandad/compatibility/native_spi.h
+new file mode 100644
+index 0000000..0184cbd
+--- /dev/null
++++ b/openpilot/selfdrive/pandad/compatibility/native_spi.h
+@@ -0,0 +1,84 @@
++#pragma once
++
++#include <atomic>
++#include <memory>
++#include <optional>
++#include <string>
++
++#include "spi_backend.h"
++
++namespace openpilot::pandad::compatibility {
++
++// These are verified observations of this exact node and board. Missing identity
++// or configuration is unbound; no path, MCU, mode or speed is guessed.
++struct NativeSpiSelector {
++  std::string path;
++  std::string identity_evidence_sha256;
++  bool physical_identity_verified = false;
++  std::optional<std::uint32_t> expected_major;
++  std::optional<std::uint32_t> expected_minor;
++  std::optional<std::uint32_t> expected_mode;
++  std::optional<std::uint8_t> expected_bits_per_word;
++  std::optional<std::uint32_t> expected_max_speed_hz;
++};
++bool operator==(const NativeSpiSelector &, const NativeSpiSelector &);
++enum class NativeSpiActivation { Denied, VerifiedProfile };
++struct NativeSpiCall { int value = -1; int error = 0; };
++struct NativeSpiNode {
++  bool character_device = false;
++  std::uint32_t major = 0, minor = 0;
++};
++
++// Every syscall has an injected seam. The Linux implementation issues only
++// SPI_IOC_RD_* and one SPI_IOC_MESSAGE(1), never WR_* or reset/GPIO operations.
++// Implementations return the captured errno, not an ambient mutable errno.
++class NativeSpiSyscalls {
++public:
++  virtual ~NativeSpiSyscalls() = default;
++  virtual NativeSpiCall open_device(const std::string &, int flags) = 0;
++  virtual NativeSpiCall stat_device(int fd, NativeSpiNode &) = 0;
++  virtual NativeSpiCall read_mode(int fd, std::uint32_t &) = 0;
++  virtual NativeSpiCall read_bits(int fd, std::uint8_t &) = 0;
++  virtual NativeSpiCall read_speed(int fd, std::uint32_t &) = 0;
++  virtual NativeSpiCall lock_device(int fd, bool acquire) = 0;
++  virtual NativeSpiCall message(int fd, const std::uint8_t *tx, std::uint8_t *rx, std::size_t bytes) = 0;
++  virtual NativeSpiCall close_device(int fd) = 0;
++};
++
++// Construction is inert, including on non-Linux hosts. Unsupported syscall
++// implementations fail closed; no device enumeration or fallback is performed.
++std::shared_ptr<NativeSpiSyscalls> make_linux_spi_syscalls();
++bool valid_native_spi_selector(const NativeSpiSelector &selector);
++inline constexpr bool kNativeSpiKernelDeadlineProven = false;
++inline constexpr std::uint32_t kNativeSpiLockAttempts = 32;
++inline constexpr std::uint32_t kNativeSpiLockWaitUs = 100;
++
++// The owner serializes activate/begin/exchange/end/destruction. Only cancel may
++// run concurrently. cancel does not close or interrupt an in-flight kernel call.
++// Linux synchronous SPI_IOC_MESSAGE has no hard timeout: offline budgets and
++// cancellation are checked before/after it, not proof of a kernel deadline.
++class NativeSpiIo final : public SpiIo {
++public:
++  NativeSpiIo(std::shared_ptr<NativeSpiSyscalls> calls, Clock &clock)
++      : calls_(std::move(calls)), clock_(clock) {}
++  ~NativeSpiIo() override;
++  NativeSpiIo(const NativeSpiIo &) = delete;
++  NativeSpiIo &operator=(const NativeSpiIo &) = delete;
++  Status activate(const NativeSpiSelector &, NativeSpiActivation permit = NativeSpiActivation::Denied);
++  Status begin(std::uint32_t timeout_ms) override;
++  void end() noexcept override;
++  void cancel() noexcept override { cancelled_.store(true); }
++  Result exchange(const std::vector<std::uint8_t> &, std::uint32_t timeout_ms) override;
++  bool active() const { return fd_ >= 0 && !cancelled_.load() && !poisoned_; }
++private:
++  Status check_node_and_configuration();
++  void close() noexcept;
++  std::shared_ptr<NativeSpiSyscalls> calls_;
++  Clock &clock_;
++  NativeSpiSelector selector_;
++  int fd_ = -1;
++  bool lease_ = false, activated_once_ = false, poisoned_ = false;
++  std::atomic<bool> cancelled_{false};
++};
++
++}  // namespace openpilot::pandad::compatibility
+diff --git a/openpilot/selfdrive/pandad/compatibility/native_spi_probe.cc b/openpilot/selfdrive/pandad/compatibility/native_spi_probe.cc
+new file mode 100644
+index 0000000..13fecb2
+--- /dev/null
++++ b/openpilot/selfdrive/pandad/compatibility/native_spi_probe.cc
+@@ -0,0 +1,136 @@
++#include "native_spi_probe.h"
++
++#include <algorithm>
++#include <limits>
++#include <set>
++
++#include "firmware_capabilities.h"
++
++namespace openpilot::pandad::compatibility {
++namespace {
++constexpr std::array<std::uint8_t, 8> kProtocol{{0xf5, 0x12, 0xbc, 0xff, 0x76, 0xf2, 0xab, 0x75}};
++template<std::size_t N> bool uniform(const std::array<std::uint8_t, N> &bytes, std::uint8_t value) {
++  return std::all_of(bytes.begin(), bytes.end(), [=](auto byte) { return byte == value; });
++}
++class ReadOnlySpiBackend final : public Backend {
++public:
++  ReadOnlySpiBackend(NativeSpiIo &io, Clock &clock, std::uint32_t first_id) : io_(io), inner_(io, clock, first_id) {}
++  void permit_f4_read() { f4_ = true; }
++  void cancel() noexcept override { cancelled_.store(true); inner_.cancel(); }
++  Result transact(const Request &request, std::uint32_t timeout_ms) override {
++    if (cancelled_.load()) return {Status::Cancelled, 0, {}};
++    if (!valid_request(request) || !timeout_ms || timeout_ms > kBackendSliceMs ||
++        (request.kind != Kind::ControlRead && request.kind != Kind::BulkRead)) return {Status::Invalid, 0, {}};
++    if (request.kind == Kind::BulkRead && request.endpoint != 0x81) return {Status::Invalid, 0, {}};
++    if (request.kind == Kind::ControlRead) {
++      const std::size_t expected = request.request == 0xc3 ? 12 : request.request == 0xc1 ? 1 :
++        request.request == 0xdd ? 8 : (request.request == 0xd3 || request.request == 0xd4 || request.request == 0xc2) ? 64 :
++        request.request == 0xd5 && f4_ ? 16 : request.request == 0xd2 ? 48 : request.request == 0xb2 ? 2 : 0;
++      if (!expected || request.read_length != expected || request.index != 0 ||
++          (request.request == 0xc2 ? request.value >= 3 : request.value != 0)) return {Status::Invalid, 0, {}};
++    }
++    auto result = inner_.transact(request, timeout_ms);
++    // SpiBackend's lease destructor runs before this check. An unlock failure
++    // closes/poisons the fd and must invalidate even a fully received reply.
++    if (!io_.active() && (result.status == Status::Ok || result.status == Status::Short)) result.status = Status::IoError;
++    return result;
++  }
++private:
++  NativeSpiIo &io_;
++  SpiBackend inner_;
++  bool f4_ = false;
++  std::atomic<bool> cancelled_{false};
++};
++}  // namespace
++
++NativeSpiProbeResult discover_native_spi(std::shared_ptr<NativeSpiSyscalls> calls, Clock &clock,
++                                         const NativeSpiProbePolicy &policy, bool allow_device_io) {
++  NativeSpiProbeResult result;
++  if (!allow_device_io || !calls || !valid_native_spi_selector(policy.selector) || !policy.first_request_id ||
++      *policy.selector.expected_mode != 0 || *policy.selector.expected_bits_per_word != 8 ||
++      *policy.selector.expected_max_speed_hz > 50000000 ||
++      policy.first_request_id > std::numeric_limits<std::uint32_t>::max() - 5 ||
++      !policy.budget_ms || policy.budget_ms > kMaxTransportTimeoutMs || policy.f4_application_signatures.size() > 2) return result;
++  std::set<std::array<std::uint8_t, 128>> signatures;
++  for (const auto &signature : policy.f4_application_signatures)
++    if (uniform(signature, 0) || uniform(signature, 0xff) || !signatures.insert(signature).second) return result;
++  const auto start = clock.now_us();
++  auto previous = start;
++  bool clock_fault = false;
++  const auto budget = static_cast<std::uint64_t>(policy.budget_ms) * 1000;
++  auto remaining_ms = [&]() -> std::uint32_t {
++    const auto now = clock.now_us();
++    if (now < previous) { clock_fault = true; return 0; }
++    previous = now;
++    const auto elapsed = now - start;
++    return elapsed >= budget ? 0 : static_cast<std::uint32_t>((budget - elapsed) / 1000);
++  };
++  const auto expired_status = [&] { return clock_fault ? Status::IoError : Status::Timeout; };
++  auto fail = [&](Status status, const std::string &reason) {
++    NativeSpiProbeResult failed;
++    failed.status = status; failed.reason = reason;
++    return failed;
++  };
++  if (!remaining_ms()) return fail(expired_status(), "PROBE_CLOCK_OR_DEADLINE");
++  auto io = std::make_unique<NativeSpiIo>(std::move(calls), clock);
++  auto status = io->activate(policy.selector, NativeSpiActivation::VerifiedProfile);
++  if (status != Status::Ok) return fail(status, "SPI_ACTIVATION_FAILED");
++  if (!remaining_ms()) return fail(expired_status(), "PROBE_CLOCK_OR_DEADLINE");
++  auto owner = std::make_unique<OwnedTransport>();
++  auto backend = std::make_unique<ReadOnlySpiBackend>(*io, clock, policy.first_request_id);
++  auto *read_only = backend.get();
++  owner->spi_io = std::move(io);
++  owner->backend = std::move(backend);
++  owner->transport = std::make_unique<Transport>(*owner->backend, clock);
++  NativeUsbObservation observed;
++  observed.lease_nonce = allocate_native_lease_nonce();
++  if (!observed.lease_nonce) return fail(Status::Poisoned, "LEASE_NONCE_EXHAUSTED");
++  auto read = [&](std::uint8_t request, std::uint8_t *data, std::size_t length) {
++    const auto remaining = remaining_ms();
++    if (!remaining) return expired_status();
++    Request read_request; read_request.kind = Kind::ControlRead; read_request.request = request; read_request.read_length = length;
++    const auto reply = owner->transport->perform(read_request, remaining);
++    if (!remaining_ms()) return expired_status();
++    if (reply.status != Status::Ok) return reply.status == Status::Short ? Status::Poisoned : reply.status;
++    if (!reply.actual_known || reply.delivery_uncertain || reply.actual != length || reply.data.size() != length) return Status::Poisoned;
++    std::copy(reply.data.begin(), reply.data.end(), data);
++    return Status::Ok;
++  };
++  status = read(0xc3, observed.uid.data(), observed.uid.size());
++  if (status != Status::Ok) return fail(status, "UID_PROBE_FAILED");
++  if (uniform(observed.uid, 0) || uniform(observed.uid, 0xff)) return fail(Status::Poisoned, "INVALID_UID_REPLY");
++  status = read(0xc1, &observed.board_type, 1);
++  if (status != Status::Ok) return fail(status, "BOARD_TYPE_PROBE_FAILED");
++  if (observed.board_type != 6 && observed.board_type != 7) return fail(Status::Poisoned, "UNKNOWN_BOARD_TYPE");
++  status = read(0xdd, observed.protocol.data(), observed.protocol.size());
++  if (status != Status::Ok) return fail(status, "PROTOCOL_PROBE_FAILED");
++  if (observed.protocol != kProtocol) return fail(Status::Poisoned, "PROTOCOL_MISMATCH");
++  status = read(0xd3, observed.application_signature.data(), 64);
++  if (status != Status::Ok) return fail(status, "SIGNATURE_FIRST_PROBE_FAILED");
++  status = read(0xd4, observed.application_signature.data() + 64, 64);
++  if (status != Status::Ok) return fail(status, "SIGNATURE_SECOND_PROBE_FAILED");
++  if (uniform(observed.application_signature, 0) || uniform(observed.application_signature, 0xff)) return fail(Status::Poisoned, "INVALID_SIGNATURE_REPLY");
++  if (signatures.count(observed.application_signature)) {
++    if (observed.board_type != 6) return fail(Status::Poisoned, "F4_SIGNATURE_BOARD_CONFLICT");
++    read_only->permit_f4_read();
++    observed.f4_capabilities.resize(kF4CapabilityLength);
++    status = read(kF4CapabilityRequest, observed.f4_capabilities.data(), observed.f4_capabilities.size());
++    if (status != Status::Ok) return fail(status, "F4_CAPABILITY_PROBE_FAILED");
++    if (!valid_f4_capabilities(observed.f4_capabilities)) return fail(Status::Poisoned, "F4_CAPABILITY_MISMATCH");
++  }
++  if (!remaining_ms()) return fail(expired_status(), "PROBE_CLOCK_OR_DEADLINE");
++  result.status = Status::Ok;
++  result.reason = "READ_ONLY_SPI_OBSERVATION_RETAINED";
++  result.observation = std::move(observed);
++  result.validated_selector = policy.selector;
++  result.first_request_id = policy.first_request_id;
++  result.started_us = start;
++  result.completed_us = previous;
++  result.transport = std::move(owner);
++  return result;
++}
++
++NativeSpiProbeResult discover_native_spi(Clock &clock, const NativeSpiProbePolicy &policy, bool allow_device_io) {
++  return discover_native_spi(make_linux_spi_syscalls(), clock, policy, allow_device_io);
++}
++}  // namespace openpilot::pandad::compatibility
+diff --git a/openpilot/selfdrive/pandad/compatibility/native_spi_probe.h b/openpilot/selfdrive/pandad/compatibility/native_spi_probe.h
+new file mode 100644
+index 0000000..8aaebae
+--- /dev/null
++++ b/openpilot/selfdrive/pandad/compatibility/native_spi_probe.h
+@@ -0,0 +1,41 @@
++#pragma once
++
++#include "native_spi.h"
++#include "native_usb.h"
++#include "runtime_integration.h"
++
++namespace openpilot::pandad::compatibility {
++struct NativeSpiProbePolicy {
++  // The observed configuration must explicitly be mode0/8-bit and <=50MHz,
++  // matching the locked byte-protocol ceiling. This does not establish target
++  // timing or compatibility at any selected speed; physical evidence is needed.
++  NativeSpiSelector selector;
++  // Explicit nonzero seed, with room for all identity reads. The caller must
++  // supply freshness across physical sessions/process restarts: nonzero alone
++  // does not prevent the MCU from recognizing an earlier id+CRC as a replay.
++  std::uint32_t first_request_id = 0;
++  std::uint32_t budget_ms = 100;
++  std::vector<std::array<std::uint8_t, 128>> f4_application_signatures;
++};
++struct NativeSpiProbeResult {
++  Status status = Status::Invalid;
++  std::string reason = "UNBOUND_OR_DEVICE_IO_DENIED";
++  NativeUsbObservation observation;
++  // Filled only after the complete same-fd probe succeeds. These immutable
++  // observations let handoff validate selector/seed and retain original age.
++  NativeSpiSelector validated_selector;
++  std::uint32_t first_request_id = 0;
++  std::uint64_t started_us = 0, completed_us = 0;
++  std::unique_ptr<OwnedTransport> transport;
++  bool complete() const { return status == Status::Ok && transport != nullptr; }
++};
++
++// Read-only describes the firmware operations, not passive SPI observation:
++// requesting identity actively transmits SPI framing and consumes reply state.
++// Explicit permission is mandatory. Discovery and all later reads retain the
++// same fd/backend; no reopen, fallback, reset, configuration or OUT is allowed.
++// Returned facts are untrusted software observations, not MCU identity proof.
++NativeSpiProbeResult discover_native_spi(std::shared_ptr<NativeSpiSyscalls>, Clock &,
++                                         const NativeSpiProbePolicy &, bool allow_device_io = false);
++NativeSpiProbeResult discover_native_spi(Clock &, const NativeSpiProbePolicy &, bool allow_device_io = false);
++}  // namespace openpilot::pandad::compatibility
+diff --git a/openpilot/selfdrive/pandad/compatibility/native_usb.cc b/openpilot/selfdrive/pandad/compatibility/native_usb.cc
+new file mode 100644
+index 0000000..7e391cb
+--- /dev/null
++++ b/openpilot/selfdrive/pandad/compatibility/native_usb.cc
+@@ -0,0 +1,314 @@
++#include "native_usb.h"
++
++#include <algorithm>
++#include <atomic>
++#include <limits>
++#include <mutex>
++#include <set>
++#include <utility>
++
++#include "firmware_capabilities.h"
++#include "control_session.h"
++
++namespace openpilot::pandad::compatibility {
++namespace {
++constexpr std::array<std::uint8_t, 8> kProtocol{{0xf5, 0x12, 0xbc, 0xff, 0x76, 0xf2, 0xab, 0x75}};
++
++Status usb_error(int value) {
++  switch (value) {
++    case kUsbTimeout: return Status::Timeout;
++    case kUsbNoDevice: return Status::Disconnected;
++    case kUsbPipe: return Status::Stall;
++    case kUsbBusy: return Status::Busy;
++    case kUsbInterrupted: return Status::Cancelled;
++    case kUsbInvalid: return Status::Invalid;
++    default: return Status::IoError;
++  }
++}
++struct Budget {
++  Clock &clock;
++  std::uint64_t start, previous, limit;
++  explicit Budget(Clock &c, std::uint32_t ms) : clock(c), start(c.now_us()), previous(start), limit(ms * 1000ULL) {}
++  std::uint32_t slice() {
++    const auto now = clock.now_us();
++    if (now < previous || now < start || now - start >= limit) return 0;
++    previous = now;
++    return static_cast<std::uint32_t>(std::min<std::uint64_t>(kBackendSliceMs, (limit - (now - start)) / 1000));
++  }
++};
++struct Context {
++  explicit Context(std::unique_ptr<LibusbApi> a) : api(std::move(a)) {}
++  ~Context() { if (initialized) api->shutdown(); }
++  std::unique_ptr<LibusbApi> api;
++  std::mutex mutex;
++  bool initialized = false;
++};
++struct Lease {
++  std::shared_ptr<Context> context;
++  UsbHandle handle = 0;
++  std::uint64_t nonce = 0;
++  UsbDeviceInfo descriptor;
++  NativeUsbObservation observed;
++  bool claimed = false;
++  ~Lease() {
++    if (!handle) return;
++    std::lock_guard<std::mutex> lock(context->mutex);
++    if (claimed) context->api->release(handle, 0);
++    context->api->close(handle);
++  }
++};
++bool normal(const UsbDeviceInfo &d) {
++  return (d.vendor == 0xbbaa || d.vendor == 0x3801) && d.product == 0xddcc;
++}
++bool valid_descriptor(const UsbDeviceInfo &d) {
++  if (!d.id || !d.active_configuration_known || !d.serial_index ||
++      (d.bcd_device != 0x600 && d.bcd_device != 0x700) || d.alternates.empty() ||
++      d.alternates.size() > kUsbMaxAlternates) return false;
++  unsigned found = 0;
++  std::set<std::pair<unsigned, unsigned>> alternatives;
++  for (const auto &alt : d.alternates) {
++    if (!alternatives.insert({alt.interface_number, alt.alternate_setting}).second ||
++        alt.endpoints.size() > kUsbMaxEndpoints) return false;
++    std::set<unsigned> endpoints;
++    bool rx = false, tx = false;
++    for (const auto &ep : alt.endpoints) {
++      if (!endpoints.insert(ep.address).second) return false;
++      if (alt.interface_number == 0 && alt.alternate_setting == 0 &&
++          (ep.address == 0x81 || ep.address == 0x03)) {
++        if ((ep.attributes & 3) != 2 || ep.max_packet_size != 64) return false;
++        rx |= ep.address == 0x81; tx |= ep.address == 0x03;
++      }
++    }
++    if (alt.interface_number == 0 && alt.alternate_setting == 0) {
++      if (!rx || !tx) return false;
++      ++found;
++    }
++  }
++  return found == 1;
++}
++bool valid_serial(const std::string &s) {
++  return !s.empty() && s.size() <= 128 && std::all_of(s.begin(), s.end(), [](unsigned char c) { return c > 32 && c < 127; });
++}
++template<std::size_t N> bool uniform(const std::array<std::uint8_t, N> &bytes, std::uint8_t value) {
++  return std::all_of(bytes.begin(), bytes.end(), [=](auto b) { return b == value; });
++}
++Status probe(Lease &lease, const NativeUsbProbePolicy &policy, Budget &budget, NativeUsbObservation &observed) {
++  observed.lease_nonce = lease.nonce;
++  auto &api = *lease.context->api;
++  auto timeout = budget.slice();
++  if (!timeout) return Status::Timeout;
++  int result = api.serial(lease.handle, lease.descriptor.serial_index, observed.serial, timeout);
++  if (!budget.slice()) return Status::Timeout;
++  if (result != 0) return usb_error(result);
++  if (!valid_serial(observed.serial)) return Status::Poisoned;
++  auto read = [&](std::uint8_t request, std::uint8_t *bytes, std::size_t length) {
++    const auto slice = budget.slice();
++    if (!slice) return Status::Timeout;
++    // Immutable, exhaustive read-only discovery allowlist; no bulk, OUT,
++    // configuration, reset, clear-halt or bootstub traffic can reach this path.
++    if (request != 0xc3 && request != 0xc1 && request != 0xdd && request != 0xd3 && request != 0xd4 && request != 0xd5)
++      return Status::Invalid;
++    const int count = api.control(lease.handle, 0xc0, request, 0, 0, bytes, static_cast<std::uint16_t>(length), slice);
++    if (!budget.slice()) return Status::Timeout;
++    if (count < 0) return usb_error(count);
++    return count == static_cast<int>(length) ? Status::Ok : Status::Poisoned;
++  };
++  Status status = read(0xc3, observed.uid.data(), observed.uid.size());
++  if (status != Status::Ok) return status;
++  if (uniform(observed.uid, 0) || uniform(observed.uid, 0xff)) return Status::Poisoned;
++  status = read(0xc1, &observed.board_type, 1);
++  if (status != Status::Ok) return status;
++  if ((observed.board_type != 6 && observed.board_type != 7) ||
++      lease.descriptor.bcd_device != static_cast<std::uint16_t>(observed.board_type << 8)) return Status::Poisoned;
++  status = read(0xdd, observed.protocol.data(), observed.protocol.size());
++  if (status != Status::Ok) return status;
++  if (observed.protocol != kProtocol) return Status::Poisoned;
++  status = read(0xd3, observed.application_signature.data(), 64);
++  if (status != Status::Ok) return status;
++  status = read(0xd4, observed.application_signature.data() + 64, 64);
++  if (status != Status::Ok) return status;
++  if (uniform(observed.application_signature, 0) || uniform(observed.application_signature, 0xff)) return Status::Poisoned;
++  if (std::find(policy.f4_application_signatures.begin(), policy.f4_application_signatures.end(), observed.application_signature) !=
++      policy.f4_application_signatures.end()) {
++    if (observed.board_type != 6) return Status::Poisoned;
++    observed.f4_capabilities.resize(kF4CapabilityLength);
++    status = read(kF4CapabilityRequest, observed.f4_capabilities.data(), observed.f4_capabilities.size());
++    if (status != Status::Ok) return status;
++    if (!valid_f4_capabilities(observed.f4_capabilities)) return Status::Poisoned;
++  }
++  if (!budget.slice()) return Status::Timeout;
++  observed.observed_us = budget.previous;
++  return Status::Ok;
++}
++
++class NativeUsbBackend final : public Backend {
++public:
++  NativeUsbBackend(std::unique_ptr<Lease> lease, NativeUsbActivation grant) : lease_(std::move(lease)), grant_(grant) {}
++  void cancel() noexcept override { cancelled_.store(true); }
++  Result transact(const Request &request, std::uint32_t timeout_ms) override {
++    if (cancelled_.load()) return {Status::Cancelled, 0, {}};
++    if (!valid_request(request) || !timeout_ms || timeout_ms > kBackendSliceMs) return {Status::Invalid, 0, {}};
++    const bool read = is_read(request.kind);
++    if ((request.kind == Kind::BulkRead && request.endpoint != 0x81) ||
++        (request.kind == Kind::BulkWrite && (request.endpoint != 0x03 || !grant_.allow_can_tx))) return {Status::Invalid, 0, {}};
++    if (request.kind == Kind::ControlWrite) {
++      // Candidate writes remain noOutput/disengaged only. Permission is not
++      // authority to select a vehicle safety model, alternative experience,
++      // engaged heartbeat, arbitrary parameters or payload bytes.
++      const bool allowed_value =
++        (request.request == 0xdc && request.value == kNoOutputSafetyModel) ||
++        ((request.request == 0xdf || request.request == 0xf3) && request.value == 0) ||
++        (request.request == 0xb1 && request.value <= 100) ||
++        (request.request == 0xb0 && request.value <= 50);
++      if (!grant_.allow_control_writes || !allowed_value || request.index != 0 || !request.payload.empty())
++        return {Status::Invalid, 0, {}};
++    }
++    // These USB vendor IN codes have mutating firmware handlers despite IN
++    // direction. Never permit arbitrary controlRead to bypass write policy.
++    if (request.kind == Kind::ControlRead) {
++      const std::size_t expected = request.request == 0xc3 ? 12 : request.request == 0xc1 ? 1 :
++        request.request == 0xdd ? 8 : (request.request == 0xd3 || request.request == 0xd4 || request.request == 0xc2) ? 64 :
++        request.request == 0xd5 ? 16 : request.request == 0xd2 ? 48 : request.request == 0xb2 ? 2 : 0;
++      if (!expected || request.read_length != expected || request.index != 0 ||
++          (request.request == 0xc2 ? request.value >= 3 : request.value != 0)) return {Status::Invalid, 0, {}};
++    }
++    std::unique_lock<std::mutex> lock(lease_->context->mutex, std::try_to_lock);
++    if (!lock.owns_lock()) return {Status::Busy, 0, {}};
++    if (cancelled_.load()) return {Status::Cancelled, 0, {}};
++    if (poisoned_) return {Status::Poisoned, 0, {}};
++    const std::size_t length = read ? request.read_length : request.payload.size();
++    std::vector<std::uint8_t> data = read ? std::vector<std::uint8_t>(length) : request.payload;
++    int actual = 0, error = 0;
++    if (request.kind == Kind::ControlRead || request.kind == Kind::ControlWrite) {
++      const int count = lease_->context->api->control(lease_->handle, read ? 0xc0 : 0x40,
++        static_cast<std::uint8_t>(request.request), static_cast<std::uint16_t>(request.value),
++        static_cast<std::uint16_t>(request.index), data.data(), static_cast<std::uint16_t>(length), timeout_ms);
++      if (count < 0) {
++        poisoned_ = true;  // USB control errors have no confirmed partial count.
++        return {usb_error(count), 0, {}, false, !read};
++      }
++      else actual = count;
++    } else {
++      error = lease_->context->api->bulk(lease_->handle, static_cast<std::uint8_t>(request.endpoint),
++        data.data(), static_cast<int>(length), actual, timeout_ms);
++    }
++    if (error == kUsbOverflow || actual < 0 || static_cast<std::size_t>(actual) > length) {
++      poisoned_ = true;
++      return {Status::Poisoned, 0, {}, false, !read};
++    }
++    Status status = error == 0 ? (static_cast<std::size_t>(actual) == length ? Status::Ok : Status::Short) : usb_error(error);
++    if (error == kUsbNoDevice || error == kUsbPipe || error == kUsbIo) poisoned_ = true;
++    if (read) data.resize(actual); else data.clear();
++    return {status, static_cast<std::size_t>(actual), std::move(data), true, !read && status != Status::Ok};
++  }
++private:
++  std::unique_ptr<Lease> lease_;
++  NativeUsbActivation grant_;
++  std::atomic<bool> cancelled_{false};
++  bool poisoned_ = false;
++};
++}  // namespace
++
++bool operator==(const NativeUsbObservation &a, const NativeUsbObservation &b) {
++  return a.lease_nonce == b.lease_nonce && a.serial == b.serial && a.uid == b.uid && a.board_type == b.board_type && a.protocol == b.protocol &&
++    a.application_signature == b.application_signature && a.f4_capabilities == b.f4_capabilities;
++}
++struct NativeUsbInventory::Impl {
++  std::vector<std::unique_ptr<Lease>> leases;
++  std::vector<NativeUsbObservation> observations;
++  NativeUsbProbePolicy policy;
++  Status status = Status::Invalid;
++  std::string reason = "UNBOUND_OR_PERMISSION_DENIED";
++  bool complete = false;
++  void fail(Status value, const char *why) { complete = false; status = value; reason = why; leases.clear(); }
++};
++NativeUsbInventory::NativeUsbInventory() : impl_(std::make_unique<Impl>()) {}
++NativeUsbInventory::~NativeUsbInventory() = default;
++NativeUsbInventory::NativeUsbInventory(NativeUsbInventory &&) noexcept = default;
++NativeUsbInventory &NativeUsbInventory::operator=(NativeUsbInventory &&) noexcept = default;
++bool NativeUsbInventory::complete() const { return impl_ && impl_->complete; }
++Status NativeUsbInventory::status() const { return impl_ ? impl_->status : Status::Invalid; }
++std::string NativeUsbInventory::reason() const { return impl_ ? impl_->reason : "MOVED_INVENTORY"; }
++std::vector<NativeUsbObservation> NativeUsbInventory::observations() const { return impl_ ? impl_->observations : std::vector<NativeUsbObservation>{}; }
++
++NativeUsbInventory discover_native_usb(std::unique_ptr<LibusbApi> api, Clock &clock,
++                                      const NativeUsbProbePolicy &policy, bool allow_device_io) {
++  NativeUsbInventory result;
++  auto &out = *result.impl_;
++  if (!allow_device_io || !api || policy.expected_count == 0 || policy.expected_count > 2 ||
++      policy.budget_ms == 0 || policy.budget_ms > 100 || policy.f4_application_signatures.size() > 2) return result;
++  std::set<std::array<std::uint8_t, 128>> signatures;
++  for (const auto &s : policy.f4_application_signatures)
++    if (uniform(s, 0) || uniform(s, 0xff) || !signatures.insert(s).second) return result;
++  out.policy = policy;
++  auto context = std::make_shared<Context>(std::move(api));
++  Budget budget(clock, policy.budget_ms);
++  if (!budget.slice()) { out.fail(Status::Timeout, "DISCOVERY_DEADLINE"); return result; }
++  int error = context->api->initialize();
++  context->initialized = error == 0;
++  if (error != 0) { out.fail(usb_error(error), "INITIALIZE_FAILED"); return result; }
++  if (!budget.slice()) { out.fail(Status::Timeout, "DISCOVERY_DEADLINE"); return result; }
++  std::vector<UsbDeviceInfo> devices;
++  error = context->api->enumerate(devices);
++  if (!budget.slice()) { out.fail(Status::Timeout, "DISCOVERY_DEADLINE"); return result; }
++  if (error != 0) { out.fail(usb_error(error), "INCOMPLETE_INVENTORY"); return result; }
++  if (devices.size() > kUsbMaxInventoryDevices) { out.fail(Status::Poisoned, "INVENTORY_OVERFLOW"); return result; }
++  const auto count = std::count_if(devices.begin(), devices.end(), normal);
++  if (static_cast<std::size_t>(count) != policy.expected_count) { out.fail(Status::Poisoned, "UNEXPECTED_USB_INVENTORY"); return result; }
++  std::set<UsbDeviceId> ids;
++  std::set<std::string> serials;
++  std::set<std::array<std::uint8_t, 12>> uids;
++  for (const auto &d : devices) {
++    if (!normal(d)) continue;
++    if (!ids.insert(d.id).second || !valid_descriptor(d)) { out.fail(Status::Poisoned, "INVALID_DESCRIPTOR"); return result; }
++    if (!budget.slice()) { out.fail(Status::Timeout, "DISCOVERY_DEADLINE"); return result; }
++    auto lease = std::make_unique<Lease>(); lease->context = context; lease->descriptor = d;
++    error = context->api->open(d.id, lease->handle);
++    if (!budget.slice()) { out.fail(Status::Timeout, "DISCOVERY_DEADLINE"); return result; }
++    if (error != 0 || !lease->handle) { out.fail(error ? usb_error(error) : Status::IoError, "INACCESSIBLE_CANDIDATE"); return result; }
++    lease->nonce = allocate_native_lease_nonce();
++    if (!lease->nonce) { out.fail(Status::Poisoned, "LEASE_NONCE_EXHAUSTED"); return result; }
++    NativeUsbObservation observation;
++    const auto status = probe(*lease, policy, budget, observation);
++    if (status != Status::Ok) { out.fail(status, "IDENTITY_PROBE_FAILED"); return result; }
++    if (!serials.insert(observation.serial).second || !uids.insert(observation.uid).second) {
++      out.fail(Status::Poisoned, "DUPLICATE_SOFTWARE_IDENTITY"); return result;
++    }
++    lease->observed = observation;
++    out.observations.push_back(observation);
++    out.leases.push_back(std::move(lease));
++  }
++  out.complete = true; out.status = Status::Ok; out.reason = "OBSERVED_NOT_TRUSTED";
++  return result;
++}
++NativeUsbInventory discover_native_usb(Clock &clock, const NativeUsbProbePolicy &policy, bool allow_device_io) {
++  return discover_native_usb(make_native_libusb_api(), clock, policy, allow_device_io);
++}
++std::unique_ptr<Backend> NativeUsbInventory::activate(std::size_t index, const NativeUsbObservation &expected,
++                                                   const NativeUsbActivation &grant, Clock &clock,
++                                                   std::uint64_t *activation_observed_us) {
++  if (activation_observed_us) *activation_observed_us = 0;
++  if (!impl_ || !impl_->complete || index >= impl_->leases.size() || !impl_->leases[index]) return nullptr;
++  if (!grant.allow_device_io || !grant.profile_validated || !grant.bulk_alt0_verified ||
++      grant.lease_nonce == 0 || grant.lease_nonce != impl_->observations[index].lease_nonce ||
++      !(expected == impl_->observations[index])) {
++    impl_->fail(Status::Invalid, "ACTIVATION_EVIDENCE_MISSING"); return nullptr;
++  }
++  auto lease = std::move(impl_->leases[index]);
++  Budget budget(clock, impl_->policy.budget_ms);
++  if (!budget.slice()) { impl_->fail(Status::Timeout, "ACTIVATION_DEADLINE"); return nullptr; }
++  int error = lease->context->api->claim(lease->handle, 0);
++  lease->claimed = error == 0;
++  if (!budget.slice()) { impl_->fail(Status::Timeout, "ACTIVATION_DEADLINE"); return nullptr; }
++  if (error != 0) { impl_->fail(usb_error(error), "CLAIM_FAILED"); return nullptr; }
++  NativeUsbObservation current;
++  const auto status = probe(*lease, impl_->policy, budget, current);
++  if (status != Status::Ok || !(current == expected)) {
++    impl_->fail(status == Status::Ok ? Status::Poisoned : status, "ACTIVATION_IDENTITY_CHANGED"); return nullptr;
++  }
++  lease->observed = current;
++  auto backend = std::make_unique<NativeUsbBackend>(std::move(lease), grant);
++  if (activation_observed_us) *activation_observed_us = current.observed_us;
++  return backend;
++}
++}  // namespace openpilot::pandad::compatibility
+diff --git a/openpilot/selfdrive/pandad/compatibility/native_usb.h b/openpilot/selfdrive/pandad/compatibility/native_usb.h
+new file mode 100644
+index 0000000..8a44ccd
+--- /dev/null
++++ b/openpilot/selfdrive/pandad/compatibility/native_usb.h
+@@ -0,0 +1,103 @@
++#pragma once
++
++#include <array>
++#include <atomic>
++#include <memory>
++#include <string>
++#include <vector>
++
++#include "libusb_api.h"
++#include "transport.h"
++
++namespace openpilot::pandad::compatibility {
++
++// One process-local namespace shared by USB and SPI retained leases. Exhaustion
++// closes discovery; nonce zero never describes a session. This is freshness,
++// not a cryptographic device identity or permission token.
++inline std::uint64_t allocate_native_lease_nonce() {
++  static std::atomic<std::uint64_t> next{1};
++  auto value = next.load();
++  while (value != UINT64_MAX) {
++    if (next.compare_exchange_weak(value, value + 1)) return value;
++  }
++  return 0;
++}
++
++// Untrusted software observations. A UID or signature reply is not physical
++// MCU evidence or proof that the device authenticates the application image.
++struct NativeUsbObservation {
++  // Process-local monotonically unique handle lease, not physical identity.
++  std::uint64_t lease_nonce = 0;
++  // Actual completion time from the probe clock. It is observation freshness,
++  // not part of software identity; persisted profiles must leave it zero.
++  std::uint64_t observed_us = 0;
++  std::string serial;
++  std::array<std::uint8_t, 12> uid{};
++  std::uint8_t board_type = 0;
++  std::array<std::uint8_t, 8> protocol{};
++  std::array<std::uint8_t, 128> application_signature{};
++  std::vector<std::uint8_t> f4_capabilities;
++};
++bool operator==(const NativeUsbObservation &, const NativeUsbObservation &);
++
++struct NativeUsbProbePolicy {
++  // Exact expected normal-firmware USB inventory. Zero is unbound/denied.
++  std::size_t expected_count = 0;
++  std::uint32_t budget_ms = 100;
++  // Request 0xd5 only for explicitly recognized candidate application bytes;
++  // never infer F4 from bcdDevice, board type, USB serial or outer enclosure.
++  std::vector<std::array<std::uint8_t, 128>> f4_application_signatures;
++};
++struct NativeUsbActivation {
++  // Alt0 verification must name this retained session, never only a profile.
++  std::uint64_t lease_nonce = 0;
++  bool allow_device_io = false;
++  bool profile_validated = false;
++  // Separate session evidence. The pinned firmware lacks GET_INTERFACE;
++  // seeing an alt0 descriptor therefore cannot set this flag.
++  bool bulk_alt0_verified = false;
++  bool allow_control_writes = false;
++  bool allow_can_tx = false;
++};
++
++class NativeUsbInventory {
++public:
++  NativeUsbInventory();
++  ~NativeUsbInventory();
++  NativeUsbInventory(NativeUsbInventory &&) noexcept;
++  NativeUsbInventory &operator=(NativeUsbInventory &&) noexcept;
++  NativeUsbInventory(const NativeUsbInventory &) = delete;
++  NativeUsbInventory &operator=(const NativeUsbInventory &) = delete;
++  bool complete() const;
++  Status status() const;
++  std::string reason() const;
++  std::vector<NativeUsbObservation> observations() const;
++
++  // The owner serializes inventory activation/destruction and does not run
++  // backend transfers until the complete group has finished activation.
++  // Consumes one retained handle, claims interface0, then re-probes every
++  // identity byte on that SAME handle. No enumerate/reopen/fallback is allowed.
++  // Failure retires that lease permanently. Backend cancellation is local.
++  // If requested, writes the actual re-probe completion time; failure always
++  // writes zero. Callers must not substitute a later handoff timestamp.
++  std::unique_ptr<Backend> activate(std::size_t index, const NativeUsbObservation &expected,
++                                    const NativeUsbActivation &, Clock &clock,
++                                    std::uint64_t *activation_observed_us = nullptr);
++private:
++  struct Impl;
++  std::unique_ptr<Impl> impl_;
++  friend NativeUsbInventory discover_native_usb(std::unique_ptr<LibusbApi>, Clock &,
++                                                const NativeUsbProbePolicy &, bool);
++};
++
++// Construction and default calls are inert. The caller must explicitly grant
++// read-only discovery. OS initialize/enumerate/open/claim latency is not
++// preemptible: bounds cover inventory sizes and transfer deadlines, with clock
++// checks before/after every API call. Budget failure never yields a usable lease.
++NativeUsbInventory discover_native_usb(std::unique_ptr<LibusbApi> api, Clock &clock,
++                                      const NativeUsbProbePolicy &policy,
++                                      bool allow_device_io = false);
++NativeUsbInventory discover_native_usb(Clock &clock, const NativeUsbProbePolicy &policy,
++                                      bool allow_device_io = false);
++
++}  // namespace openpilot::pandad::compatibility
+diff --git a/openpilot/selfdrive/pandad/compatibility/runtime_integration.cc b/openpilot/selfdrive/pandad/compatibility/runtime_integration.cc
+index a7e1255..0c9b254 100644
+--- a/openpilot/selfdrive/pandad/compatibility/runtime_integration.cc
++++ b/openpilot/selfdrive/pandad/compatibility/runtime_integration.cc
+@@ -27,7 +27,7 @@ std::unique_ptr<OwnedTransport> InjectedTransportFactory::open(const DiscoveryIt
+   return owned;
+ }
+ RuntimeIntegration::RuntimeIntegration(const SessionProfile &profile, Clock &clock, DiscoveryProvider &discovery,
+-                                       InjectedTransportFactory &factory, RealtimeSource &source, RealtimeSink &sink)
++                                       TransportFactory &factory, RealtimeSource &source, RealtimeSink &sink)
+   : profile_(profile), clock_(clock), discovery_(discovery), factory_(factory), runtime_(profile,clock), loop_(runtime_,clock,source,sink) {}
+ void RuntimeIntegration::retire(const char *reason) {
+   // Runtime may still hold pointers. Reconcile/cancel BEFORE freeing owners.
+@@ -37,7 +37,7 @@ void RuntimeIntegration::retire(const char *reason) {
+   nonces_ = {}; tokens_ = {}; usb_alt0_ = {}; spi_ids_ = {};
+ }
+ bool RuntimeIntegration::refresh() {
+-  if (stopping_ || profile_.binding_status != "SYNTHETIC_BOUND") return false;
++  if (stopping_ || (profile_.binding_status != "SYNTHETIC_BOUND" && profile_.binding_status != "NATIVE_READ_ONLY_BOUND")) return false;
+   try {
+     const auto inventory = discovery_.snapshot();
+     const auto now = clock_.now_us();
+diff --git a/openpilot/selfdrive/pandad/compatibility/runtime_integration.h b/openpilot/selfdrive/pandad/compatibility/runtime_integration.h
+index 41cb4c3..f585e37 100644
+--- a/openpilot/selfdrive/pandad/compatibility/runtime_integration.h
++++ b/openpilot/selfdrive/pandad/compatibility/runtime_integration.h
+@@ -18,9 +18,8 @@ public:
+   virtual ~DiscoveryProvider() = default;
+   virtual DiscoverySnapshot snapshot() = 0;
+ };
+-// This stage intentionally has no native provider. Implementations are supplied
+-// only by offline fixtures. A real discovery/authentication/recovery boundary is
+-// separate work; a USB descriptor is not evidence of MCU or application trust.
++// Historical fixture provider; native retained leases use TransportFactory
++// directly and never pass real identities through the fixture adapter.
+ class OfflineIoProvider {
+ public:
+   virtual ~OfflineIoProvider() = default;
+@@ -33,10 +32,15 @@ struct OwnedTransport {
+   std::unique_ptr<Transport> transport;
+   ~OwnedTransport() { if (transport) transport->cancel(); }
+ };
+-class InjectedTransportFactory {
++class TransportFactory {
++public:
++  virtual ~TransportFactory() = default;
++  virtual std::unique_ptr<OwnedTransport> open(const DiscoveryItem &, const SessionBinding &) = 0;
++};
++class InjectedTransportFactory final : public TransportFactory {
+ public:
+   InjectedTransportFactory(OfflineIoProvider &provider, Clock &clock) : provider_(provider), clock_(clock) {}
+-  std::unique_ptr<OwnedTransport> open(const DiscoveryItem &item, const SessionBinding &binding);
++  std::unique_ptr<OwnedTransport> open(const DiscoveryItem &item, const SessionBinding &binding) override;
+ private:
+   OfflineIoProvider &provider_; Clock &clock_;
+ };
+@@ -48,7 +52,7 @@ int pandad_runtime_offline_main();
+ // open sockets, install firmware, or create native I/O implementations.
+ class RuntimeIntegration {
+ public:
+-  RuntimeIntegration(const SessionProfile &, Clock &, DiscoveryProvider &, InjectedTransportFactory &, RealtimeSource &, RealtimeSink &);
++  RuntimeIntegration(const SessionProfile &, Clock &, DiscoveryProvider &, TransportFactory &, RealtimeSource &, RealtimeSink &);
+   bool refresh();
+   LoopCycleResult cycle();
+   void request_shutdown() { stopping_ = true; loop_.request_shutdown(); }
+@@ -59,7 +63,7 @@ public:
+ private:
+   void retire(const char *reason);
+   const SessionProfile profile_;
+-  Clock &clock_; DiscoveryProvider &discovery_; InjectedTransportFactory &factory_;
++  Clock &clock_; DiscoveryProvider &discovery_; TransportFactory &factory_;
+   PandadRuntime runtime_; PandadLoop loop_;
+   std::array<std::unique_ptr<OwnedTransport>,2> handles_;
+   std::array<std::string,2> nonces_;
+diff --git a/openpilot/selfdrive/pandad/compatibility/session_registry.cc b/openpilot/selfdrive/pandad/compatibility/session_registry.cc
+index 95eb181..8c72c9f 100644
+--- a/openpilot/selfdrive/pandad/compatibility/session_registry.cc
++++ b/openpilot/selfdrive/pandad/compatibility/session_registry.cc
+@@ -19,10 +19,21 @@ void require(bool valid, const char *reason) {
+   if (!valid) throw std::invalid_argument(reason);
+ }
+ 
+-void validate_identity(const SessionIdentity &value) {
++bool hex(const std::string &s, std::size_t size) {
++  if (s.size() != size) return false;
++  for (const auto c : s) if (!((c >= '0' && c <= '9') || (c >= 'a' && c <= 'f'))) return false;
++  return true;
++}
++void validate_identity(const SessionIdentity &value, bool native) {
++  if (native) {
++    require(value.identity.rfind("uid:", 0) == 0 && hex(value.identity.substr(4), 24), "invalid native UID");
++    require(text(value.exact_mcu) && value.exact_mcu.rfind("STM32", 0) == 0, "native exact MCU evidence required");
++    require(hex(value.application_signature, 256), "native signature must preserve all observed bytes");
++  } else {
+   require(fixture(value.identity), "identity must be a bounded fixture string");
+   require(fixture(value.exact_mcu), "exact MCU must be explicitly synthetic");
+   require(fixture(value.application_signature), "application signature must be explicitly synthetic");
++  }
+   require((value.board_type == "DOS" && value.mcu_family == "F4") ||
+           (value.board_type == "RED_PANDA" && value.mcu_family == "H7"), "unknown board/MCU pair");
+   require(value.transport == "USB" || value.transport == "SPI", "unsupported transport");
+@@ -32,8 +43,9 @@ void validate_identity(const SessionIdentity &value) {
+ }
+ 
+ void validate_profile(const SessionProfile &p) {
+-  require(p.schema == kSessionProfileSchema && p.purpose == "offline_fixture", "invalid profile schema/purpose");
+-  require(p.binding_status == "UNBOUND" || p.binding_status == "SYNTHETIC_BOUND", "invalid binding status");
++  const bool native = p.schema == kNativeSessionProfileSchema && p.purpose == "native_read_only_candidate";
++  require(native || (p.schema == kSessionProfileSchema && p.purpose == "offline_fixture"), "invalid profile schema/purpose");
++  require(p.binding_status == "UNBOUND" || p.binding_status == (native ? "NATIVE_READ_ONLY_BOUND" : "SYNTHETIC_BOUND"), "invalid binding status");
+   require(!p.device_access_enabled && !p.can_tx_enabled && !p.firmware_install_enabled, "all real permissions must remain false");
+   require(p.expected_board_count == 2 && p.required_slots == std::array<std::uint32_t, 2>{{0, 1}}, "exactly two fixed required slots");
+   require(p.bus_stride == 4 && p.ordinary_local_can_buses == std::array<std::uint32_t, 3>{{0, 1, 2}}, "invalid bus policy");
+@@ -48,7 +60,7 @@ void validate_profile(const SessionProfile &p) {
+     return;
+   }
+   for (const auto &s : p.slots) {
+-    validate_identity(s.expected);
++    validate_identity(s.expected, native);
+     require(s.safety_config_semantics == "noOutput", "fixture safety must be noOutput");
+   }
+   require(p.slots[0].expected.identity != p.slots[1].expected.identity, "duplicate bound identity");
+diff --git a/openpilot/selfdrive/pandad/compatibility/session_registry.h b/openpilot/selfdrive/pandad/compatibility/session_registry.h
+index 06aa845..741dff6 100644
+--- a/openpilot/selfdrive/pandad/compatibility/session_registry.h
++++ b/openpilot/selfdrive/pandad/compatibility/session_registry.h
+@@ -8,6 +8,7 @@
+ namespace openpilot::pandad::compatibility {
+ 
+ inline constexpr const char *kSessionProfileSchema = "songplus-dual-panda-offline-profile/v1";
++inline constexpr const char *kNativeSessionProfileSchema = "songplus-native-read-only-profile/v1";
+ inline constexpr const char *kSessionProtocol = "current:f512bcff76f2ab75";
+ inline constexpr std::int32_t kRoleUnassigned = -1;
+ inline constexpr std::int32_t kRoleUnsupported = -2;
+diff --git a/openpilot/selfdrive/pandad/compatibility/spi_backend.h b/openpilot/selfdrive/pandad/compatibility/spi_backend.h
+index f363d07..aac3135 100644
+--- a/openpilot/selfdrive/pandad/compatibility/spi_backend.h
++++ b/openpilot/selfdrive/pandad/compatibility/spi_backend.h
+@@ -25,6 +25,8 @@ public:
+   virtual ~SpiIo() = default;
+   virtual Status begin(std::uint32_t timeout_ms) { (void)timeout_ms; return Status::Ok; }
+   virtual void end() noexcept {}
++  // Local cooperative cancellation only; never close a concurrent syscall.
++  virtual void cancel() noexcept {}
+   virtual Result exchange(const std::vector<std::uint8_t> &tx, std::uint32_t timeout_ms) = 0;
+ };
+ 
+@@ -37,7 +39,7 @@ public:
+   SpiBackend(SpiIo &io, Clock &clock, std::uint32_t first_request_id)
+       : io_(io), clock_(clock), next_id_(first_request_id) {}
+   Result transact(const Request &request, std::uint32_t timeout_ms) override;
+-  void cancel() noexcept override { cancelled_.store(true); }
++  void cancel() noexcept override { cancelled_.store(true); io_.cancel(); }
+ 
+ private:
+   Result transfer(std::uint8_t endpoint, const std::vector<std::uint8_t> &tx,
+diff --git a/openpilot/selfdrive/pandad/compatibility/tests/test_native_binding.cc b/openpilot/selfdrive/pandad/compatibility/tests/test_native_binding.cc
+new file mode 100644
+index 0000000..164d71e
+--- /dev/null
++++ b/openpilot/selfdrive/pandad/compatibility/tests/test_native_binding.cc
+@@ -0,0 +1,109 @@
++#include "../native_binding.h"
++#include <algorithm>
++#include <functional>
++#include <iostream>
++#include <stdexcept>
++
++using namespace openpilot::pandad::compatibility;
++namespace {
++unsigned assertions=0;
++#define CHECK(x) do { ++assertions; if (!(x)) throw std::runtime_error(std::string(__func__)+": " #x); } while(false)
++struct FakeClock : Clock { std::uint64_t value=1000000; std::uint64_t now_us() override{return value;} void wait_us(std::uint32_t n) override{value+=n;} };
++NativeUsbObservation raw(unsigned n, unsigned type=6) {
++  NativeUsbObservation r;
++  r.serial="offline-test-"+std::to_string(n); r.uid.fill(n); r.board_type=type;
++  r.protocol={0xf5,0x12,0xbc,0xff,0x76,0xf2,0xab,0x75}; r.application_signature.fill(n+10);
++  if (type==6) r.f4_capabilities={'F','4','C','1',1,0,16,0,31,0,0,0,7,0,0,0};
++  return r;
++}
++NativeBindingProfile profile() {
++  NativeBindingProfile p; p.binding_status="CANDIDATE";
++  for(unsigned i=0;i<2;++i) {
++    auto &b=p.slots[i]; b.slot=i; b.expected=raw(i+1); b.transport="USB"; b.exact_mcu="STM32F413VGT6";
++    b.physical_evidence_sha256=std::string(64,'a'+i);
++    b.capabilities.diagnostic=b.capabilities.harness=b.capabilities.ignition=b.capabilities.fan=b.capabilities.power_monitor=true;
++  }
++  p.roles.vehicle_can=p.roles.diagnostic=p.roles.harness=p.roles.fan_control=p.roles.power_monitor=0;
++  p.roles.ignition_sources={0}; p.roles.ir_control=kRoleUnsupported;
++  return p;
++}
++std::vector<NativeObservedBoard> inventory(const NativeBindingProfile &p) {
++  std::vector<NativeObservedBoard> out;
++  for(unsigned i=0;i<2;++i) {
++    NativeObservedBoard o; o.raw=p.slots[i].expected; o.raw.lease_nonce=i+1; o.transport=p.slots[i].transport;
++    o.usb_alt0_verified=o.transport=="USB"; o.spi_first_request_id=o.transport=="SPI" ? i+100 : 0;
++    o.spi_selector=p.slots[i].spi_selector;
++    out.push_back(o);
++  }
++  return out;
++}
++NativeEvidenceVerifier evidence() { return [](const auto &){return true;}; } // explicitly synthetic, no files or hardware
++void unbound(const NativeBindingResult &r) {
++  CHECK(!r.bound); CHECK(r.profile.binding_status=="UNBOUND");
++  CHECK(r.profile.slots[0].expected.identity.empty()); CHECK(r.profile.slots[1].expected.identity.empty());
++  CHECK(!r.profile.device_access_enabled && !r.profile.can_tx_enabled && !r.profile.firmware_install_enabled);
++}
++struct Calls { unsigned transacts=0,cancels=0; };
++class PermissiveFake : public Backend {
++  std::shared_ptr<Calls> calls_;
++public:
++  explicit PermissiveFake(std::shared_ptr<Calls> c):calls_(std::move(c)){}
++  Result transact(const Request &r,std::uint32_t) override { ++calls_->transacts; return {Status::Ok,r.read_length,std::vector<std::uint8_t>(r.read_length,1),true,false}; }
++  void cancel() noexcept override {++calls_->cancels;}
++};
++std::vector<NativeLease> leases(const NativeBindingProfile &p,FakeClock &clock,std::shared_ptr<Calls> calls=std::make_shared<Calls>()) {
++  std::vector<NativeLease> out;
++  for(const auto &o:inventory(p)) {
++    NativeLease l; l.observed=o; l.observed_us=clock.value; l.io=std::make_unique<OwnedTransport>();
++    l.io->backend=std::make_unique<PermissiveFake>(calls); l.io->transport=std::make_unique<Transport>(*l.io->backend,clock);
++    out.push_back(std::move(l));
++  }
++  return out;
++}
++void mixed(NativeBindingProfile &p) {
++  auto &b=p.slots[1]; b.expected=raw(2,7); b.expected.serial.clear(); b.transport="SPI"; b.exact_mcu="STM32H725IGK6";
++  b.spi_selector.path="/dev/spidev0.0"; b.spi_selector.identity_evidence_sha256=b.physical_evidence_sha256;
++  b.spi_selector.physical_identity_verified=true; b.spi_selector.expected_major=153; b.spi_selector.expected_minor=0;
++  b.spi_selector.expected_mode=0; b.spi_selector.expected_bits_per_word=8; b.spi_selector.expected_max_speed_hz=50000000;
++}
++}
++int main() {
++  unsigned passed=0,failed=0;
++  const auto test=[&](const char *id,const std::function<void()> &fn) {
++    try {fn();++passed;std::cout<<"PASS "<<id<<'\n';} catch(const std::exception &e){++failed;std::cerr<<id<<": "<<e.what()<<'\n';}
++  };
++  test("p9_binding_default_unbound",[]{ unsigned calls=0; NativeBindingProfile p; auto r=validate_native_binding(p,{},[&](const auto &){++calls;return true;}); unbound(r);CHECK(calls==0);CHECK(r.reason=="UNBOUND_PROFILE"); });
++  test("p9_binding_partial_unbound_rejected",[]{ NativeBindingProfile p;p.slots[0].exact_mcu="STM32F413VGT6";auto r=validate_native_binding(p,{});unbound(r);CHECK(r.reason=="PARTIAL_UNBOUND_PROFILE");p=NativeBindingProfile{};p.roles.vehicle_can=0;r=validate_native_binding(p,{});CHECK(r.reason=="PARTIAL_UNBOUND_ROLES"); });
++  test("p9_binding_no_permission_from_profile",[]{for(unsigned i=0;i<3;++i){auto p=profile();if(i==0)p.device_access_enabled=true;if(i==1)p.can_tx_enabled=true;if(i==2)p.firmware_install_enabled=true;unbound(validate_native_binding(p,inventory(p),evidence()));} });
++  test("p9_binding_physical_verifier_required",[]{ auto p=profile();unbound(validate_native_binding(p,inventory(p)));unbound(validate_native_binding(p,inventory(p),[](const auto &){return false;}));unbound(validate_native_binding(p,inventory(p),[](const auto &)->bool{throw std::runtime_error("bad evidence");})); });
++  test("p9_binding_complete_dual_usb_fixed_slots",[]{auto p=profile();auto obs=inventory(p);std::reverse(obs.begin(),obs.end());auto r=validate_native_binding(p,obs,evidence());CHECK(r.bound);CHECK(r.profile.binding_status=="NATIVE_READ_ONLY_BOUND");CHECK(r.observations[0].raw.uid==p.slots[0].expected.uid);CHECK(r.profile.slots[0].expected.identity.rfind("uid:",0)==0);CHECK(r.profile.slots[0].expected.application_signature.size()==256);CHECK(!r.profile.can_tx_enabled);SessionRegistry registry(r.profile);CHECK(!registry.reconcile({}).group_available);});
++  test("p9_binding_missing_extra_duplicate_board",[]{auto p=profile();auto obs=inventory(p);obs.pop_back();unbound(validate_native_binding(p,obs,evidence()));obs=inventory(p);obs.push_back(obs.front());unbound(validate_native_binding(p,obs,evidence()));obs=inventory(p);obs[1].raw.uid=obs[0].raw.uid;unbound(validate_native_binding(p,obs,evidence()));p.slots[1].expected.uid=p.slots[0].expected.uid;unbound(validate_native_binding(p,inventory(p),evidence()));});
++  test("p9_binding_duplicate_serial_and_nonce",[]{auto p=profile();auto obs=inventory(p);obs[1].raw.serial=obs[0].raw.serial;unbound(validate_native_binding(p,obs,evidence()));obs=inventory(p);obs[1].raw.lease_nonce=obs[0].raw.lease_nonce;unbound(validate_native_binding(p,obs,evidence()));obs[1].raw.lease_nonce=0;unbound(validate_native_binding(p,obs,evidence()));});
++  test("p9_binding_replacement_and_protocol_mismatch",[]{auto p=profile();for(unsigned n=0;n<5;++n){auto obs=inventory(p);if(n==0)obs[0].raw.uid[0]++;if(n==1)obs[0].raw.application_signature[90]++;if(n==2)obs[0].raw.protocol[0]++;if(n==3)obs[0].raw.board_type=7;if(n==4)obs[0].raw.f4_capabilities.clear();unbound(validate_native_binding(p,obs,evidence()));}});
++  test("p9_binding_expected_identity_validation",[]{for(unsigned n=0;n<7;++n){auto p=profile();if(n==0)p.slots[0].expected.uid.fill(0);if(n==1)p.slots[0].expected.application_signature.fill(255);if(n==2)p.slots[0].expected.protocol[2]++;if(n==3)p.slots[0].expected.lease_nonce=1;if(n==4)p.slots[0].expected.serial="bad serial";if(n==5)p.slots[0].expected.f4_capabilities.clear();if(n==6)p.slots[0].slot=1;unbound(validate_native_binding(p,inventory(p),evidence()));}});
++  test("p9_binding_no_descriptor_mcu_inference",[]{for(unsigned n=0;n<4;++n){auto p=profile();if(n==0)p.slots[0].exact_mcu.clear();if(n==1)p.slots[0].exact_mcu="STM32H725IGK6";if(n==2)p.slots[0].physical_evidence_sha256.clear();if(n==3)p.slots[0].physical_evidence_sha256=std::string(64,'0');unbound(validate_native_binding(p,inventory(p),evidence()));}});
++  test("p9_binding_no_alt_descriptor_inference",[]{auto p=profile();auto obs=inventory(p);obs[0].usb_alt0_verified=false;unbound(validate_native_binding(p,obs,evidence()));obs=inventory(p);obs[0].spi_first_request_id=1;unbound(validate_native_binding(p,obs,evidence()));});
++  test("p9_binding_f4_capabilities_and_roles",[]{for(unsigned n=0;n<6;++n){auto p=profile();if(n==0)p.slots[0].capabilities.can_fd=true;if(n==1)p.slots[0].capabilities.ir=true;if(n==2)p.roles.harness=3;if(n==3)p.roles.ignition_sources.clear();if(n==4)p.roles.fan_control=kRoleUnsupported;if(n==5)p.slots[0].capabilities.harness=false;unbound(validate_native_binding(p,inventory(p),evidence()));}});
++  test("p9_binding_mixed_usb_h7_spi",[]{auto p=profile();mixed(p);auto r=validate_native_binding(p,inventory(p),evidence());CHECK(r.bound);CHECK(r.profile.slots[1].expected.transport=="SPI");CHECK(r.profile.slots[1].expected.mcu_family=="H7");});
++  test("p9_binding_spi_selector_and_session_evidence",[]{for(unsigned n=0;n<8;++n){auto p=profile();mixed(p);auto &s=p.slots[1].spi_selector;if(n==0)s.expected_mode.reset();if(n==1)s.expected_mode=1;if(n==2)s.expected_bits_per_word=16;if(n==3)s.expected_max_speed_hz=60000000;if(n==4)s.path="/dev/spidev0.1/../0.0";if(n==5)s.identity_evidence_sha256=std::string(64,'c');auto obs=inventory(p);if(n==6)obs[1].spi_first_request_id=0;if(n==7)obs[1].usb_alt0_verified=true;unbound(validate_native_binding(p,obs,evidence()));}});
++  test("p9_binding_f4_spi_not_in_bsp",[]{auto p=profile();mixed(p);p.slots[1].expected=raw(2);p.slots[1].expected.serial.clear();p.slots[1].exact_mcu="STM32F413VGT6";unbound(validate_native_binding(p,inventory(p),evidence()));});
++  test("p9_binding_native_not_fixture_disguise",[]{auto p=profile();auto r=validate_native_binding(p,inventory(p),evidence());CHECK(r.bound);auto s=r.profile;s.purpose="offline_fixture";s.schema=kSessionProfileSchema;bool threw=false;try{SessionRegistry registry(s);}catch(...){threw=true;}CHECK(threw);});
++  test("p9_binding_usb_helper_default_denied",[]{NativeUsbInventory usb;FakeClock clock;NativeBindingResult empty;CHECK(!native_usb_read_only_lease(usb,0,empty,0,clock).io);auto p=profile();auto r=validate_native_binding(p,inventory(p),evidence());CHECK(!native_usb_read_only_lease(usb,0,r,0,clock).io);CHECK(!native_usb_read_only_lease(usb,0,r,2,clock,true).io);});
++  test("p9_binding_spi_helper_rejects_mismatch",[]{NativeSpiProbeResult probe;NativeObservedBoard observed;CHECK(!native_spi_read_only_lease(std::move(probe),observed).io);});
++  test("p9_binding_provider_default_no_discovery",[]{FakeClock clock;auto p=profile();NativeReadOnlyProviders provider(p,evidence(),clock);CHECK(provider.snapshot().items.empty());CHECK(!provider.stage(leases(p,clock),1,clock.value));CHECK(provider.snapshot().items.empty());unbound(provider.binding());});
++  test("p9_binding_provider_single_handoff_and_cancel",[]{FakeClock clock;auto p=profile();auto calls=std::make_shared<Calls>();NativeReadOnlyProviders provider(p,evidence(),clock);CHECK(provider.stage(leases(p,clock,calls),1,clock.value,true));auto snapshot=provider.snapshot();auto bound=provider.binding();auto owned=provider.open(snapshot.items[0],bound.profile.slots[0]);CHECK(owned!=nullptr);CHECK(!provider.open(snapshot.items[0],bound.profile.slots[0]));CHECK(calls->transacts==0);owned.reset();CHECK(calls->cancels>0);});
++  test("p9_binding_provider_blocks_write_and_mutating_in",[]{FakeClock clock;auto p=profile();auto calls=std::make_shared<Calls>();NativeReadOnlyProviders provider(p,evidence(),clock);CHECK(provider.stage(leases(p,clock,calls),1,clock.value,true));auto owned=provider.open(provider.snapshot().items[0],provider.binding().profile.slots[0]);Request r;r.kind=Kind::ControlWrite;r.request=0xdc;r.value=19;CHECK(owned->backend->transact(r,1).status==Status::Invalid);r.kind=Kind::BulkWrite;r.endpoint=3;r.payload={1};CHECK(owned->backend->transact(r,1).status==Status::Invalid);r=Request{};r.kind=Kind::ControlRead;r.request=0xd8;r.read_length=1;CHECK(owned->backend->transact(r,1).status==Status::Invalid);CHECK(calls->transacts==0);r.request=0xc3;r.read_length=12;CHECK(owned->backend->transact(r,1).status==Status::Ok);CHECK(calls->transacts==1);});
++  test("p9_binding_provider_stale_and_future_clock",[]{for(unsigned n=0;n<3;++n){FakeClock clock;auto p=profile();NativeReadOnlyProviders provider(p,evidence(),clock);auto stamp=n==0 ? 0 : n==1 ? clock.value+1 : clock.value-kLoopMaxGapUs;CHECK(!provider.stage(leases(p,clock),1,stamp,true));CHECK(provider.snapshot().items.empty());}});
++  test("p9_binding_provider_rejects_retimestamped_probe",[]{FakeClock clock;auto p=profile();NativeReadOnlyProviders provider(p,evidence(),clock);auto ls=leases(p,clock);clock.value+=1;CHECK(!provider.stage(std::move(ls),1,clock.value,true));ls=leases(p,clock);ls[0].observed_us-=1;CHECK(!provider.stage(std::move(ls),2,clock.value,true));});
++  test("p9_binding_spi_observed_selector_exact",[]{auto p=profile();mixed(p);auto obs=inventory(p);obs[1].spi_selector.path="/dev/spidev0.1";unbound(validate_native_binding(p,obs,evidence()));});
++  test("p9_binding_provider_does_not_refresh_timestamp",[]{FakeClock clock;auto p=profile();NativeReadOnlyProviders provider(p,evidence(),clock);CHECK(provider.stage(leases(p,clock),1,clock.value,true));auto snap=provider.snapshot();clock.value+=kLoopMaxGapUs;CHECK(provider.snapshot().observed_us==snap.observed_us);CHECK(!provider.open(snap.items[0],provider.binding().profile.slots[0]));});
++  test("p9_binding_provider_consumed_lease_not_reused",[]{FakeClock clock;auto p=profile();NativeReadOnlyProviders provider(p,evidence(),clock);CHECK(provider.stage(leases(p,clock),1,clock.value,true));CHECK(!provider.stage(leases(p,clock),2,clock.value,true));CHECK(provider.snapshot().items.empty());auto fresh=leases(p,clock);for(auto &l:fresh)l.observed.raw.lease_nonce+=2;CHECK(provider.stage(std::move(fresh),3,clock.value,true));});
++  test("p9_binding_provider_exact_item_match",[]{FakeClock clock;auto p=profile();NativeReadOnlyProviders provider(p,evidence(),clock);CHECK(provider.stage(leases(p,clock),1,clock.value,true));auto item=provider.snapshot().items[0];auto b=provider.binding().profile.slots[0];item.handle_nonce="old";CHECK(!provider.open(item,b));item=provider.snapshot().items[0];item.usb_alt0_verified=false;CHECK(!provider.open(item,b));b.safety_config_semantics="allOutput";CHECK(!provider.open(provider.snapshot().items[0],b));});
++  test("p9_binding_provider_partial_failure_closes_group",[]{FakeClock clock;auto p=profile();NativeReadOnlyProviders provider(p,evidence(),clock);auto ls=leases(p,clock);ls[1].observed.raw.uid[0]++;CHECK(!provider.stage(std::move(ls),1,clock.value,true));CHECK(provider.snapshot().items.empty());unbound(provider.binding());});
++  test("p9_binding_unbound_rejects_partial_timestamp",[]{NativeBindingProfile p;p.slots[0].expected.observed_us=123;auto r=validate_native_binding(p,{});unbound(r);CHECK(r.reason=="PARTIAL_UNBOUND_PROFILE");});
++  test("p9_binding_spi_helper_preserves_actual_probe_metadata",[]{FakeClock clock;auto p=profile();mixed(p);auto o=inventory(p)[1];for(unsigned n=0;n<4;++n){NativeSpiProbeResult probe;probe.status=Status::Ok;probe.observation=o.raw;probe.validated_selector=o.spi_selector;probe.first_request_id=o.spi_first_request_id;probe.started_us=clock.value-50;probe.completed_us=clock.value;auto fake=leases(p,clock);probe.transport=std::move(fake[1].io);auto requested=o;if(n==1)requested.spi_first_request_id++;if(n==2)requested.spi_selector.path="/dev/spidev0.1";if(n==3)requested.raw.lease_nonce++;auto result=native_spi_read_only_lease(std::move(probe),requested);CHECK(static_cast<bool>(result.io)==(n==0));CHECK(result.observed_us==(n==0 ? clock.value : 0));}});
++  test("p9_binding_handoff_rejects_bad_request_shape_budget",[]{FakeClock clock;auto p=profile();auto calls=std::make_shared<Calls>();NativeReadOnlyProviders provider(p,evidence(),clock);CHECK(provider.stage(leases(p,clock,calls),1,clock.value,true));auto owned=provider.open(provider.snapshot().items[0],provider.binding().profile.slots[0]);Request r;r.kind=Kind::ControlRead;r.request=0xc3;r.read_length=12;CHECK(owned->backend->transact(r,0).status==Status::Invalid);CHECK(owned->backend->transact(r,kBackendSliceMs+1).status==Status::Invalid);r.payload={1};CHECK(owned->backend->transact(r,1).status==Status::Invalid);CHECK(calls->transacts==0);});
++  test("p9_binding_runtime_owner_read_only_gate",[]{FakeClock clock;auto p=profile();auto calls=std::make_shared<Calls>();NativeReadOnlyProviders provider(p,evidence(),clock);CHECK(provider.stage(leases(p,clock,calls),1,clock.value,true));const ReceiveEvent empty=[]{return std::optional<MessageBytes>{};};RealtimeSource source({empty,empty,empty,empty});RealtimeSink sink([](OutputTopic,const MessageBytes &){return true;});RuntimeIntegration owner(provider.binding().profile,clock,provider,provider,source,sink);owner.refresh();CHECK(!owner.snapshot().real_tx_authorized);owner.request_shutdown();CHECK(owner.cycle().shutdown);CHECK(!owner.sessions().group_available);});
++  std::cout<<"{\"suite\":\"p9_native_binding\",\"passed\":"<<passed<<",\"failed\":"<<failed<<",\"skipped\":0,\"assertions\":"<<assertions<<",\"real_device_io\":false}\n";
++  return failed ? 1:0;
++}
+diff --git a/openpilot/selfdrive/pandad/compatibility/tests/test_native_spi.cc b/openpilot/selfdrive/pandad/compatibility/tests/test_native_spi.cc
+new file mode 100644
+index 0000000..d5bb49b
+--- /dev/null
++++ b/openpilot/selfdrive/pandad/compatibility/tests/test_native_spi.cc
+@@ -0,0 +1,360 @@
++#include "../native_spi.h"
++
++#include <algorithm>
++#include <cerrno>
++#include <fcntl.h>
++#include <functional>
++#include <iostream>
++#include <limits>
++#include <stdexcept>
++#include <utility>
++
++using namespace openpilot::pandad::compatibility;
++using Bytes = std::vector<std::uint8_t>;
++namespace {
++std::size_t assertions = 0;
++void check(bool condition, int line) { ++assertions; if (!condition) throw std::runtime_error("native SPI assertion at line " + std::to_string(line)); }
++#define CHECK(x) check(static_cast<bool>(x), __LINE__)
++class FakeClock final : public Clock {
++public:
++  std::uint64_t now = 0;
++  bool frozen = false;
++  std::function<void()> on_wait;
++  std::uint64_t now_us() override { return now; }
++  void wait_us(std::uint32_t us) override { if (!frozen) now += us; if (on_wait) on_wait(); }
++};
++class FakeCalls final : public NativeSpiSyscalls {
++public:
++  int fd = 17, flags = 0, opens = 0, closes = 0, locks = 0, unlocks = 0, messages = 0;
++  int error_open = 0, error_stat = 0, error_mode = 0, error_bits = 0, error_speed = 0, error_lock = 0, error_unlock = 0, error_close = 0;
++  NativeSpiNode node{true, 153, 1};
++  std::uint32_t mode = 0, speed = 30000000;
++  std::uint8_t bits = 8;
++  std::string opened_path;
++  bool lease = false;
++  std::vector<std::string> events;
++  std::vector<Bytes> requests;
++  std::function<void()> on_lock;
++  std::function<NativeSpiCall(const Bytes &, std::uint8_t *)> action;
++  NativeSpiCall open_device(const std::string &path, int f) override {
++    ++opens; opened_path = path; flags = f; events.push_back("open");
++    return error_open ? NativeSpiCall{-1, error_open} : NativeSpiCall{fd, 0};
++  }
++  NativeSpiCall stat_device(int value, NativeSpiNode &out) override {
++    CHECK(value == fd); events.push_back("stat"); out = node; return status(error_stat);
++  }
++  NativeSpiCall read_mode(int value, std::uint32_t &out) override {
++    CHECK(value == fd && lease); events.push_back("mode"); out = mode; return status(error_mode);
++  }
++  NativeSpiCall read_bits(int value, std::uint8_t &out) override {
++    CHECK(value == fd && lease); events.push_back("bits"); out = bits; return status(error_bits);
++  }
++  NativeSpiCall read_speed(int value, std::uint32_t &out) override {
++    CHECK(value == fd && lease); events.push_back("speed"); out = speed; return status(error_speed);
++  }
++  NativeSpiCall lock_device(int value, bool acquire) override {
++    CHECK(value == fd);
++    if (acquire) {
++      ++locks; events.push_back("lock"); if (on_lock) on_lock();
++      if (error_lock) return {-1, error_lock};
++      CHECK(!lease); lease = true; return {0, 0};
++    }
++    ++unlocks; events.push_back("unlock"); CHECK(lease); lease = false; return status(error_unlock);
++  }
++  NativeSpiCall message(int value, const std::uint8_t *tx, std::uint8_t *rx, std::size_t bytes) override {
++    CHECK(value == fd && lease && bytes > 0 && bytes <= kSpiBufferBytes);
++    ++messages; events.push_back("message"); requests.emplace_back(tx, tx + bytes);
++    if (action) return action(requests.back(), rx);
++    std::copy(tx, tx + bytes, rx); return {static_cast<int>(bytes), 0};
++  }
++  NativeSpiCall close_device(int value) override { CHECK(value == fd); ++closes; lease = false; events.push_back("close"); return status(error_close); }
++private:
++  static NativeSpiCall status(int error) { return error ? NativeSpiCall{-1, error} : NativeSpiCall{0, 0}; }
++};
++NativeSpiSelector selector() {
++  NativeSpiSelector result;
++  result.path = "/dev/spidev0.0"; result.identity_evidence_sha256 = std::string(64, 'a'); result.physical_identity_verified = true;
++  result.expected_major = 153; result.expected_minor = 1; result.expected_mode = 0;
++  result.expected_bits_per_word = 8; result.expected_max_speed_hz = 30000000;
++  return result;
++}
++struct Fixture {
++  FakeClock clock;
++  std::shared_ptr<FakeCalls> calls = std::make_shared<FakeCalls>();
++  NativeSpiIo io{calls, clock};
++  void activate() { CHECK(io.activate(selector(), NativeSpiActivation::VerifiedProfile) == Status::Ok); }
++};
++void native_construction_denied() {
++  FakeClock clock;
++  auto native = make_linux_spi_syscalls();
++  CHECK(native != nullptr);
++  NativeSpiIo io(native, clock);
++  CHECK(!io.active());
++  CHECK(io.activate(selector()) == Status::Invalid);
++  CHECK(io.begin(5) == Status::Disconnected);
++  CHECK(io.exchange({1}, 5).status == Status::Disconnected);
++  CHECK(!kNativeSpiKernelDeadlineProven);
++}
++void inert_and_default_deny() {
++  Fixture f;
++  CHECK(f.calls->events.empty());
++  CHECK(f.io.activate(selector()) == Status::Invalid);
++  CHECK(f.calls->events.empty());
++  f.io.end(); f.io.cancel();
++  CHECK(f.io.activate(selector(), NativeSpiActivation::VerifiedProfile) == Status::Cancelled);
++  CHECK(f.calls->events.empty());
++}
++void exact_path_only() {
++  for (const auto &path : {"", "/dev/spidev", "/dev/spidev0", "/dev/spidev.0", "/dev/spidev0.", "/dev/spidev00.0", "/dev/spidev0.00", "/dev/spidev-1.0", "/dev/spidev0.0/", "/dev/spidev0.0/../1", "/dev/spidev0.0\n", "/dev/spidev0.0.0", "/dev/spidev4294967296.0", "/tmp/spidev0.0"}) {
++    Fixture f; auto candidate = selector(); candidate.path = path;
++    CHECK(f.io.activate(candidate, NativeSpiActivation::VerifiedProfile) == Status::Invalid);
++    CHECK(f.calls->opens == 0);
++  }
++  auto valid = selector(); valid.path = "/dev/spidev4294967295.4294967295";
++  CHECK(valid_native_spi_selector(valid));
++}
++void incomplete_profile_no_open() {
++  for (unsigned missing = 0; missing < 11; ++missing) {
++    Fixture f; auto candidate = selector();
++    if (missing == 0) candidate.physical_identity_verified = false;
++    if (missing == 1) candidate.identity_evidence_sha256.clear();
++    if (missing == 2) candidate.identity_evidence_sha256[1] = 'G';
++    if (missing == 3) candidate.expected_major.reset();
++    if (missing == 4) candidate.expected_minor.reset();
++    if (missing == 5) candidate.expected_mode.reset();
++    if (missing == 6) candidate.expected_bits_per_word.reset();
++    if (missing == 7) candidate.expected_max_speed_hz.reset();
++    if (missing == 8) candidate.expected_major = 0;
++    if (missing == 9) candidate.expected_bits_per_word = 0;
++    if (missing == 10) candidate.expected_max_speed_hz = 0;
++    CHECK(f.io.activate(candidate, NativeSpiActivation::VerifiedProfile) == Status::Invalid);
++    CHECK(f.calls->events.empty());
++  }
++}
++void flags_and_existing_configuration() {
++  Fixture f; f.activate();
++  CHECK(f.calls->opened_path == selector().path);
++  CHECK(f.calls->flags == (O_RDWR | O_NOFOLLOW | O_CLOEXEC | O_NONBLOCK));
++  CHECK(f.calls->events == std::vector<std::string>({"open", "lock", "stat", "mode", "bits", "speed", "unlock"}));
++  CHECK(f.calls->messages == 0 && f.io.active());
++  CHECK(f.io.activate(selector(), NativeSpiActivation::VerifiedProfile) == Status::Invalid);
++  CHECK(f.calls->opens == 1);
++}
++void node_identity_failure() {
++  for (unsigned mismatch = 0; mismatch < 3; ++mismatch) {
++    Fixture f;
++    if (mismatch == 0) f.calls->node.character_device = false;
++    if (mismatch == 1) ++f.calls->node.major;
++    if (mismatch == 2) ++f.calls->node.minor;
++    CHECK(f.io.activate(selector(), NativeSpiActivation::VerifiedProfile) == Status::Invalid);
++    CHECK(f.calls->closes == 1 && f.calls->unlocks == 1 && f.calls->messages == 0);
++    CHECK(!f.io.active());
++  }
++}
++void exact_configuration_failure() {
++  for (unsigned mismatch = 0; mismatch < 3; ++mismatch) {
++    Fixture f;
++    if (mismatch == 0) f.calls->mode = 1;
++    if (mismatch == 1) f.calls->bits = 16;
++    if (mismatch == 2) ++f.calls->speed;
++    CHECK(f.io.activate(selector(), NativeSpiActivation::VerifiedProfile) == Status::Invalid);
++    CHECK(f.calls->closes == 1 && f.calls->messages == 0);
++  }
++}
++void syscall_failures_cleanup() {
++  for (unsigned failure = 0; failure < 7; ++failure) {
++    Fixture f;
++    if (failure == 0) f.calls->error_open = ELOOP;
++    if (failure == 1) f.calls->error_lock = EWOULDBLOCK;
++    if (failure == 2) f.calls->error_stat = ENODEV;
++    if (failure == 3) f.calls->error_mode = ENOTTY;
++    if (failure == 4) f.calls->error_bits = ENOTTY;
++    if (failure == 5) f.calls->error_speed = ENOTTY;
++    if (failure == 6) f.calls->error_unlock = EIO;
++    CHECK(f.io.activate(selector(), NativeSpiActivation::VerifiedProfile) != Status::Ok);
++    CHECK(f.calls->opens == 1 && f.calls->closes == (failure == 0 ? 0 : 1));
++    CHECK(f.calls->messages == 0 && !f.io.active());
++    CHECK(f.io.activate(selector(), NativeSpiActivation::VerifiedProfile) == Status::Invalid);
++  }
++}
++void lock_lifetime_and_single_message() {
++  Fixture f; f.activate();
++  CHECK(f.io.begin(5) == Status::Ok);
++  CHECK(f.io.begin(5) == Status::Busy);
++  const auto result = f.io.exchange({1, 2, 3}, 5);
++  CHECK(result.status == Status::Ok && result.actual == 3 && result.data == Bytes({1, 2, 3}));
++  CHECK(f.calls->locks == 2 && f.calls->unlocks == 1 && f.calls->messages == 1 && f.calls->lease);
++  f.io.end(); f.io.end();
++  CHECK(f.calls->unlocks == 2 && !f.calls->lease);
++  CHECK(f.io.exchange({1}, 5).status == Status::Invalid);
++}
++void configuration_rechecked_each_request() {
++  Fixture f; f.activate(); f.calls->speed += 1;
++  CHECK(f.io.begin(5) == Status::Invalid);
++  CHECK(!f.io.active() && f.calls->unlocks == 2 && f.calls->messages == 0);
++  f.calls->speed -= 1;
++  CHECK(f.io.begin(5) == Status::Disconnected);
++}
++void bounded_lock_timeout_and_wrap() {
++  for (const auto start : {std::uint64_t{0}, std::numeric_limits<std::uint64_t>::max() - 500}) {
++    Fixture f; f.activate(); f.clock.now = start; f.calls->error_lock = EWOULDBLOCK;
++    CHECK(f.io.begin(1) == (start == 0 ? Status::Timeout : Status::IoError));
++    if (start == 0) CHECK(f.clock.now - start == 1000 && f.calls->locks == 11);
++    else CHECK(!f.io.active());
++    CHECK(f.calls->messages == 0);
++  }
++  Fixture f; f.activate(); f.clock.frozen = true; f.calls->error_lock = EWOULDBLOCK;
++  CHECK(f.io.begin(5) == Status::Busy);
++  CHECK(f.calls->locks == 1 + static_cast<int>(kNativeSpiLockAttempts));
++}
++void lock_eintr_not_retried() {
++  Fixture f; f.activate(); f.calls->error_lock = EINTR;
++  CHECK(f.io.begin(5) == Status::IoError);
++  CHECK(f.calls->locks == 2 && f.calls->messages == 0);
++}
++void clock_rollback_and_wrap_poison_provider() {
++  Fixture locked; locked.activate(); locked.clock.now = 1000;
++  locked.calls->on_lock = [&] { locked.clock.now = 500; };
++  CHECK(locked.io.begin(5) == Status::IoError && !locked.io.active());
++  CHECK(locked.calls->messages == 0 && !locked.calls->lease);
++  for (const auto start : {std::uint64_t{1000}, std::numeric_limits<std::uint64_t>::max() - 500}) {
++    Fixture f; f.activate(); CHECK(f.io.begin(5) == Status::Ok); f.clock.now = start;
++    f.calls->action = [&](const Bytes &tx, std::uint8_t *rx) {
++      f.clock.now = start == 1000 ? 500 : start + 1000;
++      std::copy(tx.begin(), tx.end(), rx); return NativeSpiCall{static_cast<int>(tx.size()), 0};
++    };
++    const auto result = f.io.exchange({1,2},5);
++    CHECK(result.status == Status::IoError && result.actual == 2 && result.actual_known && !f.io.active());
++    CHECK(f.io.exchange({1},5).status == Status::Disconnected && f.calls->messages == 1);
++  }
++}
++void cancelled_lock_no_device_calls() {
++  Fixture f; f.activate(); f.calls->error_lock = EWOULDBLOCK;
++  f.clock.on_wait = [&] { auto count = f.calls->events.size(); f.io.cancel(); CHECK(f.calls->events.size() == count); };
++  CHECK(f.io.begin(5) == Status::Cancelled);
++  CHECK(f.calls->locks == 2 && f.calls->messages == 0);
++}
++void cancellation_after_lock_releases() {
++  Fixture f; f.activate(); f.calls->on_lock = [&] { f.io.cancel(); };
++  CHECK(f.io.begin(5) == Status::Cancelled);
++  CHECK(f.calls->unlocks == 2 && !f.calls->lease && f.calls->messages == 0);
++}
++void short_message_no_retry() {
++  Fixture f; f.activate(); CHECK(f.io.begin(5) == Status::Ok);
++  f.calls->action = [](const Bytes &, std::uint8_t *rx) { rx[0] = 7; return NativeSpiCall{1, 0}; };
++  auto result = f.io.exchange({1, 2, 3}, 5);
++  CHECK(result.status == Status::Short && result.actual == 1 && result.data == Bytes({7}));
++  CHECK(result.actual_known && result.delivery_uncertain && f.calls->messages == 1);
++  CHECK(f.io.exchange({1, 2, 3}, 5).status == Status::Disconnected && f.calls->messages == 1);
++}
++void uncertain_syscall_no_retry() {
++  for (const auto error : {EINTR, ETIMEDOUT, ENODEV, ENXIO, EIO, EAGAIN}) {
++    Fixture f; f.activate(); CHECK(f.io.begin(5) == Status::Ok);
++    f.calls->action = [=](const Bytes &, std::uint8_t *) { return NativeSpiCall{-1, error}; };
++    const auto result = f.io.exchange({1, 2, 3}, 5);
++    CHECK(result.status != Status::Ok && result.status != Status::Short);
++    CHECK(!result.actual_known && result.delivery_uncertain && result.actual == 0 && result.data.empty());
++    CHECK(f.calls->messages == 1);
++    CHECK(f.io.exchange({1, 2, 3}, 5).status == Status::Disconnected && f.calls->messages == 1);
++  }
++}
++void invalid_ioctl_count_fails_closed() {
++  Fixture f; f.activate(); CHECK(f.io.begin(5) == Status::Ok);
++  f.calls->action = [](const Bytes &, std::uint8_t *) { return NativeSpiCall{4, 0}; };
++  const auto result = f.io.exchange({1, 2, 3}, 5);
++  CHECK(result.status == Status::IoError && !result.actual_known && result.delivery_uncertain && f.calls->messages == 1);
++}
++void late_ioctl_completion_is_not_deadline_proof() {
++  Fixture f; f.activate(); CHECK(f.io.begin(5) == Status::Ok);
++  f.calls->action = [&](const Bytes &tx, std::uint8_t *rx) { f.clock.now += 6000; std::copy(tx.begin(), tx.end(), rx); return NativeSpiCall{static_cast<int>(tx.size()), 0}; };
++  const auto result = f.io.exchange({1, 2}, 5);
++  CHECK(result.status == Status::Timeout && result.actual == 2 && result.actual_known && !result.delivery_uncertain);
++  CHECK(f.calls->messages == 1 && !kNativeSpiKernelDeadlineProven);
++  CHECK(!f.io.active());
++}
++void cancel_during_ioctl_preserves_completion() {
++  Fixture f; f.activate(); CHECK(f.io.begin(5) == Status::Ok);
++  f.calls->action = [&](const Bytes &tx, std::uint8_t *rx) { f.io.cancel(); std::copy(tx.begin(), tx.end(), rx); return NativeSpiCall{static_cast<int>(tx.size()), 0}; };
++  const auto result = f.io.exchange({1, 2}, 5);
++  CHECK(result.status == Status::Cancelled && result.actual == 2 && result.actual_known);
++  CHECK(f.io.exchange({1}, 5).status == Status::Cancelled && f.calls->messages == 1);
++}
++void invalid_request_no_message() {
++  Fixture f; f.activate();
++  CHECK(f.io.begin(0) == Status::Invalid && f.io.begin(6) == Status::Invalid);
++  CHECK(f.io.begin(5) == Status::Ok);
++  CHECK(f.io.exchange({}, 5).status == Status::Invalid);
++  CHECK(f.io.exchange(Bytes(4097), 5).status == Status::Invalid);
++  CHECK(f.io.exchange({1}, 0).status == Status::Invalid);
++  CHECK(f.io.exchange({1}, 6).status == Status::Invalid);
++  CHECK(f.calls->messages == 0);
++}
++void destructor_unlock_close_once() {
++  FakeClock clock; auto calls = std::make_shared<FakeCalls>();
++  {
++    NativeSpiIo io(calls, clock);
++    CHECK(io.activate(selector(), NativeSpiActivation::VerifiedProfile) == Status::Ok);
++    CHECK(io.begin(5) == Status::Ok);
++    calls->error_close = EINTR;
++  }
++  CHECK(calls->unlocks == 2 && calls->closes == 1);
++}
++void isolated_devices_and_cancellation_seam() {
++  Fixture a, b; a.activate(); b.activate();
++  SpiBackend backend(a.io, a.clock, 10);
++  backend.cancel();
++  CHECK(!a.io.active() && b.io.active());
++  CHECK(a.io.begin(5) == Status::Cancelled && b.io.begin(5) == Status::Ok);
++  CHECK(b.io.exchange({1, 2}, 5).status == Status::Ok);
++  CHECK(a.calls->messages == 0 && b.calls->messages == 1 && a.calls->closes == 0);
++}
++std::uint32_t le(const Bytes &data, std::size_t offset, unsigned count) { std::uint32_t n = 0; for (unsigned i = 0; i < count; ++i) n |= std::uint32_t(data[offset + i]) << (i * 8); return n; }
++void append(Bytes &data, std::uint32_t n, unsigned count) { for (unsigned i = 0; i < count; ++i) data.push_back(static_cast<std::uint8_t>(n >> (i * 8))); }
++std::uint32_t crc(const Bytes &data) { std::uint32_t n = 0xffffffffU; for (auto byte : data) { n ^= byte; for (unsigned i = 0; i < 8; ++i) n = (n >> 1) ^ ((n & 1) ? 0xedb88320U : 0); } return n ^ 0xffffffffU; }
++void complete_backend_request_lease() {
++  Fixture f; f.activate(); std::uint32_t request_id = 0;
++  f.calls->action = [&](const Bytes &tx, std::uint8_t *rx) {
++    Bytes reply(tx.size());
++    if (tx[0] != 0xff) { request_id = le(tx, 1, 4); reply[0] = 0x3c; }
++    else { reply = {0xc3}; append(reply, request_id, 4); append(reply, 0, 2); append(reply, crc(reply), 4); reply.resize(tx.size()); }
++    std::copy(reply.begin(), reply.end(), rx); return NativeSpiCall{static_cast<int>(tx.size()), 0};
++  };
++  SpiBackend backend(f.io, f.clock, 77);
++  Request request; request.kind = Kind::BulkWrite; request.endpoint = 3; request.payload = Bytes(9000, 42);
++  const auto result = backend.transact(request, 5);
++  CHECK(result.status == Status::Ok && result.actual == 9000 && f.calls->messages == 6);
++  CHECK(f.calls->locks == 2 && f.calls->unlocks == 2 && !f.calls->lease);
++  CHECK(le(f.calls->requests[0], 1, 4) == 77 && le(f.calls->requests[2], 1, 4) == 78 && le(f.calls->requests[4], 1, 4) == 79);
++}
++void transport_uncertain_never_replays() {
++  Fixture f; f.activate();
++  f.calls->action = [](const Bytes &, std::uint8_t *) { return NativeSpiCall{-1, EINTR}; };
++  SpiBackend backend(f.io, f.clock, 99); Transport transport(backend, f.clock);
++  Request request; request.kind = Kind::BulkRead; request.endpoint = 0x81; request.read_length = 16;
++  const auto result = transport.perform(request, 100);
++  CHECK(result.status == Status::IoError && !result.actual_known && f.calls->messages == 1);
++  CHECK(transport.perform(request, 100).status == Status::Poisoned && f.calls->messages == 1);
++}
++}  // namespace
++int main() {
++  try {
++    const std::vector<std::pair<const char *, std::function<void()>>> groups{
++      {"native_construction_denied", native_construction_denied}, {"inert_and_default_deny", inert_and_default_deny},
++      {"exact_path_only", exact_path_only}, {"incomplete_profile_no_open", incomplete_profile_no_open},
++      {"flags_and_existing_configuration", flags_and_existing_configuration}, {"node_identity_failure", node_identity_failure},
++      {"exact_configuration_failure", exact_configuration_failure}, {"syscall_failures_cleanup", syscall_failures_cleanup},
++      {"lock_lifetime_and_single_message", lock_lifetime_and_single_message}, {"configuration_rechecked_each_request", configuration_rechecked_each_request},
++      {"bounded_lock_timeout_and_wrap", bounded_lock_timeout_and_wrap}, {"lock_eintr_not_retried", lock_eintr_not_retried},
++      {"clock_rollback_and_wrap_poison_provider", clock_rollback_and_wrap_poison_provider},
++      {"cancelled_lock_no_device_calls", cancelled_lock_no_device_calls}, {"cancellation_after_lock_releases", cancellation_after_lock_releases},
++      {"short_message_no_retry", short_message_no_retry}, {"uncertain_syscall_no_retry", uncertain_syscall_no_retry},
++      {"invalid_ioctl_count_fails_closed", invalid_ioctl_count_fails_closed}, {"late_ioctl_completion_is_not_deadline_proof", late_ioctl_completion_is_not_deadline_proof},
++      {"cancel_during_ioctl_preserves_completion", cancel_during_ioctl_preserves_completion}, {"invalid_request_no_message", invalid_request_no_message},
++      {"destructor_unlock_close_once", destructor_unlock_close_once}, {"isolated_devices_and_cancellation_seam", isolated_devices_and_cancellation_seam},
++      {"complete_backend_request_lease", complete_backend_request_lease}, {"transport_uncertain_never_replays", transport_uncertain_never_replays},
++    };
++    for (const auto &[name, test] : groups) { test(); std::cout << "PASS " << name << '\n'; }
++    std::cout << "{\"suite\":\"p9_native_spi\",\"passed\":" << groups.size() << ",\"failed\":0,\"skipped\":0,\"assertions\":" << assertions << ",\"real_device_io\":false}\n";
++    return 0;
++  } catch (const std::exception &error) { std::cerr << error.what() << '\n'; return 1; }
++}
+diff --git a/openpilot/selfdrive/pandad/compatibility/tests/test_native_spi_probe.cc b/openpilot/selfdrive/pandad/compatibility/tests/test_native_spi_probe.cc
+new file mode 100644
+index 0000000..b0fa2b3
+--- /dev/null
++++ b/openpilot/selfdrive/pandad/compatibility/tests/test_native_spi_probe.cc
+@@ -0,0 +1,274 @@
++#include "../native_spi_probe.h"
++
++#include <algorithm>
++#include <cerrno>
++#include <functional>
++#include <iostream>
++#include <limits>
++#include <map>
++#include <stdexcept>
++
++using namespace openpilot::pandad::compatibility;
++using Bytes = std::vector<std::uint8_t>;
++namespace {
++std::size_t assertions = 0;
++void check(bool condition, int line) { ++assertions; if (!condition) throw std::runtime_error("SPI probe assertion at line " + std::to_string(line)); }
++#define CHECK(x) check(static_cast<bool>(x), __LINE__)
++class FakeClock final : public Clock {
++public:
++  std::uint64_t now = 0;
++  std::function<void()> on_now;
++  std::uint64_t now_us() override { if (on_now) on_now(); return now; }
++  void wait_us(std::uint32_t us) override { now += us; }
++};
++std::uint32_t le(const Bytes &bytes, std::size_t offset, unsigned count) { std::uint32_t n = 0; for (unsigned i = 0; i < count; ++i) n |= std::uint32_t(bytes.at(offset + i)) << (8 * i); return n; }
++void append(Bytes &bytes, std::uint32_t n, unsigned count) { for (unsigned i = 0; i < count; ++i) bytes.push_back(static_cast<std::uint8_t>(n >> (8 * i))); }
++std::uint32_t crc(const Bytes &bytes) { std::uint32_t n = 0xffffffffU; for (auto byte : bytes) { n ^= byte; for (unsigned i = 0; i < 8; ++i) n = (n >> 1) ^ ((n & 1) ? 0xedb88320U : 0); } return n ^ 0xffffffffU; }
++std::array<std::uint8_t, 128> signature(std::uint8_t seed = 17) { std::array<std::uint8_t, 128> out; for (std::size_t i = 0; i < out.size(); ++i) out[i] = static_cast<std::uint8_t>(i + seed); return out; }
++class FakeCalls final : public NativeSpiSyscalls {
++public:
++  FakeClock &clock;
++  explicit FakeCalls(FakeClock &c) : clock(c) {
++    replies[0xc3] = {1,2,3,4,5,6,7,8,9,10,11,12}; replies[0xc1] = {7};
++    replies[0xdd] = {0xf5,0x12,0xbc,0xff,0x76,0xf2,0xab,0x75};
++    auto sig = signature(); replies[0xd3] = Bytes(sig.begin(), sig.begin() + 64); replies[0xd4] = Bytes(sig.begin() + 64, sig.end());
++    replies[0xd5] = {'F','4','C','1',1,0,16,0,0x1f,0,0,0,7,0,0,0};
++    replies[0xd2] = Bytes(48, 5); replies[0xc2] = Bytes(64, 6); replies[0xb2] = {1,2};
++  }
++  int opens = 0, closes = 0, messages = 0, locks = 0, unlocks = 0;
++  bool lease = false, opened = false, corrupt_crc = false, wrong_id = false;
++  std::uint64_t delay_us = 0;
++  int fail_request = -1;
++  int fail_unlock_at = -1;
++  std::map<std::uint8_t, Bytes> replies;
++  std::vector<std::uint8_t> controls;
++  std::vector<std::uint32_t> ids;
++  std::uint8_t pending = 0;
++  std::uint32_t pending_id = 0;
++  NativeSpiCall open_device(const std::string &path, int) override { CHECK(path == "/dev/spidev0.0" && !opened); ++opens; opened = true; return {23,0}; }
++  NativeSpiCall stat_device(int fd, NativeSpiNode &node) override { CHECK(fd == 23 && opened); node = {true,153,0}; return {0,0}; }
++  NativeSpiCall read_mode(int fd, std::uint32_t &out) override { CHECK(fd == 23 && lease); out = 0; return {0,0}; }
++  NativeSpiCall read_bits(int fd, std::uint8_t &out) override { CHECK(fd == 23 && lease); out = 8; return {0,0}; }
++  NativeSpiCall read_speed(int fd, std::uint32_t &out) override { CHECK(fd == 23 && lease); out = 10000000; return {0,0}; }
++  NativeSpiCall lock_device(int fd, bool acquire) override {
++    CHECK(fd == 23 && opened); CHECK(lease != acquire); lease = acquire;
++    if (acquire) ++locks; else if (++unlocks == fail_unlock_at) return {-1,EIO};
++    return {0,0};
++  }
++  NativeSpiCall close_device(int fd) override { CHECK(fd == 23 && opened && !lease); opened = false; ++closes; return {0,0}; }
++  NativeSpiCall message(int fd, const std::uint8_t *tx, std::uint8_t *rx, std::size_t size) override {
++    CHECK(fd == 23 && opened && lease); ++messages; clock.now += delay_us;
++    Bytes bytes(tx, tx + size), response(size);
++    if (bytes[0] != 0xff) {
++      CHECK(bytes[0] == 0 || bytes[0] == 0x81);
++      CHECK(le(bytes, size - 4, 4) == crc(Bytes(bytes.begin(), bytes.end() - 4)));
++      pending_id = le(bytes, 1, 4); ids.push_back(pending_id);
++      if (bytes[0] == 0) { CHECK(le(bytes, 5, 2) == 7); pending = bytes[9]; controls.push_back(pending); CHECK(bytes[12] == 0 && bytes[13] == 0); }
++      else pending = 0x81;
++      if (pending == fail_request) return {-1, EINTR};
++      response[0] = 0x3c;
++    } else {
++      auto data = pending == 0x81 ? Bytes(size - 11, 42) : replies.at(pending);
++      if (data.size() > size - 11) data.resize(size - 11); // Oversize field exercised by length/CRC tests elsewhere.
++      response = {0xc3}; append(response, wrong_id ? pending_id + 1 : pending_id, 4); append(response, static_cast<std::uint32_t>(data.size()), 2);
++      response.insert(response.end(), data.begin(), data.end()); append(response, crc(response), 4);
++      if (corrupt_crc) response.back() ^= 1;
++      response.resize(size);
++    }
++    std::copy(response.begin(), response.end(), rx); return {static_cast<int>(size),0};
++  }
++};
++NativeSpiProbePolicy policy() {
++  NativeSpiProbePolicy result; result.first_request_id = 100;
++  result.selector.path = "/dev/spidev0.0"; result.selector.identity_evidence_sha256 = std::string(64, 'b'); result.selector.physical_identity_verified = true;
++  result.selector.expected_major = 153; result.selector.expected_minor = 0; result.selector.expected_mode = 0;
++  result.selector.expected_bits_per_word = 8; result.selector.expected_max_speed_hz = 10000000;
++  return result;
++}
++struct Fixture {
++  FakeClock clock;
++  std::shared_ptr<FakeCalls> calls = std::make_shared<FakeCalls>(clock);
++  NativeSpiProbePolicy options = policy();
++  NativeSpiProbeResult probe() { return discover_native_spi(calls, clock, options, true); }
++};
++Request read(std::uint8_t command, std::size_t length) { Request request; request.kind = Kind::ControlRead; request.request = command; request.read_length = length; return request; }
++void native_default_denied_no_open() {
++  FakeClock clock;
++  auto result = discover_native_spi(clock, policy());
++  CHECK(!result.complete() && result.status == Status::Invalid && !result.transport && result.observation.lease_nonce == 0);
++  CHECK(result.validated_selector == NativeSpiSelector{} && result.first_request_id == 0 && result.started_us == 0 && result.completed_us == 0);
++  Fixture f;
++  auto denied = discover_native_spi(f.calls, f.clock, f.options);
++  CHECK(!denied.complete() && f.calls->opens == 0);
++}
++void missing_identity_or_request_nonce_denied() {
++  for (unsigned variant = 0; variant < 12; ++variant) {
++    Fixture f;
++    if (variant == 0) f.options.selector.physical_identity_verified = false;
++    if (variant == 1) f.options.selector.expected_mode.reset();
++    if (variant == 2) f.options.first_request_id = 0;
++    if (variant == 3) f.options.first_request_id = UINT32_MAX;
++    if (variant == 4) f.options.budget_ms = 0;
++    if (variant == 5) f.options.budget_ms = 101;
++    if (variant == 6) f.options.f4_application_signatures.resize(3, signature());
++    if (variant == 7) f.options.f4_application_signatures.resize(1, {});
++    if (variant == 8) f.options.f4_application_signatures.resize(2, signature());
++    if (variant == 9) f.options.selector.expected_mode = 1;
++    if (variant == 10) f.options.selector.expected_bits_per_word = 16;
++    if (variant == 11) f.options.selector.expected_max_speed_hz = 50000001;
++    auto result = f.probe(); CHECK(!result.complete() && f.calls->opens == 0);
++  }
++}
++void exact_probe_retains_same_fd() {
++  Fixture f; f.clock.now = 1000; f.calls->delay_us = 10; auto result = f.probe();
++  CHECK(result.complete() && result.observation.serial.empty() && result.observation.lease_nonce != 0);
++  CHECK(result.observation.board_type == 7 && result.observation.application_signature == signature());
++  CHECK(result.observation.f4_capabilities.empty());
++  CHECK(f.calls->controls == std::vector<std::uint8_t>({0xc3,0xc1,0xdd,0xd3,0xd4}));
++  CHECK(f.calls->ids == std::vector<std::uint32_t>({100,101,102,103,104}));
++  CHECK(f.calls->opens == 1 && f.calls->closes == 0 && f.calls->messages == 10);
++  CHECK(result.validated_selector == f.options.selector && result.first_request_id == 100);
++  CHECK(result.started_us == 1000 && result.completed_us == 1100);
++  auto health = result.transport->transport->perform(read(0xd2,48), 5);
++  CHECK(health.status == Status::Ok && health.data == Bytes(48,5));
++  CHECK(f.calls->opens == 1 && f.calls->ids.back() == 105);
++  CHECK(result.completed_us == 1100 && f.clock.now == 1120);
++  result.transport.reset(); CHECK(f.calls->closes == 1 && f.calls->locks == f.calls->unlocks);
++}
++void f4_capability_requires_explicit_signature() {
++  Fixture f; f.calls->replies[0xc1] = {6}; auto unrecognized = f.probe();
++  CHECK(unrecognized.complete() && unrecognized.observation.f4_capabilities.empty());
++  CHECK(f.calls->controls.size() == 5);
++  const auto before = f.calls->messages;
++  CHECK(unrecognized.transport->transport->perform(read(0xd5,16), 5).status == Status::Invalid);
++  CHECK(f.calls->messages == before);
++  Fixture recognized; recognized.calls->replies[0xc1] = {6}; recognized.options.f4_application_signatures = {signature()};
++  auto result = recognized.probe();
++  CHECK(result.complete() && result.observation.f4_capabilities == recognized.calls->replies[0xd5]);
++  CHECK(recognized.calls->controls == std::vector<std::uint8_t>({0xc3,0xc1,0xdd,0xd3,0xd4,0xd5}));
++}
++void f4_board_conflict_and_capability_mismatch() {
++  Fixture conflict; conflict.options.f4_application_signatures = {signature()};
++  auto result = conflict.probe(); CHECK(!result.complete() && result.reason == "F4_SIGNATURE_BOARD_CONFLICT");
++  CHECK(conflict.calls->controls.size() == 5 && conflict.calls->closes == 1);
++  Fixture mismatch; mismatch.options.f4_application_signatures = {signature()}; mismatch.calls->replies[0xc1] = {6}; mismatch.calls->replies[0xd5][8] = 0;
++  result = mismatch.probe(); CHECK(!result.complete() && result.reason == "F4_CAPABILITY_MISMATCH" && mismatch.calls->closes == 1);
++}
++void zero_uniform_identity_rejected() {
++  for (unsigned variant = 0; variant < 5; ++variant) {
++    Fixture f;
++    if (variant < 2) f.calls->replies[0xc3] = Bytes(12,variant == 0 ? 0 : 0xff);
++    if (variant == 2) f.calls->replies[0xc1] = {0};
++    if (variant > 2) { f.calls->replies[0xd3] = Bytes(64,variant == 3 ? 0 : 0xff); f.calls->replies[0xd4] = f.calls->replies[0xd3]; }
++    auto result = f.probe(); CHECK(!result.complete() && result.status == Status::Poisoned && result.observation.lease_nonce == 0);
++    CHECK(result.validated_selector == NativeSpiSelector{} && result.first_request_id == 0 && result.started_us == 0 && result.completed_us == 0);
++    CHECK(f.calls->closes == 1);
++  }
++}
++void protocol_mismatch_rejected() {
++  Fixture f; f.calls->replies[0xdd][0] ^= 1; auto result = f.probe();
++  CHECK(!result.complete() && result.reason == "PROTOCOL_MISMATCH" && f.calls->controls.size() == 3 && f.calls->closes == 1);
++}
++void short_each_identity_reply_rejected() {
++  for (const auto command : {0xc3,0xc1,0xdd,0xd3,0xd4,0xd5}) {
++    Fixture f; f.calls->replies[0xc1] = {6}; f.options.f4_application_signatures = {signature()};
++    f.calls->replies[static_cast<std::uint8_t>(command)].pop_back();
++    auto result = f.probe(); CHECK(!result.complete() && result.status == Status::Poisoned && f.calls->closes == 1);
++    CHECK(f.calls->controls.back() == command);
++  }
++}
++void wire_errors_no_retry_or_reopen() {
++  for (unsigned variant = 0; variant < 3; ++variant) {
++    Fixture f;
++    if (variant == 0) f.calls->fail_request = 0xc3;
++    if (variant == 1) f.calls->wrong_id = true;
++    if (variant == 2) f.calls->corrupt_crc = true;
++    auto result = f.probe(); CHECK(!result.complete() && result.status == Status::IoError);
++    CHECK(f.calls->opens == 1 && f.calls->closes == 1 && f.calls->controls.size() == 1);
++  }
++}
++void probe_deadline_and_wrap_fail_closed() {
++  for (auto start : {std::uint64_t{0}, std::numeric_limits<std::uint64_t>::max() - 3000}) {
++    Fixture f; f.clock.now = start; f.calls->delay_us = 6000;
++    auto result = f.probe(); CHECK(!result.complete() && result.status == (start == 0 ? Status::Timeout : Status::IoError) && f.calls->messages == 1);
++    CHECK(f.calls->opens == 1 && f.calls->closes == 1);
++  }
++  Fixture f; f.options.budget_ms = 2; f.calls->delay_us = 500;
++  auto result = f.probe(); CHECK(!result.complete() && result.status == Status::Timeout && f.calls->closes == 1);
++}
++void all_out_and_mutating_in_rejected() {
++  Fixture f; auto result = f.probe(); CHECK(result.complete()); const auto before = f.calls->messages;
++  Request control; control.kind = Kind::ControlWrite; control.request = 0xdc;
++  CHECK(result.transport->backend->transact(control,5).status == Status::Invalid);
++  Request bulk; bulk.kind = Kind::BulkWrite; bulk.endpoint = 3; bulk.payload = {1};
++  CHECK(result.transport->backend->transact(bulk,5).status == Status::Invalid);
++  for (const auto command : {0xb0,0xb1,0xc0,0xd1,0xd8,0xdc,0xdf,0xf3,0xff})
++    CHECK(result.transport->backend->transact(read(static_cast<std::uint8_t>(command),1),5).status == Status::Invalid);
++  auto malformed = read(0xc3,12); malformed.value = 1;
++  CHECK(result.transport->backend->transact(malformed,5).status == Status::Invalid);
++  malformed = read(0xc3,12); malformed.index = 1;
++  CHECK(result.transport->backend->transact(malformed,5).status == Status::Invalid);
++  CHECK(result.transport->backend->transact(read(0xc3,11),5).status == Status::Invalid);
++  CHECK(f.calls->messages == before);
++}
++void cross_request_clock_rollback_rejected() {
++  Fixture f; f.calls->delay_us = 500;
++  unsigned idle_reads = 0;
++  f.clock.on_now = [&] {
++    if (f.calls->controls.size() == 1 && !f.calls->lease && ++idle_reads == 3) f.clock.now = 500;
++  };
++  const auto result = f.probe();
++  CHECK(!result.complete() && result.status == Status::IoError);
++  CHECK(result.reason == "BOARD_TYPE_PROBE_FAILED" && f.calls->controls.size() == 1 && f.calls->closes == 1);
++}
++void unlock_failure_invalidates_final_probe_and_runtime_read() {
++  Fixture final_probe; final_probe.calls->fail_unlock_at = 6;
++  auto failed = final_probe.probe();
++  CHECK(!failed.complete() && failed.status == Status::IoError && failed.observation.lease_nonce == 0);
++  CHECK(final_probe.calls->controls.back() == 0xd4 && final_probe.calls->closes == 1);
++  Fixture runtime; auto retained = runtime.probe(); CHECK(retained.complete());
++  runtime.calls->fail_unlock_at = 7;
++  auto health = retained.transport->transport->perform(read(0xd2,48),5);
++  CHECK(health.status == Status::IoError && health.actual == 48 && health.actual_known && health.data == Bytes(48,5));
++  CHECK(runtime.calls->closes == 1 && runtime.calls->opens == 1);
++  const auto before = runtime.calls->messages;
++  CHECK(retained.transport->transport->perform(read(0xd2,48),5).status == Status::Poisoned && runtime.calls->messages == before);
++}
++void exact_bulk_in_and_can_health_allowed() {
++  Fixture f; auto result = f.probe(); CHECK(result.complete());
++  Request bulk; bulk.kind = Kind::BulkRead; bulk.endpoint = 0x81; bulk.read_length = 16;
++  CHECK(result.transport->transport->perform(bulk,5).data == Bytes(16,42));
++  bulk.endpoint = 0x82; const auto before = f.calls->messages;
++  CHECK(result.transport->backend->transact(bulk,5).status == Status::Invalid && f.calls->messages == before);
++  auto health = read(0xc2,64); health.value = 2;
++  CHECK(result.transport->transport->perform(health,5).data == Bytes(64,6));
++  health.value = 3;
++  CHECK(result.transport->backend->transact(health,5).status == Status::Invalid);
++}
++void retained_transport_cancel_and_dual_isolation() {
++  Fixture a,b; auto first = a.probe(), second = b.probe(); CHECK(first.complete() && second.complete());
++  CHECK(first.observation.lease_nonce != second.observation.lease_nonce);
++  const auto before = a.calls->messages; first.transport->transport->cancel();
++  CHECK(first.transport->backend->transact(read(0xd2,48),5).status == Status::Cancelled);
++  CHECK(first.transport->spi_io->begin(5) == Status::Cancelled && a.calls->messages == before);
++  CHECK(second.transport->transport->perform(read(0xd2,48),5).status == Status::Ok);
++}
++}  // namespace
++int main() {
++  try {
++    const std::vector<std::pair<const char *, std::function<void()>>> groups{
++      {"native_default_denied_no_open", native_default_denied_no_open}, {"missing_identity_or_request_nonce_denied", missing_identity_or_request_nonce_denied},
++      {"exact_probe_retains_same_fd", exact_probe_retains_same_fd}, {"f4_capability_requires_explicit_signature", f4_capability_requires_explicit_signature},
++      {"f4_board_conflict_and_capability_mismatch", f4_board_conflict_and_capability_mismatch}, {"zero_uniform_identity_rejected", zero_uniform_identity_rejected},
++      {"protocol_mismatch_rejected", protocol_mismatch_rejected}, {"short_each_identity_reply_rejected", short_each_identity_reply_rejected},
++      {"wire_errors_no_retry_or_reopen", wire_errors_no_retry_or_reopen}, {"probe_deadline_and_wrap_fail_closed", probe_deadline_and_wrap_fail_closed},
++      {"all_out_and_mutating_in_rejected", all_out_and_mutating_in_rejected}, {"exact_bulk_in_and_can_health_allowed", exact_bulk_in_and_can_health_allowed},
++      {"cross_request_clock_rollback_rejected", cross_request_clock_rollback_rejected},
++      {"unlock_failure_invalidates_final_probe_and_runtime_read", unlock_failure_invalidates_final_probe_and_runtime_read},
++      {"retained_transport_cancel_and_dual_isolation", retained_transport_cancel_and_dual_isolation},
++    };
++    for (const auto &[name, test] : groups) { test(); std::cout << "PASS " << name << '\n'; }
++    std::cout << "{\"suite\":\"p9_native_spi_probe\",\"passed\":" << groups.size() << ",\"failed\":0,\"skipped\":0,\"assertions\":" << assertions << ",\"real_device_io\":false}\n";
++    return 0;
++  } catch (const std::exception &error) { std::cerr << error.what() << '\n'; return 1; }
++}
+diff --git a/openpilot/selfdrive/pandad/compatibility/tests/test_native_usb.cc b/openpilot/selfdrive/pandad/compatibility/tests/test_native_usb.cc
+new file mode 100644
+index 0000000..eb0e03c
+--- /dev/null
++++ b/openpilot/selfdrive/pandad/compatibility/tests/test_native_usb.cc
+@@ -0,0 +1,326 @@
++#include "../native_usb.h"
++
++#include <algorithm>
++#include <functional>
++#include <iostream>
++#include <map>
++#include <memory>
++#include <stdexcept>
++
++using namespace openpilot::pandad::compatibility;
++namespace {
++unsigned assertions = 0;
++#define CHECK(x) do { ++assertions; if (!(x)) throw std::runtime_error(std::string(__func__) + ": " + #x); } while (false)
++struct FakeClock : Clock {
++  std::uint64_t value = 1000000;
++  std::uint64_t now_us() override { return value; }
++  void wait_us(std::uint32_t n) override { value += n; }
++};
++UsbDeviceInfo descriptor(unsigned id) {
++  return {id, 0xbbaa, 0xddcc, 0x600, 3, true,
++    {{0, 0, {{0x81, 2, 64}, {0x02, 2, 64}, {0x03, 2, 64}}},
++     {0, 1, {{0x81, 3, 64}, {0x02, 2, 64}, {0x03, 2, 64}}}}};
++}
++NativeUsbObservation observation(unsigned id) {
++  NativeUsbObservation result;
++  result.serial = "fixture-usb-" + std::to_string(id);
++  result.uid.fill(static_cast<std::uint8_t>(id)); result.board_type = 6;
++  result.protocol = {0xf5, 0x12, 0xbc, 0xff, 0x76, 0xf2, 0xab, 0x75};
++  result.application_signature.fill(static_cast<std::uint8_t>(id + 10));
++  result.f4_capabilities = {'F','4','C','1',1,0,16,0,31,0,0,0,7,0,0,0};
++  return result;
++}
++struct State {
++  std::vector<UsbDeviceInfo> descriptors{descriptor(1)};
++  std::map<UsbHandle, NativeUsbObservation> wire{{1, observation(1)}};
++  std::map<unsigned, int> override_count;
++  std::vector<unsigned> requests, types, transfer_handles;
++  std::vector<UsbHandle> closed;
++  unsigned initialized = 0, enumerated = 0, opened = 0, serials = 0, claimed = 0, released = 0, shutdown = 0, bulk_calls = 0;
++  int init_error = 0, enumerate_error = 0, open_error = 0, serial_error = 0, claim_error = 0;
++  UsbDeviceId fail_open_id = 0;
++  int bulk_error = 0, bulk_actual = 4;
++  bool zero_handle = false;
++  std::function<void(const char *)> callback;
++  void call(const char *s) { if (callback) callback(s); }
++};
++class FakeApi : public LibusbApi {
++public:
++  explicit FakeApi(std::shared_ptr<State> s) : state(std::move(s)) {}
++  int initialize() override { ++state->initialized; state->call("init"); return state->init_error; }
++  int enumerate(std::vector<UsbDeviceInfo> &out) override { ++state->enumerated; out = state->descriptors; state->call("enumerate"); return state->enumerate_error; }
++  int open(UsbDeviceId id, UsbHandle &handle) override {
++    ++state->opened; state->call("open");
++    const int error = state->fail_open_id == id ? kUsbAccess : state->open_error;
++    handle = error || state->zero_handle ? 0 : id; return error;
++  }
++  int serial(UsbHandle h, std::uint8_t index, std::string &out, std::uint32_t timeout) override {
++    CHECK(index == 3 && timeout > 0 && timeout <= 5); ++state->serials;
++    out = state->wire.at(h).serial; state->call("serial"); return state->serial_error;
++  }
++  int claim(UsbHandle, int interface) override { CHECK(interface == 0); ++state->claimed; state->call("claim"); return state->claim_error; }
++  int control(UsbHandle h, std::uint8_t type, std::uint8_t req, std::uint16_t, std::uint16_t,
++              std::uint8_t *data, std::uint16_t length, std::uint32_t timeout) override {
++    CHECK(timeout > 0 && timeout <= 5); state->requests.push_back(req); state->types.push_back(type); state->transfer_handles.push_back(h);
++    const auto &w = state->wire.at(h); std::vector<std::uint8_t> bytes;
++    if (type == 0x40) { CHECK(length == 0); state->call("control"); return 0; }
++    CHECK(type == 0xc0);
++    switch (req) {
++      case 0xc3: bytes.assign(w.uid.begin(), w.uid.end()); break;
++      case 0xc1: bytes = {w.board_type}; break;
++      case 0xdd: bytes.assign(w.protocol.begin(), w.protocol.end()); break;
++      case 0xd3: bytes.assign(w.application_signature.begin(), w.application_signature.begin()+64); break;
++      case 0xd4: bytes.assign(w.application_signature.begin()+64, w.application_signature.end()); break;
++      case 0xd5: bytes = w.f4_capabilities; break;
++      default: bytes.resize(length, 7); break;
++    }
++    std::copy_n(bytes.begin(), std::min<std::size_t>(length, bytes.size()), data);
++    state->call("control");
++    return state->override_count.count(req) ? state->override_count.at(req) : static_cast<int>(bytes.size());
++  }
++  int bulk(UsbHandle h, std::uint8_t endpoint, std::uint8_t *data, int length, int &actual, std::uint32_t timeout) override {
++    CHECK(timeout > 0 && timeout <= 5 && (endpoint == 0x81 || endpoint == 0x03));
++    ++state->bulk_calls; state->transfer_handles.push_back(h); actual = state->bulk_actual;
++    if (endpoint == 0x81) std::fill_n(data, std::min(length, std::max(0, actual)), static_cast<std::uint8_t>(h));
++    state->call("bulk"); return state->bulk_error;
++  }
++  void release(UsbHandle, int n) override { CHECK(n == 0); ++state->released; }
++  void close(UsbHandle h) override { state->closed.push_back(h); }
++  void shutdown() override { ++state->shutdown; }
++private:
++  std::shared_ptr<State> state;
++};
++NativeUsbProbePolicy policy(const std::shared_ptr<State> &s, bool f4 = true) {
++  NativeUsbProbePolicy p; p.expected_count = s->descriptors.size();
++  if (f4) for (const auto &[id,w] : s->wire) p.f4_application_signatures.push_back(w.application_signature);
++  return p;
++}
++NativeUsbInventory discover(const std::shared_ptr<State> &s, FakeClock &c, bool f4 = true) {
++  return discover_native_usb(std::make_unique<FakeApi>(s), c, policy(s, f4), true);
++}
++NativeUsbActivation grant(const NativeUsbObservation &o, bool writes = false, bool tx = false) {
++  NativeUsbActivation g; g.lease_nonce = o.lease_nonce; g.allow_device_io = true; g.profile_validated = true;
++  g.bulk_alt0_verified = true; g.allow_control_writes = writes; g.allow_can_tx = tx; return g;
++}
++std::unique_ptr<Backend> active(const std::shared_ptr<State> &s, FakeClock &c, bool writes = false, bool tx = false) {
++  auto found = discover(s,c); CHECK(found.complete()); const auto o = found.observations()[0];
++  auto result = found.activate(0,o,grant(o,writes,tx),c); CHECK(result); return result;
++}
++Request bulk_read() { Request r; r.kind = Kind::BulkRead; r.endpoint = 0x81; r.read_length = 8; return r; }
++Request bulk_write() { Request r; r.kind = Kind::BulkWrite; r.endpoint = 0x03; r.payload = {1,2,3,4}; return r; }
++Request control_write(unsigned req, unsigned value = 0) { Request r; r.kind = Kind::ControlWrite; r.request = req; r.value = value; return r; }
++Request control_read(unsigned req, unsigned size) { Request r; r.kind = Kind::ControlRead; r.request = req; r.read_length = size; return r; }
++
++void inert_and_default_denied() {
++  FakeClock c; auto s=std::make_shared<State>();
++  { NativeUsbInventory empty; CHECK(!empty.complete()); }
++  { auto found=discover_native_usb(std::make_unique<FakeApi>(s),c,policy(s)); CHECK(!found.complete()); }
++  { auto found=discover_native_usb(c,{}); CHECK(!found.complete()); } // Links native implementation; zero device calls.
++  CHECK(s->initialized==0&&s->opened==0&&s->shutdown==0);
++}
++void invalid_probe_policy() {
++  for(unsigned n=0;n<6;++n){FakeClock c;auto s=std::make_shared<State>();auto p=policy(s);
++    if(n==0)p.expected_count=0;else if(n==1)p.expected_count=3;else if(n==2)p.budget_ms=0;else if(n==3)p.budget_ms=101;
++    else if(n==4)p.f4_application_signatures.push_back(p.f4_application_signatures[0]);else p.f4_application_signatures[0].fill(0);
++    auto found=discover_native_usb(std::make_unique<FakeApi>(s),c,p,true);CHECK(!found.complete());CHECK(s->initialized==0);}
++}
++void full_probe_readonly_no_claim() {
++  FakeClock c;auto s=std::make_shared<State>();
++  {auto found=discover(s,c);CHECK(found.complete());CHECK(found.reason()=="OBSERVED_NOT_TRUSTED");const auto o=found.observations()[0];
++   CHECK(o.lease_nonce!=0&&o.uid==s->wire[1].uid&&o.application_signature==s->wire[1].application_signature);
++   CHECK(s->requests==std::vector<unsigned>({0xc3,0xc1,0xdd,0xd3,0xd4,0xd5}));
++   CHECK(std::all_of(s->types.begin(),s->types.end(),[](auto t){return t==0xc0;}));
++   CHECK(s->claimed==0&&s->bulk_calls==0&&s->closed.empty());}
++  CHECK(s->closed==std::vector<UsbHandle>{1}&&s->released==0&&s->shutdown==1);
++}
++void unknown_signature_does_not_infer_f4() {
++  FakeClock c;auto s=std::make_shared<State>();auto found=discover(s,c,false);CHECK(found.complete());
++  CHECK(found.observations()[0].f4_capabilities.empty());CHECK(std::count(s->requests.begin(),s->requests.end(),0xd5)==0);
++}
++void exact_reply_lengths() {
++  for(auto req:{0xc3,0xc1,0xdd,0xd3,0xd4,0xd5})for(auto count:{0,127,-7}){
++    FakeClock c;auto s=std::make_shared<State>();s->override_count[req]=count;auto found=discover(s,c);
++    CHECK(!found.complete());CHECK(s->claimed==0&&s->closed.size()==1&&s->shutdown==1);}
++}
++void malformed_identity_and_protocol() {
++  for(unsigned n=0;n<9;++n){FakeClock c;auto s=std::make_shared<State>();auto &w=s->wire[1];
++    switch(n){case 0:w.serial="";break;case 1:w.serial="bad serial";break;case 2:w.serial=std::string(129,'a');break;
++    case 3:w.uid.fill(0);break;case 4:w.uid.fill(255);break;case 5:w.board_type=7;break;case 6:w.protocol[0]^=1;break;
++    case 7:w.application_signature.fill(0);break;default:w.f4_capabilities[4]=2;}
++    auto p=policy(s,false);if(n!=7)p.f4_application_signatures={w.application_signature};
++    auto found=discover_native_usb(std::make_unique<FakeApi>(s),c,p,true);CHECK(!found.complete());CHECK(s->claimed==0);}
++}
++void malformed_descriptors() {
++  for(unsigned n=0;n<11;++n){FakeClock c;auto s=std::make_shared<State>();auto &d=s->descriptors[0];
++    switch(n){case 0:d.id=0;break;case 1:d.active_configuration_known=false;break;case 2:d.serial_index=0;break;
++    case 3:d.bcd_device=0x601;break;case 4:d.alternates.clear();break;case 5:d.alternates.push_back(d.alternates[0]);break;
++    case 6:d.alternates[0].endpoints[0].attributes=3;break;case 7:d.alternates[0].endpoints[0].max_packet_size=512;break;
++    case 8:d.alternates[0].endpoints.pop_back();break;case 9:d.alternates[0].endpoints.push_back(d.alternates[0].endpoints[0]);break;
++    default:d.alternates.resize(kUsbMaxAlternates+1);}
++    auto found=discover(s,c);CHECK(!found.complete());CHECK(s->opened==0);}
++}
++void inaccessible_incomplete_inventory() {
++  for(unsigned n=0;n<6;++n){FakeClock c;auto s=std::make_shared<State>();
++    if(n==0)s->init_error=kUsbAccess;else if(n==1)s->enumerate_error=kUsbIo;else if(n==2)s->open_error=kUsbAccess;
++    else if(n==3)s->serial_error=kUsbNoDevice;else if(n==4)s->zero_handle=true;else s->fail_open_id=1;
++    auto found=discover(s,c);CHECK(!found.complete());CHECK(s->claimed==0);}
++}
++void unexpected_extra_candidate_denied() {
++  FakeClock c;auto s=std::make_shared<State>();auto p=policy(s);s->descriptors.push_back(descriptor(2));s->wire[2]=observation(2);
++  auto found=discover_native_usb(std::make_unique<FakeApi>(s),c,p,true);CHECK(!found.complete());CHECK(s->opened==0);
++}
++void bounded_inventory_and_descriptor_storage() {
++  FakeClock c;auto s=std::make_shared<State>();auto p=policy(s);s->descriptors.resize(kUsbMaxInventoryDevices+1,descriptor(1));
++  auto found=discover_native_usb(std::make_unique<FakeApi>(s),c,p,true);CHECK(!found.complete());CHECK(s->opened==0);
++}
++void bootstub_dfu_and_unrelated_never_opened() {
++  FakeClock c;auto s=std::make_shared<State>();auto p=policy(s);auto d=descriptor(2);d.product=0xddee;s->descriptors.push_back(d);
++  d.id=3;d.vendor=0x0483;d.product=0xdf11;s->descriptors.push_back(d);d.id=4;d.vendor=0x1234;d.product=0x5678;s->descriptors.push_back(d);
++  auto found=discover_native_usb(std::make_unique<FakeApi>(s),c,p,true);CHECK(found.complete());CHECK(s->opened==1);
++}
++void duplicate_serial_uid_device_denied() {
++  for(unsigned n=0;n<3;++n){FakeClock c;auto s=std::make_shared<State>();s->descriptors.push_back(descriptor(2));s->wire[2]=observation(2);
++    if(n==0)s->wire[2].serial=s->wire[1].serial;else if(n==1)s->wire[2].uid=s->wire[1].uid;else s->descriptors[1].id=1;
++    auto found=discover(s,c);CHECK(!found.complete());CHECK(s->closed.size()==s->opened&&s->shutdown==1);}
++}
++void full_group_failure_releases_first_lease() {
++  FakeClock c;auto s=std::make_shared<State>();s->descriptors.push_back(descriptor(2));s->wire[2]=observation(2);s->fail_open_id=2;
++  auto found=discover(s,c);CHECK(!found.complete());CHECK(s->closed==std::vector<UsbHandle>{1});CHECK(s->shutdown==1);
++}
++void discovery_deadline_and_clock_rollback() {
++  for(auto stage:{"init","enumerate","open","serial","control"})for(bool rollback:{false,true}){
++    FakeClock c;auto s=std::make_shared<State>();s->callback=[&](const char *name){if(std::string(name)==stage)c.value=rollback?0:2000000;};
++    auto found=discover(s,c);CHECK(!found.complete());CHECK(found.status()==Status::Timeout);CHECK(s->claimed==0);}
++}
++void activation_missing_evidence_does_not_claim() {
++  for(unsigned n=0;n<5;++n){FakeClock c;auto s=std::make_shared<State>();auto found=discover(s,c);auto o=found.observations()[0];auto g=grant(o);
++    if(n==0)g.allow_device_io=false;else if(n==1)g.profile_validated=false;else if(n==2)g.bulk_alt0_verified=false;
++    else if(n==3)g.lease_nonce=0;else ++g.lease_nonce;
++    CHECK(!found.activate(0,o,g,c));CHECK(s->claimed==0);CHECK(!found.complete());CHECK(s->closed.size()==1);}
++}
++void expected_identity_is_not_serial_only() {
++  for(unsigned n=0;n<7;++n){FakeClock c;auto s=std::make_shared<State>();auto found=discover(s,c);auto o=found.observations()[0];auto g=grant(o);
++    switch(n){case 0:o.serial+="x";break;case 1:o.uid[0]^=1;break;case 2:o.board_type=7;break;case 3:o.protocol[0]^=1;break;
++    case 4:o.application_signature[100]^=1;break;case 5:o.f4_capabilities[0]^=1;break;default:++o.lease_nonce;}
++    CHECK(!found.activate(0,o,g,c));CHECK(s->claimed==0);}
++}
++void activation_reprobes_same_retained_handle() {
++  FakeClock c;auto s=std::make_shared<State>();auto found=discover(s,c);auto o=found.observations()[0];
++  auto backend=found.activate(0,o,grant(o),c);CHECK(backend);CHECK(s->enumerated==1&&s->opened==1&&s->serials==2&&s->claimed==1);
++  CHECK(s->requests.size()==12);CHECK(!found.activate(0,o,grant(o),c));
++  CHECK(std::all_of(s->transfer_handles.begin(),s->transfer_handles.end(),[](auto h){return h==1;}));
++  backend.reset();CHECK(s->released==1&&s->closed.size()==1&&s->shutdown==1);
++}
++void activation_replacement_identity_rejected() {
++  for(unsigned n=0;n<6;++n){FakeClock c;auto s=std::make_shared<State>();auto found=discover(s,c);auto o=found.observations()[0];
++    auto &w=s->wire[1];switch(n){case 0:w.serial+="x";break;case 1:w.uid[0]^=1;break;case 2:w.board_type=7;break;
++    case 3:w.protocol[0]^=1;break;case 4:w.application_signature[100]^=1;break;default:w.f4_capabilities[4]=2;}
++    CHECK(!found.activate(0,o,grant(o),c));CHECK(s->enumerated==1&&s->opened==1&&s->claimed==1&&s->released==1&&s->closed.size()==1);}
++}
++void activation_claim_failure_and_deadline() {
++  for(unsigned n=0;n<3;++n){FakeClock c;auto s=std::make_shared<State>();auto found=discover(s,c);auto o=found.observations()[0];
++    if(n==0)s->claim_error=kUsbBusy;else s->callback=[&](const char *stage){if(std::string(stage)==(n==1?"claim":"control"))c.value+=200000;};
++    CHECK(!found.activate(0,o,grant(o),c));CHECK(s->opened==1&&s->closed.size()==1&&s->shutdown==1);}
++}
++void fresh_nonce_never_reuses_usb_address() {
++  FakeClock c;auto s=std::make_shared<State>();std::uint64_t old=0;
++  {auto found=discover(s,c);old=found.observations()[0].lease_nonce;}
++  auto found=discover(s,c);auto o=found.observations()[0];CHECK(o.lease_nonce>old);auto g=grant(o);g.lease_nonce=old;
++  CHECK(!found.activate(0,o,g,c));CHECK(s->claimed==0);
++}
++void readonly_backend_denies_mutating_control_in_and_out() {
++  FakeClock c;auto s=std::make_shared<State>();auto b=active(s,c);auto before=s->requests.size();
++  for(auto req:{0xc0,0xc5,0xd8,0xdb,0xdc,0xdf,0xf3})CHECK(b->transact(control_read(req,8),5).status==Status::Invalid);
++  CHECK(b->transact(control_write(0xdc,19),5).status==Status::Invalid);CHECK(b->transact(bulk_write(),5).status==Status::Invalid);
++  CHECK(s->requests.size()==before&&s->bulk_calls==0);
++}
++void runtime_write_allowlist_and_nooutput_limits() {
++  FakeClock c;auto s=std::make_shared<State>();auto b=active(s,c,true);auto before=s->requests.size();
++  for(auto r:{control_write(0xdc,19),control_write(0xdf),control_write(0xf3),control_write(0xb1,100),control_write(0xb0,50)})
++    CHECK(b->transact(r,5).status==Status::Ok);
++  CHECK(s->requests.size()==before+5);
++  for(auto r:{control_write(0xdc,0),control_write(0xdc,17),control_write(0xdf,1),control_write(0xf3,1),
++      control_write(0xb1,101),control_write(0xb0,51),control_write(0xd8),control_write(0xc0)})CHECK(b->transact(r,5).status==Status::Invalid);
++  auto r=control_write(0xdc,19);r.index=1;CHECK(b->transact(r,5).status==Status::Invalid);r.index=0;r.payload={1};CHECK(b->transact(r,5).status==Status::Invalid);
++  CHECK(s->requests.size()==before+5);CHECK(b->transact(bulk_write(),5).status==Status::Invalid);
++}
++void runtime_read_allowlist_and_bounds() {
++  FakeClock c;auto s=std::make_shared<State>();auto b=active(s,c);auto before=s->requests.size();
++  CHECK(b->transact(control_read(0xd2,48),5).status==Status::Ok);
++  auto r=control_read(0xc2,64);r.value=2;CHECK(b->transact(r,5).status==Status::Ok);r.value=3;CHECK(b->transact(r,5).status==Status::Invalid);
++  CHECK(b->transact(control_read(0xc3,13),5).status==Status::Invalid);r=control_read(0xdd,8);r.index=1;CHECK(b->transact(r,5).status==Status::Invalid);
++  CHECK(b->transact(bulk_read(),0).status==Status::Invalid);CHECK(b->transact(bulk_read(),6).status==Status::Invalid);
++  CHECK(s->requests.size()==before+2&&s->bulk_calls==0);
++}
++void bulk_short_partial_timeout_and_no_replay() {
++  FakeClock c;auto s=std::make_shared<State>();auto b=active(s,c,false,true);
++  auto r=b->transact(bulk_read(),5);CHECK(r.status==Status::Short&&r.actual==4&&r.data==std::vector<std::uint8_t>(4,1));
++  s->bulk_error=kUsbTimeout;s->bulk_actual=2;r=b->transact(bulk_read(),5);CHECK(r.status==Status::Timeout&&r.actual==2&&r.actual_known);
++  r=b->transact(bulk_write(),5);CHECK(r.status==Status::Timeout&&r.actual==2&&r.delivery_uncertain);CHECK(s->bulk_calls==3);
++}
++void unknown_control_count_poisoned() {
++  FakeClock c;auto s=std::make_shared<State>();auto b=active(s,c);s->override_count[0xd2]=kUsbTimeout;
++  const auto r=b->transact(control_read(0xd2,48),5);CHECK(r.status==Status::Timeout&&!r.actual_known);auto count=s->requests.size();
++  CHECK(b->transact(bulk_read(),5).status==Status::Poisoned);CHECK(s->requests.size()==count&&s->bulk_calls==0);
++}
++void overflow_and_disconnect_permanent_no_reopen() {
++  for(unsigned n=0;n<3;++n){FakeClock c;auto s=std::make_shared<State>();auto b=active(s,c);
++    if(n==0)s->bulk_error=kUsbOverflow;else if(n==1)s->bulk_actual=9;else s->bulk_error=kUsbNoDevice;
++    auto r=b->transact(bulk_read(),5);CHECK(r.status==(n==2?Status::Disconnected:Status::Poisoned));
++    CHECK(b->transact(bulk_read(),5).status==Status::Poisoned);CHECK(s->bulk_calls==1&&s->opened==1&&s->enumerated==1);}
++}
++void two_board_lease_isolation_and_cancellation() {
++  FakeClock c;auto s=std::make_shared<State>();s->descriptors.push_back(descriptor(2));s->wire[2]=observation(2);auto found=discover(s,c);
++  CHECK(found.complete());auto o=found.observations();auto a=found.activate(0,o[0],grant(o[0]),c);auto b=found.activate(1,o[1],grant(o[1]),c);
++  CHECK(a&&b);a->cancel();CHECK(a->transact(bulk_read(),5).status==Status::Cancelled);auto r=b->transact(bulk_read(),5);
++  CHECK(r.data==std::vector<std::uint8_t>(4,2));CHECK(s->bulk_calls==1);a.reset();CHECK(s->shutdown==0&&s->closed==std::vector<UsbHandle>{1});
++  b.reset();CHECK(s->shutdown==1&&s->closed==std::vector<UsbHandle>({1,2}));
++}
++void readonly_complete_inventory_does_not_bind_or_activate() {
++  FakeClock c;auto s=std::make_shared<State>();auto found=discover(s,c);CHECK(found.complete());
++  CHECK(found.status()==Status::Ok&&found.reason()=="OBSERVED_NOT_TRUSTED");CHECK(s->claimed==0&&s->bulk_calls==0);
++  // This type intentionally has no MCU, physical capability, authenticated
++  // firmware, vehicle permission or profile-bound fields to infer from USB.
++}
++void actual_probe_and_activation_completion_times() {
++  FakeClock c;auto s=std::make_shared<State>();s->callback=[&](const char *){c.value+=100;};
++  auto found=discover(s,c);CHECK(found.complete());auto o=found.observations()[0];
++  CHECK(o.observed_us==c.value&&o.observed_us>1000000);
++  auto later=o;later.observed_us+=500000;CHECK(later==o); // Time cannot alter raw software identity.
++  c.value+=10000;std::uint64_t activated=0;
++  auto backend=found.activate(0,o,grant(o),c,&activated);CHECK(backend);
++  CHECK(activated==c.value&&activated>o.observed_us);
++  CHECK(found.observations()[0].observed_us==o.observed_us); // Discovery timestamp is never refreshed in place.
++  c.value+=10000;CHECK(activated!=c.value);
++}
++void failed_activation_never_returns_fresh_time() {
++  for(unsigned n=0;n<4;++n){FakeClock c;auto s=std::make_shared<State>();auto found=discover(s,c);auto o=found.observations()[0];auto g=grant(o);
++    if(n==0)g.bulk_alt0_verified=false;else if(n==1)s->claim_error=kUsbBusy;else if(n==2)s->wire[1].uid[0]^=1;
++    else s->callback=[&](const char *stage){if(std::string(stage)=="control")c.value+=200000;};
++    std::uint64_t activated=12345;CHECK(!found.activate(0,o,g,c,&activated));CHECK(activated==0);}
++  FakeClock c;NativeUsbInventory empty;std::uint64_t time=123;CHECK(!empty.activate(0,{}, {},c,&time));CHECK(time==0);
++}
++}  // namespace
++int main() {
++  const std::vector<std::pair<const char *,std::function<void()>>> cases{
++    {"inert_and_default_denied",inert_and_default_denied},{"invalid_probe_policy",invalid_probe_policy},
++    {"full_probe_readonly_no_claim",full_probe_readonly_no_claim},{"unknown_signature_does_not_infer_f4",unknown_signature_does_not_infer_f4},
++    {"exact_reply_lengths",exact_reply_lengths},{"malformed_identity_and_protocol",malformed_identity_and_protocol},
++    {"malformed_descriptors",malformed_descriptors},{"inaccessible_incomplete_inventory",inaccessible_incomplete_inventory},
++    {"unexpected_extra_candidate_denied",unexpected_extra_candidate_denied},{"bounded_inventory_and_descriptor_storage",bounded_inventory_and_descriptor_storage},
++    {"bootstub_dfu_and_unrelated_never_opened",bootstub_dfu_and_unrelated_never_opened},{"duplicate_serial_uid_device_denied",duplicate_serial_uid_device_denied},
++    {"full_group_failure_releases_first_lease",full_group_failure_releases_first_lease},{"discovery_deadline_and_clock_rollback",discovery_deadline_and_clock_rollback},
++    {"activation_missing_evidence_does_not_claim",activation_missing_evidence_does_not_claim},{"expected_identity_is_not_serial_only",expected_identity_is_not_serial_only},
++    {"activation_reprobes_same_retained_handle",activation_reprobes_same_retained_handle},{"activation_replacement_identity_rejected",activation_replacement_identity_rejected},
++    {"activation_claim_failure_and_deadline",activation_claim_failure_and_deadline},{"fresh_nonce_never_reuses_usb_address",fresh_nonce_never_reuses_usb_address},
++    {"readonly_backend_denies_mutating_control_in_and_out",readonly_backend_denies_mutating_control_in_and_out},{"runtime_write_allowlist_and_nooutput_limits",runtime_write_allowlist_and_nooutput_limits},
++    {"runtime_read_allowlist_and_bounds",runtime_read_allowlist_and_bounds},{"bulk_short_partial_timeout_and_no_replay",bulk_short_partial_timeout_and_no_replay},
++    {"unknown_control_count_poisoned",unknown_control_count_poisoned},{"overflow_and_disconnect_permanent_no_reopen",overflow_and_disconnect_permanent_no_reopen},
++    {"two_board_lease_isolation_and_cancellation",two_board_lease_isolation_and_cancellation},{"readonly_complete_inventory_does_not_bind_or_activate",readonly_complete_inventory_does_not_bind_or_activate},
++    {"actual_probe_and_activation_completion_times",actual_probe_and_activation_completion_times},{"failed_activation_never_returns_fresh_time",failed_activation_never_returns_fresh_time},
++  };
++  unsigned passed=0,failed=0;
++  for(const auto &[name,run]:cases){try{run();++passed;std::cout<<"PASS p9_usb_"<<name<<"\n";}catch(const std::exception&e){++failed;std::cerr<<"FAIL p9_usb_"<<name<<": "<<e.what()<<"\n";}}
++  std::cout<<"{\"suite\":\"p9_native_usb\",\"passed\":"<<passed<<",\"failed\":"<<failed<<",\"skipped\":0,\"assertions\":"<<assertions<<",\"real_device_io\":false}\n";
++  return failed?1:0;
++}

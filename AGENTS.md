@@ -21,6 +21,15 @@ Flagship PLUS, with the user's existing Mr One C3XL and Panda hardware.
 
 ## Current execution boundary
 
+- The current request authorizes P9 native device discovery, USB/SPI I/O
+  providers and profile-binding validation on the locked P0–P8 chain. Implement
+  native calls but execute acceptance only through injected APIs/syscalls in
+  offline sandboxes. Do not connect to C3XL, enumerate/open real Panda/spidev,
+  change system/slots, reset or flash. Real identities stay UNBOUND. Preserve
+  historical locks/patches and reuse prior firmware/replay evidence explicitly
+  as historical prerequisites. Native binding uses a distinct read-only
+  candidate; it grants no deployment or control permission. See
+  `native_maintenance/HARDWARE_GATES.md` for unresolved physical gates.
 - The current request authorizes the first post-P7 offline integration stage:
   version the existing Song PLUS receive-only prototype/DBC/evidence/replay,
   add it to a pinned maintenance/CI layer, implement the runtime integration

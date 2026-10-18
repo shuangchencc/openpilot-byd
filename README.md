@@ -97,3 +97,10 @@ python3 tools/validate_project.py
 兼容层设计包可用 `python3 hardware/design/dos-usb-dual-panda/verify.py` 离线复核。此检查只验证设计文件、源码锚点、阶段依赖和验收覆盖，不运行Panda代码、不表示实现测试通过。此前照片/资料清单保留为历史待补项，当前本地工作不等待这些材料。
 
 后续继续核实板卡/相机/线束与恢复能力，同时利用带来源和事件标注的被动日志补齐只读 CarState 的未确认字段。完整协议验收后再推进控制器、匹配 safety、目标机台架与受控车辆验收。验收标准和顺序见 [NEXT-STEPS.txt](NEXT-STEPS.txt) 及 [hardware/patch-plan.txt](hardware/patch-plan.txt)。
+
+## P9 原生发现与只读 provider
+
+新的独立维护入口与验收说明见 [native_maintenance/README.md](native_maintenance/README.md)。
+真实 profile 保持 [UNBOUND](native_maintenance/profiles/unbound.json)。
+[必须实机核实的条件](native_maintenance/HARDWARE_GATES.md) 区分原生代码已实现、
+离线注入测试已验证和仍待台架/车辆证明的事项。P0–P8 历史锁与补丁保持原样。

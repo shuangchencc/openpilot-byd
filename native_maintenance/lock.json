@@ -1,0 +1,92 @@
+{
+  "schema": "songplus-native-p9-lock/v1",
+  "parent_lock_sha256": "1ee1afdd5a7931128f1f3aaaca1facdef4570858ea1dcb1815556f4c024d2838",
+  "baselines": {
+    "upstream-openpilot": "35e78a9d9518855ec0dacec919e719624a28131f",
+    "upstream-openpilot/opendbc_repo": "b3bd79a659dae961af169a3baac723961f720133",
+    "upstream-openpilot/panda": "a59195163c32a3a375ea6c86715dc08fd0984c1b",
+    "upstream-openpilot/msgq_repo": "0e266c1dbcf7328beee3e57b4a8688555387c877"
+  },
+  "scope": {
+    "real_device_discovery": false,
+    "real_device_io": false,
+    "real_can_tx": false,
+    "profile_bound_to_real_hardware": false,
+    "deployment_ready": false
+  },
+  "series": [
+    {
+      "stage": "P9",
+      "file": "patches/openpilot/p9/0001-native-discovery-usb-spi-profile.patch",
+      "sha256": "347b62c4e521fda19c3df4026ffce31d902b2f325fab5d1aaca99d4deb77b159",
+      "commit": "06fd6e68223c6ad6caabc7f64d2f032445a42095"
+    }
+  ],
+  "prerequisite": {
+    "report": "results/songplus-integration-p8-full-002/validation/result.json",
+    "sha256": "3a58ba28a309f515ef11e81842b7b95826afc79502ac6be0fe1d353c8a80a31f",
+    "maintenance_commit": "674721a0408e2a0153757a6eba569247f4784b08",
+    "reused_only": true,
+    "newly_executed": false
+  },
+  "required_tests": [
+    "test_contract.ArtifactTests.test_changed_log_rejected",
+    "test_contract.ArtifactTests.test_extra_artifact_rejected",
+    "test_contract.ArtifactTests.test_generated_bytecode_is_excluded",
+    "test_contract.ArtifactTests.test_lock_cannot_hash_itself",
+    "test_contract.ArtifactTests.test_missing_artifact_rejected",
+    "test_contract.ArtifactTests.test_new_python_module_enters_inventory",
+    "test_contract.ArtifactTests.test_retained_artifacts_pass",
+    "test_contract.ArtifactTests.test_symlink_artifact_rejected",
+    "test_contract.CiTests.test_contract_inventory_fixed",
+    "test_contract.CiTests.test_failed_verification_stops_pipeline",
+    "test_contract.CiTests.test_full_only_accepts_blocked_candidate",
+    "test_contract.CiTests.test_full_rejects_deployable_claim",
+    "test_contract.CiTests.test_full_rejects_historical_results_as_fresh",
+    "test_contract.CiTests.test_full_rejects_missing_blockers",
+    "test_contract.CiTests.test_vm_name_injection_rejected",
+    "test_contract.CiTests.test_vm_root_escape_rejected",
+    "test_contract.CiTests.test_workflow_does_not_install_dependencies",
+    "test_contract.CiTests.test_workflow_unchanged_template",
+    "test_contract.SourceTranscriptTests.test_changed_test_ids_rejected",
+    "test_contract.SourceTranscriptTests.test_changed_test_log_rejected",
+    "test_contract.SourceTranscriptTests.test_different_command_argument_rejected",
+    "test_contract.SourceTranscriptTests.test_exact_ci_transcript_passes",
+    "test_contract.SourceTranscriptTests.test_hardware_permission_claim_rejected",
+    "test_contract.SourceTranscriptTests.test_missing_command_rejected",
+    "test_contract.SourceTranscriptTests.test_nonzero_exit_cannot_redefine_success",
+    "test_contract.SourceTranscriptTests.test_successful_count_without_executed_test_rejected",
+    "test_contract.SuiteEvidenceTests.test_boolean_count_rejected",
+    "test_contract.SuiteEvidenceTests.test_command_inventory_has_four_suites",
+    "test_contract.SuiteEvidenceTests.test_duplicate_group_rejected",
+    "test_contract.SuiteEvidenceTests.test_empty_group_rejected",
+    "test_contract.SuiteEvidenceTests.test_empty_transcript_rejected",
+    "test_contract.SuiteEvidenceTests.test_failed_group_rejected",
+    "test_contract.SuiteEvidenceTests.test_linux_actual_main_is_offline_only",
+    "test_contract.SuiteEvidenceTests.test_missing_failure_field_rejected",
+    "test_contract.SuiteEvidenceTests.test_missing_group_rejected",
+    "test_contract.SuiteEvidenceTests.test_skipped_group_rejected",
+    "test_contract.SuiteEvidenceTests.test_valid_transcript",
+    "test_profile.UnboundProfileTests.test_both_slots_have_no_invented_identity",
+    "test_profile.UnboundProfileTests.test_roles_are_unassigned",
+    "test_profile.UnboundProfileTests.test_template_has_no_hardware_permissions"
+  ],
+  "files": {
+    ".github/workflows/songplus-native-offline.yml": "2c9443e2ed18ebb0a05952da3d43a163822fd1e89311d12e379bd1e85c7707a9",
+    "native_maintenance/HARDWARE_GATES.md": "d662584c2f10d9753c7885c7ef7629339d7c1ae01321822403b6fa021f360223",
+    "native_maintenance/README.md": "146fe79060c664a87363d2057b925bd9e65c9900cc0555832852bdb784be9af9",
+    "native_maintenance/__init__.py": "eb8ab1ec122714be5c6adde6a4c3be97c7f18ec3aeb6f6d6b61910c43aec3141",
+    "native_maintenance/core.py": "9d3e3363e2ff4a68262aa8d2034508f166032ee02774333d93b7d1f3fe48d24b",
+    "native_maintenance/evidence.py": "3aef3b8499e6af1df732c9b33a2f9e63888732bf479efaf125c9a7a4cee79ecd",
+    "native_maintenance/profiles/unbound.json": "4ddee13c027e7a551a1b0d9f1bbe0f0110e8203e5a134386eed9cea224d0695e",
+    "native_maintenance/refresh_lock.py": "5c093f66e6f513fcc5e51fb18b4e37bf629d679fec33f7fb35e621e8dcaf41ac",
+    "native_maintenance/test_contract.py": "2dcd371dda3c9354b1d04e21c118ba109a8f173e042e7ca1516b7fecbd7755ee",
+    "native_maintenance/test_profile.py": "fe65a7b1f4c1b7877dc80bb409763be780af169020944327dcef005f752b2945",
+    "patches/openpilot/p9/0001-native-discovery-usb-spi-profile.patch": "347b62c4e521fda19c3df4026ffce31d902b2f325fab5d1aaca99d4deb77b159",
+    "patches/openpilot/p9/manifest.json": "fa2f32bd968073b6fe70a45bb537c946dc0497a86dd71e656490641b042cd829",
+    "tools/build_p9_native.py": "692996f65715f333c018b7847bbf4186f6f9ba37e56f62396ed28be08f419c84",
+    "tools/check_songplus_native_ci.py": "3713440d54f00706a40d7bd5342abfa2806065ee88dbe178b86192c232a32d9b",
+    "tools/songplus_native.py": "0e9325c419d08e5268889f998f35f05b7a7f0da9e01d3b91f21b22ed672cc5d1",
+    "tools/validate_p9_native.py": "7a3b8393c014ed0adca49ff35ec6c1e144bd665b5013779750ce5587e9ff43f3"
+  }
+}
