@@ -1,0 +1,48 @@
+{
+  "schema": "songplus-lifecycle-p10-receipt/v1",
+  "status": "PASS_OFFLINE_LIFECYCLE",
+  "maintenance_commit": "d4e18fe91597c632b07074d27ea13ae1fa901f5a",
+  "downstream_commit": "8cb3acecc0189d62920144cdc27b7d58ea69f8b4",
+  "lock_sha256": "64fe409526045fd23ef5b80fb6b80666af42ce32cc28bb915358d3f793af8611",
+  "accepted_report": "results/p10-lifecycle-full-003/validation/result.json",
+  "accepted_report_sha256": "4c3332987d340e9ff0cdeb7f7b6cadac45d9c43603747b756bc5417452212038",
+  "deployment_ready": false,
+  "real_device_io": false,
+  "profile_bound_to_real_hardware": false,
+  "counts": {
+    "fresh_native": {
+      "platforms": {
+        "macos": {
+          "p10_groups": 146,
+          "p9_groups": 102,
+          "p8_runtime_groups": 28
+        },
+        "linux": {
+          "p10_groups": 146,
+          "p9_groups": 102,
+          "p8_runtime_groups": 30
+        }
+      },
+      "fresh_native_spi_regression_platforms": 2,
+      "actual_p10_main_gate_platforms": 1,
+      "failed": 0,
+      "skipped": 0
+    },
+    "fresh_source_contract": {
+      "commands": 7,
+      "maintenance_tests": 56,
+      "failed": 0,
+      "skipped": 0
+    },
+    "fresh_source_replays": 2,
+    "reused_p9_prerequisite": true,
+    "fresh_arm_builds": 0,
+    "fresh_vehicle_replay_segments": 0
+  },
+  "independent_linux_source_ci": {
+    "commands": 7,
+    "maintenance_tests": 56,
+    "failed": 0,
+    "skipped": 0
+  }
+}
