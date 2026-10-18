@@ -130,7 +130,7 @@ def release_check(report_path, root=ROOT):
   require(report["prerequisite"] == lock["prerequisite"], "Historical prerequisite misrepresented")
   prerequisite = safe_path(root, lock["prerequisite"]["report"])
   require(sha(prerequisite) == lock["prerequisite"]["sha256"], "P8 prerequisite hash changed")
-  prior_gate = parent.release_check(prerequisite, root)
+  prior_gate = parent.release_check(prerequisite)
   require(prior_gate["offline_integration_complete"] is True and prior_gate["deployment_ready"] is False, "P8 prerequisite gate invalid")
   files = set(lock["files"]) | {LOCK}
   require(report["protected_files_match_commit"] is True, "Acceptance not committed")
@@ -176,7 +176,7 @@ def validate(output, linux_instance, linux_root, root=ROOT):
   commit = old.capture(["git", "rev-parse", "HEAD"], root).decode().strip()
   for name in set(lock["files"]) | {LOCK}:
     require(old.capture(["git", "show", commit + ":" + name], root) == safe_path(root, name).read_bytes(), "Commit protected source before full acceptance: " + name)
-  parent.release_check(root / lock["prerequisite"]["report"], root)
+  parent.release_check(root / lock["prerequisite"]["report"])
   out = old.new_output(output)
   started, commands = now(), []
 

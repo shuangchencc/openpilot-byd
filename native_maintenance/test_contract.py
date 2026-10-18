@@ -246,5 +246,39 @@ class SourceTranscriptTests(unittest.TestCase):
       self.check()
 
 
+class ParentGateSignatureTests(unittest.TestCase):
+  """Exercise both real call sites against the frozen P8 callable signature."""
+  class ReachedParent(Exception):
+    pass
+
+  def setUp(self):
+    self.temp = tempfile.TemporaryDirectory()
+    self.addCleanup(self.temp.cleanup)
+    self.root = Path(self.temp.name)
+    old.write_json(self.root / 'prior.json', {'status': 'historical'})
+    self.prior = {'report': 'prior.json', 'sha256': old.sha(self.root / 'prior.json')}
+    old.write_json(self.root / core.LOCK, {'files': {}, 'prerequisite': self.prior})
+    old.write_json(self.root / core.parent.LOCK, {})
+    old.write_json(self.root / 'candidate.json', {
+      'schema': 'songplus-native-p9-acceptance/v1', 'status': 'PASS_OFFLINE_NATIVE',
+      'lock_sha256': old.sha(self.root / core.LOCK), 'parent_lock_sha256': old.sha(self.root / core.parent.LOCK),
+      'prerequisite': self.prior, **core.SCOPE})
+
+  def test_validation_calls_frozen_parent_signature(self):
+    with patch.object(core, 'verify_lock'), \
+         patch.object(core.old, 'capture', side_effect=[b'commit\n', (self.root / core.LOCK).read_bytes()]), \
+         patch.object(core.parent, 'release_check', autospec=True, side_effect=self.ReachedParent) as gate:
+      with self.assertRaises(self.ReachedParent):
+        core.validate(self.root / 'out', 'vm', '/home/prepared', self.root)
+      gate.assert_called_once_with((self.root / 'prior.json').resolve())
+
+  def test_release_calls_frozen_parent_signature(self):
+    with patch.object(core, 'verify_lock'), \
+         patch.object(core.parent, 'release_check', autospec=True, side_effect=self.ReachedParent) as gate:
+      with self.assertRaises(self.ReachedParent):
+        core.release_check(self.root / 'candidate.json', self.root)
+      gate.assert_called_once_with((self.root / 'prior.json').resolve())
+
+
 if __name__ == '__main__':
   unittest.main()
