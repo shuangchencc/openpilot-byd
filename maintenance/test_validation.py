@@ -321,6 +321,24 @@ class AcceptanceAccountingTests(unittest.TestCase):
     self.assertTrue(all(case["executed"] > 0 for case in cases))
     self.child_contract.assert_called_once()
 
+  def test_frozen_a23_empty_selector_counts_actual_groups_on_both_platforms(self):
+    case = next(c for c in self.evidence["p6"]["acceptance_results"] if c["id"] == "A23")
+    case.update(python_evidence=[], evidence={"native_link": []})
+    for platform_name in ("macos", "linux"):
+      self.evidence["p6"]["native_" + platform_name] = {"suites": {"native_link": {
+        "groups": ["native_link_inert_construction"], "summary": {"passed": 1, "failed": 0}}}}
+    result = next(c for c in self.check() if c["id"] == "A23")
+    self.assertEqual(result["executed"], 2)
+
+  def test_empty_selector_cannot_invent_execution_for_missing_platform_groups(self):
+    case = next(c for c in self.evidence["p6"]["acceptance_results"] if c["id"] == "A23")
+    case.update(python_evidence=[], evidence={"native_link": []})
+    for platform_name in ("macos", "linux"):
+      self.evidence["p6"]["native_" + platform_name] = {"suites": {"native_link": {
+        "groups": ["native_link_inert_construction"] if platform_name == "macos" else []}}}
+    with self.assertRaisesRegex(ValueError, "Missing executed suite groups: A23/linux/native_link"):
+      self.check()
+
   def test_empty_or_duplicate_ci_commands_rejected(self):
     commands = self.evidence["contract"]["commands"]
     for invalid in ([], [commands[0]] * 9):

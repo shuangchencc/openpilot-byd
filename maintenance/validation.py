@@ -94,7 +94,14 @@ def acceptance(evidence, registry, run_id, lock_hash):
                     'evidence_sha256': registry[report]['sha256'], 'run_id': run_id, 'lock_sha256': lock_hash})
   for case in p6['acceptance_results']:
     count = len(case['python_evidence']) + len(case.get('native_evidence', []))
-    count += 2 * sum(len(groups) for groups in case.get('evidence', {}).values())
+    for suite, groups in case.get('evidence', {}).items():
+      for platform_name in ('macos', 'linux'):
+        # A23's frozen P2 map selects the entire native_link suite with [].
+        # Count its actually executed groups, never invent a nonzero fallback.
+        observed = p6['native_' + platform_name]['suites'][suite]['groups'] if not groups else groups
+        require(type(observed) is list and bool(observed) and len(set(observed)) == len(observed),
+                'Missing executed suite groups: ' + case['id'] + '/' + platform_name + '/' + suite)
+        count += len(observed)
     count += 2 * len((case.get('safety_evidence') or {}).get('required_cases', []))
     count += int(case.get('independent_oracle', False))
     add(case['id'], count, 'p6')
