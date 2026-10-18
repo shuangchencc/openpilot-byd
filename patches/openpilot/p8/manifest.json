@@ -1,0 +1,109 @@
+{
+  "schema": "songplus-runtime-integration-p8-patch-series/v1",
+  "baselines": {
+    "upstream-openpilot": "35e78a9d9518855ec0dacec919e719624a28131f",
+    "upstream-openpilot/opendbc_repo": "b3bd79a659dae961af169a3baac723961f720133",
+    "upstream-openpilot/panda": "a59195163c32a3a375ea6c86715dc08fd0984c1b",
+    "upstream-openpilot/msgq_repo": "0e266c1dbcf7328beee3e57b4a8688555387c877"
+  },
+  "parent_manifest_sha256": "8f41f76fe47ce3329ae96bb8c23d0c6e8ca8456e5bda71f7abbf11b4f28c0587",
+  "parent_commit": "d4d610ecb08ab27200e48c07757b147861f710a5",
+  "result_commit": "46baabd4f71a876d22ad61ab33bd9a873a194ebf",
+  "series": [
+    {
+      "stage": "P8",
+      "file": "0001-pandad-runtime-integration.patch",
+      "sha256": "89cf673cd0e03bf1813487d9a006715f35216aefbd8921b0b11c1379fe7bda88",
+      "commit": "46baabd4f71a876d22ad61ab33bd9a873a194ebf"
+    }
+  ],
+  "result_files": {
+    "openpilot/selfdrive/pandad/SConscript": "b4bc2d21a3026cc90fc5230939bb5fd010904c2eb8e9e092457400a7c1b89d0e",
+    "openpilot/selfdrive/pandad/compatibility/can_router.cc": "af006d9fd25d8f5a11655b0d899a7765e75a258eaa8b1b8a2bc84121627b2874",
+    "openpilot/selfdrive/pandad/compatibility/can_router.h": "b24c8fe02eda7e60c0b8e58dcea39486209f3a37021f82cacc4c2847e7c1ba8e",
+    "openpilot/selfdrive/pandad/compatibility/msgq_adapter.cc": "1acf924246c9ce6d378518919a39ebc98d781c3fcda84d6f763f00695f511746",
+    "openpilot/selfdrive/pandad/compatibility/msgq_adapter.h": "78e9bf8c85c1b2189a6e060333ea984fcb5571e8e7a1c5e2345807f43a5c050b",
+    "openpilot/selfdrive/pandad/compatibility/pandad_runtime.cc": "0a891796546dc7cf035fe0ef4d14673dfc8e73cf8fc81f188abae044d52bc197",
+    "openpilot/selfdrive/pandad/compatibility/realtime_bridge.cc": "de8a2f3888dd3d10e445ee3e33b6be42d29f8382a59dbdf26f2016f358f62870",
+    "openpilot/selfdrive/pandad/compatibility/realtime_bridge.h": "206dca6d48829c9767f0446209ea6f389caf2ab6cca259eb573fa304aa8d323a",
+    "openpilot/selfdrive/pandad/compatibility/runtime_integration.cc": "7fe483064ae1301e804ba9217cc817c788b5b120513331a4e3f4b10d6a8e48aa",
+    "openpilot/selfdrive/pandad/compatibility/runtime_integration.h": "6959604fc43dc6eb622116a5e2f34d595bba5dd9610b4cb5e52b7e8cbb53bf76",
+    "openpilot/selfdrive/pandad/compatibility/tests/test_p8_build_contract.py": "27654d2e5086f04d92abefac1d0abab9a474e921366c15c5a71fac8d2a36cbb8",
+    "openpilot/selfdrive/pandad/compatibility/tests/test_runtime_integration.cc": "824bc40fe687e1dbc8bc87bdaced12d35177931721f96daedfe44d5b91562df1",
+    "openpilot/selfdrive/pandad/main.cc": "c9a337d4687c950d7667215e17a9637770de74cde8c2e04ffc546a7614387f8b"
+  },
+  "required_groups": {
+    "macos": [
+      "p8_owner_exact_binding_real_usb_backend_health_cereal",
+      "p8_discovery_order_never_assigns_roles",
+      "p8_identity_all_fields_rejected_before_factory",
+      "p8_duplicate_extra_and_missing_inventory_fail_closed",
+      "p8_discovery_stale_future_revision_rollback",
+      "p8_partial_open_cancels_owner_and_consumes_both_nonces",
+      "p8_reconnect_requires_fresh_pair_and_new_epochs",
+      "p8_revision_reuse_cannot_swap_handle",
+      "p8_unbound_profile_never_calls_discovery",
+      "p8_nooutput_rejects_sendcan_and_enabled_before_transfer",
+      "p8_wrong_topic_and_malformed_cereal_close_gate",
+      "p8_epoch_fence_drops_old_queue_and_carparams",
+      "p8_fence_backlog_bounded_and_fail_closed",
+      "p8_params_slot_nooutput_safety_not_relaxed",
+      "p8_shutdown_is_owner_serialized_cancels_no_rediscovery",
+      "p8_provider_and_publication_failure_close_group",
+      "p8_mixed_spi_usb_factory_inert_until_cycle",
+      "p8_factory_denies_alt_and_missing_spi_nonce",
+      "p8_activation_evidence_revocation_retires_same_nonce",
+      "p8_late_camera_from_previous_epoch_rejected",
+      "p8_ingress_bound_params_and_sink_type",
+      "p8_dual_usb_wire_to_actual_cereal_preserves_global_bus",
+      "p8_nooutput_preserves_rx_fragment_across_cycles",
+      "p8_reconnect_discards_old_rx_fragment",
+      "p8_owner_consumed_handle_history_is_bounded",
+      "p8_owner_destruction_cancels_before_backend_release",
+      "p8_discovery_exception_retires_live_handles",
+      "p8_actual_cereal_stale_future_inputs_rejected"
+    ],
+    "linux": [
+      "p8_owner_exact_binding_real_usb_backend_health_cereal",
+      "p8_discovery_order_never_assigns_roles",
+      "p8_identity_all_fields_rejected_before_factory",
+      "p8_duplicate_extra_and_missing_inventory_fail_closed",
+      "p8_discovery_stale_future_revision_rollback",
+      "p8_partial_open_cancels_owner_and_consumes_both_nonces",
+      "p8_reconnect_requires_fresh_pair_and_new_epochs",
+      "p8_revision_reuse_cannot_swap_handle",
+      "p8_unbound_profile_never_calls_discovery",
+      "p8_nooutput_rejects_sendcan_and_enabled_before_transfer",
+      "p8_wrong_topic_and_malformed_cereal_close_gate",
+      "p8_epoch_fence_drops_old_queue_and_carparams",
+      "p8_fence_backlog_bounded_and_fail_closed",
+      "p8_params_slot_nooutput_safety_not_relaxed",
+      "p8_shutdown_is_owner_serialized_cancels_no_rediscovery",
+      "p8_provider_and_publication_failure_close_group",
+      "p8_mixed_spi_usb_factory_inert_until_cycle",
+      "p8_factory_denies_alt_and_missing_spi_nonce",
+      "p8_activation_evidence_revocation_retires_same_nonce",
+      "p8_late_camera_from_previous_epoch_rejected",
+      "p8_ingress_bound_params_and_sink_type",
+      "p8_dual_usb_wire_to_actual_cereal_preserves_global_bus",
+      "p8_nooutput_preserves_rx_fragment_across_cycles",
+      "p8_reconnect_discards_old_rx_fragment",
+      "p8_owner_consumed_handle_history_is_bounded",
+      "p8_owner_destruction_cancels_before_backend_release",
+      "p8_discovery_exception_retires_live_handles",
+      "p8_actual_cereal_stale_future_inputs_rejected",
+      "p8_actual_msgq_interface_nonblocking_owned_copy",
+      "p8_actual_msgq_private_shm_bidirectional"
+    ]
+  },
+  "required_linux_main_groups": [
+    "p8_actual_main_unbound_owner_no_io"
+  ],
+  "required_build_groups": [
+    "p8_scons_darwin_preserves_original_exclusion",
+    "p8_scons_daemon_pinned_usb_does_not_leak_to_extras"
+  ],
+  "device_access_enabled": false,
+  "can_tx_enabled": false,
+  "firmware_install_enabled": false
+}

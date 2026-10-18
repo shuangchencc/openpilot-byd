@@ -1,0 +1,98 @@
+宋 PLUS 独立只读 CarState：本次验收记录
+日期：2026-10-18（Asia/Shanghai）
+车辆：2023 宋 PLUS DM-i 冠军版 110 km 旗舰 PLUS
+
+结论
+已实现基于官方目标 opendbc 的独立接收解析原型，完成33项主机测试及98段整条日志回放。
+本次是离线编码/实现验证；本车物理语义已独立确认条目仍为0。完整车型端口、
+控制器、Panda safety、MCU固件、C3XL运行与道路安全均不在本次已完成范围内。
+未连接或修改C3XL，未发送CAN，未改变官方子模块或加载Mr One车型模块。
+
+基线与实现
+opendbc: b3bd79a659dae961af169a3baac723961f720133（upstream-openpilot/opendbc_repo）
+官方目标venv，Python 3.12.13；导入路径/提交/受跟踪源码已核对，回放运行源码哈希前后一致。
+独立实现：songplus_readonly/carstate.py、runtime.py、dbc/byd_song_plus_readonly.dbc、replay.py。
+官方CANParser真正执行解析与checksum/counter检查；自定义DBC和nullable sidecar在独立目录。
+
+证据分层
+5个编码支持字段：steeringAngleDeg、steeringTorqueEps、brake、leftBlinker、rightBlinker。
+7个经验候选字段：四轮wheelSpeeds、vEgoRaw、gearShifter、gas。
+20个未确认字段：驾驶员扭矩/介入、踏板pressed、ACC、转向故障、门/安全带等。
+这三类都保留vehicle_confirmed=false；编码支持仅表示原始字节与旧日志的对应得到支持。
+轮速真实标度/轮位、EPS力矩单位、R挡回忆冲突、未见N挡、油门残差均未抹平。
+字段和协议细节见README.txt及carstate.py中的FIELD_EVIDENCE。
+
+测试
+33 passed，0 failed，0 errors，0 skipped（27项CarState + 6项回放工具测试）。
+在禁止远程出站网络的macOS sandbox内执行。测试包括独立固定字节向量、真实官方结构
+投影、未知布尔值、原始src高位、精确DLC、坏checksum、invalid Event、counter容错/
+拒收/恢复、超时边界、重复帧顺序、单调时间、跨段/尾帧、来源篡改/遗漏及源码漂移拒绝。
+命令及完整输出：results/songplus-readonly-20261018/tests.json、tests.log。
+
+回放覆盖
+route: 0000026f--584c284cef。
+98/98原始rlog和98/98提取缓存SHA256匹配；原始rlog共1,091,731,052字节。
+复用此前严格解压/Cap'n Proto验证结果，并重核schema/提取器/校验报告的哈希链；
+本轮不是重新解压或重新运行旧车型解码器。完整CAN时间跨度约6993.998秒。
+699,380/699,380原始CAN Event逐段覆盖相等，空/遗漏Event差额为0。
+11,196,637条raw src=0帧输入，其中六类目标消息2,238,082条；其他src精确排除，
+不清除src高位。1,886,966条sendcan仅统计排除，不进入原型。
+旧carState共698,956条，其中698,825条Event.valid且canValid为真，131条不参与对照。
+每个有值字段比较698,825次；20个未知字段各698,956次均为None，比较次数为0。
+
+严格顺序对照结果
+主回放同时要求CAN文件位置在旧状态之前、且logMonoTime不晚于旧状态；不排序或插值。
+角度容差1e-4度，其余数值容差1e-5（布尔/枚举须相等）。下表不是物理误差或安全性能。
+字段                  一致率%       不一致数      MAE                  最大差值
+steeringAngleDeg       99.684613       2204    0.000868147771152    6.30000305176
+steeringTorqueEps      99.922871        539    0.00740671842021     293
+brake                  99.979251        145    2.61890358312e-06    0.04
+gas                    98.454692      10799    0.000161472999499    0.08
+gearShifter           100.000000          0    0                    0
+leftBlinker           100.000000          0    0                    0
+rightBlinker           99.999714          2    2.86194683934e-06    1
+wheelSpeeds.fl         99.553250       3122    0.000317475777908    0.624305566152
+wheelSpeeds.fr         99.560977       3068    0.000272950720399    0.443054877387
+wheelSpeeds.rl         99.654992       2411    0.000112749845532    0.362499915229
+wheelSpeeds.rr         99.664437       2345    0.000107102346982    0.52361102634
+vEgoRaw                99.480843       3628    0.000130007252869    0.176215744019
+
+角度单位度，轮速/vEgoRaw单位候选m/s；EPS是未标定原始单位，brake/gas是旧归一化量。
+“12个有值字段无unseen/stale/坏校验/计数拒收”仅针对此次旧carState采样时刻；
+不证明任何工况下都不会丢帧或故障，合成故障测试另列在上述33项测试内。
+
+差异排查
+87,553个旧状态采样点遇到文件更早但时间戳更晚的待处理CAN；5,415个采样点遇到
+时间戳更早但文件位置更晚的CAN。这些观测被延后，不用后续文件内容填充当前快照。
+另以完全相同字节公式做timestamp-only诊断，仅放松文件顺序约束，没有修改原型。
+该诊断的双约束差异数逐字段与实际官方解析器回放完全相等；除gas外，全部差异在
+timestamp-only对照下消失。因而这些差异可由日志异步写入/到达顺序解释，不能直接
+当成解码位窗错误；主报告仍保留上述真实差异，不改成“全部精确匹配”。
+gas的10,799次主回放差异中，660次放松顺序后消失，10,139次在两种规则下均不匹配；
+另有9次主回放碰巧匹配、timestamp-only不匹配。因此timestamp-only仍有10,148次
+残差，约1.4522%，不能全部归因于时序。油门处理仍未解决，不推导gasPressed。
+诊断脚本不重演checksum/counter状态，仅辅助对齐归因，不另作安全/物理验证。
+
+接收检查
+0x1F0/0x1FC/0x342共1,049,092帧实际执行官方BYD checksum检查，全部接受。
+0x11F四次、0x1FC两次、0x342一次counter不连续，均未达官方拒收门槛；不据此认定
+零丢帧或车辆故障。0x11F四位checksum及0x133/0x242 checksum仍未知，0x242 counter未知。
+
+交付边界
+Snapshot.values/quality/age_ns是主接口；官方CarState投影固定canValid=false，表明原型
+不完整，不是对本条RX故障的判断。未知值不能用官方schema默认0/false代替。
+原车ACC保留、自主纵向与角度控制发送不在本原型内；未实现controller或Panda safety。
+下一步仍需独立标注角度/速度/挡位、踏板与接管、ACC状态及未知checksum，见README.txt。
+本次没有执行新的主机完整构建、MCU构建、目标设备运行或实车验收，不引用旧结果充数。
+
+结果与追溯
+results/songplus-readonly-20261018/replay.json
+  SHA256 b802c1ba58610da8ab72dc73223b15f7a7b2cbaab90e4bca0c296ebedb473d25
+results/songplus-readonly-20261018/alignment-diagnostic.json
+  SHA256 c4e973bf739c318c306ca5caeaaa35faefac35e8f5268bf85e436b88ee0b27cb
+results/songplus-readonly-20261018/alignment_diagnostic.py
+  SHA256 44bcc2681be6a645e2f7192ab2574ed30e77e1825d3a5788a6d12d78e83131d6
+results/songplus-readonly-20261018/tests.json
+  SHA256 865f274672da6a7f922d544c539f8be867a1978639f382a29534d709f6994e3b
+results/songplus-readonly-20261018/tests.log
+  SHA256 7e63f4a13bdacc7a6b800408cfd46626b1746b581c74563b9174de23582e10d7

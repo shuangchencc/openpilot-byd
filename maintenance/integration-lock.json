@@ -1,0 +1,86 @@
+{
+  "schema": "songplus-integration-lock/v1",
+  "parent_lock_sha256": "3ee3704aeaad414e0024f7e4c246b58cea84c54a970ddba2ee3c4a346b6c5806",
+  "baselines": {
+    "upstream-openpilot": "35e78a9d9518855ec0dacec919e719624a28131f",
+    "upstream-openpilot/opendbc_repo": "b3bd79a659dae961af169a3baac723961f720133",
+    "upstream-openpilot/panda": "a59195163c32a3a375ea6c86715dc08fd0984c1b",
+    "upstream-openpilot/msgq_repo": "0e266c1dbcf7328beee3e57b4a8688555387c877"
+  },
+  "series": {
+    "host": [
+      {
+        "stage": "P8",
+        "file": "patches/openpilot/p8/0001-pandad-runtime-integration.patch",
+        "sha256": "89cf673cd0e03bf1813487d9a006715f35216aefbd8921b0b11c1379fe7bda88",
+        "commit": "46baabd4f71a876d22ad61ab33bd9a873a194ebf"
+      }
+    ],
+    "panda": [
+      {
+        "stage": "P8",
+        "file": "patches/panda/p8/0001-P8-application-resource-isolation.patch",
+        "sha256": "e01efe4861441ee57c1e4b995e0fe07291ef45ac23201e796f326441c69312e4",
+        "commit": "c2aa3df08fe4864c9e4ecb4b4bbd150117ce2397"
+      }
+    ]
+  },
+  "required_cases": [
+    "B80",
+    "B81",
+    "B82",
+    "B83",
+    "B84",
+    "B85",
+    "B86"
+  ],
+  "permissions": {
+    "device_access": false,
+    "real_can_tx": false,
+    "deployment_ready": false,
+    "actual_mcu_executed": false,
+    "vehicle_validated": false
+  },
+  "files": {
+    ".github/workflows/songplus-integration-offline.yml": "90833f05cd3d1f8bbd1692216f8b66bacee2b9b5871502678c009cab88dcb8a2",
+    "maintenance/INTEGRATION.md": "cb5fa5ab9ba2642461694206ddb1dfaa1751d2610c4b72f68ad7445f138fdcd9",
+    "maintenance/integration-test-inventory.json": "4e1c110bc19c139d4e7c354c10afa3091e809a21a2abc4ba533a487bb83881b5",
+    "maintenance/integration.py": "5608f8c7387023a784aa655746aa900171662023e430fda866643e9f6309c86a",
+    "maintenance/integration_evidence.py": "098268828c69dfbc1662cc624f21bb2ab08275135b30ae5fcaf3e4733643bea8",
+    "maintenance/opendbc-source-tree.json": "02aa2f4d16aa0f4467a8e4001de58bac972f293f8304e0f09650c1a42fff5960",
+    "maintenance/python-dependencies.json": "d9e337cb1c5e3892cf801b959b87a40d78886f73b8f4a074ebc4bb307f215b60",
+    "maintenance/test_integration.py": "82354513a453f505b39aef81263d7695de3364e591772f29e8f227f3cd7719df",
+    "maintenance/test_integration_contract.py": "b012acd7b787cbba957ef880c2695dffa281ff8556e1ad8d645e96239e37fa0b",
+    "maintenance/test_integration_evidence.py": "1b4010f2b57827a7c736833ea130f441383b6e2130e4988cae04af4985547842",
+    "maintenance/test_integration_resources.py": "e9d7305c2dede5ab4184e504ff453375006aaaccfa4929caad95bb7862a7007a",
+    "maintenance/test_vehicle_readonly.py": "b0b055d0d1e2c8465d0805e59735ac79ba201c2b3497947514156979c7a9ac1d",
+    "maintenance/vehicle_readonly.py": "75defba192ef0510fda51e461ee0d8f206264e1c8d36040104923c67a89b6816",
+    "patches/openpilot/p8/0001-pandad-runtime-integration.patch": "89cf673cd0e03bf1813487d9a006715f35216aefbd8921b0b11c1379fe7bda88",
+    "patches/openpilot/p8/README.md": "aeb490431c379cc9679985cbed2867a053e63625f3110ad489a07a68b2782c43",
+    "patches/openpilot/p8/manifest.json": "8736cbb62cf7ff686aebd2d34ef90d4b88858b5c21efa812c1074d2252688157",
+    "patches/panda/p8/0001-P8-application-resource-isolation.patch": "e01efe4861441ee57c1e4b995e0fe07291ef45ac23201e796f326441c69312e4",
+    "patches/panda/p8/README.md": "2234a8f0b49d4001d422daec86753319c44951941ee232ff5a97d30e6e423ae2",
+    "patches/panda/p8/manifest.json": "c2ac067ff46a9fee7c1f863c97f04739f3aab92486fa009fb3317a4db50180ba",
+    "songplus_readonly/CANDIDATES-VALIDATION.txt": "32eab750a3f0dd222304aae29805c14c855cec7e86a9d57f437c4d3c0f92120d",
+    "songplus_readonly/MAINTENANCE.txt": "e5910faa59b54d7d58b2542e60babf8a30f5d84aae4de2a9bc1fb4668decd1c6",
+    "songplus_readonly/README.txt": "72244b1e508d6c64fe9f6cbd1f2284a3628cfa9afe2515017c81cd6641613f03",
+    "songplus_readonly/VALIDATION.txt": "b27d6c664ffa06360fe4fcd2aa10dd87bc8a14393b91f472adae548a7f9b0d56",
+    "songplus_readonly/__init__.py": "337b10a38d1e573313d5e5d0bfe898ee4c4a67b39bdad94bf5f08fbace59ec35",
+    "songplus_readonly/carstate.py": "dde749027381b1fb196cbe1d55139aed7dea6ed8e119547b49567a24bde44c54",
+    "songplus_readonly/dbc/byd_song_plus_readonly.dbc": "e1bbcfa7cf433baaf2d6a8fbf00a086ebd6adc06f1cc6d7364ee879cce3343c6",
+    "songplus_readonly/evidence-lock.json": "a78a7ddfe3d903c633c0e421776de1bde4f87e33492ae513e834caaa0794c844",
+    "songplus_readonly/field-evidence.json": "a9bf3d46de1473224049e71e6c962a6a2f49188feea5d5bbd3a6feddaeb2c44a",
+    "songplus_readonly/replay.py": "eaddd638d1f2a4678574302d76eac73287139d712c24be8894891c381e387aa2",
+    "songplus_readonly/runtime.py": "520f6d62be0fb7b214e479c7faf62bf76f4281e402c7be175054f2680b4af0d2",
+    "songplus_readonly/tests/test_candidate_fields.py": "c63af430d6fe3c0db13e31da820a57151e417e86ab6a2185303f898cfb2edb3d",
+    "songplus_readonly/tests/test_carstate.py": "67980e2de5d238be66eb5d62c9a0de6a03919c249070efa4e7b702e0ec65ce49",
+    "songplus_readonly/tests/test_replay.py": "22f67165ead83e4aaded731fc7771732e2f81e5fb0c27899030fa7fcd0263f3a",
+    "tests/test_songplus_integration_ci.py": "51aba5a8d9d3ee20e9e78fdfd678121932e6f7944c470433f8f3806087190091",
+    "tools/build_p8_runtime.py": "fd85531147c4a5bf2d04894df2ae7c069b11e84048d9286333c7150d9909bc7b",
+    "tools/check_songplus_integration_ci.py": "9cfee06716e5eb80663f4fb61b03104fd127fcd056a27dae92031fd0979ff87a",
+    "tools/p8_runtime_linux_sandbox.sh": "bf82d2380a87c189776a151f24d0beb384cad3fa2b6495d1514ea1fb2c583625",
+    "tools/songplus_integration.py": "ffbba41cb4310bc4ddeff897bc56b5344dcc26b5aadbc1a48c199a32f4887bb3",
+    "tools/validate_p8_resources.py": "bff8b617c79c14fdd4cf44c16679bcac2553019cad646628b325ff71ae542d85",
+    "tools/validate_p8_runtime.py": "ce1bf6c0f68fa7030ce25e432eee6fac8b13fcceb4e1466a4e4f3fc16870a480"
+  }
+}

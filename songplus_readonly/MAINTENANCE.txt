@@ -1,0 +1,51 @@
+宋 PLUS 只读原型：维护纳管（P8 / 下一阶段第 1 项）
+
+本目录已有候选解码和 DBC 的数值语义保持不变。canValid 始终为 false，
+32 个字段仍为 5 supported_encoding、10 empirical_candidate、17 unconfirmed；
+vehicle_confirmed 全部为 false。全程回放只能证明历史标签复现和实现未回归，
+不能替代新行程的独立标注、控制器、Panda safety 或实车验收。
+
+版本化边界
+evidence-lock.json 精确列出本目录版本化源码、文档及 SHA256。
+runtime_files 只有 __init__.py、runtime.py、carstate.py、接收 DBC；当前仍是
+依赖官方固定 checkout 的本地主机观察原型，不是安装包或可启用车型接口。
+offline_only_files 包含回放、故障测试、文档与 field-evidence.json。
+field-evidence.json 是 FIELD_EVIDENCE 的受审计快照，测试同时核对二者一致。
+它没有把旧软件的派生标签升级为物理真值。
+
+原始 rlog、逐帧 npz、完整旧 schema、厂商材料、原始导出报告和大研究 JSON
+均留在既有 ignored/local 位置，不纳入 Git 或公共 CI 产物。
+锁内保存 98 段 rlog/cache 的摘要、尺寸、原 CAN Event 数，以及相关报告、
+提取器、历史 verifier、候选研究脚本的 SHA256。只读解码器不加载这些材料。
+锁内不保存设备地址、密钥或外部绝对路径。完整回放仍显式读取本地历史 manifest，
+其中的原绝对路径尚不支持重定位；不能把 source-only CI 报告当完整回放通过。
+维护版本锁由外层 integration-lock 绑定，单独改本锁不能解除部署门槛。
+
+可复验入口（仓库根目录，输出必须是尚不存在的新路径）
+  python3 -B -m maintenance.vehicle_readonly source-check --out /tmp/vehicle-contract-new.json
+  python3 -B -m unittest maintenance.test_vehicle_readonly -v
+  python3 -B -m maintenance.vehicle_readonly acceptance --out results/vehicle-acceptance-new
+
+source-check 和 maintenance.test_vehicle_readonly 只使用标准库，可在无私有日志、
+无 opendbc/venv 的源码 CI 执行。它验证来源锁、接收 DBC 库存、可空字段边界、
+候选等级、依赖划分；不会导入原型或访问设备。
+
+acceptance 要求现有 macOS 目标 venv 和本地全部材料；它用
+tools/panda_firmware_offline.sb 隔离每个 worker，拒绝全部网络、设备节点和
+IOKit 打开，依次执行 55 项现有测试和 98 段全回放。不会安装或下载依赖，
+缺材料或散列漂移直接失败，已有输出目录拒绝覆盖。Linux 的完整私有行程回放
+尚未声明已实现；公共 Linux CI 只运行源码合同和 synthetic 故障回归。
+
+完整验收要求
+- 55 项全部通过，失败/错误/跳过为 0；测试 ID、日志哈希和命令均记录。
+- 98 个原 rlog 与 98 个缓存重算哈希，来源链及固定候选研究一致。
+- 699380 个原 CAN Event 全覆盖；只使用 raw src0；sendcan 只计数排除。
+- 历史参考的逐字段比较/质量统计完全一致；候选数值不能为提高一致率而漂移。
+- 698957 次 ACC 未知检查保持 None/unconfirmed；3780 次官方投影检查
+  canValid=false，未知默认值不可用，必须保留 nullable sidecar。
+- 解码器、回放器、DBC 的运行首尾哈希及维护锁一致；本轮是新执行，不引用旧
+  “通过”标签代替执行。独立 schema/提取器严格解压验证仍是按哈希复用旧证据，
+  不冒称本轮重新解压/重新提取全部 rlog。
+
+本轮资源、真实进程接入和固件变化由独立补丁处理。这里的纳管不会创建 Panda、
+订阅真实车载总线、启动 manager/pandad 或提升运行/刷写权限。

@@ -1,0 +1,295 @@
+{
+  "schema": "songplus-readonly-field-evidence/v1",
+  "fields": {
+    "steeringAngleDeg": {
+      "tier": "supported_encoding",
+      "vehicle_confirmed": false,
+      "note": "Signed16 x0.1 reproduces historical angle; sign/zero require physical annotation. 4-bit checksum unresolved.",
+      "candidate": false,
+      "raw_src": 0,
+      "address": "0x11F",
+      "source": "results/rlog-analysis-20261018/state-candidates-final.json"
+    },
+    "steeringTorqueEps": {
+      "tier": "supported_encoding",
+      "vehicle_confirmed": false,
+      "note": "Signed12 reproduces historical EPS torque; native units, not proven Nm or driver torque.",
+      "candidate": false,
+      "raw_src": 0,
+      "address": "0x1FC",
+      "source": "results/rlog-analysis-20261018/state-candidates-final.json"
+    },
+    "brake": {
+      "tier": "supported_encoding",
+      "vehicle_confirmed": false,
+      "note": "Byte1 x0.01 reproduces historical normalized value; not brakePressed or pressure calibration.",
+      "candidate": false,
+      "raw_src": 0,
+      "address": "0x342",
+      "source": "results/rlog-analysis-20261018/state-candidates-final.json"
+    },
+    "gas": {
+      "tier": "empirical_candidate",
+      "vehicle_confirmed": false,
+      "note": "Byte0 x0.01 retained directly. Historical 1.45% residual is explained by truncation; physical scale remains unverified.",
+      "candidate": true,
+      "raw_src": 0,
+      "address": "0x342",
+      "source": "results/songplus-pedal-gear-20261018/pedal-residuals.json"
+    },
+    "gearShifter": {
+      "tier": "empirical_candidate",
+      "vehicle_confirmed": false,
+      "note": "Historical labels 1=P, 2=R, 4=D; parking R context is consistent with revised recollection. N/physical direction/checksum/counter unconfirmed.",
+      "candidate": true,
+      "raw_src": 0,
+      "address": "0x242",
+      "source": "results/songplus-pedal-gear-20261018/gear-context.json"
+    },
+    "gasPressed": {
+      "tier": "empirical_candidate",
+      "vehicle_confirmed": false,
+      "note": "Raw byte0 >3 reproduces historical labels; not a calibrated physical pedal threshold. Simultaneous pedal/override semantics unobserved.",
+      "candidate": true,
+      "raw_src": 0,
+      "address": "0x342",
+      "source": "results/songplus-pressed-acc-20261018/pedal-pressed.json"
+    },
+    "brakePressed": {
+      "tier": "empirical_candidate",
+      "vehicle_confirmed": false,
+      "note": "Bit43 reproduces historical labels independently of brake amount. Driver braking versus automatic braking/hold unconfirmed; checksum/counter are observational candidates.",
+      "candidate": true,
+      "raw_src": 0,
+      "address": "0x123",
+      "source": "results/songplus-pressed-acc-20261018/pedal-pressed.json"
+    },
+    "cruiseState.standstill": {
+      "tier": "empirical_candidate",
+      "vehicle_confirmed": false,
+      "note": "Bit8 reproduces historical cruise standstill, not equivalent to vehicle standstill. Actual ACC hold semantics and checksum/counter unknown.",
+      "candidate": true,
+      "raw_src": 0,
+      "address": "0x220",
+      "source": "results/songplus-pressed-acc-20261018/cruise-bit-holdout.json"
+    },
+    "leftBlinker": {
+      "tier": "supported_encoding",
+      "vehicle_confirmed": false,
+      "note": "Bit37 reproduces historical leftBlinker; no independent annotated lamp check; checksum unknown.",
+      "candidate": false,
+      "raw_src": 0,
+      "address": "0x133",
+      "source": "results/rlog-analysis-20261018/state-candidates-final.json"
+    },
+    "rightBlinker": {
+      "tier": "supported_encoding",
+      "vehicle_confirmed": false,
+      "note": "Bit38 reproduces historical rightBlinker; no independent annotated lamp check; checksum unknown.",
+      "candidate": false,
+      "raw_src": 0,
+      "address": "0x133",
+      "source": "results/rlog-analysis-20261018/state-candidates-final.json"
+    },
+    "wheelSpeeds.fl": {
+      "tier": "empirical_candidate",
+      "vehicle_confirmed": false,
+      "note": "12-bit candidate x0.0725 km/h fitted to old decoder; physical wheel identity/width/scale unverified.",
+      "candidate": true,
+      "raw_src": 0,
+      "address": "0x1F0",
+      "source": "results/rlog-analysis-20261018/state-candidates-final.json"
+    },
+    "wheelSpeeds.fr": {
+      "tier": "empirical_candidate",
+      "vehicle_confirmed": false,
+      "note": "12-bit candidate x0.0725 km/h fitted to old decoder; physical wheel identity/width/scale unverified.",
+      "candidate": true,
+      "raw_src": 0,
+      "address": "0x1F0",
+      "source": "results/rlog-analysis-20261018/state-candidates-final.json"
+    },
+    "wheelSpeeds.rl": {
+      "tier": "empirical_candidate",
+      "vehicle_confirmed": false,
+      "note": "12-bit candidate x0.0725 km/h fitted to old decoder; physical wheel identity/width/scale unverified.",
+      "candidate": true,
+      "raw_src": 0,
+      "address": "0x1F0",
+      "source": "results/rlog-analysis-20261018/state-candidates-final.json"
+    },
+    "wheelSpeeds.rr": {
+      "tier": "empirical_candidate",
+      "vehicle_confirmed": false,
+      "note": "12-bit candidate x0.0725 km/h fitted to old decoder; physical wheel identity/width/scale unverified.",
+      "candidate": true,
+      "raw_src": 0,
+      "address": "0x1F0",
+      "source": "results/rlog-analysis-20261018/state-candidates-final.json"
+    },
+    "vEgoRaw": {
+      "tier": "empirical_candidate",
+      "vehicle_confirmed": false,
+      "note": "Mean of four wheel candidates; no independent GPS/speed reference.",
+      "candidate": true,
+      "raw_src": 0,
+      "address": "0x1F0",
+      "source": "results/rlog-analysis-20261018/state-candidates-final.json"
+    },
+    "vEgo": {
+      "tier": "unconfirmed",
+      "vehicle_confirmed": false,
+      "note": "No sufficiently supported independent mapping; deliberately None, including when old decoder reports false/zero.",
+      "candidate": false,
+      "raw_src": null,
+      "address": null,
+      "source": "results/rlog-analysis-20261018/state-candidates-final.json"
+    },
+    "aEgo": {
+      "tier": "unconfirmed",
+      "vehicle_confirmed": false,
+      "note": "No sufficiently supported independent mapping; deliberately None, including when old decoder reports false/zero.",
+      "candidate": false,
+      "raw_src": null,
+      "address": null,
+      "source": "results/rlog-analysis-20261018/state-candidates-final.json"
+    },
+    "vEgoCluster": {
+      "tier": "unconfirmed",
+      "vehicle_confirmed": false,
+      "note": "No sufficiently supported independent mapping; deliberately None, including when old decoder reports false/zero.",
+      "candidate": false,
+      "raw_src": null,
+      "address": null,
+      "source": "results/rlog-analysis-20261018/state-candidates-final.json"
+    },
+    "standstill": {
+      "tier": "unconfirmed",
+      "vehicle_confirmed": false,
+      "note": "No sufficiently supported independent mapping; deliberately None, including when old decoder reports false/zero.",
+      "candidate": false,
+      "raw_src": null,
+      "address": null,
+      "source": "results/rlog-analysis-20261018/state-candidates-final.json"
+    },
+    "steeringRateDeg": {
+      "tier": "unconfirmed",
+      "vehicle_confirmed": false,
+      "note": "No sufficiently supported independent mapping; deliberately None, including when old decoder reports false/zero.",
+      "candidate": false,
+      "raw_src": null,
+      "address": null,
+      "source": "results/rlog-analysis-20261018/state-candidates-final.json"
+    },
+    "steeringTorque": {
+      "tier": "unconfirmed",
+      "vehicle_confirmed": false,
+      "note": "No sufficiently supported independent mapping; deliberately None, including when old decoder reports false/zero.",
+      "candidate": false,
+      "raw_src": null,
+      "address": null,
+      "source": "results/rlog-analysis-20261018/state-candidates-final.json"
+    },
+    "steeringPressed": {
+      "tier": "unconfirmed",
+      "vehicle_confirmed": false,
+      "note": "No sufficiently supported independent mapping; deliberately None, including when old decoder reports false/zero.",
+      "candidate": false,
+      "raw_src": null,
+      "address": null,
+      "source": "results/rlog-analysis-20261018/state-candidates-final.json"
+    },
+    "steerFaultTemporary": {
+      "tier": "unconfirmed",
+      "vehicle_confirmed": false,
+      "note": "No sufficiently supported independent mapping; deliberately None, including when old decoder reports false/zero.",
+      "candidate": false,
+      "raw_src": null,
+      "address": null,
+      "source": "results/rlog-analysis-20261018/state-candidates-final.json"
+    },
+    "steerFaultPermanent": {
+      "tier": "unconfirmed",
+      "vehicle_confirmed": false,
+      "note": "No sufficiently supported independent mapping; deliberately None, including when old decoder reports false/zero.",
+      "candidate": false,
+      "raw_src": null,
+      "address": null,
+      "source": "results/rlog-analysis-20261018/state-candidates-final.json"
+    },
+    "cruiseState.enabled": {
+      "tier": "unconfirmed",
+      "vehicle_confirmed": false,
+      "note": "No sufficiently supported independent mapping; deliberately None, including when old decoder reports false/zero.",
+      "candidate": false,
+      "raw_src": null,
+      "address": null,
+      "source": "results/rlog-analysis-20261018/state-candidates-final.json"
+    },
+    "cruiseState.available": {
+      "tier": "unconfirmed",
+      "vehicle_confirmed": false,
+      "note": "No sufficiently supported independent mapping; deliberately None, including when old decoder reports false/zero.",
+      "candidate": false,
+      "raw_src": null,
+      "address": null,
+      "source": "results/rlog-analysis-20261018/state-candidates-final.json"
+    },
+    "cruiseState.speed": {
+      "tier": "unconfirmed",
+      "vehicle_confirmed": false,
+      "note": "No sufficiently supported independent mapping; deliberately None, including when old decoder reports false/zero.",
+      "candidate": false,
+      "raw_src": null,
+      "address": null,
+      "source": "results/rlog-analysis-20261018/state-candidates-final.json"
+    },
+    "doorOpen": {
+      "tier": "unconfirmed",
+      "vehicle_confirmed": false,
+      "note": "No sufficiently supported independent mapping; deliberately None, including when old decoder reports false/zero.",
+      "candidate": false,
+      "raw_src": null,
+      "address": null,
+      "source": "results/rlog-analysis-20261018/state-candidates-final.json"
+    },
+    "seatbeltUnlatched": {
+      "tier": "unconfirmed",
+      "vehicle_confirmed": false,
+      "note": "No sufficiently supported independent mapping; deliberately None, including when old decoder reports false/zero.",
+      "candidate": false,
+      "raw_src": null,
+      "address": null,
+      "source": "results/rlog-analysis-20261018/state-candidates-final.json"
+    },
+    "leftBlindspot": {
+      "tier": "unconfirmed",
+      "vehicle_confirmed": false,
+      "note": "No sufficiently supported independent mapping; deliberately None, including when old decoder reports false/zero.",
+      "candidate": false,
+      "raw_src": null,
+      "address": null,
+      "source": "results/rlog-analysis-20261018/state-candidates-final.json"
+    },
+    "rightBlindspot": {
+      "tier": "unconfirmed",
+      "vehicle_confirmed": false,
+      "note": "No sufficiently supported independent mapping; deliberately None, including when old decoder reports false/zero.",
+      "candidate": false,
+      "raw_src": null,
+      "address": null,
+      "source": "results/rlog-analysis-20261018/state-candidates-final.json"
+    },
+    "espDisabled": {
+      "tier": "unconfirmed",
+      "vehicle_confirmed": false,
+      "note": "No sufficiently supported independent mapping; deliberately None, including when old decoder reports false/zero.",
+      "candidate": false,
+      "raw_src": null,
+      "address": null,
+      "source": "results/rlog-analysis-20261018/state-candidates-final.json"
+    }
+  },
+  "vehicle_semantics_independently_confirmed": false,
+  "canValid": false
+}

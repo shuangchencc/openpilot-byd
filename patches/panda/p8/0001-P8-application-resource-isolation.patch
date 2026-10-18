@@ -1,0 +1,527 @@
+From c2aa3df08fe4864c9e4ecb4b4bbd150117ce2397 Mon Sep 17 00:00:00 2001
+From: scarvito <7883167+scarvito@user.noreply.gitee.com>
+Date: Sun, 18 Oct 2026 13:06:10 +0800
+Subject: [PATCH] panda: isolate candidate app cookies and enforce resource
+ reservations
+
+---
+ board/stm32f4/stm32f4_flash.ld |   4 +-
+ board/stm32h7/sound.h          |   6 +-
+ board/stm32h7/stm32h7_app.ld   |  74 +++++++++++++++
+ tests/p5/audit_resources.py    |  66 ++++++++++---
+ tests/p8/README.md             |  44 +++++++++
+ tests/p8/run_resources.py      | 167 +++++++++++++++++++++++++++++++++
+ tools/p5/build_candidate.py    |   8 +-
+ 7 files changed, 350 insertions(+), 19 deletions(-)
+ create mode 100644 board/stm32h7/stm32h7_app.ld
+ create mode 100644 tests/p8/README.md
+ create mode 100644 tests/p8/run_resources.py
+
+diff --git a/board/stm32f4/stm32f4_flash.ld b/board/stm32f4/stm32f4_flash.ld
+index 17872ef..f564564 100644
+--- a/board/stm32f4/stm32f4_flash.ld
++++ b/board/stm32f4/stm32f4_flash.ld
+@@ -42,7 +42,7 @@ SECTIONS {
+   .bss (NOLOAD) : {
+     . = ALIGN(4); _sbss = .; *(.bss .bss.*) *(COMMON) . = ALIGN(4); _ebss = .;
+   } > RAM
+-  .stack (NOLOAD) : { _stack_reserved_start = .; . += _Min_Stack_Size; } > STACK
++  .stack (NOLOAD) : { _stack_reserved_start = .; . += _Min_Stack_Size; _stack_reserved_end = .; } > STACK
+   .cookies (NOLOAD) : { . += 8; } > COOKIES
+   .ARM.attributes 0 : { *(.ARM.attributes) }
+   /DISCARD/ : { *(.comment) *(.note*) *(.eh_frame*) }
+@@ -52,3 +52,5 @@ ASSERT((_estack & 7) == 0, "stack must be 8-byte aligned")
+ ASSERT(_ebss <= _stack_bottom, "static RAM overlaps reserved stack")
+ ASSERT(_image_end <= _image_limit, "application overlaps signature tail")
+ ASSERT(fault_cookie + 4 == enter_bootloader_mode, "cookie layout changed")
++ASSERT(_stack_reserved_start == _stack_bottom && _stack_reserved_end == _estack, "stack reservation mismatch")
++ASSERT(ADDR(.cookies) == fault_cookie && SIZEOF(.cookies) == 8, "cookie reservation mismatch")
+diff --git a/board/stm32h7/sound.h b/board/stm32h7/sound.h
+index d34b0c4..a74e340 100644
+--- a/board/stm32h7/sound.h
++++ b/board/stm32h7/sound.h
+@@ -5,9 +5,11 @@
+ #define MIC_RX_BUF_SIZE 512U
+ #define MIC_TX_BUF_SIZE (MIC_RX_BUF_SIZE * 2U)
+ __attribute__((section(".sram4"))) static uint16_t sound_rx_buf[2][SOUND_RX_BUF_SIZE];
+-__attribute__((section(".sram4"))) static uint16_t sound_tx_buf[2][SOUND_TX_BUF_SIZE];
++// TX buffers live above the inherited boot cookie; RX buffers remain below it.
++// Both partitions remain in SRAM4 and keep the existing DMA transfer widths.
++__attribute__((section(".sram4.audio_tx"))) static uint16_t sound_tx_buf[2][SOUND_TX_BUF_SIZE];
+ __attribute__((section(".sram4"))) static uint32_t mic_rx_buf[2][MIC_RX_BUF_SIZE];
+-__attribute__((section(".sram4"))) static uint16_t mic_tx_buf[2][MIC_TX_BUF_SIZE];
++__attribute__((section(".sram4.audio_tx"))) static uint16_t mic_tx_buf[2][MIC_TX_BUF_SIZE];
+ 
+ #define SOUND_IDLE_TIMEOUT 4U
+ #define MIC_SKIP_BUFFERS 2U // Skip first 2 buffers (1024 samples = ~21ms at 48kHz)
+diff --git a/board/stm32h7/stm32h7_app.ld b/board/stm32h7/stm32h7_app.ld
+new file mode 100644
+index 0000000..7375416
+--- /dev/null
++++ b/board/stm32h7/stm32h7_app.ld
+@@ -0,0 +1,74 @@
++/* SPDX-License-Identifier: MIT
++ * Copyright (c) 2026 Song PLUS independent port contributors.
++ * Application-only H725/H735 reference layout; NOT an installed-board or
++ * bootstub compatibility claim. Keep both inherited cookie ABI addresses.
++ * SRAM4 is split around the cookies, not allocated as one continuous bank.
++ * The original shared bootstub linker is deliberately left unchanged.
++ */
++ENTRY(Reset_Handler)
++_app_start = 0x08020000;
++_image_limit = 0x08100000 - 136;
++enter_bootloader_mode = 0x38001ffc;
++fault_cookie = 0x38003ffc;
++_estack = 0x20020000;
++_Min_Heap_Size = 512;
++_Min_Stack_Size = 1024;
++_stack_bottom = _estack - _Min_Stack_Size;
++MEMORY {
++  APP (rx) : ORIGIN = 0x08020000, LENGTH = 1024K - 128K - 136
++  DTCMRAM (rw) : ORIGIN = 0x20000000, LENGTH = 128K - 1024
++  STACK (rw) : ORIGIN = 0x2001fc00, LENGTH = 1024
++  ITCMRAM (rw) : ORIGIN = 0x00000000, LENGTH = 64K
++  AXISRAM (rw) : ORIGIN = 0x24000000, LENGTH = 320K
++  SRAM12 (rw) : ORIGIN = 0x30000000, LENGTH = 32K
++  SRAM4_RX (rw) : ORIGIN = 0x38000000, LENGTH = 8192 - 4
++  BOOT_COOKIE (rw) : ORIGIN = 0x38001ffc, LENGTH = 4
++  SRAM4_TX (rw) : ORIGIN = 0x38002000, LENGTH = 8192 - 4
++  FAULT_COOKIE (rw) : ORIGIN = 0x38003ffc, LENGTH = 4
++  BACKUP_SRAM (rw) : ORIGIN = 0x38800000, LENGTH = 4K
++}
++SECTIONS {
++  .isr_vector : { KEEP(*(.isr_vector)) } > APP
++  .text : {
++    *(.text .text.*) *(.rodata .rodata.*)
++    *(.glue_7 .glue_7t) KEEP(*(.init)) KEEP(*(.fini))
++    . = ALIGN(4); _etext = .;
++  } > APP
++  .ARM.extab : { *(.ARM.extab* .gnu.linkonce.armextab.*) } > APP
++  .ARM.exidx : { __exidx_start = .; *(.ARM.exidx*) __exidx_end = .; } > APP
++  .data : {
++    . = ALIGN(4); _sdata = .; *(.data .data.*) . = ALIGN(4); _edata = .;
++  } > DTCMRAM AT > APP
++  _sidata = LOADADDR(.data);
++  _image_end = LOADADDR(.data) + SIZEOF(.data);
++  .bss (NOLOAD) : {
++    . = ALIGN(4); _sbss = .; *(.bss .bss.*) *(COMMON) . = ALIGN(4); _ebss = .;
++  } > DTCMRAM
++  .heap (NOLOAD) : {
++    . = ALIGN(8); PROVIDE(end = .); PROVIDE(_end = .);
++    . += _Min_Heap_Size; _heap_end = .;
++  } > DTCMRAM
++  .stack (NOLOAD) : {
++    _stack_reserved_start = .; . += _Min_Stack_Size; _stack_reserved_end = .;
++  } > STACK
++  .itcmram (NOLOAD) : { . = ALIGN(4); *(.itcmram*) } > ITCMRAM
++  .axisram (NOLOAD) : { . = ALIGN(4); *(.axisram*) } > AXISRAM
++  .sram12 (NOLOAD) : { . = ALIGN(4); *(.sram12*) } > SRAM12
++  /* Consume the explicit TX inputs before the remaining .sram4 wildcard. */
++  .sram4_tx (NOLOAD) : { . = ALIGN(4); *(.sram4.audio_tx) } > SRAM4_TX
++  .sram4 (NOLOAD) : { . = ALIGN(4); *(.sram4*) } > SRAM4_RX
++  .boot_cookie (NOLOAD) : { . += 4; } > BOOT_COOKIE
++  .fault_cookie (NOLOAD) : { . += 4; } > FAULT_COOKIE
++  .backup_sram (NOLOAD) : { . = ALIGN(4); *(.backup_sram*) } > BACKUP_SRAM
++  .ARM.attributes 0 : { *(.ARM.attributes) }
++  /DISCARD/ : { *(.comment) *(.note*) *(.eh_frame*) }
++}
++ASSERT(ADDR(.isr_vector) == _app_start, "application vector placement changed")
++ASSERT((_estack & 7) == 0, "stack must be 8-byte aligned")
++ASSERT(_heap_end <= _stack_bottom, "static RAM/heap overlaps reserved stack")
++ASSERT(_stack_reserved_start == _stack_bottom && _stack_reserved_end == _estack, "stack reservation mismatch")
++ASSERT(_image_end <= _image_limit, "application overlaps signature tail")
++ASSERT(ADDR(.sram4) + SIZEOF(.sram4) <= enter_bootloader_mode, "SRAM4 RX overlaps boot cookie")
++ASSERT(ADDR(.sram4_tx) + SIZEOF(.sram4_tx) <= fault_cookie, "SRAM4 TX overlaps fault cookie")
++ASSERT(ADDR(.boot_cookie) == enter_bootloader_mode && SIZEOF(.boot_cookie) == 4, "boot cookie reservation mismatch")
++ASSERT(ADDR(.fault_cookie) == fault_cookie && SIZEOF(.fault_cookie) == 4, "fault cookie reservation mismatch")
+diff --git a/tests/p5/audit_resources.py b/tests/p5/audit_resources.py
+index 7a61e48..b936340 100644
+--- a/tests/p5/audit_resources.py
++++ b/tests/p5/audit_resources.py
+@@ -103,7 +103,13 @@ def callgraph(directory: Path) -> dict:
+   size, chain = max((longest(n, frozenset()) for n in nodes), key=lambda pair: pair[0])
+   return {"maximum_known_direct_chain_bytes": size, "chain": chain, "cycles": sorted(cycles),
+           "unknown_or_indirect_calls": sorted({callee for callees in edges.values() for callee in callees if callee not in nodes}),
++          "unresolved_call_sites": [{"caller": caller, "callee": callee} for caller in sorted(edges)
++                                    for callee in sorted(edges[caller]) if callee not in nodes],
++          "entry_known_direct_chains": [{"entry": name, "bytes": longest(name, frozenset())[0],
++                                          "chain": longest(name, frozenset())[1]} for name in sorted(nodes)
++                                        if name == "main" or name.endswith(("_Handler", "_handler", "IRQHandler"))],
+           "compiler_nodes": len(nodes), "complete_worst_case_bound": False,
++          "bound_kind": "partial known-direct stack requirement; excludes unresolved calls and interrupt preemption",
+           "files": [{"path": str(path), "sha256": sha(path)} for path in files]}
+ 
+ 
+@@ -117,6 +123,8 @@ def main() -> int:
+   p.add_argument("--public-key", type=Path, required=True)
+   p.add_argument("--stack-dir", type=Path, required=True)
+   p.add_argument("--output", type=Path, required=True)
++  p.add_argument("--require-runtime-proof", action="store_true",
++                 help="fail closed when target identity or complete nested stack proof is missing")
+   args = p.parse_args()
+   image = elf32(args.elf)
+   sections, symbols = image["sections"], image["symbols"]
+@@ -161,6 +169,20 @@ def main() -> int:
+     record["allocated_bytes"] += size
+     record["sections"].append({"name": name, "address": address, "size": size})
+   stack_reserved = symbols["_Min_Stack_Size"]["value"]
++  assert sections[".stack"]["type"] == 8 and sections[".stack"]["size"] == stack_reserved
++  assert sections[".stack"]["address"] == symbols["_stack_bottom"]["value"]
++  assert symbols["_stack_reserved_start"]["value"] == symbols["_stack_bottom"]["value"]
++  assert symbols["_stack_reserved_end"]["value"] == raw_sp
++  assert symbols["_stack_bottom"]["value"] + stack_reserved == raw_sp
++  startup_ranges = {}
++  for section_name, begin_name, end_name in ((".data", "_sdata", "_edata"), (".bss", "_sbss", "_ebss")):
++    section = sections[section_name]
++    begin, end = symbols[begin_name]["value"], symbols[end_name]["value"]
++    assert begin == section["address"] and end == begin + section["size"], "startup range differs from allocated section"
++    assert begin % 4 == 0 and end % 4 == 0 and begin <= end <= symbols["_stack_bottom"]["value"]
++    startup_ranges[section_name] = {"start": begin, "end_exclusive": end, "bytes": end - begin}
++  assert symbols["_edata"]["value"] <= symbols["_sbss"]["value"]
++  assert start <= symbols["_sidata"]["value"] <= symbols["_sidata"]["value"] + sections[".data"]["size"] <= flash_end - 136
+   cookies = {}
+   for cookie_name in ("enter_bootloader_mode", "fault_cookie"):
+     address = symbols[cookie_name]["value"]
+@@ -187,10 +209,11 @@ def main() -> int:
+   else:
+     assert cookies["enter_bootloader_mode"]["start"] == 0x38001FFC
+     assert cookies["fault_cookie"]["start"] == 0x38003FFC
+-    assert cookies["fault_cookie"]["overlapping_objects"] == []
+-    assert cookies["enter_bootloader_mode"]["overlapping_objects"] == [
+-      {"symbol": "mic_tx_buf", "start": 0x38001770, "end_exclusive": 0x38002770, "size": 4096, "overlap_bytes": 4}
+-    ], "H7 inherited boot-cookie overlay changed; explicit review required"
++    assert stack_reserved == 1024, "inherited stack reserve changed; review required"
++    assert symbols["_heap_end"]["value"] <= symbols["_stack_bottom"]["value"]
++    assert all(not value["overlapping_objects"] for value in cookies.values()), "H7 cookie overlaps live data storage"
++    for name, address in ((".boot_cookie", 0x38001FFC), (".fault_cookie", 0x38003FFC)):
++      assert sections[name]["address"] == address and sections[name]["size"] == 4 and sections[name]["type"] == 8
+     dma = {}
+     for name in ("spi_buf_rx", "spi_buf_tx"):
+       symbol = symbols[name]
+@@ -198,6 +221,15 @@ def main() -> int:
+       # The preserved H7 llspi config uses byte-wide MSIZE/PSIZE. Its buffers
+       # follow the one-byte readiness flag, so word alignment is not required.
+       dma[name] = {**symbol, "configured_transfer_width_bits": 8, "required_alignment_bytes": 1}
++    for name, size, width, low, high in (("sound_rx_buf", 4000, 16, 0x38000000, 0x38001FFC),
++                                       ("mic_rx_buf", 4096, 32, 0x38000000, 0x38001FFC),
++                                       ("sound_tx_buf", 2000, 16, 0x38002000, 0x38003FFC),
++                                       ("mic_tx_buf", 4096, 16, 0x38002000, 0x38003FFC)):
++      symbol = symbols[name]
++      assert symbol["size"] == size and low <= symbol["value"] < symbol["value"] + size <= high
++      assert symbol["value"] % (width // 8) == 0 and (size // 2) % (width // 8) == 0
++      dma[name] = {**symbol, "configured_transfer_width_bits": width,
++                   "required_alignment_bytes": width // 8, "bank": "SRAM4; both ping-pong halves aligned"}
+   frames = []
+   for path in sorted(args.stack_dir.rglob("*.su")):
+     for line in path.read_text().splitlines():
+@@ -208,6 +240,10 @@ def main() -> int:
+   frames.sort(key=lambda item: item["bytes"], reverse=True)
+   assert frames[0]["bytes"] <= stack_reserved, "single function exceeds reserved stack"
+   graph = callgraph(args.stack_dir)
++  known_entries = {entry["entry"] for entry in graph["entry_known_direct_chains"]}
++  graph["vector_entries_without_compiler_frame"] = [
++    {"entry": name, "address": symbol["value"], "reason": "assembly/alias or missing compiler frame; no zero-cost assumption"}
++    for name, symbol in sorted(symbols.items()) if name.endswith("IRQHandler") and name not in known_entries]
+   assert not graph["cycles"], "direct recursive call chain requires an explicit bound"
+   assert graph["maximum_known_direct_chain_bytes"] <= stack_reserved, "known direct call chain exceeds reserved stack"
+   map_data = args.map.read_text()
+@@ -215,22 +251,30 @@ def main() -> int:
+   report = {"status": "PASS", "target": args.target, "flash": {"start": start, "limit": flash_end,
+             "boot_region_preserved_bytes": start - 0x08000000, "raw_bytes": len(raw), "signed_bytes": len(signed),
+             "remaining_bytes_after_signature": flash_end - start - len(signed)},
+-            "signature": signing, "ram": ram, "dma": dma,
+-            "boot_cookies": {"symbols": cookies, "isolated_from_live_objects": args.target == "f4",
+-                             "inherited_h7_overlap_matches_locked_baseline": args.target == "h7",
++            "signature": signing, "ram": ram, "dma": dma, "startup_copy_zero_ranges": startup_ranges,
++            "boot_cookies": {"symbols": cookies, "isolated_from_live_objects": True,
++                             "inherited_h7_overlap_removed": args.target == "h7",
+                              "runtime_impact_validated": False,
+-                             "scope": "F4 isolation enforced; H7 exact inherited mic_tx_buf overlay disclosed and preserved, not approved as runtime-safe."},
++                             "scope": "Both app linkers reserve ABI cookie addresses; target bootstub and runtime remain unverified."},
+             "stack": {"reserved_bytes": stack_reserved, "maximum_single_frame": frames[0], "frames": frames, "direct_callgraph": graph,
+                       "worst_case_call_and_interrupt_depth_proven": False,
+-                      "limitation": "Static allocation and single-frame budget only; no runtime watermark or complete call/interrupt nesting proof."},
++                      "limitation": "Known direct chains checked against an allocated reservation; no complete indirect/assembly/exception/preemption or runtime watermark proof.",
++                      "remaining_stack_proof": ["indirect call targets and assembly frames", "exception frame and FPU context costs",
++                                                 "interrupt priority/preemption graph and possible nesting", "target stack watermarks under worst-load faults"]},
+             "inputs": [{"path": str(path), "sha256": sha(path)} for path in
+                        [args.elf, args.map, args.raw, args.signed, args.public_key,
+                         *sorted(args.stack_dir.rglob("*.su")), *sorted(args.stack_dir.rglob("*.ci"))]],
+             "scope": "App-only development candidate; no installed-board memory/bootstub/signature compatibility claim", "device_access": False}
++  report["static_allocation_passed"] = True
++  report["runtime_resource_gate"] = {"status": "BLOCKED", "deployable": False,
++                                     "reasons": ["physical MCU and capacity unconfirmed", "complete worst-case stack bound unproven",
++                                                 "target execution, DMA/audio and stack watermark unverified"]}
++  if args.require_runtime_proof:
++    report["status"] = "BLOCKED_RUNTIME_PROOF"
+   args.output.parent.mkdir(parents=True, exist_ok=True)
+   args.output.write_text(json.dumps(report, indent=2) + "\n")
+-  print(f"PASS {args.target} resources: flash {len(signed)} bytes, stack reserve {stack_reserved}, max frame {frames[0]['bytes']}")
+-  return 0
++  print(f"{report['status']} {args.target} static resources: flash {len(signed)} bytes, stack reserve {stack_reserved}, max frame {frames[0]['bytes']}")
++  return 3 if args.require_runtime_proof else 0
+ 
+ 
+ if __name__ == "__main__":
+diff --git a/tests/p8/README.md b/tests/p8/README.md
+new file mode 100644
+index 0000000..a71e55f
+--- /dev/null
++++ b/tests/p8/README.md
+@@ -0,0 +1,44 @@
++# P8 application resource isolation
++
++The locked H7 application had `enter_bootloader_mode=0x38001ffc` inside
++`mic_tx_buf=[0x38001770,0x38002770)`. An absolute linker symbol does not reserve
++storage. Normal microphone initialization, processing or BDMA reads could
++therefore alias the boot cookie. P8 fixes the candidate allocation, not the
++unknown installed device or its bootstub.
++
++`board/stm32h7/stm32h7_app.ld` is a new application-only linker. The original
++shared bootstub linker is unchanged. Both inherited cookie addresses are
++preserved as four-byte NOLOAD regions. The lower SRAM4 partition holds the two
++RX buffers (8096 bytes); the upper holds the two TX buffers (6096 bytes). All
++buffers remain in the same DMA-accessed bank and retain their dimensions,
++transfer widths, ping-pong half alignment and processing code. No ADC/audio
++behavior is inferred from compilation.
++
++The candidate builder explicitly selects this linker. Calling upstream generic
++SCons is **not** a supported P8 candidate build entry. There is no installer,
++bootstub output, flash/reset operation, or hardware constructor here.
++
++Both F4 and H7 now have explicit stack reservation endpoint assertions. H7's
++existing 1024-byte stack budget is placed in a dedicated top-of-DTCM NOLOAD
++region and its 512-byte heap reservation cannot cross it. This does not assert
++that 1024 bytes are enough. Flash excludes the same 136-byte signature/version
++tail in the linker rather than only in a later file audit. F4 still intentionally
++uses only its existing reference lower 128 KiB of RAM; no capacity is attributed
++to the user's unconfirmed MCU.
++
++`tests/p5/audit_resources.py` checks all allocated sections, real object/cookie
++overlap, stack boundaries, DMA ranges/alignment, signature and fresh `.su`/`.ci`
++data. It reports each known entry chain and each unresolved call site. The
++known-direct chain is only a partial requirement, **not a whole-program upper
++bound**: indirect targets, assembly frames, exception/FPU context, priority and
++preemption nesting, and measured target watermarks remain unproved. With
++`--require-runtime-proof`, a structurally passing candidate returns exit 3 and
++`BLOCKED_RUNTIME_PROOF`. This expected refusal tests a gate; it is not successful
++runtime validation. There is no override to claim completion.
++
++`tests/p8/run_resources.py` runs 23 checks: 12 actual linker boundary cases,
++8 malformed stack-evidence rejections, two explicit runtime-proof refusals,
++and rejection of the old H7 object/cookie overlap injected into an ELF symbol.
++All target capacities are reference build budgets pending physical identity.
++Keep target execution, audible alert behavior and complete worst-case stack
++proof as release blockers even when these offline checks pass.
+diff --git a/tests/p8/run_resources.py b/tests/p8/run_resources.py
+new file mode 100644
+index 0000000..d305ff8
+--- /dev/null
++++ b/tests/p8/run_resources.py
+@@ -0,0 +1,167 @@
++#!/usr/bin/env python3
++"""Exercise actual application linker boundaries and resource audit failures.
++
++All ARM outputs are data only. No MCU execution, hardware access or bootstub.
++The caller must sandbox this process and its compiler children.
++"""
++from __future__ import annotations
++
++import argparse
++import hashlib
++import importlib.util
++import json
++from pathlib import Path
++import shutil
++import struct
++import subprocess
++import sys
++
++
++def sha(path):
++  return hashlib.sha256(path.read_bytes()).hexdigest()
++
++
++def main():
++  parser = argparse.ArgumentParser(description=__doc__)
++  for name in ('source', 'arm-prefix', 'f4-build', 'h7-build', 'output'):
++    parser.add_argument('--' + name, type=Path, required=True)
++  args = parser.parse_args()
++  src, prefix, out = args.source.resolve(), args.arm_prefix.resolve(), args.output.resolve()
++  if out.exists() and any(out.iterdir()):
++    raise ValueError('fresh output required')
++  out.mkdir(parents=True, exist_ok=True)
++  commands, checks = [], []
++  gcc = str(prefix / 'arm-none-eabi-gcc')
++  audit = src / 'tests/p5/audit_resources.py'
++  spec = importlib.util.spec_from_file_location('resource_audit', audit)
++  module = importlib.util.module_from_spec(spec)
++  spec.loader.exec_module(module)
++
++  def run(name, argv, expected=0, diagnostic=None):
++    proc = subprocess.run(list(map(str, argv)), cwd=out, capture_output=True, text=True, timeout=180)
++    log = out / (name + '.log')
++    log.write_text(proc.stdout + proc.stderr)
++    commands.append({'name': name, 'argv': list(map(str, argv)), 'exit_code': proc.returncode,
++                     'expected_exit_code': expected, 'log': log.name, 'log_sha256': sha(log)})
++    if expected == 'nonzero':
++      valid = proc.returncode != 0
++    else:
++      valid = proc.returncode == expected
++    if not valid or diagnostic is not None and diagnostic not in proc.stdout + proc.stderr:
++      raise RuntimeError(f'{name}: unexpected result; see {log}')
++    return proc
++
++  def fixture(target, name, section, count, success, diagnostic):
++    cpu = 'cortex-m4' if target == 'f4' else 'cortex-m7'
++    fpu = 'fpv4-sp-d16' if target == 'f4' else 'fpv5-d16'
++    family, script = ('stm32f4', 'stm32f4_flash.ld') if target == 'f4' else ('stm32h7', 'stm32h7_app.ld')
++    stem = target + '-' + name
++    asm = out / (stem + '.s')
++    text_count = count if section == '.text' else 4
++    body = ('.syntax unified\n.thumb\n.section .isr_vector,"a",%progbits\n'
++            '.word _estack\n.word Reset_Handler\n.section .text,"ax",%progbits\n'
++            '.global Reset_Handler\n.thumb_func\nReset_Handler:\nbx lr\n' + f'.space {text_count - 2}\n')
++    if section != '.text':
++      body += f'.section {section},"aw",%nobits\n.space {count}\n'
++    asm.write_text(body)
++    flags = ['-mcpu=' + cpu, '-mthumb', '-mfloat-abi=hard', '-mfpu=' + fpu, '-nostdlib']
++    obj = out / (stem + '.o')
++    run(stem + '-assemble', [gcc, *flags, '-c', asm, '-o', obj])
++    run(stem + '-link', [gcc, *flags, '-T' + str(src / 'board' / family / script), obj,
++                        '-Wl,-Map,' + str(out / (stem + '.map')), '-o', out / (stem + '.elf')],
++        0 if success else 'nonzero', None if success else diagnostic)
++    checks.append({'name': stem, 'passed': True, 'kind': 'exact-boundary-accepted' if success else 'overflow-rejected'})
++
++  for target, name, section, budget, step, diagnostic in (
++    ('f4', 'flash', '.text', 1024 * 1024 - 16 * 1024 - 136 - 8, 4, 'application overlaps signature tail'),
++    ('f4', 'static', '.bss', 128 * 1024 - 8192 - 8, 4, 'static RAM overlaps reserved stack'),
++    ('h7', 'flash', '.text', 1024 * 1024 - 128 * 1024 - 136 - 8, 4, 'application overlaps signature tail'),
++    ('h7', 'static-heap', '.bss', 128 * 1024 - 1024 - 512, 8, 'static RAM/heap overlaps reserved stack'),
++    ('h7', 'sram4-rx', '.sram4', 8192 - 4, 4, 'SRAM4 RX overlaps boot cookie'),
++    ('h7', 'sram4-tx', '.sram4.audio_tx', 8192 - 4, 4, 'SRAM4 TX overlaps fault cookie'),
++  ):
++    fixture(target, name + '-exact', section, budget, True, diagnostic)
++    fixture(target, name + '-overflow', section, budget + step, False, diagnostic)
++
++  def audit_command(target, build, stack, elf, report):
++    return [sys.executable, audit, '--target', target, '--elf', elf, '--map', build / 'main.map',
++            '--raw', build / 'main.bin', '--signed', build / 'main.bin.signed',
++            '--public-key', src / 'board/crypto/certs/debug.pub', '--stack-dir', stack, '--output', report]
++
++  for target in ('f4', 'h7'):
++    build = getattr(args, target + '_build').resolve()
++    for case, diagnostic in (
++      ('frame-overflow', 'single function exceeds reserved stack'),
++      ('unbounded-frame', 'unbounded stack allocation'),
++      ('direct-chain-overflow', 'known direct call chain exceeds reserved stack'),
++      ('recursive-chain', 'direct recursive call chain requires an explicit bound'),
++    ):
++      folder = out / (target + '-' + case)
++      folder.mkdir()
++      for path in [*build.glob('*.su'), *build.glob('*.ci')]:
++        shutil.copy2(path, folder / path.name)
++      if case == 'frame-overflow':
++        (folder / 'negative.su').write_text('fixture.c:1:1:overflow\t16384\tstatic\n')
++      elif case == 'unbounded-frame':
++        (folder / 'negative.su').write_text('fixture.c:1:1:unbounded\t16\tdynamic\n')
++      else:
++        frame = 5000 if target == 'f4' else 600
++        graph = ('graph: {\nnode: { title: "negative_a" label: "negative_a\\nfixture.c:1:1\\n' +
++                 str(frame) + ' bytes (static)" }\nnode: { title: "negative_b" label: "negative_b\\nfixture.c:2:1\\n' +
++                 str(frame) + ' bytes (static)" }\nedge: { sourcename: "negative_a" targetname: "negative_b" }\n')
++        if case == 'recursive-chain':
++          graph += 'edge: { sourcename: "negative_b" targetname: "negative_a" }\n'
++        (folder / 'negative.ci').write_text(graph + '}\n')
++      run(target + '-' + case, audit_command(target, build, folder, build / 'main.elf', folder / 'result.json'),
++          'nonzero', diagnostic)
++      checks.append({'name': target + '-' + case, 'passed': True, 'kind': 'audit-rejection'})
++    proof = out / (target + '-runtime-proof.json')
++    run(target + '-runtime-proof', [*audit_command(target, build, build, build / 'main.elf', proof),
++                                  '--require-runtime-proof'], 3)
++    data = json.loads(proof.read_text())
++    assert data['status'] == 'BLOCKED_RUNTIME_PROOF' and data['static_allocation_passed']
++    assert not data['stack']['worst_case_call_and_interrupt_depth_proven']
++    assert data['stack']['direct_callgraph']['unresolved_call_sites']
++    # Vector wrappers use IRQHandler, while their registered C callbacks use
++    # _IRQ_Handler. Neither spelling may silently vanish from entry reporting.
++    entries = {row['entry'] for row in data['stack']['direct_callgraph']['entry_known_direct_chains']}
++    vectors = {name for name in module.elf32(build / 'main.elf')['symbols'] if name.endswith('IRQHandler')}
++    unresolved = {row['entry'] for row in data['stack']['direct_callgraph']['vector_entries_without_compiler_frame']}
++    assert vectors and vectors <= entries | unresolved and not entries & unresolved and 'main' in entries
++    checks.append({'name': target + '-runtime-proof', 'passed': True, 'kind': 'unresolved-runtime-gate-rejected',
++                   'runtime_proof_completed': False})
++
++  # Deliberately alter only an ELF symbol value, keeping code/signature intact.
++  # The old mic-cookie overlap must be rejected rather than grandfathered in.
++  build = args.h7_build.resolve()
++  raw = bytearray((build / 'main.elf').read_bytes())
++  image = module.elf32(build / 'main.elf')
++  table = image['sections']['.symtab']
++  strings = next(s for s in image['sections'].values() if s['index'] == table['link'])
++  names = raw[strings['offset']:strings['offset'] + strings['size']]
++  changed = False
++  for pos in range(table['offset'], table['offset'] + table['size'], 16):
++    offset = struct.unpack_from('<I', raw, pos)[0]
++    if names[offset:].split(b'\0', 1)[0] == b'mic_tx_buf':
++      struct.pack_into('<I', raw, pos + 4, 0x38001770)
++      changed = True
++  assert changed
++  elf = out / 'inherited-overlap.elf'
++  elf.write_bytes(raw)
++  run('inherited-overlap-rejected', audit_command('h7', build, build, elf, out / 'bad-overlap.json'),
++      'nonzero', 'H7 cookie overlaps live data storage')
++  checks.append({'name': 'inherited-overlap-rejected', 'passed': True, 'kind': 'audit-rejection'})
++
++  result = {'schema': 'songplus-p8-resource-checks/v1', 'status': 'PASS', 'checks': checks,
++            'passed': len(checks), 'failed': 0, 'skipped': 0, 'commands': commands,
++            'runtime_resource_gate': 'BLOCKED', 'runtime_proof_completed': False,
++            'device_access': False, 'mcu_executed': False, 'deployable': False,
++            'source_inputs': {str(p.relative_to(src)): sha(p) for p in
++                              (Path(__file__).resolve(), audit, src / 'board/stm32f4/stm32f4_flash.ld',
++                               src / 'board/stm32h7/stm32h7_app.ld')}}
++  (out / 'result.json').write_text(json.dumps(result, indent=2) + '\n')
++  print(json.dumps({'status': 'PASS', 'passed': len(checks), 'runtime_resource_gate': 'BLOCKED'}))
++
++
++if __name__ == '__main__':
++  main()
+diff --git a/tools/p5/build_candidate.py b/tools/p5/build_candidate.py
+index 5a78a2b..bfce2c5 100644
+--- a/tools/p5/build_candidate.py
++++ b/tools/p5/build_candidate.py
+@@ -42,14 +42,14 @@ def main():
+   inputs = {str(p.relative_to(src)): sha(p) for p in sorted((src / 'board').rglob('*')) if p.is_file() and 'obj' not in p.relative_to(src).parts}
+   safety_inputs = {str(p.relative_to(dbc)): sha(p) for p in sorted((dbc / 'opendbc/safety').rglob('*.h'))}
+   identity = hashlib.sha256(json.dumps({'board': inputs, 'safety': safety_inputs}, sort_keys=True).encode()).hexdigest()
+-  version = f'P5-{a.target}-{identity[:12]}-{a.policy}'
++  version = f'P8-{a.target}-{identity[:12]}-{a.policy}'
+   gen = out / 'board/obj'
+   gen.mkdir(parents=True)
+   (gen / 'gitversion.h').write_text(f'#pragma once\nextern const uint8_t gitversion[{len(version)+1}];\n' +
+                                   f'const uint8_t gitversion[{len(version)+1}] = "{version}";\n')
+   family = 'stm32f4' if a.target == 'f4' else 'stm32h7'
+   startup = 'startup_stm32f413xx.s' if a.target == 'f4' else 'startup_stm32h7x5xx.s'
+-  linker = 'stm32f4_flash.ld' if a.target == 'f4' else 'stm32h7x5_flash.ld'
++  linker = 'stm32f4_flash.ld' if a.target == 'f4' else 'stm32h7_app.ld'
+   flags = ['-Wall', '-Wextra', '-Wstrict-prototypes', '-Werror', '-mlittle-endian', '-mthumb', '-nostdlib',
+            '-fno-builtin', '-std=gnu11', '-fsingle-precision-constant', '-Os', '-g', '-mfloat-abi=hard']
+   flags += (['-mcpu=cortex-m4', '-mfpu=fpv4-sp-d16', '-DSTM32F4', '-DSTM32F413xx',
+@@ -72,13 +72,11 @@ def main():
+   run([gcc, *flags, '-fstack-usage', '-fcallgraph-info=su', '-MMD', '-MF', str(out / 'main.d'), '-c', str(src / 'board/main.c'), '-o', str(out / 'main.o')])
+   run([gcc, *flags, '-c', str(src / 'board' / family / startup), '-o', str(out / 'startup.o')])
+   linkflags = ['-T' + str(src / 'board' / family / linker), '-Wl,-Map,' + str(out / 'main.map')]
+-  if a.target == 'h7':
+-    linkflags += ['-Wl,--section-start,.isr_vector=0x08020000']
+   run([gcc, *flags, *linkflags, str(out / 'startup.o'), str(out / 'main.o'), '-o', str(out / 'main.elf')])
+   run([objcopy, '-O', 'binary', str(out / 'main.elf'), str(out / 'main.bin')])
+   env = dict(os.environ, SETLEN='1')
+   run([sys.executable, str(src / 'board/crypto/sign.py'), str(out / 'main.bin'), str(out / 'main.bin.signed'), str(src / 'board/crypto/certs/debug')], env)
+-  result = dict(schema='songplus-p5-app-build/v1', target=a.target, policy=a.policy, compiler=compiler, version=version,
++  result = dict(schema='songplus-p8-app-build/v1', target=a.target, policy=a.policy, compiler=compiler, version=version,
+                 deployable=False, bootstub_built=False, signature_key='public upstream DEVELOPMENT key, including release-policy builds',
+                 source_identity=identity, protocol_inputs=hashes, board_inputs=inputs, safety_inputs=safety_inputs, commands=commands,
+                 artifacts={p.name: sha(p) for p in sorted(out.iterdir()) if p.is_file()})
+-- 
+2.40.1
+

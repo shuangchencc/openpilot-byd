@@ -1,0 +1,113 @@
+宋 PLUS 独立只读 CarState：踏板与巡航停车候选接入验收
+日期：2026-10-18（Asia/Shanghai）
+车辆：2023 宋 PLUS DM-i 冠军版 110 km 旗舰 PLUS
+
+结果
+三个候选已接入独立只读原型，55项本地测试通过，98段完整日志回放完成。
+gasPressed、brakePressed、cruiseState.standstill均保留empirical_candidate、
+candidate=true、vehicle_confirmed=false。ACC enabled/available仍为None，
+quality=unconfirmed；官方投影canValid始终false。
+本轮未连接或修改车机，未发CAN、实例化Panda、改控制器/safety或官方子模块。
+
+实现变化
+1. gasPressed：src0，0x342，DLC8，GAS_RAW byte0 >3。
+   新增原始整数信号，直接判阈值，不从旧gas标签或归一化浮点值推导。
+   gas的既有byte0*0.01解码保持不变，不复制旧软件的数值截断模式。
+2. brakePressed：src0，0x123，DLC8，bit43，即byte5 bit3。
+   新增独立接收消息，不由0x342刹车量代替；100Hz、100ms新鲜度窗口。
+   使用官方BYD checksum算法及byte6低4位COUNTER；这些布局来自此前日志
+   和公开参考，仅是已支持的候选，不证明车辆实际的失效处置或制动来源。
+3. cruiseState.standstill：src0，0x220，DLC8，bit8，即byte1 bit0。
+   50Hz、200ms新鲜度窗口；该消息checksum/counter未确认，不臆造完整性规则。
+   diagnostics明确两种检查均false；quality=available只表示报文被接收且新鲜。
+   不把此字段与车速零、车辆standstill、Auto Hold或实际ACC保持混为一谈。
+4. 官方投影支持嵌套cruiseState字段；主接口仍是nullable Snapshot.values。
+   None不投影成真实观测。官方schema的默认false无法表示未知，必须配合sidecar。
+
+三个候选各自保留quality和age_ns。未见报文、无效Event、错误DLC、已实现检查
+失败或超时均输出None，既不填false，也不借另一踏板/车速代替。
+仅接收原始src恰为0的帧，不清除高位，不混入sendcan或src2。
+当前共32个字段：5个supported_encoding、10个empirical_candidate、17个unconfirmed。
+后者包含cruise enabled/available/speed及车辆standstill，继续保持未知。
+gas/gear的过时证据备注同步到前轮追记，字节解码行为没有改变。
+
+基线与范围
+目标opendbc：b3bd79a659dae961af169a3baac723961f720133。
+导入upstream-openpilot/opendbc_repo的官方CANParser和CarState，使用固定目标venv。
+runtime启动时检查导入路径、提交与官方受跟踪源码；本次回放源码首尾哈希一致。
+接收DBC共8种消息，无发送定义、车辆注册、CarController、设备服务或安全放行。
+修改前源码已保存到results/songplus-readonly-candidates-20261018/before/；
+before-source-manifest.json记录其哈希与初版replay来源。
+
+本轮实际测试
+55 passed，0 failed，0 errors，0 skipped。
+其中原CarState测试27项，新候选测试17项，回放/来源工具测试11项。
+在禁止远程网络的macOS sandbox中执行，使用目标venv、-I/-B。
+覆盖raw0/3/4/255、独立消息的未知/假/真、错误源/DLC/Event、超时边界、
+checksum拒收/恢复、counter回绕/单跳容忍/累计拒收/恢复、220无推测性完整性检查、
+候选元数据、嵌套投影、ACC未知约束、双因果顺序、跨段尾帧及来源哈希漂移拒绝。
+测试中有意构造坏checksum，日志诊断不代表本次真实rlog发现坏帧。
+完整结果与测试时源码哈希：同结果目录tests.json、tests.log。
+
+回放输入与覆盖
+route：0000026f--584c284cef，98段；原rlog共1,091,731,052字节。
+98/98原始rlog、98/98缓存SHA256复核通过，并核对schema、提取器、导出与内容
+校验报告来源链。复用此前严格解压/Cap'n Proto验证，不冒称重新提取或运行旧车型代码。
+699,380个原CAN Event全部处理，无遗漏；11,196,637条src0帧送入独立过滤器。
+1,886,966条sendcan只统计排除，其余raw src不参与解码。
+698,956个旧carState，其中131个Event.valid/canValid不满足条件而排除。
+有效比较数698,825。三候选在全部旧状态采样点均有available观测，无缺报文、
+超时、坏帧或计数拒收造成的排除；这只描述本次正常日志，不替代故障测试。
+
+严格双因果回放结果
+CAN须同时在文件Event顺序上早于旧状态，且logMonoTime不晚于旧状态；
+跨段保留待处理帧，不排序、插值、平移时间，不使用timestamp-only提高一致率。
+正/负以旧标签为参考；它不是独立实车真值。
+
+字段                         比较数       TN       FP    FN       TP       不一致数
+gasPressed                   698825     388190      16    13     310606          29
+brakePressed                 698825     590750       8     1     108066           9
+cruiseState.standstill        698825     667677       0     0      31148           0
+
+gasPressed与brakePressed的29/9个差异与前轮原始字节双因果诊断一致，
+没有为了复现旧标签增加迟滞、延迟或额外门控；前轮timestamp-only诊断的零差异
+不替代本表。原有12个可解码字段的对照结果未变，17个其余未知字段继续为None。
+相对初版，除这三个新字段外的29个字段，其原有比较统计均未出现回归。
+
+ACC未知约束与投影
+enabled/available在698,956个旧状态时刻及最后尾帧后的快照中，共698,957次
+检查均为None/unconfirmed。没有将src2的相关枚举或常量基线填进这两个字段。
+官方投影在各分段首状态、候选值/quality变化和最终快照共检查3,780次，
+三个候选的true/false均有覆盖，嵌套字段与sidecar一致，canValid始终false。
+该投影用于观察编码，不可作为完整控制状态输入。
+
+新增接收消息诊断
+0x123：699,379帧均执行并通过候选checksum检查；counter不连续1次，
+未达官方累计拒收门槛，最终counter_fail=0。一个跳步不是零丢帧的证明。
+0x220：349,690帧可用；checksum_check_enabled=false、counter_check_enabled=false。
+本轮没有因此声称0x220完整性通过验证，也没有借用邻近消息的校验布局。
+
+证据追溯
+候选来源为此前PRESSED-ACC-FOLLOWUP.txt及对应JSON；runner通过显式参数核验
+研究报告、实际生成脚本和输入链，不运行这些研究脚本，也不把它们变成CarState
+运行依赖。历史verifier使用before目录副本核验，旧报告保留原样。
+前轮宽筛的DLC库存标志勘误单独引用；没有改变其数值结果或重称新留出数据。
+本轮全程回放复用既有行程，是新实现的验证，不是新行程/新车辆的独立验证。
+
+仍未解决
+油门阈值的实际踏板标度、驾驶员刹车与自动制动/保持的区别、双踏板优先级、
+cruiseState.standstill实际含义、ECU/物理总线身份、220完整性及车辆故障处置。
+需要继续按此前采样计划补同步事件与仪表标注；本轮未执行采集。
+车型物理语义已独立确认条目仍为0；MCU构建、C3XL运行、道路验证不在本轮范围。
+
+产物（相对仓库根目录）
+  songplus_readonly/carstate.py
+  songplus_readonly/dbc/byd_song_plus_readonly.dbc
+  songplus_readonly/replay.py
+  songplus_readonly/tests/
+  results/songplus-readonly-candidates-20261018/replay.json
+  results/songplus-readonly-candidates-20261018/replay-run.json、replay.log
+  results/songplus-readonly-candidates-20261018/tests.json、tests.log
+  results/songplus-readonly-candidates-20261018/implementation-changes.patch
+  results/songplus-readonly-candidates-20261018/verification.json
+离线执行命令见README.txt；初版历史验收VALIDATION.txt保留，不将其旧结论当最新状态。

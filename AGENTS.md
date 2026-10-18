@@ -21,7 +21,17 @@ Flagship PLUS, with the user's existing Mr One C3XL and Panda hardware.
 
 ## Current execution boundary
 
-- The current user request authorizes P7 offline maintenance packaging, pinned
+- The current request authorizes the first post-P7 offline integration stage:
+  version the existing Song PLUS receive-only prototype/DBC/evidence/replay,
+  add it to a pinned maintenance/CI layer, implement the runtime integration
+  boundary with injected offline providers, and repair resource-layout risks.
+  Keep the four official pins and historical P0-P7 patches unchanged. Candidate
+  signals remain unconfirmed and CarState.canValid remains false. Use cached
+  tools and the already prepared local Linux VM; no C3XL access, real device
+  discovery, CAN TX, system/slot changes, resets, flashing, or bootstub work.
+  A passing new offline report still grants no installation/runtime permission.
+  Record unresolved worst-case stack/target timing and physical identity gates.
+- The preceding P7 request authorized offline maintenance packaging, pinned
   dependency/patch replay, independent rebuilds, acceptance entry, CI and release
   gate accounting on P0–P6. Use local cached inputs and the prepared local Linux
   VM only. No C3XL access, hardware constructors/enumeration, real CAN TX,

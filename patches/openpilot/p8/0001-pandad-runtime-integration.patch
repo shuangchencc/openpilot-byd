@@ -1,0 +1,692 @@
+From 46baabd4f71a876d22ad61ab33bd9a873a194ebf Mon Sep 17 00:00:00 2001
+From: scarvito <7883167+scarvito@user.noreply.gitee.com>
+Date: Sun, 18 Oct 2026 13:07:16 +0800
+Subject: [PATCH] pandad: add offline-gated discovery owner and realtime cereal
+ adapters
+
+---
+ openpilot/selfdrive/pandad/SConscript         |   7 +-
+ .../pandad/compatibility/can_router.cc        |   7 +
+ .../pandad/compatibility/can_router.h         |   3 +
+ .../pandad/compatibility/msgq_adapter.cc      |  23 ++++
+ .../pandad/compatibility/msgq_adapter.h       |   9 ++
+ .../pandad/compatibility/pandad_runtime.cc    |   3 +-
+ .../pandad/compatibility/realtime_bridge.cc   |  64 +++++++++
+ .../pandad/compatibility/realtime_bridge.h    |  35 +++++
+ .../compatibility/runtime_integration.cc      | 128 ++++++++++++++++++
+ .../compatibility/runtime_integration.h       |  73 ++++++++++
+ .../tests/test_p8_build_contract.py           |  51 +++++++
+ .../tests/test_runtime_integration.cc         | 126 +++++++++++++++++
+ openpilot/selfdrive/pandad/main.cc            |   6 +
+ 13 files changed, 533 insertions(+), 2 deletions(-)
+ create mode 100644 openpilot/selfdrive/pandad/compatibility/msgq_adapter.cc
+ create mode 100644 openpilot/selfdrive/pandad/compatibility/msgq_adapter.h
+ create mode 100644 openpilot/selfdrive/pandad/compatibility/realtime_bridge.cc
+ create mode 100644 openpilot/selfdrive/pandad/compatibility/realtime_bridge.h
+ create mode 100644 openpilot/selfdrive/pandad/compatibility/runtime_integration.cc
+ create mode 100644 openpilot/selfdrive/pandad/compatibility/runtime_integration.h
+ create mode 100644 openpilot/selfdrive/pandad/compatibility/tests/test_p8_build_contract.py
+ create mode 100644 openpilot/selfdrive/pandad/compatibility/tests/test_runtime_integration.cc
+
+diff --git a/openpilot/selfdrive/pandad/SConscript b/openpilot/selfdrive/pandad/SConscript
+index 8e8aea7..877ce94 100644
+--- a/openpilot/selfdrive/pandad/SConscript
++++ b/openpilot/selfdrive/pandad/SConscript
+@@ -1,14 +1,19 @@
+ Import('env', 'arch', 'common', 'messaging')
+ 
+ if arch != "Darwin":
++  import libusb
++  pandad_env = env.Clone()
++  pandad_env.Append(CPPPATH=[libusb.INCLUDE_DIR], LIBPATH=[libusb.LIB_DIR], CPPDEFINES=["SONGPLUS_P8_INTEGRATION"])
+   libs = [common, messaging, 'pthread']
+   panda = env.Library('panda', ['panda.cc', 'spi.cc'])
+ 
+   compatibility = ['compatibility/' + name + '.cc' for name in [
+     'session_registry', 'can_codec', 'can_router', 'transport', 'control_session',
+     'pandad_runtime', 'cereal_bridge', 'pandad_loop', 'offline_entry',
++    'runtime_integration', 'realtime_bridge', 'msgq_adapter',
++    'usb_backend', 'libusb_api', 'spi_backend',
+   ]]
+-  env.Program('pandad', ['main.cc', 'pandad.cc', 'panda_safety.cc'] + compatibility, LIBS=[panda] + libs)
++  pandad_env.Program('pandad', ['main.cc', 'pandad.cc', 'panda_safety.cc'] + compatibility, LIBS=[panda] + libs + ['usb-1.0'])
+ 
+   if GetOption('extras'):
+     env.Program('tests/test_pandad_canprotocol', ['tests/test_pandad_canprotocol.cc'], LIBS=[panda] + libs)
+diff --git a/openpilot/selfdrive/pandad/compatibility/can_router.cc b/openpilot/selfdrive/pandad/compatibility/can_router.cc
+index 0020387..bc6d189 100644
+--- a/openpilot/selfdrive/pandad/compatibility/can_router.cc
++++ b/openpilot/selfdrive/pandad/compatibility/can_router.cc
+@@ -46,6 +46,13 @@ CanRouter::CanRouter(SessionRegistry &registry)
+   synchronize();
+ }
+ 
++void CanRouter::discard_tx_pending() {
++  for (auto &slot : slots_) {
++    add(counters_.epoch_tx_drops, slot.tx.size());
++    slot.tx.clear();
++  }
++}
++
+ void CanRouter::clear_all() {
+   for (auto &slot : slots_) {
+     add(counters_.epoch_tx_drops, slot.tx.size());
+diff --git a/openpilot/selfdrive/pandad/compatibility/can_router.h b/openpilot/selfdrive/pandad/compatibility/can_router.h
+index 183f2ac..b7d1557 100644
+--- a/openpilot/selfdrive/pandad/compatibility/can_router.h
++++ b/openpilot/selfdrive/pandad/compatibility/can_router.h
+@@ -132,6 +132,9 @@ public:
+   RouterResult<RouterDepths> inspect(std::uint64_t now_us);
+   // P4 barrier changes discard local work even if physical handles stay live.
+   void discard_pending() { clear_all(); }
++  // Ordinary noOutput/disabled operation suppresses TX, but still observes CAN.
++  // Connection/control epoch changes and faults continue to clear all queues.
++  void discard_tx_pending();
+   const RouterCounters &counters() const { return counters_; }
+   std::optional<RejectionEvidence> latest_rejection() const { return latest_rejection_; }
+ 
+diff --git a/openpilot/selfdrive/pandad/compatibility/msgq_adapter.cc b/openpilot/selfdrive/pandad/compatibility/msgq_adapter.cc
+new file mode 100644
+index 0000000..b4d95aa
+--- /dev/null
++++ b/openpilot/selfdrive/pandad/compatibility/msgq_adapter.cc
+@@ -0,0 +1,23 @@
++#include "msgq_adapter.h"
++#include <memory>
++#include <stdexcept>
++namespace openpilot::pandad::compatibility {
++ReceiveEvent bind_msgq_receiver(SubSocket &socket) {
++  return [&socket]() -> std::optional<MessageBytes> {
++    std::unique_ptr<Message> message(socket.receive(true));
++    if (!message) return std::nullopt;
++    if (!message->getSize() || message->getSize()>65536 || !message->getData()) throw std::invalid_argument("msgq message extent");
++    const auto *start=reinterpret_cast<const std::uint8_t *>(message->getData());
++    return MessageBytes(start,start+message->getSize());
++  };
++}
++PublishEvent bind_msgq_publishers(const std::array<PubSocket *,3> &sockets) {
++  for (const auto *socket:sockets) if (!socket) throw std::invalid_argument("missing publication socket");
++  return [sockets](OutputTopic topic,const MessageBytes &bytes) {
++    const auto index=static_cast<std::size_t>(topic);
++    if(index>=sockets.size() || bytes.empty() || bytes.size()>65536) return false;
++    // Pinned msgq send returns bytes sent, negative on failure.
++    return sockets[index]->send(reinterpret_cast<char *>(const_cast<std::uint8_t *>(bytes.data())),bytes.size()) == static_cast<int>(bytes.size());
++  };
++}
++}  // namespace openpilot::pandad::compatibility
+diff --git a/openpilot/selfdrive/pandad/compatibility/msgq_adapter.h b/openpilot/selfdrive/pandad/compatibility/msgq_adapter.h
+new file mode 100644
+index 0000000..304a5f9
+--- /dev/null
++++ b/openpilot/selfdrive/pandad/compatibility/msgq_adapter.h
+@@ -0,0 +1,9 @@
++#pragma once
++#include "realtime_bridge.h"
++#include "msgq/ipc.h"
++namespace openpilot::pandad::compatibility {
++// Caller owns all endpoints through the complete owner-loop lifetime. Endpoints
++// must use isolated names during tests. These functions never create/connect.
++ReceiveEvent bind_msgq_receiver(SubSocket &socket);
++PublishEvent bind_msgq_publishers(const std::array<PubSocket *,3> &sockets);
++}  // namespace openpilot::pandad::compatibility
+diff --git a/openpilot/selfdrive/pandad/compatibility/pandad_runtime.cc b/openpilot/selfdrive/pandad/compatibility/pandad_runtime.cc
+index 213567b..241341e 100644
+--- a/openpilot/selfdrive/pandad/compatibility/pandad_runtime.cc
++++ b/openpilot/selfdrive/pandad/compatibility/pandad_runtime.cc
+@@ -106,6 +106,7 @@ bool PandadRuntime::device_input(const DeviceInput &input, InputEpoch epoch) {
+ bool PandadRuntime::camera_input(const CameraInput &input, InputEpoch epoch) {
+   if (!epoch_matches(epoch)) { count(counters_.discarded_inputs); return false; }
+   if (!input.valid || input.ir_percent > 100 || !fresh(input.timestamp_us, kDeviceInputMaxAgeUs) ||
++      input.timestamp_us < control_started_us_ ||
+       (camera_ && input.timestamp_us <= camera_->timestamp_us)) {
+     invalid_input("INVALID_CAMERA_STATE"); return false;
+   }
+@@ -249,7 +250,7 @@ bool PandadRuntime::transmit_step(std::uint32_t slot) {
+   if (stopped_ || slot > 1) return false;
+   const auto state = snapshot();
+   if (!state.simulated_tx_allowed || !device_fresh() || !device_->started) {
+-    router_.discard_pending(); count(counters_.denied_tx); return false;
++    router_.discard_tx_pending(); count(counters_.denied_tx); return false;
+   }
+   auto intent = router_.take_tx(slot, clock_.now_us());
+   if (!intent || !router_.validate_intent(intent.value, clock_.now_us())) return false;
+diff --git a/openpilot/selfdrive/pandad/compatibility/realtime_bridge.cc b/openpilot/selfdrive/pandad/compatibility/realtime_bridge.cc
+new file mode 100644
+index 0000000..7703d3b
+--- /dev/null
++++ b/openpilot/selfdrive/pandad/compatibility/realtime_bridge.cc
+@@ -0,0 +1,64 @@
++#include "realtime_bridge.h"
++#include <cstring>
++#include <stdexcept>
++#include <capnp/message.h>
++#include <capnp/serialize.h>
++#include "openpilot/cereal/gen/cpp/log.capnp.h"
++namespace openpilot::pandad::compatibility {
++namespace {
++bool same(InputEpoch a,InputEpoch b) { return a.generation==b.generation && a.control_epoch==b.control_epoch; }
++void inspect(const MessageBytes &bytes,const std::function<void(cereal::Event::Reader)> &fn) {
++  if (bytes.empty() || bytes.size()>65536 || bytes.size()%8) throw std::invalid_argument("invalid message extent");
++  auto words=kj::heapArray<capnp::word>(bytes.size()/8); std::memcpy(words.begin(),bytes.data(),bytes.size());
++  capnp::ReaderOptions opts; opts.traversalLimitInWords=8192;opts.nestingLimit=16;
++  capnp::FlatArrayMessageReader reader(words,opts); fn(reader.getRoot<cereal::Event>());
++}
++}
++bool RealtimeSource::submit_params(MessageBytes bytes,InputEpoch acquired) {
++  if (params_ || bytes.empty() || bytes.size()>65536 || bytes.size()%8) return false;
++  params_=InputEnvelope{InputKind::CarParams,std::move(bytes),acquired}; return true;
++}
++std::optional<InputEnvelope> RealtimeSource::next(InputEpoch before_fetch) {
++  if (!fenced_ || !same(*fenced_,before_fetch)) {
++    // Bound draining to 16 per channel. A continuously producing/stuck queue
++    // fails closed instead of blocking or accepting old messages with new epoch.
++    for (auto &receive : channels_) {
++      if (!receive) throw std::invalid_argument("missing ingress channel");
++      bool empty=false;
++      for (std::size_t n=0;n<=kLoopMaxInputs;++n) {
++        if (!receive()) { empty=true; break; }
++        ++discarded_;
++      }
++      if (!empty) throw std::runtime_error("ingress fence backlog");
++    }
++    if (params_ && !same(params_->epoch,before_fetch)) { params_.reset();++discarded_; }
++    fenced_=before_fetch;
++    return std::nullopt;
++  }
++  if (params_) { auto item=std::move(params_);params_.reset();return item; }
++  for (unsigned count=0;count<channels_.size();++count) {
++    const auto index=cursor_++%channels_.size(); auto bytes=channels_[index](); if (!bytes) continue;
++    inspect(*bytes,[&](cereal::Event::Reader event) {
++      const std::array kinds{cereal::Event::DEVICE_STATE,cereal::Event::SELFDRIVE_STATE,
++                             cereal::Event::CABIN_CAMERA_STATE,cereal::Event::SENDCAN};
++      if (event.which()!=kinds[index]) throw std::invalid_argument("topic/event mismatch");
++      // Integration is an observation-only candidate. Keep old P6 simulation
++      // tests available, but never let this runtime adapter activate output.
++      if (event.isSendcan() || (event.isSelfdriveState() && event.getSelfdriveState().getEnabled()))
++        throw std::invalid_argument("noOutput ingress rejected");
++    });
++    return InputEnvelope{InputKind::Event,std::move(*bytes),before_fetch};
++  }
++  return std::nullopt;
++}
++bool RealtimeSink::publish(OutputTopic topic,const MessageBytes &bytes) {
++  if (!publish_) return false;
++  inspect(bytes,[&](cereal::Event::Reader event) {
++    const bool matches=(topic==OutputTopic::Can && event.isCan()) ||
++      (topic==OutputTopic::PandaStates && event.isPandaStates()) ||
++      (topic==OutputTopic::PeripheralState && event.isPeripheralState());
++    if (!matches) throw std::invalid_argument("publication topic/event mismatch");
++  });
++  return publish_(topic,bytes);
++}
++}  // namespace openpilot::pandad::compatibility
+diff --git a/openpilot/selfdrive/pandad/compatibility/realtime_bridge.h b/openpilot/selfdrive/pandad/compatibility/realtime_bridge.h
+new file mode 100644
+index 0000000..58d7b1c
+--- /dev/null
++++ b/openpilot/selfdrive/pandad/compatibility/realtime_bridge.h
+@@ -0,0 +1,35 @@
++#pragma once
++#include <array>
++#include <functional>
++#include <optional>
++#include "pandad_loop.h"
++namespace openpilot::pandad::compatibility {
++enum class IngressTopic { DeviceState, SelfdriveState, CabinCameraState, Sendcan };
++// The production-shaped boundary is independent of the transport. Receive is
++// strictly nonblocking and returns an owned copy. Real msgq bindings below are
++// constructed from already-open endpoints; none creates/connects a socket.
++using ReceiveEvent = std::function<std::optional<MessageBytes>()>;
++using PublishEvent = std::function<bool(OutputTopic,const MessageBytes &)>;
++class RealtimeSource final : public EventSource {
++public:
++  explicit RealtimeSource(std::array<ReceiveEvent,4> channels) : channels_(std::move(channels)) {}
++  std::optional<InputEnvelope> next(InputEpoch before_fetch) override;
++  // CarParams has no timestamp/epoch in the schema: a new owner-held submission
++  // is mandatory after every connection or control epoch. Never reload/cache it.
++  bool submit_params(MessageBytes bytes, InputEpoch acquired);
++  std::uint64_t discarded() const { return discarded_; }
++private:
++  std::array<ReceiveEvent,4> channels_;
++  std::optional<InputEpoch> fenced_;
++  std::optional<InputEnvelope> params_;
++  std::size_t cursor_ = 0;
++  std::uint64_t discarded_ = 0;
++};
++class RealtimeSink final : public EventSink {
++public:
++  explicit RealtimeSink(PublishEvent publish) : publish_(std::move(publish)) {}
++  bool publish(OutputTopic topic,const MessageBytes &bytes) override;
++private:
++  PublishEvent publish_;
++};
++}  // namespace openpilot::pandad::compatibility
+diff --git a/openpilot/selfdrive/pandad/compatibility/runtime_integration.cc b/openpilot/selfdrive/pandad/compatibility/runtime_integration.cc
+new file mode 100644
+index 0000000..a7e1255
+--- /dev/null
++++ b/openpilot/selfdrive/pandad/compatibility/runtime_integration.cc
+@@ -0,0 +1,128 @@
++#include "runtime_integration.h"
++#include <limits>
++#include <iostream>
++#include <stdexcept>
++namespace openpilot::pandad::compatibility {
++std::unique_ptr<OwnedTransport> InjectedTransportFactory::open(const DiscoveryItem &item, const SessionBinding &binding) {
++  if (!(item.identity == binding.expected) || binding.safety_config_semantics != "noOutput" ||
++      item.identity.identity.rfind("fixture:",0) != 0) return nullptr;
++  auto owned = std::make_unique<OwnedTransport>();
++  if (item.identity.transport == "USB") {
++    if (!item.usb_alt0_verified) return nullptr;
++    auto api = provider_.usb(item);
++    if (!api) return nullptr;
++    auto usb = std::make_unique<UsbBackend>(std::move(api));
++    const auto type = item.identity.board_type == "DOS" ? 6U : 7U;
++    // Explicit activation applies ONLY to the caller's injected fake API. No
++    // native factory or real profile is reachable through this integration.
++    if (usb->open_bound({item.identity.identity,static_cast<std::uint16_t>(type),true},true) != Status::Ok) return nullptr;
++    owned->backend = std::move(usb);
++  } else if (item.identity.transport == "SPI") {
++    if (!item.spi_first_request_id) return nullptr;
++    owned->spi_io = provider_.spi(item);
++    if (!owned->spi_io) return nullptr;
++    owned->backend = std::make_unique<SpiBackend>(*owned->spi_io,clock_,item.spi_first_request_id);
++  } else return nullptr;
++  owned->transport = std::make_unique<Transport>(*owned->backend,clock_);
++  return owned;
++}
++RuntimeIntegration::RuntimeIntegration(const SessionProfile &profile, Clock &clock, DiscoveryProvider &discovery,
++                                       InjectedTransportFactory &factory, RealtimeSource &source, RealtimeSink &sink)
++  : profile_(profile), clock_(clock), discovery_(discovery), factory_(factory), runtime_(profile,clock), loop_(runtime_,clock,source,sink) {}
++void RuntimeIntegration::retire(const char *reason) {
++  // Runtime may still hold pointers. Reconcile/cancel BEFORE freeing owners.
++  runtime_.invalid_input(reason);
++  runtime_.reconcile({},{{nullptr,nullptr}});
++  for (auto &handle : handles_) handle.reset();
++  nonces_ = {}; tokens_ = {}; usb_alt0_ = {}; spi_ids_ = {};
++}
++bool RuntimeIntegration::refresh() {
++  if (stopping_ || profile_.binding_status != "SYNTHETIC_BOUND") return false;
++  try {
++    const auto inventory = discovery_.snapshot();
++    const auto now = clock_.now_us();
++    if (!inventory.revision || inventory.revision < revision_ || !inventory.observed_us ||
++        inventory.observed_us > now || now-inventory.observed_us >= kLoopMaxGapUs ||
++        inventory.observed_us < observed_us_ || inventory.items.size() != 2) {
++      retire("DISCOVERY_INVALID_OR_STALE"); return false;
++    }
++    std::array<const DiscoveryItem *,2> items{};
++    for (const auto &item : inventory.items) {
++      std::size_t slot = item.identity.identity == profile_.slots[0].expected.identity ? 0 : 1;
++      if (!(item.identity == profile_.slots[slot].expected) || items[slot] || item.handle_nonce.empty() ||
++          item.handle_nonce.size() > 128) { retire("DISCOVERY_IDENTITY_MISMATCH"); return false; }
++      items[slot] = &item;
++    }
++    if (!items[0] || !items[1] || items[0]->handle_nonce == items[1]->handle_nonce) {
++      retire("DISCOVERY_DUPLICATE_HANDLE"); return false;
++    }
++    const bool same = handles_[0] && handles_[1] && nonces_[0] == items[0]->handle_nonce && nonces_[1] == items[1]->handle_nonce;
++    if (inventory.revision == revision_ && !same) { retire("DISCOVERY_REVISION_REUSE"); return false; }
++    if (same) {
++      for (std::size_t slot=0;slot<2;++slot) {
++        if (items[slot]->usb_alt0_verified != usb_alt0_[slot] || items[slot]->spi_first_request_id != spi_ids_[slot]) {
++          retire("DISCOVERY_ACTIVATION_EVIDENCE_CHANGED"); return false;
++        }
++      }
++      if (!handles_[0]->transport->healthy() || !handles_[1]->transport->healthy() || !runtime_.sessions().group_available) {
++        retire("DISCOVERY_RETIRED_HANDLE"); return false;
++      }
++      revision_ = inventory.revision; observed_us_ = inventory.observed_us; return true;
++    }
++    // A changed group retires BOTH owners. No hot swap under an existing token.
++    // Demand fresh handle nonces for both; a removed/rejected handle never heals.
++    retire("DISCOVERY_GROUP_CHANGED");
++    for (const auto *item : items) {
++      if (consumed_.count(item->handle_nonce) || consumed_.size() > 126 || next_token_ > UINT64_MAX-2) return false;
++    }
++    // Reserve both before any opening: a partial failure consumes both handles.
++    for (const auto *item : items) consumed_.insert(item->handle_nonce);
++    revision_ = inventory.revision; observed_us_ = inventory.observed_us;
++    std::vector<SessionObservation> observations;
++    for (std::size_t slot=0;slot<2;++slot) {
++      tokens_[slot] = ++next_token_;
++      handles_[slot] = factory_.open(*items[slot],profile_.slots[slot]);
++      if (!handles_[slot]) { retire("DISCOVERY_OPEN_FAILED"); return false; }
++      nonces_[slot] = items[slot]->handle_nonce;
++      usb_alt0_[slot] = items[slot]->usb_alt0_verified;
++      spi_ids_[slot] = items[slot]->spi_first_request_id;
++      observations.push_back({items[slot]->identity,tokens_[slot]});
++    }
++    if (!runtime_.reconcile(observations,{{handles_[0]->transport.get(),handles_[1]->transport.get()}})) {
++      retire("DISCOVERY_RECONCILE_FAILED"); return false;
++    }
++    return true;
++  } catch (...) { retire("DISCOVERY_CALLBACK_EXCEPTION"); return false; }
++}
++LoopCycleResult RuntimeIntegration::cycle() {
++  if (!stopping_) refresh();
++  auto result = loop_.cycle();
++  if (result.shutdown) retire("OWNER_SHUTDOWN");
++  return result;
++}
++int pandad_runtime_offline_main() {
++  struct FixtureClock final : Clock { std::uint64_t now_us() override { return 1000000; } void wait_us(std::uint32_t) override {} } clock;
++  struct ForbiddenDiscovery final : DiscoveryProvider {
++    unsigned calls = 0;
++    DiscoverySnapshot snapshot() override { ++calls; throw std::logic_error("unbound discovery invoked"); }
++  } discovery;
++  struct ForbiddenIo final : OfflineIoProvider {
++    unsigned calls = 0;
++    std::unique_ptr<LibusbApi> usb(const DiscoveryItem &) override { ++calls; throw std::logic_error("USB provider invoked"); }
++    std::unique_ptr<SpiIo> spi(const DiscoveryItem &) override { ++calls; throw std::logic_error("SPI provider invoked"); }
++  } io;
++  InjectedTransportFactory factory(io,clock);
++  const ReceiveEvent empty=[] { return std::optional<MessageBytes>{}; };
++  RealtimeSource source({empty,empty,empty,empty});
++  unsigned publications=0;
++  RealtimeSink sink([&](OutputTopic,const MessageBytes &) { ++publications; return true; });
++  RuntimeIntegration owner(SessionProfile{},clock,discovery,factory,source,sink);
++  const auto cycle=owner.cycle();
++  if (cycle.callback_failed || discovery.calls || io.calls || publications!=3 || owner.sessions().group_available || owner.snapshot().real_tx_authorized) return 1;
++  owner.request_shutdown();
++  if (!owner.cycle().shutdown) return 1;
++  std::cout << "PASS p8_actual_main_unbound_owner_no_io\n"
++            << "{\"suite\":\"p8_actual_main\",\"passed\":1,\"failed\":0,\"skipped\":0,\"real_device_io\":false}\n";
++  return 0;
++}
++}  // namespace openpilot::pandad::compatibility
+diff --git a/openpilot/selfdrive/pandad/compatibility/runtime_integration.h b/openpilot/selfdrive/pandad/compatibility/runtime_integration.h
+new file mode 100644
+index 0000000..41cb4c3
+--- /dev/null
++++ b/openpilot/selfdrive/pandad/compatibility/runtime_integration.h
+@@ -0,0 +1,73 @@
++#pragma once
++#include <array>
++#include <memory>
++#include <set>
++#include <string>
++#include "pandad_loop.h"
++#include "realtime_bridge.h"
++#include "usb_backend.h"
++#include "spi_backend.h"
++
++namespace openpilot::pandad::compatibility {
++// A COMPLETE bounded discovery result; not an enumeration implementation.
++// Handles are opaque session nonces, never inferred from USB address/position.
++struct DiscoveryItem { SessionIdentity identity; std::string handle_nonce; bool usb_alt0_verified = false; std::uint32_t spi_first_request_id = 0; };
++struct DiscoverySnapshot { std::uint64_t revision = 0, observed_us = 0; std::vector<DiscoveryItem> items; };
++class DiscoveryProvider {
++public:
++  virtual ~DiscoveryProvider() = default;
++  virtual DiscoverySnapshot snapshot() = 0;
++};
++// This stage intentionally has no native provider. Implementations are supplied
++// only by offline fixtures. A real discovery/authentication/recovery boundary is
++// separate work; a USB descriptor is not evidence of MCU or application trust.
++class OfflineIoProvider {
++public:
++  virtual ~OfflineIoProvider() = default;
++  virtual std::unique_ptr<LibusbApi> usb(const DiscoveryItem &) = 0;
++  virtual std::unique_ptr<SpiIo> spi(const DiscoveryItem &) = 0;
++};
++struct OwnedTransport {
++  std::unique_ptr<SpiIo> spi_io;
++  std::unique_ptr<Backend> backend;
++  std::unique_ptr<Transport> transport;
++  ~OwnedTransport() { if (transport) transport->cancel(); }
++};
++class InjectedTransportFactory {
++public:
++  InjectedTransportFactory(OfflineIoProvider &provider, Clock &clock) : provider_(provider), clock_(clock) {}
++  std::unique_ptr<OwnedTransport> open(const DiscoveryItem &item, const SessionBinding &binding);
++private:
++  OfflineIoProvider &provider_; Clock &clock_;
++};
++// Explicit unbound fixture dispatch used by the real pandad executable.
++int pandad_runtime_offline_main();
++
++// Single owner for discovery, handle lifetime and the existing P4/P6 scheduler.
++// All public methods run on the serialized owner thread. It does not enumerate,
++// open sockets, install firmware, or create native I/O implementations.
++class RuntimeIntegration {
++public:
++  RuntimeIntegration(const SessionProfile &, Clock &, DiscoveryProvider &, InjectedTransportFactory &, RealtimeSource &, RealtimeSink &);
++  bool refresh();
++  LoopCycleResult cycle();
++  void request_shutdown() { stopping_ = true; loop_.request_shutdown(); }
++  InputEpoch capture() { return runtime_.capture(); }
++  ControlSnapshot snapshot() { return runtime_.snapshot(); }
++  SessionSnapshot sessions() const { return runtime_.sessions(); }
++  const RuntimeCounters &counters() const { return runtime_.counters(); }
++private:
++  void retire(const char *reason);
++  const SessionProfile profile_;
++  Clock &clock_; DiscoveryProvider &discovery_; InjectedTransportFactory &factory_;
++  PandadRuntime runtime_; PandadLoop loop_;
++  std::array<std::unique_ptr<OwnedTransport>,2> handles_;
++  std::array<std::string,2> nonces_;
++  std::array<std::uint64_t,2> tokens_{};
++  std::array<bool,2> usb_alt0_{};
++  std::array<std::uint32_t,2> spi_ids_{};
++  std::set<std::string> consumed_;
++  std::uint64_t revision_ = 0, next_token_ = 0, observed_us_ = 0;
++  bool stopping_ = false;
++};
++}  // namespace openpilot::pandad::compatibility
+diff --git a/openpilot/selfdrive/pandad/compatibility/tests/test_p8_build_contract.py b/openpilot/selfdrive/pandad/compatibility/tests/test_p8_build_contract.py
+new file mode 100644
+index 0000000..e8416ab
+--- /dev/null
++++ b/openpilot/selfdrive/pandad/compatibility/tests/test_p8_build_contract.py
+@@ -0,0 +1,51 @@
++#!/usr/bin/env python3
++"""Execute the actual SConscript with inert SCons/libusb bindings."""
++import json
++from pathlib import Path
++import sys
++from types import SimpleNamespace
++
++source = Path(__file__).resolve().parents[2] / 'SConscript'
++
++class Env:
++  def __init__(self, calls, clone=False):
++    self.calls = calls
++    self.clone = clone
++    self.options = {}
++  def Clone(self):
++    return Env(self.calls, True)
++  def Append(self, **options):
++    self.options.update(options)
++  def Library(self, name, sources):
++    self.calls.append(('library', name, sources, self.clone, dict(self.options), None))
++    return 'panda-library'
++  def Program(self, name, sources, LIBS):
++    self.calls.append(('program', name, sources, self.clone, dict(self.options), LIBS))
++
++cases = []
++sys.modules['libusb'] = SimpleNamespace(INCLUDE_DIR='pinned/include', LIB_DIR='pinned/lib')
++for platform in ('Darwin', 'Linux'):
++  calls = []
++  scope = dict(Import=lambda *args: None, GetOption=lambda name: True,
++               env=Env(calls), arch=platform, common='common', messaging='messaging')
++  exec(compile(source.read_text(), str(source), 'exec'), scope)
++  if platform == 'Darwin':
++    assert calls == []
++    case = 'p8_scons_darwin_preserves_original_exclusion'
++  else:
++    library, daemon, extras = calls
++    assert library[:3] == ('library', 'panda', ['panda.cc', 'spi.cc'])
++    assert daemon[1] == 'pandad' and daemon[3]
++    assert daemon[4]['LIBPATH'] == ['pinned/lib']
++    assert daemon[4]['CPPPATH'] == ['pinned/include']
++    assert daemon[4]['CPPDEFINES'] == ['SONGPLUS_P8_INTEGRATION']
++    assert daemon[5] == ['panda-library', 'common', 'messaging', 'pthread', 'usb-1.0']
++    assert 'compatibility/runtime_integration.cc' in daemon[2]
++    assert 'compatibility/msgq_adapter.cc' in daemon[2]
++    assert extras[1] == 'tests/test_pandad_canprotocol' and not extras[3]
++    assert extras[5] == ['panda-library', 'common', 'messaging', 'pthread']
++    case = 'p8_scons_daemon_pinned_usb_does_not_leak_to_extras'
++  cases.append(case)
++  print('PASS ' + case)
++print(json.dumps(dict(suite='p8_build_contract', passed=len(cases), failed=0,
++                      skipped=0, groups=cases, actual_scons_build=False)))
+diff --git a/openpilot/selfdrive/pandad/compatibility/tests/test_runtime_integration.cc b/openpilot/selfdrive/pandad/compatibility/tests/test_runtime_integration.cc
+new file mode 100644
+index 0000000..2180482
+--- /dev/null
++++ b/openpilot/selfdrive/pandad/compatibility/tests/test_runtime_integration.cc
+@@ -0,0 +1,126 @@
++#include "../runtime_integration.h"
++#include <algorithm>
++#include <cstring>
++#include <cstdlib>
++#include <deque>
++#include <iostream>
++#include <stdexcept>
++#include <capnp/message.h>
++#include <capnp/serialize.h>
++#include "openpilot/cereal/gen/cpp/log.capnp.h"
++#ifdef TEST_MSGQ_ADAPTER
++#include "../msgq_adapter.h"
++#include <filesystem>
++#include <unistd.h>
++#endif
++using namespace openpilot::pandad::compatibility;
++namespace {
++using Bytes=MessageBytes;
++std::size_t assertions=0;
++void check(bool ok,int line) { ++assertions;if(!ok)throw std::runtime_error("integration line "+std::to_string(line)); }
++#define CHECK(x) check(static_cast<bool>(x),__LINE__)
++struct TestClock final:Clock { std::uint64_t now=1000000;std::uint64_t now_us()override{return now;}void wait_us(std::uint32_t n)override{now+=n;} };
++Bytes pack(capnp::MallocMessageBuilder &builder){auto words=capnp::messageToFlatArray(builder);auto b=words.asBytes();return{b.begin(),b.end()};}
++Bytes event(unsigned kind,std::uint64_t time,bool enabled=false){capnp::MallocMessageBuilder builder;auto e=builder.initRoot<cereal::Event>();e.setValid(true);e.setLogMonoTime(time*1000);
++ if(kind==0){auto d=e.initDeviceState();d.setStarted(false);d.setFanSpeedPercentDesired(20);}
++ if(kind==1)e.initSelfdriveState().setEnabled(enabled);
++ if(kind==2)e.initCabinCameraState();
++ if(kind==3)e.initSendcan(0);
++ return pack(builder);}
++Bytes params(unsigned model=19){capnp::MallocMessageBuilder builder;auto c=builder.initRoot<cereal::CarParams>().initSafetyConfigs(2);for(unsigned s=0;s<2;++s)c[s].setSafetyModel(static_cast<cereal::CarParams::SafetyModel>(model));return pack(builder);}
++SessionProfile profile(bool spi=false){SessionProfile p;p.binding_status="SYNTHETIC_BOUND";
++ for(unsigned s=0;s<2;++s){p.slots[s].expected={s?"fixture:red":"fixture:dos",s?"RED_PANDA":"DOS",s?"H7":"F4",s?"fixture:H7":"fixture:F4",spi&&s?"SPI":"USB",kSessionProtocol,{{0,1,2},s==1,s==1,s==1,true,s==0,s==0,false},"fixture:app"};p.slots[s].safety_config_semantics="noOutput";}
++ p.roles={1,1,1,{0,1},0,0,kRoleUnsupported};return p;}
++struct BoardState { unsigned opens=0,closes=0,transfers=0,tx=0,heartbeat_on=0;bool fail_open=false;std::vector<unsigned> controls;std::deque<Bytes> rx; };
++struct FakeUsb final:LibusbApi {
++ std::shared_ptr<BoardState> state;SessionIdentity identity;
++ FakeUsb(std::shared_ptr<BoardState> s,SessionIdentity i):state(std::move(s)),identity(std::move(i)){}
++ int initialize()override{return 0;}
++ int enumerate(std::vector<UsbDeviceInfo>&out)override{out={{1,0xbbaa,0xddcc,static_cast<std::uint16_t>((identity.board_type=="DOS"?6:7)<<8),1,true,{{0,0,{{0x81,2,64},{2,2,64},{3,2,64}}}}}};return 0;}
++ int open(UsbDeviceId,UsbHandle &h)override{++state->opens;h=1;return state->fail_open?kUsbIo:0;}
++ int serial(UsbHandle,std::uint8_t,std::string &out,std::uint32_t)override{out=identity.identity;return 0;}
++ int claim(UsbHandle,int)override{return 0;}
++ int control(UsbHandle,std::uint8_t type,std::uint8_t request,std::uint16_t value,std::uint16_t,std::uint8_t *data,std::uint16_t length,std::uint32_t ms)override{
++  CHECK(ms<=5);++state->transfers;state->controls.push_back(request);
++  if(!(type&0x80)){CHECK(request==0xdc||request==0xdf||request==0xf3||request==0xb1);if(request==0xdc)CHECK(value==19);if(request==0xf3)state->heartbeat_on+=value!=0;return 0;}
++  std::memset(data,0,length);
++  if(request==0xd5){CHECK(length==16);const Bytes cap{'F','4','C','1',1,0,16,0,31,0,0,0,7,0,0,0};std::copy(cap.begin(),cap.end(),data);}
++  else if(request==0xd2){CHECK(length==48);data[28]=1;data[30]=2;data[31]=19;data[47]=75;}
++  else if(request==0xc2){CHECK(length==64);}
++  else if(request==0xb2){CHECK(length==2);}
++  else CHECK(false);
++  return length;
++ }
++ int bulk(UsbHandle,std::uint8_t endpoint,std::uint8_t *data,int size,int &actual,std::uint32_t ms)override{CHECK(ms<=5);++state->transfers;actual=0;if(endpoint==3)++state->tx;if(endpoint==0x81&&!state->rx.empty()){const auto bytes=state->rx.front();state->rx.pop_front();CHECK(bytes.size()<=static_cast<unsigned>(size));std::copy(bytes.begin(),bytes.end(),data);actual=bytes.size();}return 0;}
++ void release(UsbHandle,int)override{}void close(UsbHandle)override{++state->closes;}void shutdown()override{}
++};
++struct FakeSpi final:SpiIo {unsigned calls=0;Result exchange(const Bytes&,std::uint32_t)override{++calls;return{Status::Disconnected,0,{}};}};
++struct Provider final:OfflineIoProvider {
++ std::array<std::shared_ptr<BoardState>,2> state{{std::make_shared<BoardState>(),std::make_shared<BoardState>()}};unsigned calls=0,spi_calls=0;bool throws=false;
++ std::unique_ptr<LibusbApi> usb(const DiscoveryItem &item)override{++calls;if(throws)throw std::runtime_error("provider failure");return std::make_unique<FakeUsb>(state[item.identity.board_type=="DOS"?0:1],item.identity);}
++ std::unique_ptr<SpiIo> spi(const DiscoveryItem&)override{++spi_calls;return std::make_unique<FakeSpi>();}
++};
++struct Discovery final:DiscoveryProvider{DiscoverySnapshot value;unsigned calls=0;bool throws=false;DiscoverySnapshot snapshot()override{++calls;if(throws)throw std::runtime_error("discovery failure");return value;}};
++struct Rig {
++ TestClock clock;SessionProfile p;Discovery discovery;Provider io;InjectedTransportFactory factory{io,clock};std::array<std::deque<Bytes>,4> queues;
++ RealtimeSource source;std::vector<std::pair<OutputTopic,Bytes>> publications;bool fail_sink=false;
++ RealtimeSink sink;RuntimeIntegration owner;
++ explicit Rig(bool spi=false):p(profile(spi)),source({[this]{return receive(0);},[this]{return receive(1);},[this]{return receive(2);},[this]{return receive(3);}}),
++ sink([this](OutputTopic topic,const Bytes &bytes){publications.emplace_back(topic,bytes);return !fail_sink;}),owner(p,clock,discovery,factory,source,sink){fresh();}
++ std::optional<Bytes> receive(unsigned channel){if(queues[channel].empty())return std::nullopt;auto out=std::move(queues[channel].front());queues[channel].pop_front();return out;}
++ void fresh(){++discovery.value.revision;discovery.value.observed_us=clock.now;discovery.value.items.clear();for(unsigned s=0;s<2;++s)discovery.value.items.push_back({p.slots[s].expected,"nonce-"+std::to_string(discovery.value.revision)+"-"+std::to_string(s),true,static_cast<std::uint32_t>(1+discovery.value.revision)});}
++ void cycle(){++clock.now;discovery.value.observed_us=clock.now;owner.cycle();}
++ void ready(){CHECK(owner.refresh());cycle();++clock.now;queues[0].push_back(event(0,clock.now));cycle();CHECK(source.submit_params(params(),owner.capture()));cycle();for(unsigned i=0;i<20;++i)cycle();CHECK(owner.snapshot().panda_states_valid);}
++};
++}
++int main(){std::vector<std::string> cases;const auto test=[&](const char *name,const std::function<void()> &fn){fn();cases.push_back(name);std::cout<<"PASS "<<name<<'\n';};try{
++ test("p8_owner_exact_binding_real_usb_backend_health_cereal",[]{Rig r;r.ready();CHECK(r.io.calls==2);CHECK(!r.owner.snapshot().real_tx_authorized);CHECK(!r.owner.snapshot().simulated_tx_allowed);CHECK(r.publications.size()>20);CHECK(r.io.state[0]->tx+r.io.state[1]->tx==0);});
++ test("p8_discovery_order_never_assigns_roles",[]{Rig r;std::reverse(r.discovery.value.items.begin(),r.discovery.value.items.end());CHECK(r.owner.refresh());CHECK(r.owner.sessions().slots[0].binding.expected.board_type=="DOS");CHECK(r.owner.sessions().slots[1].binding.expected.board_type=="RED_PANDA");});
++ test("p8_identity_all_fields_rejected_before_factory",[]{for(unsigned n=0;n<8;++n){Rig r;auto &id=r.discovery.value.items[0].identity;switch(n){case 0:id.identity="fixture:replacement";break;case 1:id.board_type="RED_PANDA";break;case 2:id.mcu_family="H7";break;case 3:id.exact_mcu="fixture:other";break;case 4:id.transport="SPI";break;case 5:id.protocol_profile="old";break;case 6:id.application_signature="fixture:other";break;default:id.capabilities.fan=false;}CHECK(!r.owner.refresh());CHECK(r.io.calls==0);}});
++ test("p8_duplicate_extra_and_missing_inventory_fail_closed",[]{for(unsigned n=0;n<3;++n){Rig r;if(n==0)r.discovery.value.items[1]=r.discovery.value.items[0];if(n==1)r.discovery.value.items.push_back(r.discovery.value.items[0]);if(n==2)r.discovery.value.items.pop_back();CHECK(!r.owner.refresh());CHECK(r.io.calls==0);}});
++ test("p8_discovery_stale_future_revision_rollback",[]{for(unsigned n=0;n<4;++n){Rig r;CHECK(r.owner.refresh());if(n==0)r.discovery.value.observed_us=r.clock.now+1;if(n==1)r.clock.now+=kLoopMaxGapUs;if(n==2)r.discovery.value.revision=0;if(n==3)r.discovery.value.observed_us=0;CHECK(!r.owner.refresh());CHECK(!r.owner.sessions().group_available);CHECK(r.io.state[0]->closes==1);}});
++ test("p8_partial_open_cancels_owner_and_consumes_both_nonces",[]{Rig r;r.io.state[1]->fail_open=true;CHECK(!r.owner.refresh());CHECK(r.io.state[0]->closes==1);r.io.state[1]->fail_open=false;CHECK(!r.owner.refresh());CHECK(r.io.calls==2);r.fresh();CHECK(r.owner.refresh());});
++ test("p8_reconnect_requires_fresh_pair_and_new_epochs",[]{Rig r;CHECK(r.owner.refresh());const auto old=r.owner.capture();const auto original=r.discovery.value.items;r.discovery.value.items.pop_back();CHECK(!r.owner.refresh());r.discovery.value.items=original;++r.discovery.value.revision;CHECK(!r.owner.refresh());r.fresh();CHECK(r.owner.refresh());CHECK(r.owner.capture().generation>old.generation);CHECK(r.io.calls==4);});
++ test("p8_revision_reuse_cannot_swap_handle",[]{Rig r;CHECK(r.owner.refresh());r.discovery.value.items[0].handle_nonce="swapped";CHECK(!r.owner.refresh());CHECK(r.io.calls==2);});
++ test("p8_unbound_profile_never_calls_discovery",[]{TestClock c;Discovery d;Provider p;InjectedTransportFactory f(p,c);RealtimeSource source({[]{return std::optional<Bytes>{};},[]{return std::optional<Bytes>{};},[]{return std::optional<Bytes>{};},[]{return std::optional<Bytes>{};}});RealtimeSink sink([](auto,const auto&){return true;});RuntimeIntegration owner(SessionProfile{},c,d,f,source,sink);CHECK(!owner.refresh());owner.cycle();CHECK(d.calls==0&&p.calls==0);});
++ test("p8_nooutput_rejects_sendcan_and_enabled_before_transfer",[]{for(unsigned kind:{1U,3U}){Rig r;r.ready();++r.clock.now;r.queues[kind].push_back(event(kind,r.clock.now,true));const auto cycle=r.owner.cycle();CHECK(cycle.callback_failed);CHECK(!r.owner.snapshot().simulated_tx_allowed);CHECK(r.io.state[0]->tx+r.io.state[1]->tx==0);CHECK(r.io.state[0]->heartbeat_on+r.io.state[1]->heartbeat_on==0);}});
++ test("p8_wrong_topic_and_malformed_cereal_close_gate",[]{for(bool malformed:{false,true}){Rig r;r.ready();r.queues[0].push_back(malformed?Bytes{1,2,3}:event(2,r.clock.now));CHECK(r.owner.cycle().callback_failed);CHECK(!r.owner.snapshot().simulated_tx_allowed);}});
++ test("p8_epoch_fence_drops_old_queue_and_carparams",[]{Rig r;CHECK(r.owner.refresh());r.cycle();const auto old=r.owner.capture();CHECK(r.source.submit_params(params(),old));r.queues[0].push_back(event(0,r.clock.now));r.fresh();CHECK(r.owner.refresh());r.cycle();CHECK(r.source.discarded()==2);CHECK(!r.owner.snapshot().panda_states_valid);});
++ test("p8_fence_backlog_bounded_and_fail_closed",[]{Rig r;for(unsigned n=0;n<25;++n)r.queues[0].push_back(event(0,r.clock.now));const auto cycle=r.owner.cycle();CHECK(cycle.callback_failed);CHECK(r.queues[0].size()==8);CHECK(!r.owner.snapshot().simulated_tx_allowed);});
++ test("p8_params_slot_nooutput_safety_not_relaxed",[]{Rig r;CHECK(r.owner.refresh());r.cycle();++r.clock.now;r.queues[0].push_back(event(0,r.clock.now));r.cycle();CHECK(r.source.submit_params(params(35),r.owner.capture()));const auto cycle=r.owner.cycle();CHECK(cycle.rejected==1);CHECK(!r.owner.snapshot().simulated_tx_allowed);});
++ test("p8_shutdown_is_owner_serialized_cancels_no_rediscovery",[]{Rig r;r.ready();r.owner.request_shutdown();const auto calls=r.discovery.calls;CHECK(r.owner.cycle().shutdown);CHECK(r.discovery.calls==calls);CHECK(!r.owner.sessions().group_available);CHECK(r.io.state[0]->closes==1&&r.io.state[1]->closes==1);CHECK(!r.owner.refresh());});
++ test("p8_provider_and_publication_failure_close_group",[]{Rig a;a.io.throws=true;CHECK(!a.owner.refresh());CHECK(!a.owner.sessions().group_available);Rig b;b.ready();b.fail_sink=true;CHECK(b.owner.cycle().callback_failed);CHECK(!b.owner.snapshot().simulated_tx_allowed);});
++ test("p8_mixed_spi_usb_factory_inert_until_cycle",[]{Rig r(true);CHECK(r.owner.refresh());CHECK(r.io.calls==1&&r.io.spi_calls==1);CHECK(r.io.state[0]->transfers==0);r.cycle();CHECK(!r.owner.snapshot().panda_states_valid);CHECK(!r.owner.snapshot().simulated_tx_allowed);});
++ test("p8_factory_denies_alt_and_missing_spi_nonce",[]{Rig r;r.discovery.value.items[0].usb_alt0_verified=false;CHECK(!r.owner.refresh());CHECK(r.io.calls==0);Rig s(true);s.discovery.value.items[1].spi_first_request_id=0;CHECK(!s.owner.refresh());CHECK(s.io.spi_calls==0);});
++ test("p8_activation_evidence_revocation_retires_same_nonce",[]{Rig r;CHECK(r.owner.refresh());r.discovery.value.items[0].usb_alt0_verified=false;CHECK(!r.owner.refresh());CHECK(r.io.calls==2);CHECK(r.io.state[0]->closes==1);Rig s(true);CHECK(s.owner.refresh());++s.discovery.value.items[1].spi_first_request_id;CHECK(!s.owner.refresh());CHECK(s.io.spi_calls==1);});
++ test("p8_late_camera_from_previous_epoch_rejected",[]{Rig r;r.ready();const auto old_time=r.clock.now;++r.clock.now;r.fresh();CHECK(r.owner.refresh());r.cycle();r.queues[2].push_back(event(2,old_time));const auto result=r.owner.cycle();CHECK(result.rejected==1);CHECK(!r.owner.snapshot().simulated_tx_allowed);});
++ test("p8_ingress_bound_params_and_sink_type",[]{Rig r;CHECK(!r.source.submit_params(Bytes(65544),{}));CHECK(r.source.submit_params(params(),{}));CHECK(!r.source.submit_params(params(),{}));bool rejected=false;try{r.sink.publish(OutputTopic::Can,event(0,r.clock.now));}catch(...){rejected=true;}CHECK(rejected);});
++ test("p8_dual_usb_wire_to_actual_cereal_preserves_global_bus",[]{Rig r;r.ready();for(unsigned slot=0;slot<2;++slot){const CanFrame frame{0x11f+slot,slot,false,false,false,false,Bytes{1,2,3,4,5}};auto wire=encode_can_frame(frame,CanCapability::ClassicOnly,FrameDirection::Rx);CHECK(wire);r.io.state[slot]->rx.push_back(wire.value);}r.cycle();const auto &bytes=r.publications.back().second;auto words=kj::heapArray<capnp::word>(bytes.size()/8);std::memcpy(words.begin(),bytes.data(),bytes.size());capnp::FlatArrayMessageReader reader(words);auto e=reader.getRoot<cereal::Event>();CHECK(e.isCan()&&e.getValid());auto frames=e.getCan();CHECK(frames.size()==2);CHECK(frames[0].getSrc()==0&&frames[1].getSrc()==5);CHECK(frames[0].getAddress()==0x11f&&frames[1].getAddress()==0x120);CHECK(frames[0].getDat().size()==5&&frames[1].getDat()[4]==5);});
++ test("p8_nooutput_preserves_rx_fragment_across_cycles",[]{Rig r;r.ready();const CanFrame frame{0x11f,0,false,false,false,false,Bytes{1,2,3,4,5}};const auto wire=encode_can_frame(frame,CanCapability::ClassicOnly,FrameDirection::Rx);CHECK(wire);r.io.state[0]->rx.push_back(Bytes(wire.value.begin(),wire.value.begin()+3));r.cycle();r.io.state[0]->rx.push_back(Bytes(wire.value.begin()+3,wire.value.end()));r.cycle();const auto &bytes=r.publications.back().second;auto words=kj::heapArray<capnp::word>(bytes.size()/8);std::memcpy(words.begin(),bytes.data(),bytes.size());capnp::FlatArrayMessageReader reader(words);auto e=reader.getRoot<cereal::Event>();CHECK(e.isCan()&&e.getValid()&&e.getCan().size()==1);CHECK(e.getCan()[0].getAddress()==0x11f);CHECK(r.io.state[0]->tx+r.io.state[1]->tx==0);});
++ test("p8_reconnect_discards_old_rx_fragment",[]{Rig r;r.ready();const CanFrame frame{0x11f,0,false,false,false,false,Bytes{1,2,3,4,5}};const auto wire=encode_can_frame(frame,CanCapability::ClassicOnly,FrameDirection::Rx);CHECK(wire);r.io.state[0]->rx.push_back(Bytes(wire.value.begin(),wire.value.begin()+3));r.cycle();++r.clock.now;r.fresh();r.ready();r.io.state[0]->rx.push_back(Bytes(wire.value.begin()+3,wire.value.end()));r.cycle();const auto &bytes=r.publications.back().second;auto words=kj::heapArray<capnp::word>(bytes.size()/8);std::memcpy(words.begin(),bytes.data(),bytes.size());capnp::FlatArrayMessageReader reader(words);auto e=reader.getRoot<cereal::Event>();CHECK(e.isCan()&&e.getCan().size()==0);CHECK(r.io.state[0]->tx+r.io.state[1]->tx==0);});
++ test("p8_owner_consumed_handle_history_is_bounded",[]{Rig r;for(unsigned n=0;n<64;++n){if(n)r.fresh();CHECK(r.owner.refresh());}CHECK(r.io.calls==128);r.fresh();CHECK(!r.owner.refresh());CHECK(r.io.calls==128);CHECK(!r.owner.sessions().group_available);});
++ test("p8_owner_destruction_cancels_before_backend_release",[]{std::array<std::shared_ptr<BoardState>,2> state;unsigned before=0;{Rig r;r.ready();state=r.io.state;before=state[0]->transfers+state[1]->transfers;}CHECK(state[0]->closes==1&&state[1]->closes==1);CHECK(state[0]->transfers+state[1]->transfers==before);});
++ test("p8_discovery_exception_retires_live_handles",[]{Rig r;r.ready();r.discovery.throws=true;CHECK(!r.owner.refresh());CHECK(!r.owner.sessions().group_available);CHECK(r.io.state[0]->closes==1&&r.io.state[1]->closes==1);});
++ test("p8_actual_cereal_stale_future_inputs_rejected",[]{for(bool future:{false,true}){Rig r;r.ready();r.queues[0].push_back(event(0,future?r.clock.now+1:r.clock.now-kDeviceInputMaxAgeUs));auto cycle=r.owner.cycle();CHECK(cycle.rejected==1);CHECK(!r.owner.snapshot().simulated_tx_allowed);}});
++#ifdef TEST_MSGQ_ADAPTER
++ test("p8_actual_msgq_interface_nonblocking_owned_copy",[]{struct Socket:SubSocket{std::deque<Bytes> q;int connect(Context*,std::string,std::string,bool,bool,std::size_t)override{return 0;}void setTimeout(int)override{}Message*receive(bool nonblocking)override{CHECK(nonblocking);if(q.empty())return nullptr;auto m=new Message();m->init(reinterpret_cast<char*>(q.front().data()),q.front().size());q.pop_front();return m;}} socket;auto receive=bind_msgq_receiver(socket);CHECK(!receive());socket.q.push_back(event(0,1000000));auto bytes=receive();CHECK(bytes&&*bytes==event(0,1000000));bool rejected=false;try{bind_msgq_publishers({{nullptr,nullptr,nullptr}});}catch(...){rejected=true;}CHECK(rejected);});
++ test("p8_actual_msgq_private_shm_bidirectional",[]{
++  CHECK(std::getenv("P8_ISOLATED_MSGQ") && std::string(std::getenv("P8_ISOLATED_MSGQ"))=="1");
++  const std::string prefix="p8-"+std::to_string(getpid());const std::filesystem::path dir="/dev/shm/msgq_"+prefix;
++  CHECK(std::filesystem::create_directory(dir));CHECK(setenv("OPENPILOT_PREFIX",prefix.c_str(),1)==0);CHECK(unsetenv("CEREAL_FAKE")==0);
++  {
++   Context context;std::array<std::unique_ptr<PubSocket>,3> pubs;std::array<std::unique_ptr<SubSocket>,3> subs;
++   std::array<PubSocket*,3> raw{};
++   for(unsigned i=0;i<3;++i){const auto name="out-"+std::to_string(i);pubs[i].reset(PubSocket::create(&context,name,false,65536));subs[i].reset(SubSocket::create(&context,name,"127.0.0.1",false,false,65536));CHECK(pubs[i]&&subs[i]);raw[i]=pubs[i].get();}
++   RealtimeSink sink(bind_msgq_publishers(raw));
++   for(unsigned i=0;i<3;++i){capnp::MallocMessageBuilder builder;auto e=builder.initRoot<cereal::Event>();e.setLogMonoTime(1000000000);e.setValid(false);if(i==0)e.initCan(0);if(i==1)e.initPandaStates(2);if(i==2)e.initPeripheralState();const auto expected=pack(builder);CHECK(sink.publish(static_cast<OutputTopic>(i),expected));auto receive=bind_msgq_receiver(*subs[i]);auto actual=receive();CHECK(actual&&*actual==expected);CHECK(!receive());}
++   std::array<std::unique_ptr<PubSocket>,4> inpubs;std::array<std::unique_ptr<SubSocket>,4> insubs;std::array<ReceiveEvent,4> channels;
++   for(unsigned i=0;i<4;++i){const auto name="in-"+std::to_string(i);inpubs[i].reset(PubSocket::create(&context,name,false,65536));insubs[i].reset(SubSocket::create(&context,name,"127.0.0.1",false,false,65536));CHECK(inpubs[i]&&insubs[i]);channels[i]=bind_msgq_receiver(*insubs[i]);}
++   RealtimeSource source(channels);CHECK(!source.next({1,1}));auto bytes=event(0,1000000);CHECK(inpubs[0]->send(reinterpret_cast<char*>(bytes.data()),bytes.size())==static_cast<int>(bytes.size()));auto received=source.next({1,1});CHECK(received&&received->bytes==bytes&&received->epoch.generation==1);
++   CHECK(inpubs[0]->send(reinterpret_cast<char*>(bytes.data()),bytes.size())==static_cast<int>(bytes.size()));CHECK(!source.next({2,2}));CHECK(source.discarded()==1);CHECK(!source.next({2,2}));
++  }
++  CHECK(unsetenv("OPENPILOT_PREFIX")==0);CHECK(std::filesystem::remove_all(dir)==8);
++ });
++#endif
++ std::cout<<"{\"suite\":\"p8_runtime_integration\",\"passed\":"<<cases.size()<<",\"failed\":0,\"skipped\":0,\"assertions\":"<<assertions<<",\"real_device_io\":false,\"real_can_tx\":false,\"schema_changed\":false}\n";return 0;
++}catch(const std::exception &e){std::cerr<<e.what()<<'\n';return 1;}}
+diff --git a/openpilot/selfdrive/pandad/main.cc b/openpilot/selfdrive/pandad/main.cc
+index acfdae6..2e93579 100644
+--- a/openpilot/selfdrive/pandad/main.cc
++++ b/openpilot/selfdrive/pandad/main.cc
+@@ -2,6 +2,7 @@
+ #include <cstdlib>
+ #include <cstring>
+ #include "selfdrive/pandad/compatibility/offline_entry.h"
++#include "selfdrive/pandad/compatibility/runtime_integration.h"
+ 
+ #include "selfdrive/pandad/pandad.h"
+ #include "common/swaglog.h"
+@@ -13,6 +14,11 @@ int main(int argc, char *argv[]) {
+   if (argc == 2 && std::strcmp(argv[1], "--compat-offline") == 0) {
+     return openpilot::pandad::compatibility::pandad_compat_offline_main();
+   }
++#ifdef SONGPLUS_P8_INTEGRATION
++  if (argc == 2 && std::strcmp(argv[1], "--compat-runtime-offline") == 0) {
++    return openpilot::pandad::compatibility::pandad_runtime_offline_main();
++  }
++#endif
+   if (std::getenv("SONGPLUS_PANDA_PROFILE_JSON") != nullptr) return 2;
+   for (int i = 1; i < argc; ++i) {
+     if (std::strncmp(argv[i], "--compat-", 9) == 0) return 2;
+-- 
+2.40.1
+
