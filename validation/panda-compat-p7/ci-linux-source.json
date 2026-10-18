@@ -1,0 +1,134 @@
+{
+  "schema": "songplus-panda-ci/v1",
+  "mode": "contract",
+  "execution": "local shared CI entry (not proof of a GitHub Actions run)",
+  "started_at_utc": "2026-10-18T04:38:56.674188+00:00",
+  "status": "PASS",
+  "deployment_ready": false,
+  "commands": [
+    {
+      "name": "metadata-lock",
+      "argv": [
+        "/usr/bin/python3",
+        "-B",
+        "tools/songplus_compat.py",
+        "verify-lock",
+        "--metadata-only"
+      ],
+      "returncode": 0,
+      "expected_returncode": 0
+    },
+    {
+      "name": "help-root",
+      "argv": [
+        "/usr/bin/python3",
+        "-B",
+        "tools/songplus_compat.py",
+        "--help"
+      ],
+      "returncode": 0,
+      "expected_returncode": 0
+    },
+    {
+      "name": "help-verify-lock",
+      "argv": [
+        "/usr/bin/python3",
+        "-B",
+        "tools/songplus_compat.py",
+        "verify-lock",
+        "--help"
+      ],
+      "returncode": 0,
+      "expected_returncode": 0
+    },
+    {
+      "name": "help-replay",
+      "argv": [
+        "/usr/bin/python3",
+        "-B",
+        "tools/songplus_compat.py",
+        "replay",
+        "--help"
+      ],
+      "returncode": 0,
+      "expected_returncode": 0
+    },
+    {
+      "name": "help-validate",
+      "argv": [
+        "/usr/bin/python3",
+        "-B",
+        "tools/songplus_compat.py",
+        "validate",
+        "--help"
+      ],
+      "returncode": 0,
+      "expected_returncode": 0
+    },
+    {
+      "name": "help-release-check",
+      "argv": [
+        "/usr/bin/python3",
+        "-B",
+        "tools/songplus_compat.py",
+        "release-check",
+        "--help"
+      ],
+      "returncode": 0,
+      "expected_returncode": 0
+    },
+    {
+      "name": "help-inspect-runtime",
+      "argv": [
+        "/usr/bin/python3",
+        "-B",
+        "tools/songplus_compat.py",
+        "inspect-runtime",
+        "--help"
+      ],
+      "returncode": 0,
+      "expected_returncode": 0
+    },
+    {
+      "name": "maintenance-tests",
+      "argv": [
+        "/usr/bin/python3",
+        "-B",
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        "maintenance",
+        "-p",
+        "test_*.py",
+        "-v"
+      ],
+      "returncode": 0,
+      "expected_returncode": 0,
+      "tests_passed": 128
+    },
+    {
+      "name": "ci-tests",
+      "argv": [
+        "/usr/bin/python3",
+        "-B",
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        "tests",
+        "-p",
+        "test_panda_ci.py",
+        "-v"
+      ],
+      "returncode": 0,
+      "expected_returncode": 0,
+      "tests_passed": 21
+    }
+  ],
+  "sandbox": "linux-user-net-mount",
+  "failed": 0,
+  "skipped": 0,
+  "passed_commands": 9,
+  "completed_at_utc": "2026-10-18T04:38:57.612524+00:00"
+}

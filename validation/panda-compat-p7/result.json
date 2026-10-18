@@ -1,0 +1,927 @@
+{
+  "schema": "songplus-p7-offline-validation/v1",
+  "status": "PASS_OFFLINE_COMPATIBILITY",
+  "run_id": "p7-76aa82bd7265438da9e386106fe689d6",
+  "started_at_utc": "2026-10-18T04:38:47.399464+00:00",
+  "completed_at_utc": "2026-10-18T04:45:41.569132+00:00",
+  "lock_sha256": "3ee3704aeaad414e0024f7e4c246b58cea84c54a970ddba2ee3c4a346b6c5806",
+  "baselines": {
+    "upstream-openpilot": "35e78a9d9518855ec0dacec919e719624a28131f",
+    "upstream-openpilot/opendbc_repo": "b3bd79a659dae961af169a3baac723961f720133",
+    "upstream-openpilot/panda": "a59195163c32a3a375ea6c86715dc08fd0984c1b",
+    "upstream-openpilot/msgq_repo": "0e266c1dbcf7328beee3e57b4a8688555387c877"
+  },
+  "preflight": {
+    "status": "PASS",
+    "metadata_only": false,
+    "lock_sha256": "3ee3704aeaad414e0024f7e4c246b58cea84c54a970ddba2ee3c4a346b6c5806",
+    "checks": {
+      "metadata_files": 76,
+      "source_files": 824,
+      "dependency_files": 311
+    },
+    "device_access": false,
+    "deployment_ready": false
+  },
+  "maintenance_commit": "568a6317da3d7720cb632748ee852691c2583062",
+  "protected_maintenance_files_match_commit": true,
+  "fresh_child_reports": {
+    "p5": "/Users/shuang/Code/openpilot/songplus-port-lab/results/panda-firmware-p5/run-9_r9386i/result.json",
+    "p6": "/Users/shuang/Code/openpilot/songplus-port-lab/results/panda-compat-p6/run-pblns1mf/result.json"
+  },
+  "evidence": {
+    "source_replay": {
+      "path": "evidence/source_replay.json",
+      "sha256": "3e43210b6bfc84a94cfaf29a0b1c60787d6f1e7145c4206c0d22ae7e5d0ed47a",
+      "run_id": "p7-76aa82bd7265438da9e386106fe689d6",
+      "lock_sha256": "3ee3704aeaad414e0024f7e4c246b58cea84c54a970ddba2ee3c4a346b6c5806"
+    },
+    "contract": {
+      "path": "evidence/contract.json",
+      "sha256": "cd2e7d78b71ceced100b0b19002d52d692d62cd8a8fa2715cad058bde9029fc5",
+      "run_id": "p7-76aa82bd7265438da9e386106fe689d6",
+      "lock_sha256": "3ee3704aeaad414e0024f7e4c246b58cea84c54a970ddba2ee3c4a346b6c5806"
+    },
+    "p5": {
+      "path": "evidence/p5.json",
+      "sha256": "c90ca92ca7cd86795bf1ecc4d7f2a346379f0233b3796d7b9f9a079bbafb6fcb",
+      "run_id": "p7-76aa82bd7265438da9e386106fe689d6",
+      "lock_sha256": "3ee3704aeaad414e0024f7e4c246b58cea84c54a970ddba2ee3c4a346b6c5806"
+    },
+    "second_builds": {
+      "path": "evidence/second_builds.json",
+      "sha256": "a0555e0be9f4840f6655ab2fd9cba085881353fcdd2a9d04855e919ae2748ad9",
+      "run_id": "p7-76aa82bd7265438da9e386106fe689d6",
+      "lock_sha256": "3ee3704aeaad414e0024f7e4c246b58cea84c54a970ddba2ee3c4a346b6c5806"
+    },
+    "repro": {
+      "path": "evidence/repro.json",
+      "sha256": "0f6de60987324443df9b80b5cf6bb6b100529fb0e2d8c3f5ec903306ceb1e7bc",
+      "run_id": "p7-76aa82bd7265438da9e386106fe689d6",
+      "lock_sha256": "3ee3704aeaad414e0024f7e4c246b58cea84c54a970ddba2ee3c4a346b6c5806"
+    },
+    "p6": {
+      "path": "evidence/p6.json",
+      "sha256": "2030b4b042e19967d38782cea10abc31efca1f69ec538bfcf222fe1625463508",
+      "run_id": "p7-76aa82bd7265438da9e386106fe689d6",
+      "lock_sha256": "3ee3704aeaad414e0024f7e4c246b58cea84c54a970ddba2ee3c4a346b6c5806"
+    },
+    "artifacts": {
+      "path": "evidence/artifacts.json",
+      "sha256": "cd0c06124e85c39699251e71e4dd15c30f92a94bc26e9ed3ce444deb50e9b9e4",
+      "run_id": "p7-76aa82bd7265438da9e386106fe689d6",
+      "lock_sha256": "3ee3704aeaad414e0024f7e4c246b58cea84c54a970ddba2ee3c4a346b6c5806"
+    },
+    "gates": {
+      "path": "evidence/gates.json",
+      "sha256": "8acd3d678d8ef45954bbe62885166fd5d3be53e1ea1be355ce34b880b2dec9c5",
+      "run_id": "p7-76aa82bd7265438da9e386106fe689d6",
+      "lock_sha256": "3ee3704aeaad414e0024f7e4c246b58cea84c54a970ddba2ee3c4a346b6c5806"
+    }
+  },
+  "acceptance": [
+    {
+      "id": "A00",
+      "status": "PASS",
+      "executed": 4,
+      "failed": 0,
+      "skipped": 0,
+      "evidence_sha256": "2030b4b042e19967d38782cea10abc31efca1f69ec538bfcf222fe1625463508",
+      "run_id": "p7-76aa82bd7265438da9e386106fe689d6",
+      "lock_sha256": "3ee3704aeaad414e0024f7e4c246b58cea84c54a970ddba2ee3c4a346b6c5806"
+    },
+    {
+      "id": "A01",
+      "status": "PASS",
+      "executed": 13,
+      "failed": 0,
+      "skipped": 0,
+      "evidence_sha256": "2030b4b042e19967d38782cea10abc31efca1f69ec538bfcf222fe1625463508",
+      "run_id": "p7-76aa82bd7265438da9e386106fe689d6",
+      "lock_sha256": "3ee3704aeaad414e0024f7e4c246b58cea84c54a970ddba2ee3c4a346b6c5806"
+    },
+    {
+      "id": "A02",
+      "status": "PASS",
+      "executed": 4,
+      "failed": 0,
+      "skipped": 0,
+      "evidence_sha256": "2030b4b042e19967d38782cea10abc31efca1f69ec538bfcf222fe1625463508",
+      "run_id": "p7-76aa82bd7265438da9e386106fe689d6",
+      "lock_sha256": "3ee3704aeaad414e0024f7e4c246b58cea84c54a970ddba2ee3c4a346b6c5806"
+    },
+    {
+      "id": "A10",
+      "status": "PASS",
+      "executed": 6,
+      "failed": 0,
+      "skipped": 0,
+      "evidence_sha256": "2030b4b042e19967d38782cea10abc31efca1f69ec538bfcf222fe1625463508",
+      "run_id": "p7-76aa82bd7265438da9e386106fe689d6",
+      "lock_sha256": "3ee3704aeaad414e0024f7e4c246b58cea84c54a970ddba2ee3c4a346b6c5806"
+    },
+    {
+      "id": "A11",
+      "status": "PASS",
+      "executed": 24,
+      "failed": 0,
+      "skipped": 0,
+      "evidence_sha256": "2030b4b042e19967d38782cea10abc31efca1f69ec538bfcf222fe1625463508",
+      "run_id": "p7-76aa82bd7265438da9e386106fe689d6",
+      "lock_sha256": "3ee3704aeaad414e0024f7e4c246b58cea84c54a970ddba2ee3c4a346b6c5806"
+    },
+    {
+      "id": "A12",
+      "status": "PASS",
+      "executed": 7,
+      "failed": 0,
+      "skipped": 0,
+      "evidence_sha256": "2030b4b042e19967d38782cea10abc31efca1f69ec538bfcf222fe1625463508",
+      "run_id": "p7-76aa82bd7265438da9e386106fe689d6",
+      "lock_sha256": "3ee3704aeaad414e0024f7e4c246b58cea84c54a970ddba2ee3c4a346b6c5806"
+    },
+    {
+      "id": "A13",
+      "status": "PASS",
+      "executed": 5,
+      "failed": 0,
+      "skipped": 0,
+      "evidence_sha256": "2030b4b042e19967d38782cea10abc31efca1f69ec538bfcf222fe1625463508",
+      "run_id": "p7-76aa82bd7265438da9e386106fe689d6",
+      "lock_sha256": "3ee3704aeaad414e0024f7e4c246b58cea84c54a970ddba2ee3c4a346b6c5806"
+    },
+    {
+      "id": "A14",
+      "status": "PASS",
+      "executed": 4,
+      "failed": 0,
+      "skipped": 0,
+      "evidence_sha256": "2030b4b042e19967d38782cea10abc31efca1f69ec538bfcf222fe1625463508",
+      "run_id": "p7-76aa82bd7265438da9e386106fe689d6",
+      "lock_sha256": "3ee3704aeaad414e0024f7e4c246b58cea84c54a970ddba2ee3c4a346b6c5806"
+    },
+    {
+      "id": "A15",
+      "status": "PASS",
+      "executed": 5,
+      "failed": 0,
+      "skipped": 0,
+      "evidence_sha256": "2030b4b042e19967d38782cea10abc31efca1f69ec538bfcf222fe1625463508",
+      "run_id": "p7-76aa82bd7265438da9e386106fe689d6",
+      "lock_sha256": "3ee3704aeaad414e0024f7e4c246b58cea84c54a970ddba2ee3c4a346b6c5806"
+    },
+    {
+      "id": "A20",
+      "status": "PASS",
+      "executed": 20,
+      "failed": 0,
+      "skipped": 0,
+      "evidence_sha256": "2030b4b042e19967d38782cea10abc31efca1f69ec538bfcf222fe1625463508",
+      "run_id": "p7-76aa82bd7265438da9e386106fe689d6",
+      "lock_sha256": "3ee3704aeaad414e0024f7e4c246b58cea84c54a970ddba2ee3c4a346b6c5806"
+    },
+    {
+      "id": "A21",
+      "status": "PASS",
+      "executed": 10,
+      "failed": 0,
+      "skipped": 0,
+      "evidence_sha256": "2030b4b042e19967d38782cea10abc31efca1f69ec538bfcf222fe1625463508",
+      "run_id": "p7-76aa82bd7265438da9e386106fe689d6",
+      "lock_sha256": "3ee3704aeaad414e0024f7e4c246b58cea84c54a970ddba2ee3c4a346b6c5806"
+    },
+    {
+      "id": "A22",
+      "status": "PASS",
+      "executed": 10,
+      "failed": 0,
+      "skipped": 0,
+      "evidence_sha256": "2030b4b042e19967d38782cea10abc31efca1f69ec538bfcf222fe1625463508",
+      "run_id": "p7-76aa82bd7265438da9e386106fe689d6",
+      "lock_sha256": "3ee3704aeaad414e0024f7e4c246b58cea84c54a970ddba2ee3c4a346b6c5806"
+    },
+    {
+      "id": "A23",
+      "status": "PASS",
+      "executed": 2,
+      "failed": 0,
+      "skipped": 0,
+      "evidence_sha256": "2030b4b042e19967d38782cea10abc31efca1f69ec538bfcf222fe1625463508",
+      "run_id": "p7-76aa82bd7265438da9e386106fe689d6",
+      "lock_sha256": "3ee3704aeaad414e0024f7e4c246b58cea84c54a970ddba2ee3c4a346b6c5806"
+    },
+    {
+      "id": "A24",
+      "status": "PASS",
+      "executed": 26,
+      "failed": 0,
+      "skipped": 0,
+      "evidence_sha256": "2030b4b042e19967d38782cea10abc31efca1f69ec538bfcf222fe1625463508",
+      "run_id": "p7-76aa82bd7265438da9e386106fe689d6",
+      "lock_sha256": "3ee3704aeaad414e0024f7e4c246b58cea84c54a970ddba2ee3c4a346b6c5806"
+    },
+    {
+      "id": "A30",
+      "status": "PASS",
+      "executed": 10,
+      "failed": 0,
+      "skipped": 0,
+      "evidence_sha256": "2030b4b042e19967d38782cea10abc31efca1f69ec538bfcf222fe1625463508",
+      "run_id": "p7-76aa82bd7265438da9e386106fe689d6",
+      "lock_sha256": "3ee3704aeaad414e0024f7e4c246b58cea84c54a970ddba2ee3c4a346b6c5806"
+    },
+    {
+      "id": "A31",
+      "status": "PASS",
+      "executed": 10,
+      "failed": 0,
+      "skipped": 0,
+      "evidence_sha256": "2030b4b042e19967d38782cea10abc31efca1f69ec538bfcf222fe1625463508",
+      "run_id": "p7-76aa82bd7265438da9e386106fe689d6",
+      "lock_sha256": "3ee3704aeaad414e0024f7e4c246b58cea84c54a970ddba2ee3c4a346b6c5806"
+    },
+    {
+      "id": "A32",
+      "status": "PASS",
+      "executed": 22,
+      "failed": 0,
+      "skipped": 0,
+      "evidence_sha256": "2030b4b042e19967d38782cea10abc31efca1f69ec538bfcf222fe1625463508",
+      "run_id": "p7-76aa82bd7265438da9e386106fe689d6",
+      "lock_sha256": "3ee3704aeaad414e0024f7e4c246b58cea84c54a970ddba2ee3c4a346b6c5806"
+    },
+    {
+      "id": "A33",
+      "status": "PASS",
+      "executed": 26,
+      "failed": 0,
+      "skipped": 0,
+      "evidence_sha256": "2030b4b042e19967d38782cea10abc31efca1f69ec538bfcf222fe1625463508",
+      "run_id": "p7-76aa82bd7265438da9e386106fe689d6",
+      "lock_sha256": "3ee3704aeaad414e0024f7e4c246b58cea84c54a970ddba2ee3c4a346b6c5806"
+    },
+    {
+      "id": "A34",
+      "status": "PASS",
+      "executed": 14,
+      "failed": 0,
+      "skipped": 0,
+      "evidence_sha256": "2030b4b042e19967d38782cea10abc31efca1f69ec538bfcf222fe1625463508",
+      "run_id": "p7-76aa82bd7265438da9e386106fe689d6",
+      "lock_sha256": "3ee3704aeaad414e0024f7e4c246b58cea84c54a970ddba2ee3c4a346b6c5806"
+    },
+    {
+      "id": "A40",
+      "status": "PASS",
+      "executed": 18,
+      "failed": 0,
+      "skipped": 0,
+      "evidence_sha256": "2030b4b042e19967d38782cea10abc31efca1f69ec538bfcf222fe1625463508",
+      "run_id": "p7-76aa82bd7265438da9e386106fe689d6",
+      "lock_sha256": "3ee3704aeaad414e0024f7e4c246b58cea84c54a970ddba2ee3c4a346b6c5806"
+    },
+    {
+      "id": "A41",
+      "status": "PASS",
+      "executed": 12,
+      "failed": 0,
+      "skipped": 0,
+      "evidence_sha256": "2030b4b042e19967d38782cea10abc31efca1f69ec538bfcf222fe1625463508",
+      "run_id": "p7-76aa82bd7265438da9e386106fe689d6",
+      "lock_sha256": "3ee3704aeaad414e0024f7e4c246b58cea84c54a970ddba2ee3c4a346b6c5806"
+    },
+    {
+      "id": "A42",
+      "status": "PASS",
+      "executed": 14,
+      "failed": 0,
+      "skipped": 0,
+      "evidence_sha256": "2030b4b042e19967d38782cea10abc31efca1f69ec538bfcf222fe1625463508",
+      "run_id": "p7-76aa82bd7265438da9e386106fe689d6",
+      "lock_sha256": "3ee3704aeaad414e0024f7e4c246b58cea84c54a970ddba2ee3c4a346b6c5806"
+    },
+    {
+      "id": "A43",
+      "status": "PASS",
+      "executed": 11,
+      "failed": 0,
+      "skipped": 0,
+      "evidence_sha256": "2030b4b042e19967d38782cea10abc31efca1f69ec538bfcf222fe1625463508",
+      "run_id": "p7-76aa82bd7265438da9e386106fe689d6",
+      "lock_sha256": "3ee3704aeaad414e0024f7e4c246b58cea84c54a970ddba2ee3c4a346b6c5806"
+    },
+    {
+      "id": "A44",
+      "status": "PASS",
+      "executed": 6,
+      "failed": 0,
+      "skipped": 0,
+      "evidence_sha256": "2030b4b042e19967d38782cea10abc31efca1f69ec538bfcf222fe1625463508",
+      "run_id": "p7-76aa82bd7265438da9e386106fe689d6",
+      "lock_sha256": "3ee3704aeaad414e0024f7e4c246b58cea84c54a970ddba2ee3c4a346b6c5806"
+    },
+    {
+      "id": "A45",
+      "status": "PASS",
+      "executed": 49,
+      "failed": 0,
+      "skipped": 0,
+      "evidence_sha256": "2030b4b042e19967d38782cea10abc31efca1f69ec538bfcf222fe1625463508",
+      "run_id": "p7-76aa82bd7265438da9e386106fe689d6",
+      "lock_sha256": "3ee3704aeaad414e0024f7e4c246b58cea84c54a970ddba2ee3c4a346b6c5806"
+    },
+    {
+      "id": "A46",
+      "status": "PASS",
+      "executed": 14,
+      "failed": 0,
+      "skipped": 0,
+      "evidence_sha256": "2030b4b042e19967d38782cea10abc31efca1f69ec538bfcf222fe1625463508",
+      "run_id": "p7-76aa82bd7265438da9e386106fe689d6",
+      "lock_sha256": "3ee3704aeaad414e0024f7e4c246b58cea84c54a970ddba2ee3c4a346b6c5806"
+    },
+    {
+      "id": "A50",
+      "status": "PASS",
+      "executed": 2,
+      "failed": 0,
+      "skipped": 0,
+      "evidence_sha256": "c90ca92ca7cd86795bf1ecc4d7f2a346379f0233b3796d7b9f9a079bbafb6fcb",
+      "run_id": "p7-76aa82bd7265438da9e386106fe689d6",
+      "lock_sha256": "3ee3704aeaad414e0024f7e4c246b58cea84c54a970ddba2ee3c4a346b6c5806"
+    },
+    {
+      "id": "A51",
+      "status": "PASS",
+      "executed": 4,
+      "failed": 0,
+      "skipped": 0,
+      "evidence_sha256": "c90ca92ca7cd86795bf1ecc4d7f2a346379f0233b3796d7b9f9a079bbafb6fcb",
+      "run_id": "p7-76aa82bd7265438da9e386106fe689d6",
+      "lock_sha256": "3ee3704aeaad414e0024f7e4c246b58cea84c54a970ddba2ee3c4a346b6c5806"
+    },
+    {
+      "id": "A52",
+      "status": "PASS",
+      "executed": 38,
+      "failed": 0,
+      "skipped": 0,
+      "evidence_sha256": "c90ca92ca7cd86795bf1ecc4d7f2a346379f0233b3796d7b9f9a079bbafb6fcb",
+      "run_id": "p7-76aa82bd7265438da9e386106fe689d6",
+      "lock_sha256": "3ee3704aeaad414e0024f7e4c246b58cea84c54a970ddba2ee3c4a346b6c5806"
+    },
+    {
+      "id": "A53",
+      "status": "PASS",
+      "executed": 4,
+      "failed": 0,
+      "skipped": 0,
+      "evidence_sha256": "c90ca92ca7cd86795bf1ecc4d7f2a346379f0233b3796d7b9f9a079bbafb6fcb",
+      "run_id": "p7-76aa82bd7265438da9e386106fe689d6",
+      "lock_sha256": "3ee3704aeaad414e0024f7e4c246b58cea84c54a970ddba2ee3c4a346b6c5806"
+    },
+    {
+      "id": "A54",
+      "status": "PASS",
+      "executed": 129,
+      "failed": 0,
+      "skipped": 0,
+      "evidence_sha256": "c90ca92ca7cd86795bf1ecc4d7f2a346379f0233b3796d7b9f9a079bbafb6fcb",
+      "run_id": "p7-76aa82bd7265438da9e386106fe689d6",
+      "lock_sha256": "3ee3704aeaad414e0024f7e4c246b58cea84c54a970ddba2ee3c4a346b6c5806"
+    },
+    {
+      "id": "A55",
+      "status": "PASS",
+      "executed": 4,
+      "failed": 0,
+      "skipped": 0,
+      "evidence_sha256": "c90ca92ca7cd86795bf1ecc4d7f2a346379f0233b3796d7b9f9a079bbafb6fcb",
+      "run_id": "p7-76aa82bd7265438da9e386106fe689d6",
+      "lock_sha256": "3ee3704aeaad414e0024f7e4c246b58cea84c54a970ddba2ee3c4a346b6c5806"
+    },
+    {
+      "id": "A60",
+      "status": "PASS",
+      "executed": 36,
+      "failed": 0,
+      "skipped": 0,
+      "evidence_sha256": "2030b4b042e19967d38782cea10abc31efca1f69ec538bfcf222fe1625463508",
+      "run_id": "p7-76aa82bd7265438da9e386106fe689d6",
+      "lock_sha256": "3ee3704aeaad414e0024f7e4c246b58cea84c54a970ddba2ee3c4a346b6c5806"
+    },
+    {
+      "id": "A61",
+      "status": "PASS",
+      "executed": 8,
+      "failed": 0,
+      "skipped": 0,
+      "evidence_sha256": "2030b4b042e19967d38782cea10abc31efca1f69ec538bfcf222fe1625463508",
+      "run_id": "p7-76aa82bd7265438da9e386106fe689d6",
+      "lock_sha256": "3ee3704aeaad414e0024f7e4c246b58cea84c54a970ddba2ee3c4a346b6c5806"
+    },
+    {
+      "id": "A62",
+      "status": "PASS",
+      "executed": 20,
+      "failed": 0,
+      "skipped": 0,
+      "evidence_sha256": "2030b4b042e19967d38782cea10abc31efca1f69ec538bfcf222fe1625463508",
+      "run_id": "p7-76aa82bd7265438da9e386106fe689d6",
+      "lock_sha256": "3ee3704aeaad414e0024f7e4c246b58cea84c54a970ddba2ee3c4a346b6c5806"
+    },
+    {
+      "id": "A63",
+      "status": "PASS",
+      "executed": 23,
+      "failed": 0,
+      "skipped": 0,
+      "evidence_sha256": "2030b4b042e19967d38782cea10abc31efca1f69ec538bfcf222fe1625463508",
+      "run_id": "p7-76aa82bd7265438da9e386106fe689d6",
+      "lock_sha256": "3ee3704aeaad414e0024f7e4c246b58cea84c54a970ddba2ee3c4a346b6c5806"
+    },
+    {
+      "id": "A64",
+      "status": "PASS",
+      "executed": 16,
+      "failed": 0,
+      "skipped": 0,
+      "evidence_sha256": "2030b4b042e19967d38782cea10abc31efca1f69ec538bfcf222fe1625463508",
+      "run_id": "p7-76aa82bd7265438da9e386106fe689d6",
+      "lock_sha256": "3ee3704aeaad414e0024f7e4c246b58cea84c54a970ddba2ee3c4a346b6c5806"
+    },
+    {
+      "id": "A65",
+      "status": "PASS",
+      "executed": 24,
+      "failed": 0,
+      "skipped": 0,
+      "evidence_sha256": "2030b4b042e19967d38782cea10abc31efca1f69ec538bfcf222fe1625463508",
+      "run_id": "p7-76aa82bd7265438da9e386106fe689d6",
+      "lock_sha256": "3ee3704aeaad414e0024f7e4c246b58cea84c54a970ddba2ee3c4a346b6c5806"
+    },
+    {
+      "id": "A70",
+      "status": "PASS",
+      "executed": 6,
+      "failed": 0,
+      "skipped": 0,
+      "evidence_sha256": "8acd3d678d8ef45954bbe62885166fd5d3be53e1ea1be355ce34b880b2dec9c5",
+      "run_id": "p7-76aa82bd7265438da9e386106fe689d6",
+      "lock_sha256": "3ee3704aeaad414e0024f7e4c246b58cea84c54a970ddba2ee3c4a346b6c5806"
+    },
+    {
+      "id": "A71",
+      "status": "PASS",
+      "executed": 8,
+      "failed": 0,
+      "skipped": 0,
+      "evidence_sha256": "0f6de60987324443df9b80b5cf6bb6b100529fb0e2d8c3f5ec903306ceb1e7bc",
+      "run_id": "p7-76aa82bd7265438da9e386106fe689d6",
+      "lock_sha256": "3ee3704aeaad414e0024f7e4c246b58cea84c54a970ddba2ee3c4a346b6c5806"
+    },
+    {
+      "id": "A72",
+      "status": "PASS",
+      "executed": 41,
+      "failed": 0,
+      "skipped": 0,
+      "evidence_sha256": "cd2e7d78b71ceced100b0b19002d52d692d62cd8a8fa2715cad058bde9029fc5",
+      "run_id": "p7-76aa82bd7265438da9e386106fe689d6",
+      "lock_sha256": "3ee3704aeaad414e0024f7e4c246b58cea84c54a970ddba2ee3c4a346b6c5806"
+    }
+  ],
+  "release": {
+    "schema": "songplus-maintenance-release-gate/v1",
+    "offline_compatibility_complete": true,
+    "offline_cases_passed": 41,
+    "offline_cases_required": 41,
+    "offline_evidence_errors": [],
+    "run_id": "p7-76aa82bd7265438da9e386106fe689d6",
+    "lock_sha256": "3ee3704aeaad414e0024f7e4c246b58cea84c54a970ddba2ee3c4a346b6c5806",
+    "scopes": {
+      "offline_host_and_arm_build": true,
+      "mcu_hardware_execution": false,
+      "target_runtime": false,
+      "recovery": false,
+      "vehicle_validation": false
+    },
+    "deployment_ready": false,
+    "release_installable": false,
+    "permissions": {
+      "device_access": false,
+      "real_can_tx": false,
+      "runtime_launch": false,
+      "system_write": false,
+      "installation": false,
+      "panda_reset": false,
+      "firmware_flash": false,
+      "bootstub_replace": false,
+      "network_access": false,
+      "auto_build": false,
+      "auto_download": false,
+      "usb_role_write": false,
+      "dfu": false
+    },
+    "blockers": [
+      {
+        "id": "PHYSICAL_IDENTITY",
+        "status": "UNVERIFIED",
+        "detail": "DOS/F413 and external Panda physical identities and wiring remain unconfirmed."
+      },
+      {
+        "id": "TARGET_RUNTIME",
+        "status": "NOT_TESTED",
+        "detail": "C3XL OS/camera/USB/SPI/thermal runtime has not executed these candidates."
+      },
+      {
+        "id": "RECOVERY_CHAIN",
+        "status": "UNVERIFIED",
+        "detail": "Installed bootstub/app ABI, trusted signing and independently tested recovery are not established."
+      },
+      {
+        "id": "DRIVER_MONITORING",
+        "status": "MISSING_HARDWARE",
+        "detail": "C3XL was sold without a driver camera; equivalent validated driver monitoring is unresolved."
+      },
+      {
+        "id": "AUDIBLE_ALERTS",
+        "status": "UNVERIFIED",
+        "detail": "Required audible alert output and failure handling remain unvalidated."
+      },
+      {
+        "id": "VEHICLE_CONTROL_SAFETY",
+        "status": "UNAVAILABLE",
+        "detail": "Song PLUS controller, signal validation and dedicated independent safety are not implemented or vehicle-validated."
+      },
+      {
+        "id": "RESOURCE_RUNTIME_LIMITS",
+        "status": "UNRESOLVED",
+        "detail": "Worst-case nested stacks, physical MCU capacity and inherited H7 cookie/microphone overlap require separate resolution."
+      },
+      {
+        "id": "CANDIDATE_TRUST",
+        "status": "NONDEPLOYABLE",
+        "detail": "Both debug and nondebug candidates use the public development key; no deployment trust chain or install package exists."
+      }
+    ],
+    "deployment_blockers": [
+      {
+        "id": "PHYSICAL_IDENTITY",
+        "status": "UNVERIFIED",
+        "detail": "DOS/F413 and external Panda physical identities and wiring remain unconfirmed."
+      },
+      {
+        "id": "TARGET_RUNTIME",
+        "status": "NOT_TESTED",
+        "detail": "C3XL OS/camera/USB/SPI/thermal runtime has not executed these candidates."
+      },
+      {
+        "id": "RECOVERY_CHAIN",
+        "status": "UNVERIFIED",
+        "detail": "Installed bootstub/app ABI, trusted signing and independently tested recovery are not established."
+      },
+      {
+        "id": "DRIVER_MONITORING",
+        "status": "MISSING_HARDWARE",
+        "detail": "C3XL was sold without a driver camera; equivalent validated driver monitoring is unresolved."
+      },
+      {
+        "id": "AUDIBLE_ALERTS",
+        "status": "UNVERIFIED",
+        "detail": "Required audible alert output and failure handling remain unvalidated."
+      },
+      {
+        "id": "VEHICLE_CONTROL_SAFETY",
+        "status": "UNAVAILABLE",
+        "detail": "Song PLUS controller, signal validation and dedicated independent safety are not implemented or vehicle-validated."
+      },
+      {
+        "id": "RESOURCE_RUNTIME_LIMITS",
+        "status": "UNRESOLVED",
+        "detail": "Worst-case nested stacks, physical MCU capacity and inherited H7 cookie/microphone overlap require separate resolution."
+      },
+      {
+        "id": "CANDIDATE_TRUST",
+        "status": "NONDEPLOYABLE",
+        "detail": "Both debug and nondebug candidates use the public development key; no deployment trust chain or install package exists."
+      }
+    ]
+  },
+  "commands": [
+    {
+      "name": "ci-contract",
+      "argv": [
+        "/usr/bin/sandbox-exec",
+        "-f",
+        "/Users/shuang/Code/openpilot/songplus-port-lab/tools/panda_firmware_offline.sb",
+        "/Users/shuang/Code/openpilot/songplus-port-lab/upstream-openpilot/.venv/bin/python",
+        "-B",
+        "/Users/shuang/Code/openpilot/songplus-port-lab/tools/check_panda_ci.py",
+        "--mode",
+        "contract",
+        "--output",
+        "/Users/shuang/Code/openpilot/songplus-port-lab/results/panda-ci-p7-20261018-002/validation/contract"
+      ],
+      "exit_code": 0,
+      "log_sha256": "cd2e7d78b71ceced100b0b19002d52d692d62cd8a8fa2715cad058bde9029fc5"
+    },
+    {
+      "name": "p5",
+      "argv": [
+        "/Users/shuang/Code/openpilot/songplus-port-lab/upstream-openpilot/.venv/bin/python",
+        "/Users/shuang/Code/openpilot/songplus-port-lab/tools/validate_panda_firmware.py"
+      ],
+      "exit_code": 0,
+      "log_sha256": "a198eac053481e53857d7c4ac34b24a206c4944cb38b8b849c786c51b783a74f"
+    },
+    {
+      "name": "rebuild-f4-debug",
+      "argv": [
+        "/usr/bin/sandbox-exec",
+        "-f",
+        "/Users/shuang/Code/openpilot/songplus-port-lab/tools/panda_firmware_offline.sb",
+        "/Users/shuang/Code/openpilot/songplus-port-lab/upstream-openpilot/.venv/bin/python",
+        "/Users/shuang/Code/openpilot/songplus-port-lab/results/panda-ci-p7-20261018-002/validation/replay/panda/tools/p5/build_candidate.py",
+        "--source",
+        "/Users/shuang/Code/openpilot/songplus-port-lab/results/panda-ci-p7-20261018-002/validation/replay/panda",
+        "--opendbc",
+        "/Users/shuang/Code/openpilot/songplus-port-lab/results/panda-ci-p7-20261018-002/validation/replay/opendbc",
+        "--arm-prefix",
+        "/Users/shuang/Code/openpilot/songplus-port-lab/upstream-openpilot/.venv/bin",
+        "--output",
+        "/Users/shuang/Code/openpilot/songplus-port-lab/results/panda-ci-p7-20261018-002/validation/rebuild/f4-debug",
+        "--target",
+        "f4",
+        "--policy",
+        "debug"
+      ],
+      "exit_code": 0,
+      "log_sha256": "ff85a48c03a423b936fe504862413b8bfc6f7f35d3e41beaffb6d16040e8d344"
+    },
+    {
+      "name": "resources-f4-debug",
+      "argv": [
+        "/usr/bin/sandbox-exec",
+        "-f",
+        "/Users/shuang/Code/openpilot/songplus-port-lab/tools/panda_firmware_offline.sb",
+        "/Users/shuang/Code/openpilot/songplus-port-lab/upstream-openpilot/.venv/bin/python",
+        "/Users/shuang/Code/openpilot/songplus-port-lab/results/panda-ci-p7-20261018-002/validation/replay/panda/tests/p5/audit_resources.py",
+        "--target",
+        "f4",
+        "--elf",
+        "/Users/shuang/Code/openpilot/songplus-port-lab/results/panda-ci-p7-20261018-002/validation/rebuild/f4-debug/main.elf",
+        "--map",
+        "/Users/shuang/Code/openpilot/songplus-port-lab/results/panda-ci-p7-20261018-002/validation/rebuild/f4-debug/main.map",
+        "--raw",
+        "/Users/shuang/Code/openpilot/songplus-port-lab/results/panda-ci-p7-20261018-002/validation/rebuild/f4-debug/main.bin",
+        "--signed",
+        "/Users/shuang/Code/openpilot/songplus-port-lab/results/panda-ci-p7-20261018-002/validation/rebuild/f4-debug/main.bin.signed",
+        "--public-key",
+        "/Users/shuang/Code/openpilot/songplus-port-lab/results/panda-ci-p7-20261018-002/validation/replay/panda/board/crypto/certs/debug.pub",
+        "--stack-dir",
+        "/Users/shuang/Code/openpilot/songplus-port-lab/results/panda-ci-p7-20261018-002/validation/rebuild/f4-debug",
+        "--output",
+        "/Users/shuang/Code/openpilot/songplus-port-lab/results/panda-ci-p7-20261018-002/validation/rebuild/f4-debug/resources.json"
+      ],
+      "exit_code": 0,
+      "log_sha256": "59748c41f4bee8614d7c26d1fe82fa88ddbbd676ea28a1518fb0e553328afa73"
+    },
+    {
+      "name": "rebuild-f4-release",
+      "argv": [
+        "/usr/bin/sandbox-exec",
+        "-f",
+        "/Users/shuang/Code/openpilot/songplus-port-lab/tools/panda_firmware_offline.sb",
+        "/Users/shuang/Code/openpilot/songplus-port-lab/upstream-openpilot/.venv/bin/python",
+        "/Users/shuang/Code/openpilot/songplus-port-lab/results/panda-ci-p7-20261018-002/validation/replay/panda/tools/p5/build_candidate.py",
+        "--source",
+        "/Users/shuang/Code/openpilot/songplus-port-lab/results/panda-ci-p7-20261018-002/validation/replay/panda",
+        "--opendbc",
+        "/Users/shuang/Code/openpilot/songplus-port-lab/results/panda-ci-p7-20261018-002/validation/replay/opendbc",
+        "--arm-prefix",
+        "/Users/shuang/Code/openpilot/songplus-port-lab/upstream-openpilot/.venv/bin",
+        "--output",
+        "/Users/shuang/Code/openpilot/songplus-port-lab/results/panda-ci-p7-20261018-002/validation/rebuild/f4-release",
+        "--target",
+        "f4",
+        "--policy",
+        "release"
+      ],
+      "exit_code": 0,
+      "log_sha256": "4111ac3ea9537221e40403342768ab27d84f1fcb621a8c00e50611e7b93d1f1c"
+    },
+    {
+      "name": "resources-f4-release",
+      "argv": [
+        "/usr/bin/sandbox-exec",
+        "-f",
+        "/Users/shuang/Code/openpilot/songplus-port-lab/tools/panda_firmware_offline.sb",
+        "/Users/shuang/Code/openpilot/songplus-port-lab/upstream-openpilot/.venv/bin/python",
+        "/Users/shuang/Code/openpilot/songplus-port-lab/results/panda-ci-p7-20261018-002/validation/replay/panda/tests/p5/audit_resources.py",
+        "--target",
+        "f4",
+        "--elf",
+        "/Users/shuang/Code/openpilot/songplus-port-lab/results/panda-ci-p7-20261018-002/validation/rebuild/f4-release/main.elf",
+        "--map",
+        "/Users/shuang/Code/openpilot/songplus-port-lab/results/panda-ci-p7-20261018-002/validation/rebuild/f4-release/main.map",
+        "--raw",
+        "/Users/shuang/Code/openpilot/songplus-port-lab/results/panda-ci-p7-20261018-002/validation/rebuild/f4-release/main.bin",
+        "--signed",
+        "/Users/shuang/Code/openpilot/songplus-port-lab/results/panda-ci-p7-20261018-002/validation/rebuild/f4-release/main.bin.signed",
+        "--public-key",
+        "/Users/shuang/Code/openpilot/songplus-port-lab/results/panda-ci-p7-20261018-002/validation/replay/panda/board/crypto/certs/debug.pub",
+        "--stack-dir",
+        "/Users/shuang/Code/openpilot/songplus-port-lab/results/panda-ci-p7-20261018-002/validation/rebuild/f4-release",
+        "--output",
+        "/Users/shuang/Code/openpilot/songplus-port-lab/results/panda-ci-p7-20261018-002/validation/rebuild/f4-release/resources.json"
+      ],
+      "exit_code": 0,
+      "log_sha256": "9614971162ee90a04f0e79c161d0af278b88ad937ad3bfaa176cfbe1f92fbb24"
+    },
+    {
+      "name": "rebuild-h7-debug",
+      "argv": [
+        "/usr/bin/sandbox-exec",
+        "-f",
+        "/Users/shuang/Code/openpilot/songplus-port-lab/tools/panda_firmware_offline.sb",
+        "/Users/shuang/Code/openpilot/songplus-port-lab/upstream-openpilot/.venv/bin/python",
+        "/Users/shuang/Code/openpilot/songplus-port-lab/results/panda-ci-p7-20261018-002/validation/replay/panda/tools/p5/build_candidate.py",
+        "--source",
+        "/Users/shuang/Code/openpilot/songplus-port-lab/results/panda-ci-p7-20261018-002/validation/replay/panda",
+        "--opendbc",
+        "/Users/shuang/Code/openpilot/songplus-port-lab/results/panda-ci-p7-20261018-002/validation/replay/opendbc",
+        "--arm-prefix",
+        "/Users/shuang/Code/openpilot/songplus-port-lab/upstream-openpilot/.venv/bin",
+        "--output",
+        "/Users/shuang/Code/openpilot/songplus-port-lab/results/panda-ci-p7-20261018-002/validation/rebuild/h7-debug",
+        "--target",
+        "h7",
+        "--policy",
+        "debug"
+      ],
+      "exit_code": 0,
+      "log_sha256": "b6bc6832ea921306e08ef061b4550aa8166d70110aa2b7322261bd162e25720a"
+    },
+    {
+      "name": "resources-h7-debug",
+      "argv": [
+        "/usr/bin/sandbox-exec",
+        "-f",
+        "/Users/shuang/Code/openpilot/songplus-port-lab/tools/panda_firmware_offline.sb",
+        "/Users/shuang/Code/openpilot/songplus-port-lab/upstream-openpilot/.venv/bin/python",
+        "/Users/shuang/Code/openpilot/songplus-port-lab/results/panda-ci-p7-20261018-002/validation/replay/panda/tests/p5/audit_resources.py",
+        "--target",
+        "h7",
+        "--elf",
+        "/Users/shuang/Code/openpilot/songplus-port-lab/results/panda-ci-p7-20261018-002/validation/rebuild/h7-debug/main.elf",
+        "--map",
+        "/Users/shuang/Code/openpilot/songplus-port-lab/results/panda-ci-p7-20261018-002/validation/rebuild/h7-debug/main.map",
+        "--raw",
+        "/Users/shuang/Code/openpilot/songplus-port-lab/results/panda-ci-p7-20261018-002/validation/rebuild/h7-debug/main.bin",
+        "--signed",
+        "/Users/shuang/Code/openpilot/songplus-port-lab/results/panda-ci-p7-20261018-002/validation/rebuild/h7-debug/main.bin.signed",
+        "--public-key",
+        "/Users/shuang/Code/openpilot/songplus-port-lab/results/panda-ci-p7-20261018-002/validation/replay/panda/board/crypto/certs/debug.pub",
+        "--stack-dir",
+        "/Users/shuang/Code/openpilot/songplus-port-lab/results/panda-ci-p7-20261018-002/validation/rebuild/h7-debug",
+        "--output",
+        "/Users/shuang/Code/openpilot/songplus-port-lab/results/panda-ci-p7-20261018-002/validation/rebuild/h7-debug/resources.json"
+      ],
+      "exit_code": 0,
+      "log_sha256": "43af24c7ef2526f2e03d983769681f06a04c13005aab345b2ec6fce23287b2f9"
+    },
+    {
+      "name": "rebuild-h7-release",
+      "argv": [
+        "/usr/bin/sandbox-exec",
+        "-f",
+        "/Users/shuang/Code/openpilot/songplus-port-lab/tools/panda_firmware_offline.sb",
+        "/Users/shuang/Code/openpilot/songplus-port-lab/upstream-openpilot/.venv/bin/python",
+        "/Users/shuang/Code/openpilot/songplus-port-lab/results/panda-ci-p7-20261018-002/validation/replay/panda/tools/p5/build_candidate.py",
+        "--source",
+        "/Users/shuang/Code/openpilot/songplus-port-lab/results/panda-ci-p7-20261018-002/validation/replay/panda",
+        "--opendbc",
+        "/Users/shuang/Code/openpilot/songplus-port-lab/results/panda-ci-p7-20261018-002/validation/replay/opendbc",
+        "--arm-prefix",
+        "/Users/shuang/Code/openpilot/songplus-port-lab/upstream-openpilot/.venv/bin",
+        "--output",
+        "/Users/shuang/Code/openpilot/songplus-port-lab/results/panda-ci-p7-20261018-002/validation/rebuild/h7-release",
+        "--target",
+        "h7",
+        "--policy",
+        "release"
+      ],
+      "exit_code": 0,
+      "log_sha256": "1d3e05c484cf8948b0bfa15ba7556593333847416b0eb30e13570989cd760952"
+    },
+    {
+      "name": "resources-h7-release",
+      "argv": [
+        "/usr/bin/sandbox-exec",
+        "-f",
+        "/Users/shuang/Code/openpilot/songplus-port-lab/tools/panda_firmware_offline.sb",
+        "/Users/shuang/Code/openpilot/songplus-port-lab/upstream-openpilot/.venv/bin/python",
+        "/Users/shuang/Code/openpilot/songplus-port-lab/results/panda-ci-p7-20261018-002/validation/replay/panda/tests/p5/audit_resources.py",
+        "--target",
+        "h7",
+        "--elf",
+        "/Users/shuang/Code/openpilot/songplus-port-lab/results/panda-ci-p7-20261018-002/validation/rebuild/h7-release/main.elf",
+        "--map",
+        "/Users/shuang/Code/openpilot/songplus-port-lab/results/panda-ci-p7-20261018-002/validation/rebuild/h7-release/main.map",
+        "--raw",
+        "/Users/shuang/Code/openpilot/songplus-port-lab/results/panda-ci-p7-20261018-002/validation/rebuild/h7-release/main.bin",
+        "--signed",
+        "/Users/shuang/Code/openpilot/songplus-port-lab/results/panda-ci-p7-20261018-002/validation/rebuild/h7-release/main.bin.signed",
+        "--public-key",
+        "/Users/shuang/Code/openpilot/songplus-port-lab/results/panda-ci-p7-20261018-002/validation/replay/panda/board/crypto/certs/debug.pub",
+        "--stack-dir",
+        "/Users/shuang/Code/openpilot/songplus-port-lab/results/panda-ci-p7-20261018-002/validation/rebuild/h7-release",
+        "--output",
+        "/Users/shuang/Code/openpilot/songplus-port-lab/results/panda-ci-p7-20261018-002/validation/rebuild/h7-release/resources.json"
+      ],
+      "exit_code": 0,
+      "log_sha256": "445fb7b66e6d1f424f932bfa9c0beec4fb53da3f48f54c501fe54f15d2093ff2"
+    },
+    {
+      "name": "reproducibility",
+      "argv": [
+        "/usr/bin/sandbox-exec",
+        "-f",
+        "/Users/shuang/Code/openpilot/songplus-port-lab/tools/panda_firmware_offline.sb",
+        "/Users/shuang/Code/openpilot/songplus-port-lab/upstream-openpilot/.venv/bin/python",
+        "/Users/shuang/Code/openpilot/songplus-port-lab/maintenance/reproducibility.py",
+        "--first",
+        "/Users/shuang/Code/openpilot/songplus-port-lab/results/panda-firmware-p5/run-9_r9386i",
+        "--second",
+        "/Users/shuang/Code/openpilot/songplus-port-lab/results/panda-ci-p7-20261018-002/validation/rebuild",
+        "--public-key",
+        "/Users/shuang/Code/openpilot/songplus-port-lab/results/panda-ci-p7-20261018-002/validation/replay/panda/board/crypto/certs/debug.pub",
+        "--output",
+        "/Users/shuang/Code/openpilot/songplus-port-lab/results/panda-ci-p7-20261018-002/validation/repro.json"
+      ],
+      "exit_code": 0,
+      "log_sha256": "de4ad6b840447b05d5c3e6a8549544184f4bb7b4aca6f676323e15ec4d886404"
+    },
+    {
+      "name": "p6",
+      "argv": [
+        "/Users/shuang/Code/openpilot/songplus-port-lab/upstream-openpilot/.venv/bin/python",
+        "/Users/shuang/Code/openpilot/songplus-port-lab/tools/validate_panda_p6.py",
+        "--linux-instance",
+        "byd-recovery-311",
+        "--linux-root",
+        "/home/shuang.guest/songplus-p2-build"
+      ],
+      "exit_code": 0,
+      "log_sha256": "798d7405d4b32643eba369487f2fbbacf58486fcd65d27c2df95a8a28f45b0ce"
+    }
+  ],
+  "verified_child_counts": {
+    "p5": {
+      "arm_app_builds": 4,
+      "abi_targets": 2,
+      "abi_negative_compile_cases": 6,
+      "protocol_groups": 30,
+      "bxcan_groups": 24,
+      "fdcan_groups": 14,
+      "bsp_groups_including_compile_link": 23,
+      "capability_tests": 12,
+      "selected_safety_tests": 49,
+      "liveness_groups": 26,
+      "python_tests": 90,
+      "codec_groups": 13,
+      "codec_assertions": 47031,
+      "transport_groups": 59,
+      "spi_goldens": 5
+    },
+    "p6": {
+      "python_tests": 94,
+      "codec_groups": 13,
+      "codec_assertions": 47031,
+      "per_platform": {
+        "native_groups_before_runtime": 168,
+        "runtime_groups": 22,
+        "loop_groups": 10,
+        "compound_fault_groups": 22,
+        "native_groups_total": 222,
+        "safety_cases": 64,
+        "safety_assertions": 5086,
+        "classic_parity_comparisons": 30,
+        "native_cereal_messages": 11,
+        "cereal_cross_language_checks": 59
+      },
+      "platforms": [
+        "macos",
+        "linux"
+      ]
+    },
+    "scope": "verified recorded offline execution; MCU hardware, target runtime and vehicle remain unvalidated"
+  },
+  "counts_note": "Acceptance executed counts are overlapping evidence groups/checks, not additive test counts.",
+  "device_access": false,
+  "deployment_ready": false,
+  "remote_ci_executed": false,
+  "actual_mcu_executed": false,
+  "vehicle_validated": false
+}

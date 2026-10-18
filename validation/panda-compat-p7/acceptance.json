@@ -1,0 +1,423 @@
+{
+  "schema": "songplus-p7-acceptance/v1",
+  "run_id": "p7-76aa82bd7265438da9e386106fe689d6",
+  "lock_sha256": "3ee3704aeaad414e0024f7e4c246b58cea84c54a970ddba2ee3c4a346b6c5806",
+  "case_count": 41,
+  "passed": 41,
+  "failed": 0,
+  "skipped": 0,
+  "cases": [
+    {
+      "id": "A00",
+      "status": "PASS",
+      "executed": 4,
+      "failed": 0,
+      "skipped": 0,
+      "evidence_sha256": "2030b4b042e19967d38782cea10abc31efca1f69ec538bfcf222fe1625463508",
+      "run_id": "p7-76aa82bd7265438da9e386106fe689d6",
+      "lock_sha256": "3ee3704aeaad414e0024f7e4c246b58cea84c54a970ddba2ee3c4a346b6c5806"
+    },
+    {
+      "id": "A01",
+      "status": "PASS",
+      "executed": 13,
+      "failed": 0,
+      "skipped": 0,
+      "evidence_sha256": "2030b4b042e19967d38782cea10abc31efca1f69ec538bfcf222fe1625463508",
+      "run_id": "p7-76aa82bd7265438da9e386106fe689d6",
+      "lock_sha256": "3ee3704aeaad414e0024f7e4c246b58cea84c54a970ddba2ee3c4a346b6c5806"
+    },
+    {
+      "id": "A02",
+      "status": "PASS",
+      "executed": 4,
+      "failed": 0,
+      "skipped": 0,
+      "evidence_sha256": "2030b4b042e19967d38782cea10abc31efca1f69ec538bfcf222fe1625463508",
+      "run_id": "p7-76aa82bd7265438da9e386106fe689d6",
+      "lock_sha256": "3ee3704aeaad414e0024f7e4c246b58cea84c54a970ddba2ee3c4a346b6c5806"
+    },
+    {
+      "id": "A10",
+      "status": "PASS",
+      "executed": 6,
+      "failed": 0,
+      "skipped": 0,
+      "evidence_sha256": "2030b4b042e19967d38782cea10abc31efca1f69ec538bfcf222fe1625463508",
+      "run_id": "p7-76aa82bd7265438da9e386106fe689d6",
+      "lock_sha256": "3ee3704aeaad414e0024f7e4c246b58cea84c54a970ddba2ee3c4a346b6c5806"
+    },
+    {
+      "id": "A11",
+      "status": "PASS",
+      "executed": 24,
+      "failed": 0,
+      "skipped": 0,
+      "evidence_sha256": "2030b4b042e19967d38782cea10abc31efca1f69ec538bfcf222fe1625463508",
+      "run_id": "p7-76aa82bd7265438da9e386106fe689d6",
+      "lock_sha256": "3ee3704aeaad414e0024f7e4c246b58cea84c54a970ddba2ee3c4a346b6c5806"
+    },
+    {
+      "id": "A12",
+      "status": "PASS",
+      "executed": 7,
+      "failed": 0,
+      "skipped": 0,
+      "evidence_sha256": "2030b4b042e19967d38782cea10abc31efca1f69ec538bfcf222fe1625463508",
+      "run_id": "p7-76aa82bd7265438da9e386106fe689d6",
+      "lock_sha256": "3ee3704aeaad414e0024f7e4c246b58cea84c54a970ddba2ee3c4a346b6c5806"
+    },
+    {
+      "id": "A13",
+      "status": "PASS",
+      "executed": 5,
+      "failed": 0,
+      "skipped": 0,
+      "evidence_sha256": "2030b4b042e19967d38782cea10abc31efca1f69ec538bfcf222fe1625463508",
+      "run_id": "p7-76aa82bd7265438da9e386106fe689d6",
+      "lock_sha256": "3ee3704aeaad414e0024f7e4c246b58cea84c54a970ddba2ee3c4a346b6c5806"
+    },
+    {
+      "id": "A14",
+      "status": "PASS",
+      "executed": 4,
+      "failed": 0,
+      "skipped": 0,
+      "evidence_sha256": "2030b4b042e19967d38782cea10abc31efca1f69ec538bfcf222fe1625463508",
+      "run_id": "p7-76aa82bd7265438da9e386106fe689d6",
+      "lock_sha256": "3ee3704aeaad414e0024f7e4c246b58cea84c54a970ddba2ee3c4a346b6c5806"
+    },
+    {
+      "id": "A15",
+      "status": "PASS",
+      "executed": 5,
+      "failed": 0,
+      "skipped": 0,
+      "evidence_sha256": "2030b4b042e19967d38782cea10abc31efca1f69ec538bfcf222fe1625463508",
+      "run_id": "p7-76aa82bd7265438da9e386106fe689d6",
+      "lock_sha256": "3ee3704aeaad414e0024f7e4c246b58cea84c54a970ddba2ee3c4a346b6c5806"
+    },
+    {
+      "id": "A20",
+      "status": "PASS",
+      "executed": 20,
+      "failed": 0,
+      "skipped": 0,
+      "evidence_sha256": "2030b4b042e19967d38782cea10abc31efca1f69ec538bfcf222fe1625463508",
+      "run_id": "p7-76aa82bd7265438da9e386106fe689d6",
+      "lock_sha256": "3ee3704aeaad414e0024f7e4c246b58cea84c54a970ddba2ee3c4a346b6c5806"
+    },
+    {
+      "id": "A21",
+      "status": "PASS",
+      "executed": 10,
+      "failed": 0,
+      "skipped": 0,
+      "evidence_sha256": "2030b4b042e19967d38782cea10abc31efca1f69ec538bfcf222fe1625463508",
+      "run_id": "p7-76aa82bd7265438da9e386106fe689d6",
+      "lock_sha256": "3ee3704aeaad414e0024f7e4c246b58cea84c54a970ddba2ee3c4a346b6c5806"
+    },
+    {
+      "id": "A22",
+      "status": "PASS",
+      "executed": 10,
+      "failed": 0,
+      "skipped": 0,
+      "evidence_sha256": "2030b4b042e19967d38782cea10abc31efca1f69ec538bfcf222fe1625463508",
+      "run_id": "p7-76aa82bd7265438da9e386106fe689d6",
+      "lock_sha256": "3ee3704aeaad414e0024f7e4c246b58cea84c54a970ddba2ee3c4a346b6c5806"
+    },
+    {
+      "id": "A23",
+      "status": "PASS",
+      "executed": 2,
+      "failed": 0,
+      "skipped": 0,
+      "evidence_sha256": "2030b4b042e19967d38782cea10abc31efca1f69ec538bfcf222fe1625463508",
+      "run_id": "p7-76aa82bd7265438da9e386106fe689d6",
+      "lock_sha256": "3ee3704aeaad414e0024f7e4c246b58cea84c54a970ddba2ee3c4a346b6c5806"
+    },
+    {
+      "id": "A24",
+      "status": "PASS",
+      "executed": 26,
+      "failed": 0,
+      "skipped": 0,
+      "evidence_sha256": "2030b4b042e19967d38782cea10abc31efca1f69ec538bfcf222fe1625463508",
+      "run_id": "p7-76aa82bd7265438da9e386106fe689d6",
+      "lock_sha256": "3ee3704aeaad414e0024f7e4c246b58cea84c54a970ddba2ee3c4a346b6c5806"
+    },
+    {
+      "id": "A30",
+      "status": "PASS",
+      "executed": 10,
+      "failed": 0,
+      "skipped": 0,
+      "evidence_sha256": "2030b4b042e19967d38782cea10abc31efca1f69ec538bfcf222fe1625463508",
+      "run_id": "p7-76aa82bd7265438da9e386106fe689d6",
+      "lock_sha256": "3ee3704aeaad414e0024f7e4c246b58cea84c54a970ddba2ee3c4a346b6c5806"
+    },
+    {
+      "id": "A31",
+      "status": "PASS",
+      "executed": 10,
+      "failed": 0,
+      "skipped": 0,
+      "evidence_sha256": "2030b4b042e19967d38782cea10abc31efca1f69ec538bfcf222fe1625463508",
+      "run_id": "p7-76aa82bd7265438da9e386106fe689d6",
+      "lock_sha256": "3ee3704aeaad414e0024f7e4c246b58cea84c54a970ddba2ee3c4a346b6c5806"
+    },
+    {
+      "id": "A32",
+      "status": "PASS",
+      "executed": 22,
+      "failed": 0,
+      "skipped": 0,
+      "evidence_sha256": "2030b4b042e19967d38782cea10abc31efca1f69ec538bfcf222fe1625463508",
+      "run_id": "p7-76aa82bd7265438da9e386106fe689d6",
+      "lock_sha256": "3ee3704aeaad414e0024f7e4c246b58cea84c54a970ddba2ee3c4a346b6c5806"
+    },
+    {
+      "id": "A33",
+      "status": "PASS",
+      "executed": 26,
+      "failed": 0,
+      "skipped": 0,
+      "evidence_sha256": "2030b4b042e19967d38782cea10abc31efca1f69ec538bfcf222fe1625463508",
+      "run_id": "p7-76aa82bd7265438da9e386106fe689d6",
+      "lock_sha256": "3ee3704aeaad414e0024f7e4c246b58cea84c54a970ddba2ee3c4a346b6c5806"
+    },
+    {
+      "id": "A34",
+      "status": "PASS",
+      "executed": 14,
+      "failed": 0,
+      "skipped": 0,
+      "evidence_sha256": "2030b4b042e19967d38782cea10abc31efca1f69ec538bfcf222fe1625463508",
+      "run_id": "p7-76aa82bd7265438da9e386106fe689d6",
+      "lock_sha256": "3ee3704aeaad414e0024f7e4c246b58cea84c54a970ddba2ee3c4a346b6c5806"
+    },
+    {
+      "id": "A40",
+      "status": "PASS",
+      "executed": 18,
+      "failed": 0,
+      "skipped": 0,
+      "evidence_sha256": "2030b4b042e19967d38782cea10abc31efca1f69ec538bfcf222fe1625463508",
+      "run_id": "p7-76aa82bd7265438da9e386106fe689d6",
+      "lock_sha256": "3ee3704aeaad414e0024f7e4c246b58cea84c54a970ddba2ee3c4a346b6c5806"
+    },
+    {
+      "id": "A41",
+      "status": "PASS",
+      "executed": 12,
+      "failed": 0,
+      "skipped": 0,
+      "evidence_sha256": "2030b4b042e19967d38782cea10abc31efca1f69ec538bfcf222fe1625463508",
+      "run_id": "p7-76aa82bd7265438da9e386106fe689d6",
+      "lock_sha256": "3ee3704aeaad414e0024f7e4c246b58cea84c54a970ddba2ee3c4a346b6c5806"
+    },
+    {
+      "id": "A42",
+      "status": "PASS",
+      "executed": 14,
+      "failed": 0,
+      "skipped": 0,
+      "evidence_sha256": "2030b4b042e19967d38782cea10abc31efca1f69ec538bfcf222fe1625463508",
+      "run_id": "p7-76aa82bd7265438da9e386106fe689d6",
+      "lock_sha256": "3ee3704aeaad414e0024f7e4c246b58cea84c54a970ddba2ee3c4a346b6c5806"
+    },
+    {
+      "id": "A43",
+      "status": "PASS",
+      "executed": 11,
+      "failed": 0,
+      "skipped": 0,
+      "evidence_sha256": "2030b4b042e19967d38782cea10abc31efca1f69ec538bfcf222fe1625463508",
+      "run_id": "p7-76aa82bd7265438da9e386106fe689d6",
+      "lock_sha256": "3ee3704aeaad414e0024f7e4c246b58cea84c54a970ddba2ee3c4a346b6c5806"
+    },
+    {
+      "id": "A44",
+      "status": "PASS",
+      "executed": 6,
+      "failed": 0,
+      "skipped": 0,
+      "evidence_sha256": "2030b4b042e19967d38782cea10abc31efca1f69ec538bfcf222fe1625463508",
+      "run_id": "p7-76aa82bd7265438da9e386106fe689d6",
+      "lock_sha256": "3ee3704aeaad414e0024f7e4c246b58cea84c54a970ddba2ee3c4a346b6c5806"
+    },
+    {
+      "id": "A45",
+      "status": "PASS",
+      "executed": 49,
+      "failed": 0,
+      "skipped": 0,
+      "evidence_sha256": "2030b4b042e19967d38782cea10abc31efca1f69ec538bfcf222fe1625463508",
+      "run_id": "p7-76aa82bd7265438da9e386106fe689d6",
+      "lock_sha256": "3ee3704aeaad414e0024f7e4c246b58cea84c54a970ddba2ee3c4a346b6c5806"
+    },
+    {
+      "id": "A46",
+      "status": "PASS",
+      "executed": 14,
+      "failed": 0,
+      "skipped": 0,
+      "evidence_sha256": "2030b4b042e19967d38782cea10abc31efca1f69ec538bfcf222fe1625463508",
+      "run_id": "p7-76aa82bd7265438da9e386106fe689d6",
+      "lock_sha256": "3ee3704aeaad414e0024f7e4c246b58cea84c54a970ddba2ee3c4a346b6c5806"
+    },
+    {
+      "id": "A50",
+      "status": "PASS",
+      "executed": 2,
+      "failed": 0,
+      "skipped": 0,
+      "evidence_sha256": "c90ca92ca7cd86795bf1ecc4d7f2a346379f0233b3796d7b9f9a079bbafb6fcb",
+      "run_id": "p7-76aa82bd7265438da9e386106fe689d6",
+      "lock_sha256": "3ee3704aeaad414e0024f7e4c246b58cea84c54a970ddba2ee3c4a346b6c5806"
+    },
+    {
+      "id": "A51",
+      "status": "PASS",
+      "executed": 4,
+      "failed": 0,
+      "skipped": 0,
+      "evidence_sha256": "c90ca92ca7cd86795bf1ecc4d7f2a346379f0233b3796d7b9f9a079bbafb6fcb",
+      "run_id": "p7-76aa82bd7265438da9e386106fe689d6",
+      "lock_sha256": "3ee3704aeaad414e0024f7e4c246b58cea84c54a970ddba2ee3c4a346b6c5806"
+    },
+    {
+      "id": "A52",
+      "status": "PASS",
+      "executed": 38,
+      "failed": 0,
+      "skipped": 0,
+      "evidence_sha256": "c90ca92ca7cd86795bf1ecc4d7f2a346379f0233b3796d7b9f9a079bbafb6fcb",
+      "run_id": "p7-76aa82bd7265438da9e386106fe689d6",
+      "lock_sha256": "3ee3704aeaad414e0024f7e4c246b58cea84c54a970ddba2ee3c4a346b6c5806"
+    },
+    {
+      "id": "A53",
+      "status": "PASS",
+      "executed": 4,
+      "failed": 0,
+      "skipped": 0,
+      "evidence_sha256": "c90ca92ca7cd86795bf1ecc4d7f2a346379f0233b3796d7b9f9a079bbafb6fcb",
+      "run_id": "p7-76aa82bd7265438da9e386106fe689d6",
+      "lock_sha256": "3ee3704aeaad414e0024f7e4c246b58cea84c54a970ddba2ee3c4a346b6c5806"
+    },
+    {
+      "id": "A54",
+      "status": "PASS",
+      "executed": 129,
+      "failed": 0,
+      "skipped": 0,
+      "evidence_sha256": "c90ca92ca7cd86795bf1ecc4d7f2a346379f0233b3796d7b9f9a079bbafb6fcb",
+      "run_id": "p7-76aa82bd7265438da9e386106fe689d6",
+      "lock_sha256": "3ee3704aeaad414e0024f7e4c246b58cea84c54a970ddba2ee3c4a346b6c5806"
+    },
+    {
+      "id": "A55",
+      "status": "PASS",
+      "executed": 4,
+      "failed": 0,
+      "skipped": 0,
+      "evidence_sha256": "c90ca92ca7cd86795bf1ecc4d7f2a346379f0233b3796d7b9f9a079bbafb6fcb",
+      "run_id": "p7-76aa82bd7265438da9e386106fe689d6",
+      "lock_sha256": "3ee3704aeaad414e0024f7e4c246b58cea84c54a970ddba2ee3c4a346b6c5806"
+    },
+    {
+      "id": "A60",
+      "status": "PASS",
+      "executed": 36,
+      "failed": 0,
+      "skipped": 0,
+      "evidence_sha256": "2030b4b042e19967d38782cea10abc31efca1f69ec538bfcf222fe1625463508",
+      "run_id": "p7-76aa82bd7265438da9e386106fe689d6",
+      "lock_sha256": "3ee3704aeaad414e0024f7e4c246b58cea84c54a970ddba2ee3c4a346b6c5806"
+    },
+    {
+      "id": "A61",
+      "status": "PASS",
+      "executed": 8,
+      "failed": 0,
+      "skipped": 0,
+      "evidence_sha256": "2030b4b042e19967d38782cea10abc31efca1f69ec538bfcf222fe1625463508",
+      "run_id": "p7-76aa82bd7265438da9e386106fe689d6",
+      "lock_sha256": "3ee3704aeaad414e0024f7e4c246b58cea84c54a970ddba2ee3c4a346b6c5806"
+    },
+    {
+      "id": "A62",
+      "status": "PASS",
+      "executed": 20,
+      "failed": 0,
+      "skipped": 0,
+      "evidence_sha256": "2030b4b042e19967d38782cea10abc31efca1f69ec538bfcf222fe1625463508",
+      "run_id": "p7-76aa82bd7265438da9e386106fe689d6",
+      "lock_sha256": "3ee3704aeaad414e0024f7e4c246b58cea84c54a970ddba2ee3c4a346b6c5806"
+    },
+    {
+      "id": "A63",
+      "status": "PASS",
+      "executed": 23,
+      "failed": 0,
+      "skipped": 0,
+      "evidence_sha256": "2030b4b042e19967d38782cea10abc31efca1f69ec538bfcf222fe1625463508",
+      "run_id": "p7-76aa82bd7265438da9e386106fe689d6",
+      "lock_sha256": "3ee3704aeaad414e0024f7e4c246b58cea84c54a970ddba2ee3c4a346b6c5806"
+    },
+    {
+      "id": "A64",
+      "status": "PASS",
+      "executed": 16,
+      "failed": 0,
+      "skipped": 0,
+      "evidence_sha256": "2030b4b042e19967d38782cea10abc31efca1f69ec538bfcf222fe1625463508",
+      "run_id": "p7-76aa82bd7265438da9e386106fe689d6",
+      "lock_sha256": "3ee3704aeaad414e0024f7e4c246b58cea84c54a970ddba2ee3c4a346b6c5806"
+    },
+    {
+      "id": "A65",
+      "status": "PASS",
+      "executed": 24,
+      "failed": 0,
+      "skipped": 0,
+      "evidence_sha256": "2030b4b042e19967d38782cea10abc31efca1f69ec538bfcf222fe1625463508",
+      "run_id": "p7-76aa82bd7265438da9e386106fe689d6",
+      "lock_sha256": "3ee3704aeaad414e0024f7e4c246b58cea84c54a970ddba2ee3c4a346b6c5806"
+    },
+    {
+      "id": "A70",
+      "status": "PASS",
+      "executed": 6,
+      "failed": 0,
+      "skipped": 0,
+      "evidence_sha256": "8acd3d678d8ef45954bbe62885166fd5d3be53e1ea1be355ce34b880b2dec9c5",
+      "run_id": "p7-76aa82bd7265438da9e386106fe689d6",
+      "lock_sha256": "3ee3704aeaad414e0024f7e4c246b58cea84c54a970ddba2ee3c4a346b6c5806"
+    },
+    {
+      "id": "A71",
+      "status": "PASS",
+      "executed": 8,
+      "failed": 0,
+      "skipped": 0,
+      "evidence_sha256": "0f6de60987324443df9b80b5cf6bb6b100529fb0e2d8c3f5ec903306ceb1e7bc",
+      "run_id": "p7-76aa82bd7265438da9e386106fe689d6",
+      "lock_sha256": "3ee3704aeaad414e0024f7e4c246b58cea84c54a970ddba2ee3c4a346b6c5806"
+    },
+    {
+      "id": "A72",
+      "status": "PASS",
+      "executed": 41,
+      "failed": 0,
+      "skipped": 0,
+      "evidence_sha256": "cd2e7d78b71ceced100b0b19002d52d692d62cd8a8fa2715cad058bde9029fc5",
+      "run_id": "p7-76aa82bd7265438da9e386106fe689d6",
+      "lock_sha256": "3ee3704aeaad414e0024f7e4c246b58cea84c54a970ddba2ee3c4a346b6c5806"
+    }
+  ],
+  "deployment_ready": false,
+  "device_access": false
+}

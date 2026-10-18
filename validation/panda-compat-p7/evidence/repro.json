@@ -1,0 +1,1502 @@
+{
+  "schema": "songplus-p7-firmware-reproducibility/v1",
+  "status": "PASS",
+  "build_variants": 4,
+  "candidate_builds_compared": 8,
+  "required_byte_equal_files": [
+    "main.bin",
+    "main.bin.signed"
+  ],
+  "results": {
+    "f4-debug": {
+      "first": {
+        "target": "f4",
+        "policy": "debug",
+        "compiler": "arm-none-eabi-gcc (Arm GNU Toolchain 13.2.rel1 (Build arm-13.7)) 13.2.1 20231009",
+        "version": "P5-f4-2dcc14d0c515-debug",
+        "source_identity": "2dcc14d0c5157ba9028c37976813a99616fb43069c8658073bb3ab1049bb7c3f",
+        "protocol_inputs": {
+          "board/health.h": "f512bcff6925e233a35c00e2d921fe01933fd77c0705c573a233b170d73ce20d",
+          "opendbc/safety/can.h": "76f2ab751f89797c0a2254ab9a010a261678fe30f869d4e777cb7f2048802743"
+        },
+        "provenance": {
+          "source_root": "/Users/shuang/Code/openpilot/songplus-port-lab/results/panda-firmware-p5/run-9_r9386i/panda",
+          "opendbc_root": "/Users/shuang/Code/openpilot/songplus-port-lab/results/panda-firmware-p5/run-9_r9386i/opendbc",
+          "output_root": "/Users/shuang/Code/openpilot/songplus-port-lab/results/panda-firmware-p5/run-9_r9386i/f4-debug",
+          "compiler_path": "/Users/shuang/Code/openpilot/songplus-port-lab/upstream-openpilot/.venv/bin/arm-none-eabi-gcc"
+        },
+        "artifacts": {
+          "build.log": {
+            "sha256": "146d7a67b77f13617881cf367f5ef155de1b6d7f9c5704938fee174ba4d64e27",
+            "bytes": 5990
+          },
+          "main.bin": {
+            "sha256": "55fb5ac56519d78c5556f0ba6c233a84b158d21bcafa54aa864b8485863613d9",
+            "bytes": 70160
+          },
+          "main.bin.signed": {
+            "sha256": "9bdc7e9edb0c702f979a9e7d8270e4e11c381b360adc602c6ab36177d6d195c5",
+            "bytes": 70296
+          },
+          "main.ci": {
+            "sha256": "13a91137923792d9ebc69a50280262885ff26a108267f968e12e3be0422826b9",
+            "bytes": 307557
+          },
+          "main.d": {
+            "sha256": "6f83f1c644948157cf7a67bf06a3a8300d42f799a1aa63c58174c31b00def962",
+            "bytes": 12023
+          },
+          "main.elf": {
+            "sha256": "f921a324a714dbb0f0459545ea4c21550f31e4da7b48e0c3768fc805d91c2b56",
+            "bytes": 358580
+          },
+          "main.map": {
+            "sha256": "8a9c7ac70334a5aead75f37e005942da715ab4f56ec21f5d03e22d7e3cf9916b",
+            "bytes": 31755
+          },
+          "main.o": {
+            "sha256": "77edcb938c84e356f8d7f170111ceb7cc88e72632c18558742d0f01fced5d5f3",
+            "bytes": 454160
+          },
+          "main.su": {
+            "sha256": "530f54c4651fcd4c414e10867799702c1d1bb142b5d3d466cb9f20d09bfae015",
+            "bytes": 63084
+          },
+          "startup.o": {
+            "sha256": "7cf9690c99520e4568c9b89c34615e12b4bcc9c27033d389e21d4ab7e7069b35",
+            "bytes": 7796
+          }
+        },
+        "elf": {
+          "class": "ELF32",
+          "endian": "little",
+          "machine": "ARM",
+          "type": "EXEC",
+          "cpu": "Cortex-M4",
+          "entry": 134234613,
+          "flash_start": 134234112,
+          "flags": 83887104,
+          "load_segments": 2,
+          "load_bytes_match_raw": true,
+          "program_layout": [
+            {
+              "vaddr": 134234112,
+              "paddr": 134234112,
+              "file_bytes": 46464,
+              "memory_bytes": 46464,
+              "flags": 5,
+              "alignment": 4096
+            },
+            {
+              "vaddr": 536870912,
+              "paddr": 134280576,
+              "file_bytes": 23696,
+              "memory_bytes": 78640,
+              "flags": 6,
+              "alignment": 4096
+            },
+            {
+              "vaddr": 536993784,
+              "paddr": 536993784,
+              "file_bytes": 0,
+              "memory_bytes": 8192,
+              "flags": 6,
+              "alignment": 4096
+            },
+            {
+              "vaddr": 537001976,
+              "paddr": 537001976,
+              "file_bytes": 0,
+              "memory_bytes": 8,
+              "flags": 6,
+              "alignment": 4096
+            }
+          ],
+          "allocated_sections": {
+            ".isr_vector": {
+              "type": 1,
+              "flags": 2,
+              "address": 134234112,
+              "bytes": 472,
+              "alignment": 1
+            },
+            ".text": {
+              "type": 1,
+              "flags": 6,
+              "address": 134234592,
+              "bytes": 45984,
+              "alignment": 32
+            },
+            ".data": {
+              "type": 1,
+              "flags": 3,
+              "address": 536870912,
+              "bytes": 23696,
+              "alignment": 4
+            },
+            ".bss": {
+              "type": 8,
+              "flags": 3,
+              "address": 536894608,
+              "bytes": 54944,
+              "alignment": 4
+            },
+            ".stack": {
+              "type": 8,
+              "flags": 3,
+              "address": 536993784,
+              "bytes": 8192,
+              "alignment": 1
+            },
+            ".cookies": {
+              "type": 8,
+              "flags": 3,
+              "address": 537001976,
+              "bytes": 8,
+              "alignment": 1
+            }
+          }
+        },
+        "signature_verified": true,
+        "deployable": false,
+        "bootstub_built": false
+      },
+      "second": {
+        "target": "f4",
+        "policy": "debug",
+        "compiler": "arm-none-eabi-gcc (Arm GNU Toolchain 13.2.rel1 (Build arm-13.7)) 13.2.1 20231009",
+        "version": "P5-f4-2dcc14d0c515-debug",
+        "source_identity": "2dcc14d0c5157ba9028c37976813a99616fb43069c8658073bb3ab1049bb7c3f",
+        "protocol_inputs": {
+          "board/health.h": "f512bcff6925e233a35c00e2d921fe01933fd77c0705c573a233b170d73ce20d",
+          "opendbc/safety/can.h": "76f2ab751f89797c0a2254ab9a010a261678fe30f869d4e777cb7f2048802743"
+        },
+        "provenance": {
+          "source_root": "/Users/shuang/Code/openpilot/songplus-port-lab/results/panda-ci-p7-20261018-002/validation/replay/panda",
+          "opendbc_root": "/Users/shuang/Code/openpilot/songplus-port-lab/results/panda-ci-p7-20261018-002/validation/replay/opendbc",
+          "output_root": "/Users/shuang/Code/openpilot/songplus-port-lab/results/panda-ci-p7-20261018-002/validation/rebuild/f4-debug",
+          "compiler_path": "/Users/shuang/Code/openpilot/songplus-port-lab/upstream-openpilot/.venv/bin/arm-none-eabi-gcc"
+        },
+        "artifacts": {
+          "build.log": {
+            "sha256": "de7ce22f789bc9ae0bdcf38d47d672fdb173307f82ac2f79bcef8b1d7710f17c",
+            "bytes": 6451
+          },
+          "main.bin": {
+            "sha256": "55fb5ac56519d78c5556f0ba6c233a84b158d21bcafa54aa864b8485863613d9",
+            "bytes": 70160
+          },
+          "main.bin.signed": {
+            "sha256": "9bdc7e9edb0c702f979a9e7d8270e4e11c381b360adc602c6ab36177d6d195c5",
+            "bytes": 70296
+          },
+          "main.ci": {
+            "sha256": "e45c9469a7be2c706e76bd536f13c7197e9b66cd574414da428a02741d3a35a3",
+            "bytes": 328737
+          },
+          "main.d": {
+            "sha256": "07541742b0c79334cc08df27e99ed6978516b45d01bee406df72410db7f41974",
+            "bytes": 13201
+          },
+          "main.elf": {
+            "sha256": "f921a324a714dbb0f0459545ea4c21550f31e4da7b48e0c3768fc805d91c2b56",
+            "bytes": 358580
+          },
+          "main.map": {
+            "sha256": "ee7c71c7ddf4dd2094c9f4a3d194c9720e8761449f79a90e0d8b978d70988e44",
+            "bytes": 32223
+          },
+          "main.o": {
+            "sha256": "77edcb938c84e356f8d7f170111ceb7cc88e72632c18558742d0f01fced5d5f3",
+            "bytes": 454160
+          },
+          "main.su": {
+            "sha256": "b00d2018fdee475e8dea2c19b0ccb21a0cb5fb91b75ce10b516db9775590aa38",
+            "bytes": 67968
+          },
+          "startup.o": {
+            "sha256": "7cf9690c99520e4568c9b89c34615e12b4bcc9c27033d389e21d4ab7e7069b35",
+            "bytes": 7796
+          }
+        },
+        "elf": {
+          "class": "ELF32",
+          "endian": "little",
+          "machine": "ARM",
+          "type": "EXEC",
+          "cpu": "Cortex-M4",
+          "entry": 134234613,
+          "flash_start": 134234112,
+          "flags": 83887104,
+          "load_segments": 2,
+          "load_bytes_match_raw": true,
+          "program_layout": [
+            {
+              "vaddr": 134234112,
+              "paddr": 134234112,
+              "file_bytes": 46464,
+              "memory_bytes": 46464,
+              "flags": 5,
+              "alignment": 4096
+            },
+            {
+              "vaddr": 536870912,
+              "paddr": 134280576,
+              "file_bytes": 23696,
+              "memory_bytes": 78640,
+              "flags": 6,
+              "alignment": 4096
+            },
+            {
+              "vaddr": 536993784,
+              "paddr": 536993784,
+              "file_bytes": 0,
+              "memory_bytes": 8192,
+              "flags": 6,
+              "alignment": 4096
+            },
+            {
+              "vaddr": 537001976,
+              "paddr": 537001976,
+              "file_bytes": 0,
+              "memory_bytes": 8,
+              "flags": 6,
+              "alignment": 4096
+            }
+          ],
+          "allocated_sections": {
+            ".isr_vector": {
+              "type": 1,
+              "flags": 2,
+              "address": 134234112,
+              "bytes": 472,
+              "alignment": 1
+            },
+            ".text": {
+              "type": 1,
+              "flags": 6,
+              "address": 134234592,
+              "bytes": 45984,
+              "alignment": 32
+            },
+            ".data": {
+              "type": 1,
+              "flags": 3,
+              "address": 536870912,
+              "bytes": 23696,
+              "alignment": 4
+            },
+            ".bss": {
+              "type": 8,
+              "flags": 3,
+              "address": 536894608,
+              "bytes": 54944,
+              "alignment": 4
+            },
+            ".stack": {
+              "type": 8,
+              "flags": 3,
+              "address": 536993784,
+              "bytes": 8192,
+              "alignment": 1
+            },
+            ".cookies": {
+              "type": 8,
+              "flags": 3,
+              "address": 537001976,
+              "bytes": 8,
+              "alignment": 1
+            }
+          }
+        },
+        "signature_verified": true,
+        "deployable": false,
+        "bootstub_built": false
+      },
+      "byte_equal": {
+        "build.log": false,
+        "main.bin": true,
+        "main.bin.signed": true,
+        "main.ci": false,
+        "main.d": false,
+        "main.elf": true,
+        "main.map": false,
+        "main.o": true,
+        "main.su": false,
+        "startup.o": true
+      },
+      "core_candidate_bytes_equal": true
+    },
+    "f4-release": {
+      "first": {
+        "target": "f4",
+        "policy": "release",
+        "compiler": "arm-none-eabi-gcc (Arm GNU Toolchain 13.2.rel1 (Build arm-13.7)) 13.2.1 20231009",
+        "version": "P5-f4-2dcc14d0c515-release",
+        "source_identity": "2dcc14d0c5157ba9028c37976813a99616fb43069c8658073bb3ab1049bb7c3f",
+        "protocol_inputs": {
+          "board/health.h": "f512bcff6925e233a35c00e2d921fe01933fd77c0705c573a233b170d73ce20d",
+          "opendbc/safety/can.h": "76f2ab751f89797c0a2254ab9a010a261678fe30f869d4e777cb7f2048802743"
+        },
+        "provenance": {
+          "source_root": "/Users/shuang/Code/openpilot/songplus-port-lab/results/panda-firmware-p5/run-9_r9386i/panda",
+          "opendbc_root": "/Users/shuang/Code/openpilot/songplus-port-lab/results/panda-firmware-p5/run-9_r9386i/opendbc",
+          "output_root": "/Users/shuang/Code/openpilot/songplus-port-lab/results/panda-firmware-p5/run-9_r9386i/f4-release",
+          "compiler_path": "/Users/shuang/Code/openpilot/songplus-port-lab/upstream-openpilot/.venv/bin/arm-none-eabi-gcc"
+        },
+        "artifacts": {
+          "build.log": {
+            "sha256": "596ddb55c379dc8d5af5c593d7eb30a27118d59e0db9b5a0aa3cac0ad11471fe",
+            "bytes": 5982
+          },
+          "main.bin": {
+            "sha256": "8d567a2cefb18a4f77c72eece941355a538bdd153c9c2895af1c4ce7a389858d",
+            "bytes": 68096
+          },
+          "main.bin.signed": {
+            "sha256": "744665c6a1ca093334ed7c5c4cc751bb034aedd54778a8a3e95e8fc86421b158",
+            "bytes": 68232
+          },
+          "main.ci": {
+            "sha256": "a6193975dfc78dc7c255230d203b784844955d114fd38056fef8700f1890cacc",
+            "bytes": 306095
+          },
+          "main.d": {
+            "sha256": "a29b35555a6202dc2129e44a05e7a7ef491460c6de91d76ebd70ac1cc1a113dc",
+            "bytes": 12027
+          },
+          "main.elf": {
+            "sha256": "45be71c744618fb106d9612e8145a58a48136a1a4b7f64afd562d402e79a932c",
+            "bytes": 355716
+          },
+          "main.map": {
+            "sha256": "ac6fc772d9486c816e1f2cf1eb8b4b75527b035721acdcca17650087af34d16c",
+            "bytes": 31765
+          },
+          "main.o": {
+            "sha256": "1da5d1f585cf52a94870c8417d30ee1984d7696c013feada98326d80bb72ecdc",
+            "bytes": 449204
+          },
+          "main.su": {
+            "sha256": "f68170a5a5daa3f4b11d66d31cb685a78433bd136aa34cde523feb9630167847",
+            "bytes": 63084
+          },
+          "startup.o": {
+            "sha256": "7cf9690c99520e4568c9b89c34615e12b4bcc9c27033d389e21d4ab7e7069b35",
+            "bytes": 7796
+          }
+        },
+        "elf": {
+          "class": "ELF32",
+          "endian": "little",
+          "machine": "ARM",
+          "type": "EXEC",
+          "cpu": "Cortex-M4",
+          "entry": 134234613,
+          "flash_start": 134234112,
+          "flags": 83887104,
+          "load_segments": 2,
+          "load_bytes_match_raw": true,
+          "program_layout": [
+            {
+              "vaddr": 134234112,
+              "paddr": 134234112,
+              "file_bytes": 45280,
+              "memory_bytes": 45280,
+              "flags": 5,
+              "alignment": 4096
+            },
+            {
+              "vaddr": 536870912,
+              "paddr": 134279392,
+              "file_bytes": 22816,
+              "memory_bytes": 77760,
+              "flags": 6,
+              "alignment": 4096
+            },
+            {
+              "vaddr": 536993784,
+              "paddr": 536993784,
+              "file_bytes": 0,
+              "memory_bytes": 8192,
+              "flags": 6,
+              "alignment": 4096
+            },
+            {
+              "vaddr": 537001976,
+              "paddr": 537001976,
+              "file_bytes": 0,
+              "memory_bytes": 8,
+              "flags": 6,
+              "alignment": 4096
+            }
+          ],
+          "allocated_sections": {
+            ".isr_vector": {
+              "type": 1,
+              "flags": 2,
+              "address": 134234112,
+              "bytes": 472,
+              "alignment": 1
+            },
+            ".text": {
+              "type": 1,
+              "flags": 6,
+              "address": 134234592,
+              "bytes": 44800,
+              "alignment": 32
+            },
+            ".data": {
+              "type": 1,
+              "flags": 3,
+              "address": 536870912,
+              "bytes": 22816,
+              "alignment": 4
+            },
+            ".bss": {
+              "type": 8,
+              "flags": 3,
+              "address": 536893728,
+              "bytes": 54944,
+              "alignment": 4
+            },
+            ".stack": {
+              "type": 8,
+              "flags": 3,
+              "address": 536993784,
+              "bytes": 8192,
+              "alignment": 1
+            },
+            ".cookies": {
+              "type": 8,
+              "flags": 3,
+              "address": 537001976,
+              "bytes": 8,
+              "alignment": 1
+            }
+          }
+        },
+        "signature_verified": true,
+        "deployable": false,
+        "bootstub_built": false
+      },
+      "second": {
+        "target": "f4",
+        "policy": "release",
+        "compiler": "arm-none-eabi-gcc (Arm GNU Toolchain 13.2.rel1 (Build arm-13.7)) 13.2.1 20231009",
+        "version": "P5-f4-2dcc14d0c515-release",
+        "source_identity": "2dcc14d0c5157ba9028c37976813a99616fb43069c8658073bb3ab1049bb7c3f",
+        "protocol_inputs": {
+          "board/health.h": "f512bcff6925e233a35c00e2d921fe01933fd77c0705c573a233b170d73ce20d",
+          "opendbc/safety/can.h": "76f2ab751f89797c0a2254ab9a010a261678fe30f869d4e777cb7f2048802743"
+        },
+        "provenance": {
+          "source_root": "/Users/shuang/Code/openpilot/songplus-port-lab/results/panda-ci-p7-20261018-002/validation/replay/panda",
+          "opendbc_root": "/Users/shuang/Code/openpilot/songplus-port-lab/results/panda-ci-p7-20261018-002/validation/replay/opendbc",
+          "output_root": "/Users/shuang/Code/openpilot/songplus-port-lab/results/panda-ci-p7-20261018-002/validation/rebuild/f4-release",
+          "compiler_path": "/Users/shuang/Code/openpilot/songplus-port-lab/upstream-openpilot/.venv/bin/arm-none-eabi-gcc"
+        },
+        "artifacts": {
+          "build.log": {
+            "sha256": "e938dfeb1bac5fbb5ba733b95770c92683e87e2669576935cdcf93326736965c",
+            "bytes": 6443
+          },
+          "main.bin": {
+            "sha256": "8d567a2cefb18a4f77c72eece941355a538bdd153c9c2895af1c4ce7a389858d",
+            "bytes": 68096
+          },
+          "main.bin.signed": {
+            "sha256": "744665c6a1ca093334ed7c5c4cc751bb034aedd54778a8a3e95e8fc86421b158",
+            "bytes": 68232
+          },
+          "main.ci": {
+            "sha256": "5eb0c69090779c56a1fe4ca4f8de737fd2096a8c67e1a076fa91973613834e31",
+            "bytes": 327167
+          },
+          "main.d": {
+            "sha256": "41cbd933a6d5eabecc07e0f189f5c9a305ef91f7941d68b99f626a40d2c579d1",
+            "bytes": 13205
+          },
+          "main.elf": {
+            "sha256": "45be71c744618fb106d9612e8145a58a48136a1a4b7f64afd562d402e79a932c",
+            "bytes": 355716
+          },
+          "main.map": {
+            "sha256": "f8a9e19e599ffbad00db354f3db43835a1e74f16fead3a839a456bfcd0dd93a1",
+            "bytes": 32233
+          },
+          "main.o": {
+            "sha256": "1da5d1f585cf52a94870c8417d30ee1984d7696c013feada98326d80bb72ecdc",
+            "bytes": 449204
+          },
+          "main.su": {
+            "sha256": "42a68f2fe67b806ed7e75879b988e1080a8e7b2fb41e57e27175056f265bc4fa",
+            "bytes": 67968
+          },
+          "startup.o": {
+            "sha256": "7cf9690c99520e4568c9b89c34615e12b4bcc9c27033d389e21d4ab7e7069b35",
+            "bytes": 7796
+          }
+        },
+        "elf": {
+          "class": "ELF32",
+          "endian": "little",
+          "machine": "ARM",
+          "type": "EXEC",
+          "cpu": "Cortex-M4",
+          "entry": 134234613,
+          "flash_start": 134234112,
+          "flags": 83887104,
+          "load_segments": 2,
+          "load_bytes_match_raw": true,
+          "program_layout": [
+            {
+              "vaddr": 134234112,
+              "paddr": 134234112,
+              "file_bytes": 45280,
+              "memory_bytes": 45280,
+              "flags": 5,
+              "alignment": 4096
+            },
+            {
+              "vaddr": 536870912,
+              "paddr": 134279392,
+              "file_bytes": 22816,
+              "memory_bytes": 77760,
+              "flags": 6,
+              "alignment": 4096
+            },
+            {
+              "vaddr": 536993784,
+              "paddr": 536993784,
+              "file_bytes": 0,
+              "memory_bytes": 8192,
+              "flags": 6,
+              "alignment": 4096
+            },
+            {
+              "vaddr": 537001976,
+              "paddr": 537001976,
+              "file_bytes": 0,
+              "memory_bytes": 8,
+              "flags": 6,
+              "alignment": 4096
+            }
+          ],
+          "allocated_sections": {
+            ".isr_vector": {
+              "type": 1,
+              "flags": 2,
+              "address": 134234112,
+              "bytes": 472,
+              "alignment": 1
+            },
+            ".text": {
+              "type": 1,
+              "flags": 6,
+              "address": 134234592,
+              "bytes": 44800,
+              "alignment": 32
+            },
+            ".data": {
+              "type": 1,
+              "flags": 3,
+              "address": 536870912,
+              "bytes": 22816,
+              "alignment": 4
+            },
+            ".bss": {
+              "type": 8,
+              "flags": 3,
+              "address": 536893728,
+              "bytes": 54944,
+              "alignment": 4
+            },
+            ".stack": {
+              "type": 8,
+              "flags": 3,
+              "address": 536993784,
+              "bytes": 8192,
+              "alignment": 1
+            },
+            ".cookies": {
+              "type": 8,
+              "flags": 3,
+              "address": 537001976,
+              "bytes": 8,
+              "alignment": 1
+            }
+          }
+        },
+        "signature_verified": true,
+        "deployable": false,
+        "bootstub_built": false
+      },
+      "byte_equal": {
+        "build.log": false,
+        "main.bin": true,
+        "main.bin.signed": true,
+        "main.ci": false,
+        "main.d": false,
+        "main.elf": true,
+        "main.map": false,
+        "main.o": true,
+        "main.su": false,
+        "startup.o": true
+      },
+      "core_candidate_bytes_equal": true
+    },
+    "h7-debug": {
+      "first": {
+        "target": "h7",
+        "policy": "debug",
+        "compiler": "arm-none-eabi-gcc (Arm GNU Toolchain 13.2.rel1 (Build arm-13.7)) 13.2.1 20231009",
+        "version": "P5-h7-2dcc14d0c515-debug",
+        "source_identity": "2dcc14d0c5157ba9028c37976813a99616fb43069c8658073bb3ab1049bb7c3f",
+        "protocol_inputs": {
+          "board/health.h": "f512bcff6925e233a35c00e2d921fe01933fd77c0705c573a233b170d73ce20d",
+          "opendbc/safety/can.h": "76f2ab751f89797c0a2254ab9a010a261678fe30f869d4e777cb7f2048802743"
+        },
+        "provenance": {
+          "source_root": "/Users/shuang/Code/openpilot/songplus-port-lab/results/panda-firmware-p5/run-9_r9386i/panda",
+          "opendbc_root": "/Users/shuang/Code/openpilot/songplus-port-lab/results/panda-firmware-p5/run-9_r9386i/opendbc",
+          "output_root": "/Users/shuang/Code/openpilot/songplus-port-lab/results/panda-firmware-p5/run-9_r9386i/h7-debug",
+          "compiler_path": "/Users/shuang/Code/openpilot/songplus-port-lab/upstream-openpilot/.venv/bin/arm-none-eabi-gcc"
+        },
+        "artifacts": {
+          "build.log": {
+            "sha256": "8a743096b8f805f2dc6af58be774ca9236055552780fa308c6df2fdc6e356fc6",
+            "bytes": 5921
+          },
+          "main.bin": {
+            "sha256": "bdc653b0a5c4e3b477b201f7f9592260339d0c82e7f2944ef98c5a2852f5e79a",
+            "bytes": 79176
+          },
+          "main.bin.signed": {
+            "sha256": "91d01351509817a2e53fce46426a1a87f5aeab970a995332f33f155f81e188ce",
+            "bytes": 79312
+          },
+          "main.ci": {
+            "sha256": "0ce9670eb19191e83af487f13e90dc4c6c681bb2603ff7ae93b627bbacb98d54",
+            "bytes": 420070
+          },
+          "main.d": {
+            "sha256": "2853938ed569331e302f48ebf040025780bdb020140f12e8ae5cbdfbbb9d5a0b",
+            "bytes": 12708
+          },
+          "main.elf": {
+            "sha256": "8bc0ac86796f4f77a1f7ed35af18068b20e7a227949872e29ef8f0c98314dad5",
+            "bytes": 417636
+          },
+          "main.map": {
+            "sha256": "3d612698554fa3caac797745595a91c4f9184c7ee18ceba339e0ba9471d60fe2",
+            "bytes": 38146
+          },
+          "main.o": {
+            "sha256": "1b9273cc7b48b82e7feb2eec12baaaa2fcf2f7850618a673e01af0aed103e9e8",
+            "bytes": 908704
+          },
+          "main.su": {
+            "sha256": "4db9292e0218de756e5391c7791c2f0bd5097c89db45e25488453058a26c1a7a",
+            "bytes": 75429
+          },
+          "startup.o": {
+            "sha256": "52ce004616b98aa02d908ef2f7a069a43c8d63e8b5613447b3315dc0641cea78",
+            "bytes": 9920
+          }
+        },
+        "elf": {
+          "class": "ELF32",
+          "endian": "little",
+          "machine": "ARM",
+          "type": "EXEC",
+          "cpu": "Cortex-M7",
+          "entry": 134394689,
+          "flash_start": 134348800,
+          "flags": 83887104,
+          "load_segments": 2,
+          "load_bytes_match_raw": true,
+          "program_layout": [
+            {
+              "vaddr": 0,
+              "paddr": 0,
+              "file_bytes": 0,
+              "memory_bytes": 59904,
+              "flags": 6,
+              "alignment": 4096
+            },
+            {
+              "vaddr": 134348800,
+              "paddr": 134348800,
+              "file_bytes": 55268,
+              "memory_bytes": 55268,
+              "flags": 5,
+              "alignment": 4096
+            },
+            {
+              "vaddr": 536870912,
+              "paddr": 134404068,
+              "file_bytes": 23908,
+              "memory_bytes": 77808,
+              "flags": 6,
+              "alignment": 4096
+            },
+            {
+              "vaddr": 536948720,
+              "paddr": 134427976,
+              "file_bytes": 0,
+              "memory_bytes": 1536,
+              "flags": 6,
+              "alignment": 4096
+            },
+            {
+              "vaddr": 603979776,
+              "paddr": 603979776,
+              "file_bytes": 0,
+              "memory_bytes": 294912,
+              "flags": 6,
+              "alignment": 4096
+            },
+            {
+              "vaddr": 805306368,
+              "paddr": 805306368,
+              "file_bytes": 0,
+              "memory_bytes": 8193,
+              "flags": 6,
+              "alignment": 4096
+            },
+            {
+              "vaddr": 939524096,
+              "paddr": 939524096,
+              "file_bytes": 0,
+              "memory_bytes": 14192,
+              "flags": 6,
+              "alignment": 4096
+            }
+          ],
+          "allocated_sections": {
+            ".isr_vector": {
+              "type": 1,
+              "flags": 2,
+              "address": 134348800,
+              "bytes": 716,
+              "alignment": 1
+            },
+            ".text": {
+              "type": 1,
+              "flags": 6,
+              "address": 134349536,
+              "bytes": 45808,
+              "alignment": 32
+            },
+            ".rodata": {
+              "type": 1,
+              "flags": 2,
+              "address": 134395344,
+              "bytes": 8724,
+              "alignment": 4
+            },
+            ".data": {
+              "type": 1,
+              "flags": 3,
+              "address": 536870912,
+              "bytes": 23908,
+              "alignment": 4
+            },
+            ".bss": {
+              "type": 8,
+              "flags": 3,
+              "address": 536894820,
+              "bytes": 53900,
+              "alignment": 4
+            },
+            "._user_heap_stack": {
+              "type": 8,
+              "flags": 3,
+              "address": 536948720,
+              "bytes": 1536,
+              "alignment": 1
+            },
+            ".itcmram": {
+              "type": 8,
+              "flags": 3,
+              "address": 0,
+              "bytes": 59904,
+              "alignment": 4
+            },
+            ".axisram": {
+              "type": 8,
+              "flags": 3,
+              "address": 603979776,
+              "bytes": 294912,
+              "alignment": 4
+            },
+            ".sram12": {
+              "type": 8,
+              "flags": 3,
+              "address": 805306368,
+              "bytes": 8193,
+              "alignment": 1
+            },
+            ".sram4": {
+              "type": 8,
+              "flags": 3,
+              "address": 939524096,
+              "bytes": 14192,
+              "alignment": 4
+            }
+          }
+        },
+        "signature_verified": true,
+        "deployable": false,
+        "bootstub_built": false
+      },
+      "second": {
+        "target": "h7",
+        "policy": "debug",
+        "compiler": "arm-none-eabi-gcc (Arm GNU Toolchain 13.2.rel1 (Build arm-13.7)) 13.2.1 20231009",
+        "version": "P5-h7-2dcc14d0c515-debug",
+        "source_identity": "2dcc14d0c5157ba9028c37976813a99616fb43069c8658073bb3ab1049bb7c3f",
+        "protocol_inputs": {
+          "board/health.h": "f512bcff6925e233a35c00e2d921fe01933fd77c0705c573a233b170d73ce20d",
+          "opendbc/safety/can.h": "76f2ab751f89797c0a2254ab9a010a261678fe30f869d4e777cb7f2048802743"
+        },
+        "provenance": {
+          "source_root": "/Users/shuang/Code/openpilot/songplus-port-lab/results/panda-ci-p7-20261018-002/validation/replay/panda",
+          "opendbc_root": "/Users/shuang/Code/openpilot/songplus-port-lab/results/panda-ci-p7-20261018-002/validation/replay/opendbc",
+          "output_root": "/Users/shuang/Code/openpilot/songplus-port-lab/results/panda-ci-p7-20261018-002/validation/rebuild/h7-debug",
+          "compiler_path": "/Users/shuang/Code/openpilot/songplus-port-lab/upstream-openpilot/.venv/bin/arm-none-eabi-gcc"
+        },
+        "artifacts": {
+          "build.log": {
+            "sha256": "b9e0cbb67e13b615c67069c9d289d3b7b9a532e3c2a88ba72a104a565cddaf75",
+            "bytes": 6382
+          },
+          "main.bin": {
+            "sha256": "bdc653b0a5c4e3b477b201f7f9592260339d0c82e7f2944ef98c5a2852f5e79a",
+            "bytes": 79176
+          },
+          "main.bin.signed": {
+            "sha256": "91d01351509817a2e53fce46426a1a87f5aeab970a995332f33f155f81e188ce",
+            "bytes": 79312
+          },
+          "main.ci": {
+            "sha256": "e004d81a438964d29f5ca07ec404c05566a2b1e215a4db9b395baefcd7d15ccc",
+            "bytes": 449050
+          },
+          "main.d": {
+            "sha256": "48b4e51f9a1efa53a91215de6d5bb2f818b4c9246d05721e0b032ac544dfdd58",
+            "bytes": 13958
+          },
+          "main.elf": {
+            "sha256": "8bc0ac86796f4f77a1f7ed35af18068b20e7a227949872e29ef8f0c98314dad5",
+            "bytes": 417636
+          },
+          "main.map": {
+            "sha256": "225cc1538486b8a65dbe498a0f1766a734ef8193f8a0fbcfc54fd2092e0fc605",
+            "bytes": 38666
+          },
+          "main.o": {
+            "sha256": "1b9273cc7b48b82e7feb2eec12baaaa2fcf2f7850618a673e01af0aed103e9e8",
+            "bytes": 908704
+          },
+          "main.su": {
+            "sha256": "13a5fcd7861a2a2581006e2371ddedce19bfe6839ad19204b0f452b1a8eca3f7",
+            "bytes": 81273
+          },
+          "startup.o": {
+            "sha256": "52ce004616b98aa02d908ef2f7a069a43c8d63e8b5613447b3315dc0641cea78",
+            "bytes": 9920
+          }
+        },
+        "elf": {
+          "class": "ELF32",
+          "endian": "little",
+          "machine": "ARM",
+          "type": "EXEC",
+          "cpu": "Cortex-M7",
+          "entry": 134394689,
+          "flash_start": 134348800,
+          "flags": 83887104,
+          "load_segments": 2,
+          "load_bytes_match_raw": true,
+          "program_layout": [
+            {
+              "vaddr": 0,
+              "paddr": 0,
+              "file_bytes": 0,
+              "memory_bytes": 59904,
+              "flags": 6,
+              "alignment": 4096
+            },
+            {
+              "vaddr": 134348800,
+              "paddr": 134348800,
+              "file_bytes": 55268,
+              "memory_bytes": 55268,
+              "flags": 5,
+              "alignment": 4096
+            },
+            {
+              "vaddr": 536870912,
+              "paddr": 134404068,
+              "file_bytes": 23908,
+              "memory_bytes": 77808,
+              "flags": 6,
+              "alignment": 4096
+            },
+            {
+              "vaddr": 536948720,
+              "paddr": 134427976,
+              "file_bytes": 0,
+              "memory_bytes": 1536,
+              "flags": 6,
+              "alignment": 4096
+            },
+            {
+              "vaddr": 603979776,
+              "paddr": 603979776,
+              "file_bytes": 0,
+              "memory_bytes": 294912,
+              "flags": 6,
+              "alignment": 4096
+            },
+            {
+              "vaddr": 805306368,
+              "paddr": 805306368,
+              "file_bytes": 0,
+              "memory_bytes": 8193,
+              "flags": 6,
+              "alignment": 4096
+            },
+            {
+              "vaddr": 939524096,
+              "paddr": 939524096,
+              "file_bytes": 0,
+              "memory_bytes": 14192,
+              "flags": 6,
+              "alignment": 4096
+            }
+          ],
+          "allocated_sections": {
+            ".isr_vector": {
+              "type": 1,
+              "flags": 2,
+              "address": 134348800,
+              "bytes": 716,
+              "alignment": 1
+            },
+            ".text": {
+              "type": 1,
+              "flags": 6,
+              "address": 134349536,
+              "bytes": 45808,
+              "alignment": 32
+            },
+            ".rodata": {
+              "type": 1,
+              "flags": 2,
+              "address": 134395344,
+              "bytes": 8724,
+              "alignment": 4
+            },
+            ".data": {
+              "type": 1,
+              "flags": 3,
+              "address": 536870912,
+              "bytes": 23908,
+              "alignment": 4
+            },
+            ".bss": {
+              "type": 8,
+              "flags": 3,
+              "address": 536894820,
+              "bytes": 53900,
+              "alignment": 4
+            },
+            "._user_heap_stack": {
+              "type": 8,
+              "flags": 3,
+              "address": 536948720,
+              "bytes": 1536,
+              "alignment": 1
+            },
+            ".itcmram": {
+              "type": 8,
+              "flags": 3,
+              "address": 0,
+              "bytes": 59904,
+              "alignment": 4
+            },
+            ".axisram": {
+              "type": 8,
+              "flags": 3,
+              "address": 603979776,
+              "bytes": 294912,
+              "alignment": 4
+            },
+            ".sram12": {
+              "type": 8,
+              "flags": 3,
+              "address": 805306368,
+              "bytes": 8193,
+              "alignment": 1
+            },
+            ".sram4": {
+              "type": 8,
+              "flags": 3,
+              "address": 939524096,
+              "bytes": 14192,
+              "alignment": 4
+            }
+          }
+        },
+        "signature_verified": true,
+        "deployable": false,
+        "bootstub_built": false
+      },
+      "byte_equal": {
+        "build.log": false,
+        "main.bin": true,
+        "main.bin.signed": true,
+        "main.ci": false,
+        "main.d": false,
+        "main.elf": true,
+        "main.map": false,
+        "main.o": true,
+        "main.su": false,
+        "startup.o": true
+      },
+      "core_candidate_bytes_equal": true
+    },
+    "h7-release": {
+      "first": {
+        "target": "h7",
+        "policy": "release",
+        "compiler": "arm-none-eabi-gcc (Arm GNU Toolchain 13.2.rel1 (Build arm-13.7)) 13.2.1 20231009",
+        "version": "P5-h7-2dcc14d0c515-release",
+        "source_identity": "2dcc14d0c5157ba9028c37976813a99616fb43069c8658073bb3ab1049bb7c3f",
+        "protocol_inputs": {
+          "board/health.h": "f512bcff6925e233a35c00e2d921fe01933fd77c0705c573a233b170d73ce20d",
+          "opendbc/safety/can.h": "76f2ab751f89797c0a2254ab9a010a261678fe30f869d4e777cb7f2048802743"
+        },
+        "provenance": {
+          "source_root": "/Users/shuang/Code/openpilot/songplus-port-lab/results/panda-firmware-p5/run-9_r9386i/panda",
+          "opendbc_root": "/Users/shuang/Code/openpilot/songplus-port-lab/results/panda-firmware-p5/run-9_r9386i/opendbc",
+          "output_root": "/Users/shuang/Code/openpilot/songplus-port-lab/results/panda-firmware-p5/run-9_r9386i/h7-release",
+          "compiler_path": "/Users/shuang/Code/openpilot/songplus-port-lab/upstream-openpilot/.venv/bin/arm-none-eabi-gcc"
+        },
+        "artifacts": {
+          "build.log": {
+            "sha256": "9cf1721c5e32b01e9243d510ee637bebc8412f92882b7a40132dfa5831c596a1",
+            "bytes": 5913
+          },
+          "main.bin": {
+            "sha256": "a4bf064925b2d06b660a64fdef07103c24ced874639d9b430129ea774725b946",
+            "bytes": 77144
+          },
+          "main.bin.signed": {
+            "sha256": "9e3ee9994cab1d0ea07332ca5309ba16f33203086c1b1ca18e21ecbccfde6b5b",
+            "bytes": 77280
+          },
+          "main.ci": {
+            "sha256": "1f7c33438e884bf8b1258b4438e2e9c66bf670ebf14747c77d8097541a2b58ed",
+            "bytes": 412451
+          },
+          "main.d": {
+            "sha256": "2dafcb478a46cd596700cb1f7180b55e7a2fac25e7442538c6061a8c6a78a0b1",
+            "bytes": 12712
+          },
+          "main.elf": {
+            "sha256": "853da4b1a3c6b7d345a9478245c44b70d61c563767c831690c453a08c667665d",
+            "bytes": 414900
+          },
+          "main.map": {
+            "sha256": "25c0b5bf3d731f851d58e16ed2914b5773f5f910b052f8cde1c67cf09d278006",
+            "bytes": 38164
+          },
+          "main.o": {
+            "sha256": "15363bc70d6bc8177c0ebe24c49bd0d496e2f1b1b2c73252692bc2f164c69e78",
+            "bytes": 903932
+          },
+          "main.su": {
+            "sha256": "b6ccfc7880a31c5c1b9bb7c2170f477a6b92a532b1da1b5ea3bf11e142ccc4f7",
+            "bytes": 75280
+          },
+          "startup.o": {
+            "sha256": "52ce004616b98aa02d908ef2f7a069a43c8d63e8b5613447b3315dc0641cea78",
+            "bytes": 9920
+          }
+        },
+        "elf": {
+          "class": "ELF32",
+          "endian": "little",
+          "machine": "ARM",
+          "type": "EXEC",
+          "cpu": "Cortex-M7",
+          "entry": 134393629,
+          "flash_start": 134348800,
+          "flags": 83887104,
+          "load_segments": 2,
+          "load_bytes_match_raw": true,
+          "program_layout": [
+            {
+              "vaddr": 0,
+              "paddr": 0,
+              "file_bytes": 0,
+              "memory_bytes": 59904,
+              "flags": 6,
+              "alignment": 4096
+            },
+            {
+              "vaddr": 134348800,
+              "paddr": 134348800,
+              "file_bytes": 54116,
+              "memory_bytes": 54116,
+              "flags": 5,
+              "alignment": 4096
+            },
+            {
+              "vaddr": 536870912,
+              "paddr": 134402916,
+              "file_bytes": 23028,
+              "memory_bytes": 76928,
+              "flags": 6,
+              "alignment": 4096
+            },
+            {
+              "vaddr": 536947840,
+              "paddr": 134425944,
+              "file_bytes": 0,
+              "memory_bytes": 1536,
+              "flags": 6,
+              "alignment": 4096
+            },
+            {
+              "vaddr": 603979776,
+              "paddr": 603979776,
+              "file_bytes": 0,
+              "memory_bytes": 294912,
+              "flags": 6,
+              "alignment": 4096
+            },
+            {
+              "vaddr": 805306368,
+              "paddr": 805306368,
+              "file_bytes": 0,
+              "memory_bytes": 8193,
+              "flags": 6,
+              "alignment": 4096
+            },
+            {
+              "vaddr": 939524096,
+              "paddr": 939524096,
+              "file_bytes": 0,
+              "memory_bytes": 14192,
+              "flags": 6,
+              "alignment": 4096
+            }
+          ],
+          "allocated_sections": {
+            ".isr_vector": {
+              "type": 1,
+              "flags": 2,
+              "address": 134348800,
+              "bytes": 716,
+              "alignment": 1
+            },
+            ".text": {
+              "type": 1,
+              "flags": 6,
+              "address": 134349536,
+              "bytes": 45400,
+              "alignment": 32
+            },
+            ".rodata": {
+              "type": 1,
+              "flags": 2,
+              "address": 134394936,
+              "bytes": 7980,
+              "alignment": 4
+            },
+            ".data": {
+              "type": 1,
+              "flags": 3,
+              "address": 536870912,
+              "bytes": 23028,
+              "alignment": 4
+            },
+            ".bss": {
+              "type": 8,
+              "flags": 3,
+              "address": 536893940,
+              "bytes": 53900,
+              "alignment": 4
+            },
+            "._user_heap_stack": {
+              "type": 8,
+              "flags": 3,
+              "address": 536947840,
+              "bytes": 1536,
+              "alignment": 1
+            },
+            ".itcmram": {
+              "type": 8,
+              "flags": 3,
+              "address": 0,
+              "bytes": 59904,
+              "alignment": 4
+            },
+            ".axisram": {
+              "type": 8,
+              "flags": 3,
+              "address": 603979776,
+              "bytes": 294912,
+              "alignment": 4
+            },
+            ".sram12": {
+              "type": 8,
+              "flags": 3,
+              "address": 805306368,
+              "bytes": 8193,
+              "alignment": 1
+            },
+            ".sram4": {
+              "type": 8,
+              "flags": 3,
+              "address": 939524096,
+              "bytes": 14192,
+              "alignment": 4
+            }
+          }
+        },
+        "signature_verified": true,
+        "deployable": false,
+        "bootstub_built": false
+      },
+      "second": {
+        "target": "h7",
+        "policy": "release",
+        "compiler": "arm-none-eabi-gcc (Arm GNU Toolchain 13.2.rel1 (Build arm-13.7)) 13.2.1 20231009",
+        "version": "P5-h7-2dcc14d0c515-release",
+        "source_identity": "2dcc14d0c5157ba9028c37976813a99616fb43069c8658073bb3ab1049bb7c3f",
+        "protocol_inputs": {
+          "board/health.h": "f512bcff6925e233a35c00e2d921fe01933fd77c0705c573a233b170d73ce20d",
+          "opendbc/safety/can.h": "76f2ab751f89797c0a2254ab9a010a261678fe30f869d4e777cb7f2048802743"
+        },
+        "provenance": {
+          "source_root": "/Users/shuang/Code/openpilot/songplus-port-lab/results/panda-ci-p7-20261018-002/validation/replay/panda",
+          "opendbc_root": "/Users/shuang/Code/openpilot/songplus-port-lab/results/panda-ci-p7-20261018-002/validation/replay/opendbc",
+          "output_root": "/Users/shuang/Code/openpilot/songplus-port-lab/results/panda-ci-p7-20261018-002/validation/rebuild/h7-release",
+          "compiler_path": "/Users/shuang/Code/openpilot/songplus-port-lab/upstream-openpilot/.venv/bin/arm-none-eabi-gcc"
+        },
+        "artifacts": {
+          "build.log": {
+            "sha256": "484ac25d8dd9d000c1c005d360ed2c4c8be6e6597cb43c59d714642635009242",
+            "bytes": 6374
+          },
+          "main.bin": {
+            "sha256": "a4bf064925b2d06b660a64fdef07103c24ced874639d9b430129ea774725b946",
+            "bytes": 77144
+          },
+          "main.bin.signed": {
+            "sha256": "9e3ee9994cab1d0ea07332ca5309ba16f33203086c1b1ca18e21ecbccfde6b5b",
+            "bytes": 77280
+          },
+          "main.ci": {
+            "sha256": "01bd155330346970de29072725bfe22f7337567272f7d59257ebb73ba8783248",
+            "bytes": 440723
+          },
+          "main.d": {
+            "sha256": "2fede8a8917e7e648ccf0eeb28a2f7edaaa220b9e88fe6d14b6b439e9377efac",
+            "bytes": 13962
+          },
+          "main.elf": {
+            "sha256": "853da4b1a3c6b7d345a9478245c44b70d61c563767c831690c453a08c667665d",
+            "bytes": 414900
+          },
+          "main.map": {
+            "sha256": "19fc8d62d066939cc18a7375e41cd5f667b35df6d71a65c0d4930451070a9017",
+            "bytes": 38684
+          },
+          "main.o": {
+            "sha256": "15363bc70d6bc8177c0ebe24c49bd0d496e2f1b1b2c73252692bc2f164c69e78",
+            "bytes": 903932
+          },
+          "main.su": {
+            "sha256": "7692fa820be3ee23ed329fbe4bfc2b0462ff00197bf59a4edf6723b20e58145e",
+            "bytes": 81112
+          },
+          "startup.o": {
+            "sha256": "52ce004616b98aa02d908ef2f7a069a43c8d63e8b5613447b3315dc0641cea78",
+            "bytes": 9920
+          }
+        },
+        "elf": {
+          "class": "ELF32",
+          "endian": "little",
+          "machine": "ARM",
+          "type": "EXEC",
+          "cpu": "Cortex-M7",
+          "entry": 134393629,
+          "flash_start": 134348800,
+          "flags": 83887104,
+          "load_segments": 2,
+          "load_bytes_match_raw": true,
+          "program_layout": [
+            {
+              "vaddr": 0,
+              "paddr": 0,
+              "file_bytes": 0,
+              "memory_bytes": 59904,
+              "flags": 6,
+              "alignment": 4096
+            },
+            {
+              "vaddr": 134348800,
+              "paddr": 134348800,
+              "file_bytes": 54116,
+              "memory_bytes": 54116,
+              "flags": 5,
+              "alignment": 4096
+            },
+            {
+              "vaddr": 536870912,
+              "paddr": 134402916,
+              "file_bytes": 23028,
+              "memory_bytes": 76928,
+              "flags": 6,
+              "alignment": 4096
+            },
+            {
+              "vaddr": 536947840,
+              "paddr": 134425944,
+              "file_bytes": 0,
+              "memory_bytes": 1536,
+              "flags": 6,
+              "alignment": 4096
+            },
+            {
+              "vaddr": 603979776,
+              "paddr": 603979776,
+              "file_bytes": 0,
+              "memory_bytes": 294912,
+              "flags": 6,
+              "alignment": 4096
+            },
+            {
+              "vaddr": 805306368,
+              "paddr": 805306368,
+              "file_bytes": 0,
+              "memory_bytes": 8193,
+              "flags": 6,
+              "alignment": 4096
+            },
+            {
+              "vaddr": 939524096,
+              "paddr": 939524096,
+              "file_bytes": 0,
+              "memory_bytes": 14192,
+              "flags": 6,
+              "alignment": 4096
+            }
+          ],
+          "allocated_sections": {
+            ".isr_vector": {
+              "type": 1,
+              "flags": 2,
+              "address": 134348800,
+              "bytes": 716,
+              "alignment": 1
+            },
+            ".text": {
+              "type": 1,
+              "flags": 6,
+              "address": 134349536,
+              "bytes": 45400,
+              "alignment": 32
+            },
+            ".rodata": {
+              "type": 1,
+              "flags": 2,
+              "address": 134394936,
+              "bytes": 7980,
+              "alignment": 4
+            },
+            ".data": {
+              "type": 1,
+              "flags": 3,
+              "address": 536870912,
+              "bytes": 23028,
+              "alignment": 4
+            },
+            ".bss": {
+              "type": 8,
+              "flags": 3,
+              "address": 536893940,
+              "bytes": 53900,
+              "alignment": 4
+            },
+            "._user_heap_stack": {
+              "type": 8,
+              "flags": 3,
+              "address": 536947840,
+              "bytes": 1536,
+              "alignment": 1
+            },
+            ".itcmram": {
+              "type": 8,
+              "flags": 3,
+              "address": 0,
+              "bytes": 59904,
+              "alignment": 4
+            },
+            ".axisram": {
+              "type": 8,
+              "flags": 3,
+              "address": 603979776,
+              "bytes": 294912,
+              "alignment": 4
+            },
+            ".sram12": {
+              "type": 8,
+              "flags": 3,
+              "address": 805306368,
+              "bytes": 8193,
+              "alignment": 1
+            },
+            ".sram4": {
+              "type": 8,
+              "flags": 3,
+              "address": 939524096,
+              "bytes": 14192,
+              "alignment": 4
+            }
+          }
+        },
+        "signature_verified": true,
+        "deployable": false,
+        "bootstub_built": false
+      },
+      "byte_equal": {
+        "build.log": false,
+        "main.bin": true,
+        "main.bin.signed": true,
+        "main.ci": false,
+        "main.d": false,
+        "main.elf": true,
+        "main.map": false,
+        "main.o": true,
+        "main.su": false,
+        "startup.o": true
+      },
+      "core_candidate_bytes_equal": true
+    }
+  },
+  "scope": "Two clean source/output paths; exact raw and development-signed application bytes. Actual compiler invocations must be recorded by the orchestrator.",
+  "whole_directory_byte_reproducibility_claimed": false,
+  "cross_toolchain_reproducibility_claimed": false,
+  "deployable": false,
+  "device_access": false,
+  "mcu_executed": false
+}

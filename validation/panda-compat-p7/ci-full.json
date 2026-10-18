@@ -1,0 +1,185 @@
+{
+  "schema": "songplus-panda-ci/v1",
+  "mode": "full",
+  "execution": "local shared CI entry (not proof of a GitHub Actions run)",
+  "started_at_utc": "2026-10-18T04:38:44.825469+00:00",
+  "status": "PASS",
+  "deployment_ready": false,
+  "commands": [
+    {
+      "name": "verify-lock",
+      "argv": [
+        "/Users/shuang/Code/openpilot/songplus-port-lab/upstream-openpilot/.venv/bin/python",
+        "-B",
+        "tools/songplus_compat.py",
+        "verify-lock"
+      ],
+      "returncode": 0,
+      "expected_returncode": 0
+    },
+    {
+      "name": "replay",
+      "argv": [
+        "/Users/shuang/Code/openpilot/songplus-port-lab/upstream-openpilot/.venv/bin/python",
+        "-B",
+        "tools/songplus_compat.py",
+        "replay",
+        "--output",
+        "/Users/shuang/Code/openpilot/songplus-port-lab/results/panda-ci-p7-20261018-002/replay"
+      ],
+      "returncode": 0,
+      "expected_returncode": 0
+    },
+    {
+      "name": "validate",
+      "argv": [
+        "/Users/shuang/Code/openpilot/songplus-port-lab/upstream-openpilot/.venv/bin/python",
+        "-B",
+        "tools/songplus_compat.py",
+        "validate",
+        "--linux-instance",
+        "byd-recovery-311",
+        "--linux-root",
+        "/home/shuang.guest/songplus-p2-build",
+        "--output",
+        "/Users/shuang/Code/openpilot/songplus-port-lab/results/panda-ci-p7-20261018-002/validation"
+      ],
+      "returncode": 0,
+      "expected_returncode": 0
+    },
+    {
+      "name": "release-check",
+      "argv": [
+        "/Users/shuang/Code/openpilot/songplus-port-lab/upstream-openpilot/.venv/bin/python",
+        "-B",
+        "tools/songplus_compat.py",
+        "release-check",
+        "--report",
+        "/Users/shuang/Code/openpilot/songplus-port-lab/results/panda-ci-p7-20261018-002/validation/result.json"
+      ],
+      "returncode": 3,
+      "expected_returncode": 3
+    }
+  ],
+  "release_gate": {
+    "schema": "songplus-maintenance-release-gate/v1",
+    "offline_compatibility_complete": true,
+    "offline_cases_passed": 41,
+    "offline_cases_required": 41,
+    "offline_evidence_errors": [],
+    "run_id": "p7-76aa82bd7265438da9e386106fe689d6",
+    "lock_sha256": "3ee3704aeaad414e0024f7e4c246b58cea84c54a970ddba2ee3c4a346b6c5806",
+    "scopes": {
+      "offline_host_and_arm_build": true,
+      "mcu_hardware_execution": false,
+      "target_runtime": false,
+      "recovery": false,
+      "vehicle_validation": false
+    },
+    "deployment_ready": false,
+    "release_installable": false,
+    "permissions": {
+      "device_access": false,
+      "real_can_tx": false,
+      "runtime_launch": false,
+      "system_write": false,
+      "installation": false,
+      "panda_reset": false,
+      "firmware_flash": false,
+      "bootstub_replace": false,
+      "network_access": false,
+      "auto_build": false,
+      "auto_download": false,
+      "usb_role_write": false,
+      "dfu": false
+    },
+    "blockers": [
+      {
+        "id": "PHYSICAL_IDENTITY",
+        "status": "UNVERIFIED",
+        "detail": "DOS/F413 and external Panda physical identities and wiring remain unconfirmed."
+      },
+      {
+        "id": "TARGET_RUNTIME",
+        "status": "NOT_TESTED",
+        "detail": "C3XL OS/camera/USB/SPI/thermal runtime has not executed these candidates."
+      },
+      {
+        "id": "RECOVERY_CHAIN",
+        "status": "UNVERIFIED",
+        "detail": "Installed bootstub/app ABI, trusted signing and independently tested recovery are not established."
+      },
+      {
+        "id": "DRIVER_MONITORING",
+        "status": "MISSING_HARDWARE",
+        "detail": "C3XL was sold without a driver camera; equivalent validated driver monitoring is unresolved."
+      },
+      {
+        "id": "AUDIBLE_ALERTS",
+        "status": "UNVERIFIED",
+        "detail": "Required audible alert output and failure handling remain unvalidated."
+      },
+      {
+        "id": "VEHICLE_CONTROL_SAFETY",
+        "status": "UNAVAILABLE",
+        "detail": "Song PLUS controller, signal validation and dedicated independent safety are not implemented or vehicle-validated."
+      },
+      {
+        "id": "RESOURCE_RUNTIME_LIMITS",
+        "status": "UNRESOLVED",
+        "detail": "Worst-case nested stacks, physical MCU capacity and inherited H7 cookie/microphone overlap require separate resolution."
+      },
+      {
+        "id": "CANDIDATE_TRUST",
+        "status": "NONDEPLOYABLE",
+        "detail": "Both debug and nondebug candidates use the public development key; no deployment trust chain or install package exists."
+      }
+    ],
+    "deployment_blockers": [
+      {
+        "id": "PHYSICAL_IDENTITY",
+        "status": "UNVERIFIED",
+        "detail": "DOS/F413 and external Panda physical identities and wiring remain unconfirmed."
+      },
+      {
+        "id": "TARGET_RUNTIME",
+        "status": "NOT_TESTED",
+        "detail": "C3XL OS/camera/USB/SPI/thermal runtime has not executed these candidates."
+      },
+      {
+        "id": "RECOVERY_CHAIN",
+        "status": "UNVERIFIED",
+        "detail": "Installed bootstub/app ABI, trusted signing and independently tested recovery are not established."
+      },
+      {
+        "id": "DRIVER_MONITORING",
+        "status": "MISSING_HARDWARE",
+        "detail": "C3XL was sold without a driver camera; equivalent validated driver monitoring is unresolved."
+      },
+      {
+        "id": "AUDIBLE_ALERTS",
+        "status": "UNVERIFIED",
+        "detail": "Required audible alert output and failure handling remain unvalidated."
+      },
+      {
+        "id": "VEHICLE_CONTROL_SAFETY",
+        "status": "UNAVAILABLE",
+        "detail": "Song PLUS controller, signal validation and dedicated independent safety are not implemented or vehicle-validated."
+      },
+      {
+        "id": "RESOURCE_RUNTIME_LIMITS",
+        "status": "UNRESOLVED",
+        "detail": "Worst-case nested stacks, physical MCU capacity and inherited H7 cookie/microphone overlap require separate resolution."
+      },
+      {
+        "id": "CANDIDATE_TRUST",
+        "status": "NONDEPLOYABLE",
+        "detail": "Both debug and nondebug candidates use the public development key; no deployment trust chain or install package exists."
+      }
+    ]
+  },
+  "failed": 0,
+  "skipped": 0,
+  "passed_commands": 4,
+  "completed_at_utc": "2026-10-18T04:45:41.799630+00:00"
+}

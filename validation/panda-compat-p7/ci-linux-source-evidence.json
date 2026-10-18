@@ -1,0 +1,22 @@
+{
+  "schema": "songplus-p7-linux-source-ci-evidence/v1",
+  "status": "PASS",
+  "lock_sha256": "3ee3704aeaad414e0024f7e4c246b58cea84c54a970ddba2ee3c4a346b6c5806",
+  "source_archive_sha256": "a474cdbb2a38953579b176be021aa96610e98c99cd51d48bd47683d770a28f34",
+  "source_bundle_manifest_sha256": "075590031cf63f7c71e6dc8d25936c2570968ce78f8b36f3e8a86ed3e5f0ef50",
+  "report": "/Users/shuang/Code/openpilot/songplus-port-lab/results/panda-ci-linux-source-20261018-002/results/linux-source-contract/result.json",
+  "report_sha256": "cf50e3704f01898a88195fe8a6a6cd108c4f58f27f64419921c14129f5b14a38",
+  "logs_archive_sha256": "df8399c388da5e1a85499bf4844764696eccc108d1a817165fdf8a205a8fa904",
+  "sandbox": "linux-user-net-mount",
+  "passed_commands": 9,
+  "maintenance_tests": 128,
+  "ci_tests": 21,
+  "failed": 0,
+  "skipped": 0,
+  "official_checkouts_in_bundle": false,
+  "dependency_caches_in_bundle": false,
+  "github_executed": false,
+  "device_access": false,
+  "deployment_ready": false,
+  "vm_workspace": "/home/shuang.guest/songplus-p7-ci-source-20261018-002"
+}

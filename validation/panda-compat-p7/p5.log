@@ -1,0 +1,20 @@
+{"status": "PASS_OFFLINE_CANDIDATE", "result": "/Users/shuang/Code/openpilot/songplus-port-lab/results/panda-firmware-p5/run-9_r9386i/result.json"}
+/Users/shuang/Code/openpilot/songplus-port-lab/patches/panda/p5/0001-P5-DOS-F4-application-BSP.patch:1555: new blank line at EOF.
++
+/Users/shuang/Code/openpilot/songplus-port-lab/patches/panda/p5/0001-P5-DOS-F4-application-BSP.patch:3731: new blank line at EOF.
++
+/Users/shuang/Code/openpilot/songplus-port-lab/patches/panda/p5/0001-P5-DOS-F4-application-BSP.patch:3777: new blank line at EOF.
++
+/Users/shuang/Code/openpilot/songplus-port-lab/patches/panda/p5/0001-P5-DOS-F4-application-BSP.patch:5908: new blank line at EOF.
++
+/Users/shuang/Code/openpilot/songplus-port-lab/patches/panda/p5/0001-P5-DOS-F4-application-BSP.patch:6187: new blank line at EOF.
++
+warning: 5 lines add whitespace errors.
+warning: openpilot/selfdrive/car/card.py has type 100644, expected 100755
+warning: openpilot/selfdrive/pandad/pandad.py has type 100644, expected 100755
+warning: openpilot/selfdrive/selfdrived/selfdrived.py has type 100644, expected 100755
+warning: openpilot/system/hardware/hardwared.py has type 100644, expected 100755
+warning: openpilot/selfdrive/car/card.py has type 100644, expected 100755
+warning: openpilot/selfdrive/pandad/pandad.py has type 100644, expected 100755
+warning: openpilot/selfdrive/selfdrived/selfdrived.py has type 100644, expected 100755
+warning: openpilot/system/hardware/hardwared.py has type 100644, expected 100755

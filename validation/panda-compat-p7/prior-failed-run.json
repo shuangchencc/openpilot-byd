@@ -1,0 +1,337 @@
+{
+  "maintenance_commit": "67df15c",
+  "lock_sha256": "f6f512c316ad4c19469271d8e0c976c0c1a4a10f012d455f09b435b3c65d4119",
+  "cause": "Legacy A23 native_link:[] mapping means the whole suite; initial P7 aggregation counted zero despite both native_link suites passing. Fixed to count actual observed groups; added positive/missing-platform tests and ran a fresh full batch.",
+  "aggregate": {
+    "status": "FAIL",
+    "error": "Empty executed case: A23",
+    "run_id": "p7-1a1aca5588f24aef8a8a3ceebd1ede57",
+    "started_at_utc": "2026-10-18T04:29:48.686927+00:00",
+    "completed_at_utc": "2026-10-18T04:36:27.116899+00:00",
+    "commands": [
+      {
+        "name": "ci-contract",
+        "argv": [
+          "/usr/bin/sandbox-exec",
+          "-f",
+          "/Users/shuang/Code/openpilot/songplus-port-lab/tools/panda_firmware_offline.sb",
+          "/Users/shuang/Code/openpilot/songplus-port-lab/upstream-openpilot/.venv/bin/python",
+          "-B",
+          "/Users/shuang/Code/openpilot/songplus-port-lab/tools/check_panda_ci.py",
+          "--mode",
+          "contract",
+          "--output",
+          "/Users/shuang/Code/openpilot/songplus-port-lab/results/panda-ci-p7-20261018-001/validation/contract"
+        ],
+        "exit_code": 0,
+        "log_sha256": "04a21dc49dd1ea39be03b7d93e270c356c96fa589d12c6c9c635082abe414889"
+      },
+      {
+        "name": "p5",
+        "argv": [
+          "/Users/shuang/Code/openpilot/songplus-port-lab/upstream-openpilot/.venv/bin/python",
+          "/Users/shuang/Code/openpilot/songplus-port-lab/tools/validate_panda_firmware.py"
+        ],
+        "exit_code": 0,
+        "log_sha256": "0ad7e06d815624f2bc5d630ba22a307a1fb0e0d355511d319a58bfb1e4c795df"
+      },
+      {
+        "name": "rebuild-f4-debug",
+        "argv": [
+          "/usr/bin/sandbox-exec",
+          "-f",
+          "/Users/shuang/Code/openpilot/songplus-port-lab/tools/panda_firmware_offline.sb",
+          "/Users/shuang/Code/openpilot/songplus-port-lab/upstream-openpilot/.venv/bin/python",
+          "/Users/shuang/Code/openpilot/songplus-port-lab/results/panda-ci-p7-20261018-001/validation/replay/panda/tools/p5/build_candidate.py",
+          "--source",
+          "/Users/shuang/Code/openpilot/songplus-port-lab/results/panda-ci-p7-20261018-001/validation/replay/panda",
+          "--opendbc",
+          "/Users/shuang/Code/openpilot/songplus-port-lab/results/panda-ci-p7-20261018-001/validation/replay/opendbc",
+          "--arm-prefix",
+          "/Users/shuang/Code/openpilot/songplus-port-lab/upstream-openpilot/.venv/bin",
+          "--output",
+          "/Users/shuang/Code/openpilot/songplus-port-lab/results/panda-ci-p7-20261018-001/validation/rebuild/f4-debug",
+          "--target",
+          "f4",
+          "--policy",
+          "debug"
+        ],
+        "exit_code": 0,
+        "log_sha256": "ff85a48c03a423b936fe504862413b8bfc6f7f35d3e41beaffb6d16040e8d344"
+      },
+      {
+        "name": "resources-f4-debug",
+        "argv": [
+          "/usr/bin/sandbox-exec",
+          "-f",
+          "/Users/shuang/Code/openpilot/songplus-port-lab/tools/panda_firmware_offline.sb",
+          "/Users/shuang/Code/openpilot/songplus-port-lab/upstream-openpilot/.venv/bin/python",
+          "/Users/shuang/Code/openpilot/songplus-port-lab/results/panda-ci-p7-20261018-001/validation/replay/panda/tests/p5/audit_resources.py",
+          "--target",
+          "f4",
+          "--elf",
+          "/Users/shuang/Code/openpilot/songplus-port-lab/results/panda-ci-p7-20261018-001/validation/rebuild/f4-debug/main.elf",
+          "--map",
+          "/Users/shuang/Code/openpilot/songplus-port-lab/results/panda-ci-p7-20261018-001/validation/rebuild/f4-debug/main.map",
+          "--raw",
+          "/Users/shuang/Code/openpilot/songplus-port-lab/results/panda-ci-p7-20261018-001/validation/rebuild/f4-debug/main.bin",
+          "--signed",
+          "/Users/shuang/Code/openpilot/songplus-port-lab/results/panda-ci-p7-20261018-001/validation/rebuild/f4-debug/main.bin.signed",
+          "--public-key",
+          "/Users/shuang/Code/openpilot/songplus-port-lab/results/panda-ci-p7-20261018-001/validation/replay/panda/board/crypto/certs/debug.pub",
+          "--stack-dir",
+          "/Users/shuang/Code/openpilot/songplus-port-lab/results/panda-ci-p7-20261018-001/validation/rebuild/f4-debug",
+          "--output",
+          "/Users/shuang/Code/openpilot/songplus-port-lab/results/panda-ci-p7-20261018-001/validation/rebuild/f4-debug/resources.json"
+        ],
+        "exit_code": 0,
+        "log_sha256": "59748c41f4bee8614d7c26d1fe82fa88ddbbd676ea28a1518fb0e553328afa73"
+      },
+      {
+        "name": "rebuild-f4-release",
+        "argv": [
+          "/usr/bin/sandbox-exec",
+          "-f",
+          "/Users/shuang/Code/openpilot/songplus-port-lab/tools/panda_firmware_offline.sb",
+          "/Users/shuang/Code/openpilot/songplus-port-lab/upstream-openpilot/.venv/bin/python",
+          "/Users/shuang/Code/openpilot/songplus-port-lab/results/panda-ci-p7-20261018-001/validation/replay/panda/tools/p5/build_candidate.py",
+          "--source",
+          "/Users/shuang/Code/openpilot/songplus-port-lab/results/panda-ci-p7-20261018-001/validation/replay/panda",
+          "--opendbc",
+          "/Users/shuang/Code/openpilot/songplus-port-lab/results/panda-ci-p7-20261018-001/validation/replay/opendbc",
+          "--arm-prefix",
+          "/Users/shuang/Code/openpilot/songplus-port-lab/upstream-openpilot/.venv/bin",
+          "--output",
+          "/Users/shuang/Code/openpilot/songplus-port-lab/results/panda-ci-p7-20261018-001/validation/rebuild/f4-release",
+          "--target",
+          "f4",
+          "--policy",
+          "release"
+        ],
+        "exit_code": 0,
+        "log_sha256": "4111ac3ea9537221e40403342768ab27d84f1fcb621a8c00e50611e7b93d1f1c"
+      },
+      {
+        "name": "resources-f4-release",
+        "argv": [
+          "/usr/bin/sandbox-exec",
+          "-f",
+          "/Users/shuang/Code/openpilot/songplus-port-lab/tools/panda_firmware_offline.sb",
+          "/Users/shuang/Code/openpilot/songplus-port-lab/upstream-openpilot/.venv/bin/python",
+          "/Users/shuang/Code/openpilot/songplus-port-lab/results/panda-ci-p7-20261018-001/validation/replay/panda/tests/p5/audit_resources.py",
+          "--target",
+          "f4",
+          "--elf",
+          "/Users/shuang/Code/openpilot/songplus-port-lab/results/panda-ci-p7-20261018-001/validation/rebuild/f4-release/main.elf",
+          "--map",
+          "/Users/shuang/Code/openpilot/songplus-port-lab/results/panda-ci-p7-20261018-001/validation/rebuild/f4-release/main.map",
+          "--raw",
+          "/Users/shuang/Code/openpilot/songplus-port-lab/results/panda-ci-p7-20261018-001/validation/rebuild/f4-release/main.bin",
+          "--signed",
+          "/Users/shuang/Code/openpilot/songplus-port-lab/results/panda-ci-p7-20261018-001/validation/rebuild/f4-release/main.bin.signed",
+          "--public-key",
+          "/Users/shuang/Code/openpilot/songplus-port-lab/results/panda-ci-p7-20261018-001/validation/replay/panda/board/crypto/certs/debug.pub",
+          "--stack-dir",
+          "/Users/shuang/Code/openpilot/songplus-port-lab/results/panda-ci-p7-20261018-001/validation/rebuild/f4-release",
+          "--output",
+          "/Users/shuang/Code/openpilot/songplus-port-lab/results/panda-ci-p7-20261018-001/validation/rebuild/f4-release/resources.json"
+        ],
+        "exit_code": 0,
+        "log_sha256": "9614971162ee90a04f0e79c161d0af278b88ad937ad3bfaa176cfbe1f92fbb24"
+      },
+      {
+        "name": "rebuild-h7-debug",
+        "argv": [
+          "/usr/bin/sandbox-exec",
+          "-f",
+          "/Users/shuang/Code/openpilot/songplus-port-lab/tools/panda_firmware_offline.sb",
+          "/Users/shuang/Code/openpilot/songplus-port-lab/upstream-openpilot/.venv/bin/python",
+          "/Users/shuang/Code/openpilot/songplus-port-lab/results/panda-ci-p7-20261018-001/validation/replay/panda/tools/p5/build_candidate.py",
+          "--source",
+          "/Users/shuang/Code/openpilot/songplus-port-lab/results/panda-ci-p7-20261018-001/validation/replay/panda",
+          "--opendbc",
+          "/Users/shuang/Code/openpilot/songplus-port-lab/results/panda-ci-p7-20261018-001/validation/replay/opendbc",
+          "--arm-prefix",
+          "/Users/shuang/Code/openpilot/songplus-port-lab/upstream-openpilot/.venv/bin",
+          "--output",
+          "/Users/shuang/Code/openpilot/songplus-port-lab/results/panda-ci-p7-20261018-001/validation/rebuild/h7-debug",
+          "--target",
+          "h7",
+          "--policy",
+          "debug"
+        ],
+        "exit_code": 0,
+        "log_sha256": "b6bc6832ea921306e08ef061b4550aa8166d70110aa2b7322261bd162e25720a"
+      },
+      {
+        "name": "resources-h7-debug",
+        "argv": [
+          "/usr/bin/sandbox-exec",
+          "-f",
+          "/Users/shuang/Code/openpilot/songplus-port-lab/tools/panda_firmware_offline.sb",
+          "/Users/shuang/Code/openpilot/songplus-port-lab/upstream-openpilot/.venv/bin/python",
+          "/Users/shuang/Code/openpilot/songplus-port-lab/results/panda-ci-p7-20261018-001/validation/replay/panda/tests/p5/audit_resources.py",
+          "--target",
+          "h7",
+          "--elf",
+          "/Users/shuang/Code/openpilot/songplus-port-lab/results/panda-ci-p7-20261018-001/validation/rebuild/h7-debug/main.elf",
+          "--map",
+          "/Users/shuang/Code/openpilot/songplus-port-lab/results/panda-ci-p7-20261018-001/validation/rebuild/h7-debug/main.map",
+          "--raw",
+          "/Users/shuang/Code/openpilot/songplus-port-lab/results/panda-ci-p7-20261018-001/validation/rebuild/h7-debug/main.bin",
+          "--signed",
+          "/Users/shuang/Code/openpilot/songplus-port-lab/results/panda-ci-p7-20261018-001/validation/rebuild/h7-debug/main.bin.signed",
+          "--public-key",
+          "/Users/shuang/Code/openpilot/songplus-port-lab/results/panda-ci-p7-20261018-001/validation/replay/panda/board/crypto/certs/debug.pub",
+          "--stack-dir",
+          "/Users/shuang/Code/openpilot/songplus-port-lab/results/panda-ci-p7-20261018-001/validation/rebuild/h7-debug",
+          "--output",
+          "/Users/shuang/Code/openpilot/songplus-port-lab/results/panda-ci-p7-20261018-001/validation/rebuild/h7-debug/resources.json"
+        ],
+        "exit_code": 0,
+        "log_sha256": "43af24c7ef2526f2e03d983769681f06a04c13005aab345b2ec6fce23287b2f9"
+      },
+      {
+        "name": "rebuild-h7-release",
+        "argv": [
+          "/usr/bin/sandbox-exec",
+          "-f",
+          "/Users/shuang/Code/openpilot/songplus-port-lab/tools/panda_firmware_offline.sb",
+          "/Users/shuang/Code/openpilot/songplus-port-lab/upstream-openpilot/.venv/bin/python",
+          "/Users/shuang/Code/openpilot/songplus-port-lab/results/panda-ci-p7-20261018-001/validation/replay/panda/tools/p5/build_candidate.py",
+          "--source",
+          "/Users/shuang/Code/openpilot/songplus-port-lab/results/panda-ci-p7-20261018-001/validation/replay/panda",
+          "--opendbc",
+          "/Users/shuang/Code/openpilot/songplus-port-lab/results/panda-ci-p7-20261018-001/validation/replay/opendbc",
+          "--arm-prefix",
+          "/Users/shuang/Code/openpilot/songplus-port-lab/upstream-openpilot/.venv/bin",
+          "--output",
+          "/Users/shuang/Code/openpilot/songplus-port-lab/results/panda-ci-p7-20261018-001/validation/rebuild/h7-release",
+          "--target",
+          "h7",
+          "--policy",
+          "release"
+        ],
+        "exit_code": 0,
+        "log_sha256": "1d3e05c484cf8948b0bfa15ba7556593333847416b0eb30e13570989cd760952"
+      },
+      {
+        "name": "resources-h7-release",
+        "argv": [
+          "/usr/bin/sandbox-exec",
+          "-f",
+          "/Users/shuang/Code/openpilot/songplus-port-lab/tools/panda_firmware_offline.sb",
+          "/Users/shuang/Code/openpilot/songplus-port-lab/upstream-openpilot/.venv/bin/python",
+          "/Users/shuang/Code/openpilot/songplus-port-lab/results/panda-ci-p7-20261018-001/validation/replay/panda/tests/p5/audit_resources.py",
+          "--target",
+          "h7",
+          "--elf",
+          "/Users/shuang/Code/openpilot/songplus-port-lab/results/panda-ci-p7-20261018-001/validation/rebuild/h7-release/main.elf",
+          "--map",
+          "/Users/shuang/Code/openpilot/songplus-port-lab/results/panda-ci-p7-20261018-001/validation/rebuild/h7-release/main.map",
+          "--raw",
+          "/Users/shuang/Code/openpilot/songplus-port-lab/results/panda-ci-p7-20261018-001/validation/rebuild/h7-release/main.bin",
+          "--signed",
+          "/Users/shuang/Code/openpilot/songplus-port-lab/results/panda-ci-p7-20261018-001/validation/rebuild/h7-release/main.bin.signed",
+          "--public-key",
+          "/Users/shuang/Code/openpilot/songplus-port-lab/results/panda-ci-p7-20261018-001/validation/replay/panda/board/crypto/certs/debug.pub",
+          "--stack-dir",
+          "/Users/shuang/Code/openpilot/songplus-port-lab/results/panda-ci-p7-20261018-001/validation/rebuild/h7-release",
+          "--output",
+          "/Users/shuang/Code/openpilot/songplus-port-lab/results/panda-ci-p7-20261018-001/validation/rebuild/h7-release/resources.json"
+        ],
+        "exit_code": 0,
+        "log_sha256": "445fb7b66e6d1f424f932bfa9c0beec4fb53da3f48f54c501fe54f15d2093ff2"
+      },
+      {
+        "name": "reproducibility",
+        "argv": [
+          "/usr/bin/sandbox-exec",
+          "-f",
+          "/Users/shuang/Code/openpilot/songplus-port-lab/tools/panda_firmware_offline.sb",
+          "/Users/shuang/Code/openpilot/songplus-port-lab/upstream-openpilot/.venv/bin/python",
+          "/Users/shuang/Code/openpilot/songplus-port-lab/maintenance/reproducibility.py",
+          "--first",
+          "/Users/shuang/Code/openpilot/songplus-port-lab/results/panda-firmware-p5/run-nfgid95d",
+          "--second",
+          "/Users/shuang/Code/openpilot/songplus-port-lab/results/panda-ci-p7-20261018-001/validation/rebuild",
+          "--public-key",
+          "/Users/shuang/Code/openpilot/songplus-port-lab/results/panda-ci-p7-20261018-001/validation/replay/panda/board/crypto/certs/debug.pub",
+          "--output",
+          "/Users/shuang/Code/openpilot/songplus-port-lab/results/panda-ci-p7-20261018-001/validation/repro.json"
+        ],
+        "exit_code": 0,
+        "log_sha256": "de4ad6b840447b05d5c3e6a8549544184f4bb7b4aca6f676323e15ec4d886404"
+      },
+      {
+        "name": "p6",
+        "argv": [
+          "/Users/shuang/Code/openpilot/songplus-port-lab/upstream-openpilot/.venv/bin/python",
+          "/Users/shuang/Code/openpilot/songplus-port-lab/tools/validate_panda_p6.py",
+          "--linux-instance",
+          "byd-recovery-311",
+          "--linux-root",
+          "/home/shuang.guest/songplus-p2-build"
+        ],
+        "exit_code": 0,
+        "log_sha256": "a92ec3570f7b55cb65989b3155766e76edf77df76a1da3e634e423873f44f118"
+      }
+    ],
+    "device_access": false,
+    "deployment_ready": false
+  },
+  "ci": {
+    "schema": "songplus-panda-ci/v1",
+    "mode": "full",
+    "execution": "local shared CI entry (not proof of a GitHub Actions run)",
+    "started_at_utc": "2026-10-18T04:29:46.105673+00:00",
+    "status": "FAIL",
+    "deployment_ready": false,
+    "commands": [
+      {
+        "name": "verify-lock",
+        "argv": [
+          "/Users/shuang/Code/openpilot/songplus-port-lab/upstream-openpilot/.venv/bin/python",
+          "-B",
+          "tools/songplus_compat.py",
+          "verify-lock"
+        ],
+        "returncode": 0,
+        "expected_returncode": 0
+      },
+      {
+        "name": "replay",
+        "argv": [
+          "/Users/shuang/Code/openpilot/songplus-port-lab/upstream-openpilot/.venv/bin/python",
+          "-B",
+          "tools/songplus_compat.py",
+          "replay",
+          "--output",
+          "/Users/shuang/Code/openpilot/songplus-port-lab/results/panda-ci-p7-20261018-001/replay"
+        ],
+        "returncode": 0,
+        "expected_returncode": 0
+      },
+      {
+        "name": "validate",
+        "argv": [
+          "/Users/shuang/Code/openpilot/songplus-port-lab/upstream-openpilot/.venv/bin/python",
+          "-B",
+          "tools/songplus_compat.py",
+          "validate",
+          "--linux-instance",
+          "byd-recovery-311",
+          "--linux-root",
+          "/home/shuang.guest/songplus-p2-build",
+          "--output",
+          "/Users/shuang/Code/openpilot/songplus-port-lab/results/panda-ci-p7-20261018-001/validation"
+        ],
+        "returncode": 2,
+        "expected_returncode": 0
+      }
+    ],
+    "error": "validate: exit 2, expected 0; see /Users/shuang/Code/openpilot/songplus-port-lab/results/panda-ci-p7-20261018-001",
+    "failed": 1,
+    "completed_at_utc": "2026-10-18T04:36:27.132633+00:00"
+  }
+}

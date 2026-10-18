@@ -1,0 +1,29 @@
+{
+  "status": "PASS_OFFLINE_HOST_ONLY",
+  "python_tests": {
+    "tests_run": 94,
+    "passed": 94,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "native_can_tests": "PASS fixed_independent_golden_vectors\nPASS all_16_dlc_and_classic_lengths\nPASS address_boundaries\nPASS flags_buses_checksum_and_exact_size\nPASS every_short_header_prefix\nPASS every_frame_and_payload_split\nPASS stream_64_byte_boundaries_and_multiple_frames\nPASS atomic_error_poison_and_explicit_memory_clear\nPASS bounded_inputs_and_maximum_residue\nPASS independent_parser_state\nPASS host_routing_all_slots_flags_and_forbidden_sources\nPASS deterministic_malformed_fuzz_seed_c0ffee11\nPASS invalid_policy_enum_rejected\n{\"passed\":13,\"failed\":0,\"assertions\":47031,\"fuzz_seed\":\"c0ffee11\",\"fuzz_iterations\":4096,\"device_access\":false}",
+  "independent_oracle": {
+    "status": "PASS",
+    "oracle": "independent Python bit formula and fixed classic vector",
+    "seed": "0x501C0DEC",
+    "valid_vectors": 64,
+    "cross_language_checks": 220,
+    "native_invocations": 1,
+    "baseline_c_layout_vector_checked": true,
+    "assertions_enabled": true,
+    "device_access": false,
+    "scope": "host C++ wire codec only"
+  },
+  "p6_platforms": {
+    "macos": "PASS_OFFLINE_HOST_ONLY",
+    "linux": "PASS_OFFLINE_HOST_ONLY"
+  },
+  "result": "/Users/shuang/Code/openpilot/songplus-port-lab/results/panda-compat-p6/run-pblns1mf/result.json",
+  "device_access": false
+}

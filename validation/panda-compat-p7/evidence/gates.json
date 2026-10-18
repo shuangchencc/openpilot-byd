@@ -1,0 +1,540 @@
+{
+  "status": "PASS",
+  "positive": {
+    "schema": "songplus-maintenance-inspection/v1",
+    "inspection_valid": true,
+    "offline_artifacts_available": true,
+    "runtime_available": false,
+    "permissions": {
+      "device_access": false,
+      "real_can_tx": false,
+      "runtime_launch": false,
+      "system_write": false,
+      "installation": false,
+      "panda_reset": false,
+      "firmware_flash": false,
+      "bootstub_replace": false,
+      "network_access": false,
+      "auto_build": false,
+      "auto_download": false,
+      "usb_role_write": false,
+      "dfu": false
+    },
+    "reasons": [],
+    "artifacts": [
+      {
+        "build_variant": "debug",
+        "deployable": false,
+        "kind": "firmware-elf",
+        "mcu": "F4",
+        "path": "f4-debug/main.elf",
+        "protocol": "f512bcff76f2ab75",
+        "sha256": "f921a324a714dbb0f0459545ea4c21550f31e4da7b48e0c3768fc805d91c2b56",
+        "signature": "unsigned",
+        "size_bytes": 358580
+      },
+      {
+        "build_variant": "debug",
+        "deployable": false,
+        "kind": "firmware-bin",
+        "mcu": "F4",
+        "path": "f4-debug/main.bin",
+        "protocol": "f512bcff76f2ab75",
+        "sha256": "55fb5ac56519d78c5556f0ba6c233a84b158d21bcafa54aa864b8485863613d9",
+        "signature": "unsigned",
+        "size_bytes": 70160
+      },
+      {
+        "build_variant": "debug",
+        "deployable": false,
+        "kind": "firmware-signed-bin",
+        "mcu": "F4",
+        "path": "f4-debug/main.bin.signed",
+        "protocol": "f512bcff76f2ab75",
+        "sha256": "9bdc7e9edb0c702f979a9e7d8270e4e11c381b360adc602c6ab36177d6d195c5",
+        "signature": "public-development-key",
+        "size_bytes": 70296
+      },
+      {
+        "build_variant": "release",
+        "deployable": false,
+        "kind": "firmware-elf",
+        "mcu": "F4",
+        "path": "f4-release/main.elf",
+        "protocol": "f512bcff76f2ab75",
+        "sha256": "45be71c744618fb106d9612e8145a58a48136a1a4b7f64afd562d402e79a932c",
+        "signature": "unsigned",
+        "size_bytes": 355716
+      },
+      {
+        "build_variant": "release",
+        "deployable": false,
+        "kind": "firmware-bin",
+        "mcu": "F4",
+        "path": "f4-release/main.bin",
+        "protocol": "f512bcff76f2ab75",
+        "sha256": "8d567a2cefb18a4f77c72eece941355a538bdd153c9c2895af1c4ce7a389858d",
+        "signature": "unsigned",
+        "size_bytes": 68096
+      },
+      {
+        "build_variant": "release",
+        "deployable": false,
+        "kind": "firmware-signed-bin",
+        "mcu": "F4",
+        "path": "f4-release/main.bin.signed",
+        "protocol": "f512bcff76f2ab75",
+        "sha256": "744665c6a1ca093334ed7c5c4cc751bb034aedd54778a8a3e95e8fc86421b158",
+        "signature": "public-development-key",
+        "size_bytes": 68232
+      },
+      {
+        "build_variant": "debug",
+        "deployable": false,
+        "kind": "firmware-elf",
+        "mcu": "H7",
+        "path": "h7-debug/main.elf",
+        "protocol": "f512bcff76f2ab75",
+        "sha256": "8bc0ac86796f4f77a1f7ed35af18068b20e7a227949872e29ef8f0c98314dad5",
+        "signature": "unsigned",
+        "size_bytes": 417636
+      },
+      {
+        "build_variant": "debug",
+        "deployable": false,
+        "kind": "firmware-bin",
+        "mcu": "H7",
+        "path": "h7-debug/main.bin",
+        "protocol": "f512bcff76f2ab75",
+        "sha256": "bdc653b0a5c4e3b477b201f7f9592260339d0c82e7f2944ef98c5a2852f5e79a",
+        "signature": "unsigned",
+        "size_bytes": 79176
+      },
+      {
+        "build_variant": "debug",
+        "deployable": false,
+        "kind": "firmware-signed-bin",
+        "mcu": "H7",
+        "path": "h7-debug/main.bin.signed",
+        "protocol": "f512bcff76f2ab75",
+        "sha256": "91d01351509817a2e53fce46426a1a87f5aeab970a995332f33f155f81e188ce",
+        "signature": "public-development-key",
+        "size_bytes": 79312
+      },
+      {
+        "build_variant": "release",
+        "deployable": false,
+        "kind": "firmware-elf",
+        "mcu": "H7",
+        "path": "h7-release/main.elf",
+        "protocol": "f512bcff76f2ab75",
+        "sha256": "853da4b1a3c6b7d345a9478245c44b70d61c563767c831690c453a08c667665d",
+        "signature": "unsigned",
+        "size_bytes": 414900
+      },
+      {
+        "build_variant": "release",
+        "deployable": false,
+        "kind": "firmware-bin",
+        "mcu": "H7",
+        "path": "h7-release/main.bin",
+        "protocol": "f512bcff76f2ab75",
+        "sha256": "a4bf064925b2d06b660a64fdef07103c24ced874639d9b430129ea774725b946",
+        "signature": "unsigned",
+        "size_bytes": 77144
+      },
+      {
+        "build_variant": "release",
+        "deployable": false,
+        "kind": "firmware-signed-bin",
+        "mcu": "H7",
+        "path": "h7-release/main.bin.signed",
+        "protocol": "f512bcff76f2ab75",
+        "sha256": "9e3ee9994cab1d0ea07332ca5309ba16f33203086c1b1ca18e21ecbccfde6b5b",
+        "signature": "public-development-key",
+        "size_bytes": 77280
+      }
+    ],
+    "scope": "synthetic metadata and local candidate file hashes only; no installed-firmware attestation"
+  },
+  "negative": [
+    {
+      "schema": "songplus-maintenance-inspection/v1",
+      "inspection_valid": false,
+      "offline_artifacts_available": false,
+      "runtime_available": false,
+      "permissions": {
+        "device_access": false,
+        "real_can_tx": false,
+        "runtime_launch": false,
+        "system_write": false,
+        "installation": false,
+        "panda_reset": false,
+        "firmware_flash": false,
+        "bootstub_replace": false,
+        "network_access": false,
+        "auto_build": false,
+        "auto_download": false,
+        "usb_role_write": false,
+        "dfu": false
+      },
+      "reasons": [
+        "SLOT_0_BOARD_UNKNOWN"
+      ],
+      "artifacts": [],
+      "scope": "synthetic metadata and local candidate file hashes only; no installed-firmware attestation"
+    },
+    {
+      "schema": "songplus-maintenance-inspection/v1",
+      "inspection_valid": false,
+      "offline_artifacts_available": false,
+      "runtime_available": false,
+      "permissions": {
+        "device_access": false,
+        "real_can_tx": false,
+        "runtime_launch": false,
+        "system_write": false,
+        "installation": false,
+        "panda_reset": false,
+        "firmware_flash": false,
+        "bootstub_replace": false,
+        "network_access": false,
+        "auto_build": false,
+        "auto_download": false,
+        "usb_role_write": false,
+        "dfu": false
+      },
+      "reasons": [
+        "SLOT_0_PROTOCOL_UNKNOWN"
+      ],
+      "artifacts": [],
+      "scope": "synthetic metadata and local candidate file hashes only; no installed-firmware attestation"
+    },
+    {
+      "schema": "songplus-maintenance-inspection/v1",
+      "inspection_valid": false,
+      "offline_artifacts_available": false,
+      "runtime_available": false,
+      "permissions": {
+        "device_access": false,
+        "real_can_tx": false,
+        "runtime_launch": false,
+        "system_write": false,
+        "installation": false,
+        "panda_reset": false,
+        "firmware_flash": false,
+        "bootstub_replace": false,
+        "network_access": false,
+        "auto_build": false,
+        "auto_download": false,
+        "usb_role_write": false,
+        "dfu": false
+      },
+      "reasons": [
+        "SLOT_0_SIGNATURE_UNKNOWN"
+      ],
+      "artifacts": [],
+      "scope": "synthetic metadata and local candidate file hashes only; no installed-firmware attestation"
+    },
+    {
+      "schema": "songplus-maintenance-inspection/v1",
+      "inspection_valid": false,
+      "offline_artifacts_available": false,
+      "runtime_available": false,
+      "permissions": {
+        "device_access": false,
+        "real_can_tx": false,
+        "runtime_launch": false,
+        "system_write": false,
+        "installation": false,
+        "panda_reset": false,
+        "firmware_flash": false,
+        "bootstub_replace": false,
+        "network_access": false,
+        "auto_build": false,
+        "auto_download": false,
+        "usb_role_write": false,
+        "dfu": false
+      },
+      "reasons": [
+        "ARTIFACT_0_MISSING_UNSAFE_OR_CHANGED"
+      ],
+      "artifacts": [
+        {
+          "build_variant": "debug",
+          "deployable": false,
+          "kind": "firmware-bin",
+          "mcu": "F4",
+          "path": "f4-debug/main.bin",
+          "protocol": "f512bcff76f2ab75",
+          "sha256": "55fb5ac56519d78c5556f0ba6c233a84b158d21bcafa54aa864b8485863613d9",
+          "signature": "unsigned",
+          "size_bytes": 70160
+        },
+        {
+          "build_variant": "debug",
+          "deployable": false,
+          "kind": "firmware-signed-bin",
+          "mcu": "F4",
+          "path": "f4-debug/main.bin.signed",
+          "protocol": "f512bcff76f2ab75",
+          "sha256": "9bdc7e9edb0c702f979a9e7d8270e4e11c381b360adc602c6ab36177d6d195c5",
+          "signature": "public-development-key",
+          "size_bytes": 70296
+        },
+        {
+          "build_variant": "release",
+          "deployable": false,
+          "kind": "firmware-elf",
+          "mcu": "F4",
+          "path": "f4-release/main.elf",
+          "protocol": "f512bcff76f2ab75",
+          "sha256": "45be71c744618fb106d9612e8145a58a48136a1a4b7f64afd562d402e79a932c",
+          "signature": "unsigned",
+          "size_bytes": 355716
+        },
+        {
+          "build_variant": "release",
+          "deployable": false,
+          "kind": "firmware-bin",
+          "mcu": "F4",
+          "path": "f4-release/main.bin",
+          "protocol": "f512bcff76f2ab75",
+          "sha256": "8d567a2cefb18a4f77c72eece941355a538bdd153c9c2895af1c4ce7a389858d",
+          "signature": "unsigned",
+          "size_bytes": 68096
+        },
+        {
+          "build_variant": "release",
+          "deployable": false,
+          "kind": "firmware-signed-bin",
+          "mcu": "F4",
+          "path": "f4-release/main.bin.signed",
+          "protocol": "f512bcff76f2ab75",
+          "sha256": "744665c6a1ca093334ed7c5c4cc751bb034aedd54778a8a3e95e8fc86421b158",
+          "signature": "public-development-key",
+          "size_bytes": 68232
+        },
+        {
+          "build_variant": "debug",
+          "deployable": false,
+          "kind": "firmware-elf",
+          "mcu": "H7",
+          "path": "h7-debug/main.elf",
+          "protocol": "f512bcff76f2ab75",
+          "sha256": "8bc0ac86796f4f77a1f7ed35af18068b20e7a227949872e29ef8f0c98314dad5",
+          "signature": "unsigned",
+          "size_bytes": 417636
+        },
+        {
+          "build_variant": "debug",
+          "deployable": false,
+          "kind": "firmware-bin",
+          "mcu": "H7",
+          "path": "h7-debug/main.bin",
+          "protocol": "f512bcff76f2ab75",
+          "sha256": "bdc653b0a5c4e3b477b201f7f9592260339d0c82e7f2944ef98c5a2852f5e79a",
+          "signature": "unsigned",
+          "size_bytes": 79176
+        },
+        {
+          "build_variant": "debug",
+          "deployable": false,
+          "kind": "firmware-signed-bin",
+          "mcu": "H7",
+          "path": "h7-debug/main.bin.signed",
+          "protocol": "f512bcff76f2ab75",
+          "sha256": "91d01351509817a2e53fce46426a1a87f5aeab970a995332f33f155f81e188ce",
+          "signature": "public-development-key",
+          "size_bytes": 79312
+        },
+        {
+          "build_variant": "release",
+          "deployable": false,
+          "kind": "firmware-elf",
+          "mcu": "H7",
+          "path": "h7-release/main.elf",
+          "protocol": "f512bcff76f2ab75",
+          "sha256": "853da4b1a3c6b7d345a9478245c44b70d61c563767c831690c453a08c667665d",
+          "signature": "unsigned",
+          "size_bytes": 414900
+        },
+        {
+          "build_variant": "release",
+          "deployable": false,
+          "kind": "firmware-bin",
+          "mcu": "H7",
+          "path": "h7-release/main.bin",
+          "protocol": "f512bcff76f2ab75",
+          "sha256": "a4bf064925b2d06b660a64fdef07103c24ced874639d9b430129ea774725b946",
+          "signature": "unsigned",
+          "size_bytes": 77144
+        },
+        {
+          "build_variant": "release",
+          "deployable": false,
+          "kind": "firmware-signed-bin",
+          "mcu": "H7",
+          "path": "h7-release/main.bin.signed",
+          "protocol": "f512bcff76f2ab75",
+          "sha256": "9e3ee9994cab1d0ea07332ca5309ba16f33203086c1b1ca18e21ecbccfde6b5b",
+          "signature": "public-development-key",
+          "size_bytes": 77280
+        }
+      ],
+      "scope": "synthetic metadata and local candidate file hashes only; no installed-firmware attestation"
+    },
+    {
+      "schema": "songplus-maintenance-inspection/v1",
+      "inspection_valid": false,
+      "offline_artifacts_available": false,
+      "runtime_available": false,
+      "permissions": {
+        "device_access": false,
+        "real_can_tx": false,
+        "runtime_launch": false,
+        "system_write": false,
+        "installation": false,
+        "panda_reset": false,
+        "firmware_flash": false,
+        "bootstub_replace": false,
+        "network_access": false,
+        "auto_build": false,
+        "auto_download": false,
+        "usb_role_write": false,
+        "dfu": false
+      },
+      "reasons": [
+        "ARTIFACT_0_HASH_MISMATCH"
+      ],
+      "artifacts": [
+        {
+          "build_variant": "debug",
+          "deployable": false,
+          "kind": "firmware-bin",
+          "mcu": "F4",
+          "path": "f4-debug/main.bin",
+          "protocol": "f512bcff76f2ab75",
+          "sha256": "55fb5ac56519d78c5556f0ba6c233a84b158d21bcafa54aa864b8485863613d9",
+          "signature": "unsigned",
+          "size_bytes": 70160
+        },
+        {
+          "build_variant": "debug",
+          "deployable": false,
+          "kind": "firmware-signed-bin",
+          "mcu": "F4",
+          "path": "f4-debug/main.bin.signed",
+          "protocol": "f512bcff76f2ab75",
+          "sha256": "9bdc7e9edb0c702f979a9e7d8270e4e11c381b360adc602c6ab36177d6d195c5",
+          "signature": "public-development-key",
+          "size_bytes": 70296
+        },
+        {
+          "build_variant": "release",
+          "deployable": false,
+          "kind": "firmware-elf",
+          "mcu": "F4",
+          "path": "f4-release/main.elf",
+          "protocol": "f512bcff76f2ab75",
+          "sha256": "45be71c744618fb106d9612e8145a58a48136a1a4b7f64afd562d402e79a932c",
+          "signature": "unsigned",
+          "size_bytes": 355716
+        },
+        {
+          "build_variant": "release",
+          "deployable": false,
+          "kind": "firmware-bin",
+          "mcu": "F4",
+          "path": "f4-release/main.bin",
+          "protocol": "f512bcff76f2ab75",
+          "sha256": "8d567a2cefb18a4f77c72eece941355a538bdd153c9c2895af1c4ce7a389858d",
+          "signature": "unsigned",
+          "size_bytes": 68096
+        },
+        {
+          "build_variant": "release",
+          "deployable": false,
+          "kind": "firmware-signed-bin",
+          "mcu": "F4",
+          "path": "f4-release/main.bin.signed",
+          "protocol": "f512bcff76f2ab75",
+          "sha256": "744665c6a1ca093334ed7c5c4cc751bb034aedd54778a8a3e95e8fc86421b158",
+          "signature": "public-development-key",
+          "size_bytes": 68232
+        },
+        {
+          "build_variant": "debug",
+          "deployable": false,
+          "kind": "firmware-elf",
+          "mcu": "H7",
+          "path": "h7-debug/main.elf",
+          "protocol": "f512bcff76f2ab75",
+          "sha256": "8bc0ac86796f4f77a1f7ed35af18068b20e7a227949872e29ef8f0c98314dad5",
+          "signature": "unsigned",
+          "size_bytes": 417636
+        },
+        {
+          "build_variant": "debug",
+          "deployable": false,
+          "kind": "firmware-bin",
+          "mcu": "H7",
+          "path": "h7-debug/main.bin",
+          "protocol": "f512bcff76f2ab75",
+          "sha256": "bdc653b0a5c4e3b477b201f7f9592260339d0c82e7f2944ef98c5a2852f5e79a",
+          "signature": "unsigned",
+          "size_bytes": 79176
+        },
+        {
+          "build_variant": "debug",
+          "deployable": false,
+          "kind": "firmware-signed-bin",
+          "mcu": "H7",
+          "path": "h7-debug/main.bin.signed",
+          "protocol": "f512bcff76f2ab75",
+          "sha256": "91d01351509817a2e53fce46426a1a87f5aeab970a995332f33f155f81e188ce",
+          "signature": "public-development-key",
+          "size_bytes": 79312
+        },
+        {
+          "build_variant": "release",
+          "deployable": false,
+          "kind": "firmware-elf",
+          "mcu": "H7",
+          "path": "h7-release/main.elf",
+          "protocol": "f512bcff76f2ab75",
+          "sha256": "853da4b1a3c6b7d345a9478245c44b70d61c563767c831690c453a08c667665d",
+          "signature": "unsigned",
+          "size_bytes": 414900
+        },
+        {
+          "build_variant": "release",
+          "deployable": false,
+          "kind": "firmware-bin",
+          "mcu": "H7",
+          "path": "h7-release/main.bin",
+          "protocol": "f512bcff76f2ab75",
+          "sha256": "a4bf064925b2d06b660a64fdef07103c24ced874639d9b430129ea774725b946",
+          "signature": "unsigned",
+          "size_bytes": 77144
+        },
+        {
+          "build_variant": "release",
+          "deployable": false,
+          "kind": "firmware-signed-bin",
+          "mcu": "H7",
+          "path": "h7-release/main.bin.signed",
+          "protocol": "f512bcff76f2ab75",
+          "sha256": "9e3ee9994cab1d0ea07332ca5309ba16f33203086c1b1ca18e21ecbccfde6b5b",
+          "signature": "public-development-key",
+          "size_bytes": 77280
+        }
+      ],
+      "scope": "synthetic metadata and local candidate file hashes only; no installed-firmware attestation"
+    }
+  ],
+  "negative_count": 5,
+  "side_effect_spies_and_missing_case_matrix": "contract maintenance/test_runtime_guard.py",
+  "runtime_available": false,
+  "deployment_ready": false
+}

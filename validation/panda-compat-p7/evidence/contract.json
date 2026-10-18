@@ -1,0 +1,134 @@
+{
+  "schema": "songplus-panda-ci/v1",
+  "mode": "contract",
+  "execution": "local shared CI entry (not proof of a GitHub Actions run)",
+  "started_at_utc": "2026-10-18T04:38:50.513760+00:00",
+  "status": "PASS",
+  "deployment_ready": false,
+  "commands": [
+    {
+      "name": "metadata-lock",
+      "argv": [
+        "/Users/shuang/Code/openpilot/songplus-port-lab/upstream-openpilot/.venv/bin/python",
+        "-B",
+        "tools/songplus_compat.py",
+        "verify-lock",
+        "--metadata-only"
+      ],
+      "returncode": 0,
+      "expected_returncode": 0
+    },
+    {
+      "name": "help-root",
+      "argv": [
+        "/Users/shuang/Code/openpilot/songplus-port-lab/upstream-openpilot/.venv/bin/python",
+        "-B",
+        "tools/songplus_compat.py",
+        "--help"
+      ],
+      "returncode": 0,
+      "expected_returncode": 0
+    },
+    {
+      "name": "help-verify-lock",
+      "argv": [
+        "/Users/shuang/Code/openpilot/songplus-port-lab/upstream-openpilot/.venv/bin/python",
+        "-B",
+        "tools/songplus_compat.py",
+        "verify-lock",
+        "--help"
+      ],
+      "returncode": 0,
+      "expected_returncode": 0
+    },
+    {
+      "name": "help-replay",
+      "argv": [
+        "/Users/shuang/Code/openpilot/songplus-port-lab/upstream-openpilot/.venv/bin/python",
+        "-B",
+        "tools/songplus_compat.py",
+        "replay",
+        "--help"
+      ],
+      "returncode": 0,
+      "expected_returncode": 0
+    },
+    {
+      "name": "help-validate",
+      "argv": [
+        "/Users/shuang/Code/openpilot/songplus-port-lab/upstream-openpilot/.venv/bin/python",
+        "-B",
+        "tools/songplus_compat.py",
+        "validate",
+        "--help"
+      ],
+      "returncode": 0,
+      "expected_returncode": 0
+    },
+    {
+      "name": "help-release-check",
+      "argv": [
+        "/Users/shuang/Code/openpilot/songplus-port-lab/upstream-openpilot/.venv/bin/python",
+        "-B",
+        "tools/songplus_compat.py",
+        "release-check",
+        "--help"
+      ],
+      "returncode": 0,
+      "expected_returncode": 0
+    },
+    {
+      "name": "help-inspect-runtime",
+      "argv": [
+        "/Users/shuang/Code/openpilot/songplus-port-lab/upstream-openpilot/.venv/bin/python",
+        "-B",
+        "tools/songplus_compat.py",
+        "inspect-runtime",
+        "--help"
+      ],
+      "returncode": 0,
+      "expected_returncode": 0
+    },
+    {
+      "name": "maintenance-tests",
+      "argv": [
+        "/Users/shuang/Code/openpilot/songplus-port-lab/upstream-openpilot/.venv/bin/python",
+        "-B",
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        "maintenance",
+        "-p",
+        "test_*.py",
+        "-v"
+      ],
+      "returncode": 0,
+      "expected_returncode": 0,
+      "tests_passed": 128
+    },
+    {
+      "name": "ci-tests",
+      "argv": [
+        "/Users/shuang/Code/openpilot/songplus-port-lab/upstream-openpilot/.venv/bin/python",
+        "-B",
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        "tests",
+        "-p",
+        "test_panda_ci.py",
+        "-v"
+      ],
+      "returncode": 0,
+      "expected_returncode": 0,
+      "tests_passed": 21
+    }
+  ],
+  "sandbox": "macos-seatbelt",
+  "failed": 0,
+  "skipped": 0,
+  "passed_commands": 9,
+  "completed_at_utc": "2026-10-18T04:38:54.291271+00:00"
+}

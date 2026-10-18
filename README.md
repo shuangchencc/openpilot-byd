@@ -12,7 +12,9 @@ P5 已完成 **DOS/F4 应用 BSP、四个 F4/H7 ARM 候选构建、资源预算�
 
 P6 已完成 **F4 能力握手、双板复合故障与 safety 离线回归**，包括掉板重连、过期消息、退出/断电模拟、拒绝后不得绕板发送，以及实际 Linux pandad 离线入口和单 H7/SPI 回归。见 [P6验收报告](validation/panda-compat-p6/RESULT.md) 与 [独立补丁](patches/openpilot/p6/README.md)。F4 缺失字段不再作为有效测量；实物权限保持关闭。
 
-用户无法提供照片和厂家资料，实物未知项继续保留，不阻断本地工作。[兼容层设计](hardware/design/dos-usb-dual-panda/DESIGN.md) 与其NOT_RUN清单是实现前冻结的历史快照；P0–P6的新验收结果以上述报告为准，P7仍待实施。
+用户无法提供照片和厂家资料，实物未知项继续保留，不阻断本地工作。[兼容层设计](hardware/design/dos-usb-dual-panda/DESIGN.md) 与其NOT_RUN清单是实现前冻结的历史快照；P0–P7的新验收结果以上述及下述阶段报告为准。
+
+P7 已建立 **维护封装、可复现构建、统一验收入口与发布门槛**。见 [P7 验收报告](validation/panda-compat-p7/RESULT.md) 和 [维护入口](maintenance/README.md)。全部 41 项兼容层离线条件须在同一新批次通过；部署、实机恢复与车辆控制继续单独设门槛。新增 CI 配置与本地共享入口保持一致，未推送或触发 GitHub。
 
 ## 固定基线
 
@@ -44,6 +46,7 @@ P6 已完成 **F4 能力握手、双板复合故障与 safety 离线回归**，�
 | `spec/`、`decoding/`、`replay/` | 协议证据要求、只读候选解码、严格日志输入校验 |
 | `tools/bootstrap_host.sh` | 显式联网准备，安装范围限定在项目中 |
 | `tools/validate_project.py` | 第 0 步完整本地验收入口 |
+| `tools/songplus_compat.py`、`maintenance/` | P7 补丁/依赖锁、重放、双路径固件构建、P0–P7 离线验收与发布拒绝门槛 |
 | `tools/validate_reference.py` | 历史研究工具与参考版测试入口 |
 | `tools/validate_upstream.py` | 目标版本的 macOS minimal 构建与精选官方测试 |
 | `validation/` | 本次可追溯的验收摘要；详细日志在忽略的 `results/` |
