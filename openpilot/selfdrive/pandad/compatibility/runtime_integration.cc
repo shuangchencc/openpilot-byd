@@ -27,7 +27,7 @@ std::unique_ptr<OwnedTransport> InjectedTransportFactory::open(const DiscoveryIt
   return owned;
 }
 RuntimeIntegration::RuntimeIntegration(const SessionProfile &profile, Clock &clock, DiscoveryProvider &discovery,
-                                       InjectedTransportFactory &factory, RealtimeSource &source, RealtimeSink &sink)
+                                       TransportFactory &factory, RealtimeSource &source, RealtimeSink &sink)
   : profile_(profile), clock_(clock), discovery_(discovery), factory_(factory), runtime_(profile,clock), loop_(runtime_,clock,source,sink) {}
 void RuntimeIntegration::retire(const char *reason) {
   // Runtime may still hold pointers. Reconcile/cancel BEFORE freeing owners.
@@ -37,7 +37,7 @@ void RuntimeIntegration::retire(const char *reason) {
   nonces_ = {}; tokens_ = {}; usb_alt0_ = {}; spi_ids_ = {};
 }
 bool RuntimeIntegration::refresh() {
-  if (stopping_ || profile_.binding_status != "SYNTHETIC_BOUND") return false;
+  if (stopping_ || (profile_.binding_status != "SYNTHETIC_BOUND" && profile_.binding_status != "NATIVE_READ_ONLY_BOUND")) return false;
   try {
     const auto inventory = discovery_.snapshot();
     const auto now = clock_.now_us();

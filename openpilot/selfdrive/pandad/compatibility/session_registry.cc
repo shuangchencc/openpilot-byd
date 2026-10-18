@@ -19,10 +19,21 @@ void require(bool valid, const char *reason) {
   if (!valid) throw std::invalid_argument(reason);
 }
 
-void validate_identity(const SessionIdentity &value) {
+bool hex(const std::string &s, std::size_t size) {
+  if (s.size() != size) return false;
+  for (const auto c : s) if (!((c >= '0' && c <= '9') || (c >= 'a' && c <= 'f'))) return false;
+  return true;
+}
+void validate_identity(const SessionIdentity &value, bool native) {
+  if (native) {
+    require(value.identity.rfind("uid:", 0) == 0 && hex(value.identity.substr(4), 24), "invalid native UID");
+    require(text(value.exact_mcu) && value.exact_mcu.rfind("STM32", 0) == 0, "native exact MCU evidence required");
+    require(hex(value.application_signature, 256), "native signature must preserve all observed bytes");
+  } else {
   require(fixture(value.identity), "identity must be a bounded fixture string");
   require(fixture(value.exact_mcu), "exact MCU must be explicitly synthetic");
   require(fixture(value.application_signature), "application signature must be explicitly synthetic");
+  }
   require((value.board_type == "DOS" && value.mcu_family == "F4") ||
           (value.board_type == "RED_PANDA" && value.mcu_family == "H7"), "unknown board/MCU pair");
   require(value.transport == "USB" || value.transport == "SPI", "unsupported transport");
@@ -32,8 +43,9 @@ void validate_identity(const SessionIdentity &value) {
 }
 
 void validate_profile(const SessionProfile &p) {
-  require(p.schema == kSessionProfileSchema && p.purpose == "offline_fixture", "invalid profile schema/purpose");
-  require(p.binding_status == "UNBOUND" || p.binding_status == "SYNTHETIC_BOUND", "invalid binding status");
+  const bool native = p.schema == kNativeSessionProfileSchema && p.purpose == "native_read_only_candidate";
+  require(native || (p.schema == kSessionProfileSchema && p.purpose == "offline_fixture"), "invalid profile schema/purpose");
+  require(p.binding_status == "UNBOUND" || p.binding_status == (native ? "NATIVE_READ_ONLY_BOUND" : "SYNTHETIC_BOUND"), "invalid binding status");
   require(!p.device_access_enabled && !p.can_tx_enabled && !p.firmware_install_enabled, "all real permissions must remain false");
   require(p.expected_board_count == 2 && p.required_slots == std::array<std::uint32_t, 2>{{0, 1}}, "exactly two fixed required slots");
   require(p.bus_stride == 4 && p.ordinary_local_can_buses == std::array<std::uint32_t, 3>{{0, 1, 2}}, "invalid bus policy");
@@ -48,7 +60,7 @@ void validate_profile(const SessionProfile &p) {
     return;
   }
   for (const auto &s : p.slots) {
-    validate_identity(s.expected);
+    validate_identity(s.expected, native);
     require(s.safety_config_semantics == "noOutput", "fixture safety must be noOutput");
   }
   require(p.slots[0].expected.identity != p.slots[1].expected.identity, "duplicate bound identity");

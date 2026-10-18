@@ -20,6 +20,9 @@ inline constexpr int kUsbTimeout = -7;
 inline constexpr int kUsbOverflow = -8;
 inline constexpr int kUsbPipe = -9;
 inline constexpr int kUsbInterrupted = -10;
+inline constexpr std::size_t kUsbMaxInventoryDevices = 64;
+inline constexpr std::size_t kUsbMaxAlternates = 32;
+inline constexpr std::size_t kUsbMaxEndpoints = 16;
 
 using UsbDeviceId = std::uintptr_t;
 using UsbHandle = std::uintptr_t;

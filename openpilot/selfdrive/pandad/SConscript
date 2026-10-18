@@ -12,6 +12,7 @@ if arch != "Darwin":
     'pandad_runtime', 'cereal_bridge', 'pandad_loop', 'offline_entry',
     'runtime_integration', 'realtime_bridge', 'msgq_adapter',
     'usb_backend', 'libusb_api', 'spi_backend',
+    'native_usb', 'native_spi', 'native_spi_probe', 'native_binding',
   ]]
   pandad_env.Program('pandad', ['main.cc', 'pandad.cc', 'panda_safety.cc'] + compatibility, LIBS=[panda] + libs + ['usb-1.0'])
 

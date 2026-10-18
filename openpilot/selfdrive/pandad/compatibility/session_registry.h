@@ -8,6 +8,7 @@
 namespace openpilot::pandad::compatibility {
 
 inline constexpr const char *kSessionProfileSchema = "songplus-dual-panda-offline-profile/v1";
+inline constexpr const char *kNativeSessionProfileSchema = "songplus-native-read-only-profile/v1";
 inline constexpr const char *kSessionProtocol = "current:f512bcff76f2ab75";
 inline constexpr std::int32_t kRoleUnassigned = -1;
 inline constexpr std::int32_t kRoleUnsupported = -2;

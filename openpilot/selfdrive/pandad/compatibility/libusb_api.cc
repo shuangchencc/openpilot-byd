@@ -1,6 +1,7 @@
 #include "libusb_api.h"
 
 #include <array>
+#include <chrono>
 #include <utility>
 
 #include <libusb.h>
@@ -19,10 +20,16 @@ public:
   }
   int enumerate(std::vector<UsbDeviceInfo> &devices) override {
     if (!context_) return kUsbInvalid;
+    if (enumerated_) return kUsbBusy;
+    enumerated_ = true;  // One bounded inventory per context; no ref accumulation.
     devices.clear();
     libusb_device **list = nullptr;
     const auto count = libusb_get_device_list(context_, &list);
     if (count < 0) return static_cast<int>(count);
+    if (static_cast<std::size_t>(count) > kUsbMaxInventoryDevices) {
+      libusb_free_device_list(list, 1);
+      return kUsbOverflow;
+    }
     int result = kUsbSuccess;
     for (decltype(count + 0) i = 0; i < count; ++i) {
       libusb_device_descriptor desc{};
@@ -43,8 +50,13 @@ public:
         info.active_configuration_known = true;
         for (int n = 0; n < config->bNumInterfaces; ++n) {
           const auto &interface = config->interface[n];
+          if (interface.num_altsetting < 0 ||
+              static_cast<std::size_t>(interface.num_altsetting) > kUsbMaxAlternates - info.alternates.size()) {
+            result = kUsbOverflow; break;
+          }
           for (int a = 0; a < interface.num_altsetting; ++a) {
             const auto &alt = interface.altsetting[a];
+            if (alt.bNumEndpoints > kUsbMaxEndpoints) { result = kUsbOverflow; break; }
             UsbAlternate item{alt.bInterfaceNumber, alt.bAlternateSetting, {}};
             for (int e = 0; e < alt.bNumEndpoints; ++e) {
               const auto &endpoint = alt.endpoint[e];
@@ -52,9 +64,11 @@ public:
             }
             info.alternates.push_back(std::move(item));
           }
+          if (result != 0) break;
         }
         libusb_free_config_descriptor(config);
       }
+      if (result != 0) break;
       devices.push_back(std::move(info));
     }
     libusb_free_device_list(list, 1);
@@ -70,19 +84,24 @@ public:
   int serial(UsbHandle handle, std::uint8_t index, std::string &value,
              std::uint32_t timeout_ms) override {
     value.clear();
-    if (index == 0) return kUsbInvalid;
+    if (index == 0 || timeout_ms == 0) return kUsbInvalid;
     // libusb_get_string_descriptor_ascii uses an internal 1000ms timeout.
     // Read LANGID and UTF-16LE descriptors explicitly with the requested slice.
     std::array<unsigned char, 255> buffer{};
     auto *native = reinterpret_cast<libusb_device_handle *>(handle);
+    const auto started = std::chrono::steady_clock::now();
     int count = libusb_control_transfer(native, 0x80, LIBUSB_REQUEST_GET_DESCRIPTOR,
                                        LIBUSB_DT_STRING << 8, 0, buffer.data(), buffer.size(), timeout_ms);
     if (count < 0) return count;
     if (count < 4 || buffer[1] != LIBUSB_DT_STRING || buffer[0] < 4 || buffer[0] != count || (buffer[0] & 1)) return kUsbIo;
     const auto language = static_cast<std::uint16_t>(buffer[2] | (buffer[3] << 8));
+    const auto elapsed_us = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::steady_clock::now() - started).count();
+    const auto budget_us = static_cast<std::int64_t>(timeout_ms) * 1000;
+    if (elapsed_us < 0 || elapsed_us >= budget_us || budget_us - elapsed_us < 1000) return kUsbTimeout;
+    const auto remaining_ms = static_cast<std::uint32_t>((budget_us - elapsed_us) / 1000);
     count = libusb_control_transfer(native, 0x80, LIBUSB_REQUEST_GET_DESCRIPTOR,
                                    static_cast<std::uint16_t>((LIBUSB_DT_STRING << 8) | index),
-                                   language, buffer.data(), buffer.size(), timeout_ms);
+                                   language, buffer.data(), buffer.size(), remaining_ms);
     if (count < 0) return count;
     if (count < 2 || buffer[1] != LIBUSB_DT_STRING || buffer[0] < 2 || buffer[0] != count || (buffer[0] & 1)) return kUsbIo;
     for (int n = 2; n < buffer[0]; n += 2) {
@@ -115,10 +134,12 @@ public:
   void shutdown() override {
     for (auto *device : retained_) libusb_unref_device(device);
     retained_.clear();
+    enumerated_ = false;
     if (context_) libusb_exit(std::exchange(context_, nullptr));
   }
 private:
   libusb_context *context_ = nullptr;
+  bool enumerated_ = false;
   std::vector<libusb_device *> retained_;
 };
 }  // namespace

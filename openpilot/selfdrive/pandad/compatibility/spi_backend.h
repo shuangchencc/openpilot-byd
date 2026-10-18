@@ -25,6 +25,8 @@ public:
   virtual ~SpiIo() = default;
   virtual Status begin(std::uint32_t timeout_ms) { (void)timeout_ms; return Status::Ok; }
   virtual void end() noexcept {}
+  // Local cooperative cancellation only; never close a concurrent syscall.
+  virtual void cancel() noexcept {}
   virtual Result exchange(const std::vector<std::uint8_t> &tx, std::uint32_t timeout_ms) = 0;
 };
 
@@ -37,7 +39,7 @@ public:
   SpiBackend(SpiIo &io, Clock &clock, std::uint32_t first_request_id)
       : io_(io), clock_(clock), next_id_(first_request_id) {}
   Result transact(const Request &request, std::uint32_t timeout_ms) override;
-  void cancel() noexcept override { cancelled_.store(true); }
+  void cancel() noexcept override { cancelled_.store(true); io_.cancel(); }
 
 private:
   Result transfer(std::uint8_t endpoint, const std::vector<std::uint8_t> &tx,

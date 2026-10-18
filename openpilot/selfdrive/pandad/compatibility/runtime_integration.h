@@ -18,9 +18,8 @@ public:
   virtual ~DiscoveryProvider() = default;
   virtual DiscoverySnapshot snapshot() = 0;
 };
-// This stage intentionally has no native provider. Implementations are supplied
-// only by offline fixtures. A real discovery/authentication/recovery boundary is
-// separate work; a USB descriptor is not evidence of MCU or application trust.
+// Historical fixture provider; native retained leases use TransportFactory
+// directly and never pass real identities through the fixture adapter.
 class OfflineIoProvider {
 public:
   virtual ~OfflineIoProvider() = default;
@@ -33,10 +32,15 @@ struct OwnedTransport {
   std::unique_ptr<Transport> transport;
   ~OwnedTransport() { if (transport) transport->cancel(); }
 };
-class InjectedTransportFactory {
+class TransportFactory {
+public:
+  virtual ~TransportFactory() = default;
+  virtual std::unique_ptr<OwnedTransport> open(const DiscoveryItem &, const SessionBinding &) = 0;
+};
+class InjectedTransportFactory final : public TransportFactory {
 public:
   InjectedTransportFactory(OfflineIoProvider &provider, Clock &clock) : provider_(provider), clock_(clock) {}
-  std::unique_ptr<OwnedTransport> open(const DiscoveryItem &item, const SessionBinding &binding);
+  std::unique_ptr<OwnedTransport> open(const DiscoveryItem &item, const SessionBinding &binding) override;
 private:
   OfflineIoProvider &provider_; Clock &clock_;
 };
@@ -48,7 +52,7 @@ int pandad_runtime_offline_main();
 // open sockets, install firmware, or create native I/O implementations.
 class RuntimeIntegration {
 public:
-  RuntimeIntegration(const SessionProfile &, Clock &, DiscoveryProvider &, InjectedTransportFactory &, RealtimeSource &, RealtimeSink &);
+  RuntimeIntegration(const SessionProfile &, Clock &, DiscoveryProvider &, TransportFactory &, RealtimeSource &, RealtimeSink &);
   bool refresh();
   LoopCycleResult cycle();
   void request_shutdown() { stopping_ = true; loop_.request_shutdown(); }
@@ -59,7 +63,7 @@ public:
 private:
   void retire(const char *reason);
   const SessionProfile profile_;
-  Clock &clock_; DiscoveryProvider &discovery_; InjectedTransportFactory &factory_;
+  Clock &clock_; DiscoveryProvider &discovery_; TransportFactory &factory_;
   PandadRuntime runtime_; PandadLoop loop_;
   std::array<std::unique_ptr<OwnedTransport>,2> handles_;
   std::array<std::string,2> nonces_;
