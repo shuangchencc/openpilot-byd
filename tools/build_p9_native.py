@@ -42,6 +42,8 @@ def parse_suite(raw, suite):
       or type(summary.get("failed")) is not int or summary["failed"] != 0
       or type(summary.get("skipped")) is not int or summary["skipped"] != 0):
     raise ValueError(suite + " invalid case accounting")
+  if suite in SUITES and (summary.get("suite") != "p9_" + suite or summary.get("real_device_io") is not False):
+    raise ValueError(suite + " identity/device scope differs from the native offline suite")
   return {"summary": summary, "groups": groups}
 
 

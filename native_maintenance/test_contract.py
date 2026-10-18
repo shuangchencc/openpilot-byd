@@ -63,6 +63,86 @@ class SuiteEvidenceTests(unittest.TestCase):
     self.assertEqual(added, ['link-actual-pandad-p9', 'actual-pandad-p9-offline', 'actual-pandad-p9-owner',
                              'deny---compat-native', 'deny---compat-runtime', 'deny---compat-device'])
 
+  def test_native_suite_identity_and_scope_pass(self):
+    for suite in worker.SUITES:
+      summary = {'suite': 'p9_' + suite, 'passed': 1, 'failed': 0, 'skipped': 0, 'real_device_io': False}
+      self.assertEqual(worker.parse_suite('PASS a\n' + json.dumps(summary), suite)['summary'], summary)
+
+  def test_wrong_native_suite_identity_rejected(self):
+    summary = {'suite': 'p9_native_spi', 'passed': 1, 'failed': 0, 'skipped': 0, 'real_device_io': False}
+    with self.assertRaises(ValueError):
+      worker.parse_suite('PASS a\n' + json.dumps(summary), 'native_usb')
+
+  def test_native_hardware_claim_rejected(self):
+    summary = {'suite': 'p9_native_usb', 'passed': 1, 'failed': 0, 'skipped': 0, 'real_device_io': True}
+    with self.assertRaises(ValueError):
+      worker.parse_suite('PASS a\n' + json.dumps(summary), 'native_usb')
+
+  def test_native_missing_hardware_scope_rejected(self):
+    summary = {'suite': 'p9_native_usb', 'passed': 1, 'failed': 0, 'skipped': 0}
+    with self.assertRaises(ValueError):
+      worker.parse_suite('PASS a\n' + json.dumps(summary), 'native_usb')
+
+  def test_native_integer_false_scope_rejected(self):
+    summary = {'suite': 'p9_native_usb', 'passed': 1, 'failed': 0, 'skipped': 0, 'real_device_io': 0}
+    with self.assertRaises(ValueError):
+      worker.parse_suite('PASS a\n' + json.dumps(summary), 'native_usb')
+
+
+class FreshEvidenceTests(unittest.TestCase):
+  def setUp(self):
+    self.report = {'started_at_utc': '2026-10-18T01:00:00+00:00', 'completed_at_utc': '2026-10-18T02:00:00+00:00'}
+    self.evidence = {'native': {'started_at': '2026-10-18T01:10:00+00:00', 'completed_at': '2026-10-18T01:50:00+00:00'},
+                     'contract': {'started_at_utc': '2026-10-18T01:05:00+00:00', 'completed_at_utc': '2026-10-18T01:09:00+00:00'},
+                     'replay-1': {'created_at_utc': '2026-10-18T01:01:00+00:00'},
+                     'replay-2': {'created_at_utc': '2026-10-18T01:02:00+00:00'}}
+
+  def test_same_batch_times_pass(self):
+    core.validate_fresh_times(self.report, self.evidence)
+
+  def test_old_contract_rejected(self):
+    self.evidence['contract']['started_at_utc'] = '2026-10-17T01:05:00+00:00'
+    with self.assertRaises(ValueError):
+      core.validate_fresh_times(self.report, self.evidence)
+
+  def test_future_contract_rejected(self):
+    self.evidence['contract']['completed_at_utc'] = '2026-10-18T02:01:00+00:00'
+    with self.assertRaises(ValueError):
+      core.validate_fresh_times(self.report, self.evidence)
+
+  def test_old_replay_rejected(self):
+    for name in ('replay-1', 'replay-2'):
+      with self.subTest(name=name):
+        altered = copy.deepcopy(self.evidence)
+        altered[name]['created_at_utc'] = '2026-10-17T01:01:00+00:00'
+        with self.assertRaises(ValueError):
+          core.validate_fresh_times(self.report, altered)
+
+  def test_future_replay_rejected(self):
+    self.evidence['replay-2']['created_at_utc'] = '2026-10-18T02:01:00+00:00'
+    with self.assertRaises(ValueError):
+      core.validate_fresh_times(self.report, self.evidence)
+
+  def test_missing_replay_timestamp_rejected(self):
+    del self.evidence['replay-1']['created_at_utc']
+    with self.assertRaises(KeyError):
+      core.validate_fresh_times(self.report, self.evidence)
+
+  def test_reversed_child_interval_rejected(self):
+    self.evidence['native']['started_at'] = '2026-10-18T01:55:00+00:00'
+    with self.assertRaises(ValueError):
+      core.validate_fresh_times(self.report, self.evidence)
+
+  def test_reversed_batch_interval_rejected(self):
+    self.report['started_at_utc'] = '2026-10-18T03:00:00+00:00'
+    with self.assertRaises(ValueError):
+      core.validate_fresh_times(self.report, self.evidence)
+
+  def test_timezone_missing_rejected(self):
+    self.evidence['replay-2']['created_at_utc'] = '2026-10-18T01:02:00'
+    with self.assertRaises(ValueError):
+      core.validate_fresh_times(self.report, self.evidence)
+
 
 class ArtifactTests(unittest.TestCase):
   def setUp(self):

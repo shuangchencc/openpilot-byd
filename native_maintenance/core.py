@@ -27,6 +27,23 @@ def now():
   return datetime.now(timezone.utc).isoformat()
 
 
+def validate_fresh_times(report, evidence):
+  def timestamp(value):
+    parsed = datetime.fromisoformat(value)
+    require(parsed.tzinfo is not None, "Acceptance timestamps must include a timezone")
+    return parsed
+  start, end = timestamp(report["started_at_utc"]), timestamp(report["completed_at_utc"])
+  require(start <= end, "Invalid acceptance time interval")
+  for name, keys in (("native", ("started_at", "completed_at")),
+                     ("contract", ("started_at_utc", "completed_at_utc"))):
+    child = evidence[name]
+    require(start <= timestamp(child[keys[0]]) <= timestamp(child[keys[1]]) <= end,
+            name + " execution outside this acceptance interval")
+  for name in ("replay-1", "replay-2"):
+    require(start <= timestamp(evidence[name]["created_at_utc"]) <= end,
+            name + " was not created during this acceptance interval")
+
+
 def protected_paths(root=ROOT):
   directories = ("native_maintenance", "patches/openpilot/p9")
   paths = {str(p.relative_to(root)) for d in directories for p in (root / d).rglob("*")
@@ -113,6 +130,7 @@ def replay(output, root=ROOT):
       info.size, info.mode, info.mtime = len(data), 0o644, 0
       archive.addfile(info, io.BytesIO(data))
   result = {"schema": "songplus-native-p9-replay/v1", "status": "PASS", "lock_sha256": sha(root / LOCK),
+            "created_at_utc": now(),
             "files": files, "bundle_sha256": sha(output / "source.tar"), **SCOPE}
   write_json(output / "result.json", result)
   return result
@@ -152,11 +170,7 @@ def release_check(report_path, root=ROOT):
   require(evidence["replay-1"][0]["bundle_sha256"] == evidence["replay-2"][0]["bundle_sha256"], "Native source reproducibility failed")
   from maintenance.integration_evidence import check_commands
   check_commands(report["commands"], base, {"source-contract", "native-validation"})
-  start, end = datetime.fromisoformat(report["started_at_utc"]), datetime.fromisoformat(report["completed_at_utc"])
-  require(start <= end, "Invalid acceptance time interval")
-  child = evidence["native"][0]
-  require(start <= datetime.fromisoformat(child["started_at"]) <= datetime.fromisoformat(child["completed_at"]) <= end,
-          "Native execution outside acceptance interval")
+  validate_fresh_times(report, {name: value[0] for name, value in evidence.items()})
   expected = {"fresh_native": native, "fresh_source_contract": contract, "fresh_source_replays": 2,
               "reused_p8_prerequisite": True, "fresh_arm_builds": 0, "fresh_vehicle_replay_segments": 0}
   require(report["counts"] == expected, "Acceptance count/evidence mismatch")
