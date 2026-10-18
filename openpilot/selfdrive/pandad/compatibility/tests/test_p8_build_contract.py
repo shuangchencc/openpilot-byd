@@ -38,10 +38,12 @@ for platform in ('Darwin', 'Linux'):
     assert daemon[1] == 'pandad' and daemon[3]
     assert daemon[4]['LIBPATH'] == ['pinned/lib']
     assert daemon[4]['CPPPATH'] == ['pinned/include']
-    assert daemon[4]['CPPDEFINES'] == ['SONGPLUS_P8_INTEGRATION']
+    assert daemon[4]['CPPDEFINES'] == ['SONGPLUS_P8_INTEGRATION', 'SONGPLUS_P10_INTEGRATION']
     assert daemon[5] == ['panda-library', 'common', 'messaging', 'pthread', 'usb-1.0']
     assert 'compatibility/runtime_integration.cc' in daemon[2]
     assert 'compatibility/msgq_adapter.cc' in daemon[2]
+    for name in ('production_gate', 'discovery_scheduler', 'spi_freshness', 'native_discovery_executor'):
+      assert 'compatibility/' + name + '.cc' in daemon[2]
     assert extras[1] == 'tests/test_pandad_canprotocol' and not extras[3]
     assert extras[5] == ['panda-library', 'common', 'messaging', 'pthread']
     case = 'p8_scons_daemon_pinned_usb_does_not_leak_to_extras'
