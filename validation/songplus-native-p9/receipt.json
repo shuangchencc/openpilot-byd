@@ -1,0 +1,61 @@
+{
+  "schema": "songplus-native-p9-review-receipt/v1",
+  "status": "PASS_OFFLINE_NATIVE",
+  "deployment_status": "BLOCKED_FOR_DEPLOYMENT",
+  "tested_maintenance_commit": "4b2f7c78644a7622ef3a70bd6dfbededfe573ae3",
+  "host_patch_commit": "06fd6e68223c6ad6caabc7f64d2f032445a42095",
+  "lock_sha256": "d8b3bb3c42a394f178f3ed8325a2276d38f28ff15596459e8fe8806eeb98e7eb",
+  "parent_lock_sha256": "1ee1afdd5a7931128f1f3aaaca1facdef4570858ea1dcb1815556f4c024d2838",
+  "baselines": {
+    "upstream-openpilot": "35e78a9d9518855ec0dacec919e719624a28131f",
+    "upstream-openpilot/opendbc_repo": "b3bd79a659dae961af169a3baac723961f720133",
+    "upstream-openpilot/panda": "a59195163c32a3a375ea6c86715dc08fd0984c1b",
+    "upstream-openpilot/msgq_repo": "0e266c1dbcf7328beee3e57b4a8688555387c877"
+  },
+  "counts": {
+    "fresh_native": {
+      "native_groups": {
+        "macos": 102,
+        "linux": 102
+      },
+      "fresh_p8_runtime_groups": {
+        "macos": 28,
+        "linux": 30
+      },
+      "fresh_native_spi_regression_platforms": 2,
+      "actual_pandad_offline_entries": 1,
+      "failed": 0,
+      "skipped": 0
+    },
+    "fresh_source_contract": {
+      "commands": 7,
+      "maintenance_tests": 56,
+      "failed": 0,
+      "skipped": 0
+    },
+    "fresh_source_replays": 2,
+    "reused_p8_prerequisite": true,
+    "fresh_arm_builds": 0,
+    "fresh_vehicle_replay_segments": 0
+  },
+  "linux_source_only_ci": {
+    "tested_commit": "4b2f7c78644a7622ef3a70bd6dfbededfe573ae3",
+    "source_files": 348,
+    "counts": {
+      "commands": 7,
+      "maintenance_tests": 56,
+      "failed": 0,
+      "skipped": 0
+    },
+    "archive_sha256": "9e57d4a33e86a21e7cff563e397668f4d10f9098f8b6b99cff3558b87fc0f710"
+  },
+  "real_profile": "native_maintenance/profiles/unbound.json",
+  "real_binding_status": "UNBOUND",
+  "real_device_io": false,
+  "real_can_tx": false,
+  "system_modified": false,
+  "panda_reset_or_flashed": false,
+  "authoritative_acceptance_report": "results/p9-native-full-003/validation/result.json",
+  "retained_evidence_required": true,
+  "note": "This versioned receipt is an index, not a substitute for the retained logs, source trees and binaries required by release-check."
+}
