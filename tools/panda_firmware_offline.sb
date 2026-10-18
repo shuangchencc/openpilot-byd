@@ -1,0 +1,10 @@
+(version 1)
+(allow default)
+; Host compiler/tests only. No network and no device nodes except inert streams
+; and OS random sources required by Python/compiler startup.
+(deny network*)
+(deny file-read* file-write* (subpath "/dev"))
+(allow file-read* file-write* (literal "/dev/null"))
+(allow file-read* (literal "/dev/urandom") (literal "/dev/random"))
+; USB user clients on macOS use IOKit, not necessarily /dev.
+(deny iokit-open)

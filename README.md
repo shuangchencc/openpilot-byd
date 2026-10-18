@@ -8,7 +8,9 @@
 
 DOS/F4、USB 双 Panda 兼容层的 **P0/P1/P2/P3/P4 已完成本地实现和限定范围的离线验收**。P4 新增实际 Linux pandad 的显式离线入口、逐板 health/safety/heartbeat 屏障、消息消费者、外围角色和重新接合规则；默认 SPI 路径保留。见 [P4结果与范围](validation/panda-compat-p4/RESULT.md) 和 [独立补丁维护说明](patches/openpilot/p4/README.md)；[P3历史结果](validation/panda-compat-p3/RESULT.md) 保留。当前只接入 fake I/O 与注入的消息循环，未接入实物发现/实时 PubSub；真实设备/TX权限仍关闭，官方基线保持不变。
 
-用户无法提供照片和厂家资料，实物未知项继续保留，不阻断本地工作。[兼容层设计](hardware/design/dos-usb-dual-panda/DESIGN.md) 与其NOT_RUN清单是实现前冻结的历史快照；P0–P4的新验收结果以上述报告为准，P5–P7仍待实施。
+P5 已完成 **DOS/F4 应用 BSP、四个 F4/H7 ARM 候选构建、资源预算、协议与精选 safety 离线回归**。见 [P5验收报告](validation/panda-firmware-p5/RESULT.md) 和 [Panda独立补丁](patches/panda/p5/README.md)。F413/DOS仍为公开参考配置；所有候选不可部署，实物profile未绑定，未构建bootstub或访问设备。
+
+用户无法提供照片和厂家资料，实物未知项继续保留，不阻断本地工作。[兼容层设计](hardware/design/dos-usb-dual-panda/DESIGN.md) 与其NOT_RUN清单是实现前冻结的历史快照；P0–P5的新验收结果以上述报告为准，P6–P7仍待实施。
 
 ## 固定基线
 

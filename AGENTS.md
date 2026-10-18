@@ -21,17 +21,15 @@ Flagship PLUS, with the user's existing Mr One C3XL and Panda hardware.
 
 ## Current execution boundary
 
-- The current user request authorizes local implementation and offline acceptance
-  of P4 on the completed P0/P1/P2/P3 patches: explicit pandad offline entry,
-  per-board health/safety barriers, heartbeat, message validity, peripheral
-  roles and re-engagement, with offline native/consumer regression tests.
-  Local Linux build preparation is separate from network-denied validation.
-  Maintain an explicit downstream branch
-  and independent patches against the locked baseline; keep the official
-  checkout unchanged. No device access, Panda constructors, firmware/OS changes,
-  slot switching, reset, flashing or real CAN TX. The actual pandad executable
-  may be built and its explicit fake-I/O offline entry executed in isolation;
-  its legacy device path and full daemons must not be run.
+- The current user request authorizes P5 local DOS/F4 BSP and application-only
+  candidate firmware against the pinned official Panda and unchanged current
+  opendbc safety, alongside the independent P0–P4 host patches. Compile F4/H7,
+  audit resource/ABI/signature contracts and run offline protocol/safety tests.
+  The F413 DOS configuration is a public reference candidate, not confirmed
+  C3XL hardware identity. All artifacts remain nondeployable. No device access,
+  Panda constructors, firmware/OS changes, slot switching, reset, flashing,
+  bootstub build/replacement or real CAN TX. Public source preparation is
+  separate from network/device-denied formal validation. Preserve prior reports.
   The design-only statements below describe the previous design delivery.
 - Current work is local DOS/F4 and USB dual-Panda compatibility design against
   the locked official baseline. Do not connect to C3XL or operate hardware as

@@ -1,0 +1,76 @@
+{
+  "schema": "songplus-p5-acceptance/v1",
+  "scope": "Offline application BSP only; no target execution, deployment or vehicle acceptance",
+  "required_stage_cases": {
+    "A50": [
+      "licensed full historical source inventory",
+      "current independent Panda patch and complete replay tree"
+    ],
+    "A51": [
+      "f4-debug",
+      "f4-release",
+      "h7-debug",
+      "h7-release",
+      "-Werror app-only ARM compile and link"
+    ],
+    "A52": [
+      "protocol ARM ABI2 and negative compile6",
+      "host C++ layout and Python oracle",
+      "unchanged health/CAN full hashes"
+    ],
+    "A53": [
+      "resources for four ARM builds",
+      "BSP exact RAM/flash boundary positive and +4 byte negative links"
+    ],
+    "A54": [
+      "BSP",
+      "bxcan",
+      "fdcan",
+      "protocol",
+      "liveness-f4",
+      "liveness-h7",
+      "capabilities"
+    ],
+    "A55": [
+      "app origins and signed format",
+      "F4 BOOTSTUB compile rejection",
+      "artifact deployable=false"
+    ]
+  },
+  "extended_design_mapping": {
+    "FWA01": "four real ARM app builds",
+    "FWA02": "ARM ABI2, native C++ layout and Python/wire oracle",
+    "FWA03": "full header hashes, ARM ABI negative fixtures, preserved host legacy/hash rejection",
+    "FWA04": "protocol f4/h7_policy + actual bxcan/fdcan drivers",
+    "FWA05": "actual firmware stream codec split/concatenation/checksum/reset + host transport/session fixtures",
+    "FWA06": "actual health serialization/provider errors plus offline capability decoder; real P4 capability binding remains pending",
+    "FWA07": "49 selected official/current safety tests + both actual backend safety/forwarding fixtures; not all-vehicle safety suite or Song PLUS approval",
+    "FWA08": "real shared host ingress validation, rejected flags/checksums, noOutput and driver checks; public debug modes are not a supported profile",
+    "FWA09": "both actual queue capacities, ring wrap, full and backpressure under host HAL; no physical IRQ race proof",
+    "FWA10": "actual ELF/map/stack/callgraph checks and enforced F4 linker negatives; unknown indirect/nested stack retained; H7 inherited cookie overlap disclosed",
+    "FWA11": "BSP timer divisors, firmware liveness and current safety freshness/timeout/wrap fixtures",
+    "FWA12": "candidate actual C liveness oracle for both targets; software watchdog limitation explicit",
+    "FWA13": "reference GPIO/DOS/unknown strap tests; physical board remains unverified",
+    "FWA14": "actual H7 FDCAN14 groups, H7 ELF queue/DMA placement, shared USB protocol and fresh host SPI16 groups/5 original golden vectors; no MCU SPI hardware test",
+    "FWA15": "public development signature verification, reset-vector and app format; installed trust remains unknown",
+    "FWA16": "clean replay plus source/toolchain hash gates and Seatbelt network/device/IOKit denial; no installer target"
+  },
+  "remaining": [
+    "physical MCU/pins/clock/USB and all target timing",
+    "worst-case stack and runtime watermark",
+    "installed bootstub trust/recovery",
+    "real P4 capability binding",
+    "driver camera and audible alerts completeness",
+    "Song PLUS safety/vehicle validation",
+    "P6/P7 completion"
+  ],
+  "result_manifest_sha256": "48b446043b8247c755521e64d87d8f064466f467f1376bc3b94440938bdfd1b9",
+  "required_stage_results": {
+    "A50": "PASS_OFFLINE_CANDIDATE",
+    "A51": "PASS_OFFLINE_CANDIDATE",
+    "A52": "PASS_OFFLINE_CANDIDATE",
+    "A53": "PASS_OFFLINE_CANDIDATE",
+    "A54": "PASS_OFFLINE_CANDIDATE",
+    "A55": "PASS_OFFLINE_CANDIDATE"
+  }
+}
