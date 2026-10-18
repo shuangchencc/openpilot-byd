@@ -31,3 +31,13 @@ local/ 保存当前设备地址等操作上下文，不纳入Git，也不作为�
 干净环境可获取锁定依赖并构建；实际设备/车辆验收记录齐全；恢复路径验证通过；
 车型与板型匹配有明确拒绝条件；发行包、模型、系统及固件均有固定哈希和回滚说明。
 本阶段不提供车机安装器或Panda刷写入口。
+
+P7 维护封装
+统一入口 tools/songplus_compat.py：verify-lock、replay、validate、release-check、inspect-runtime。
+详细命令、环境要求和更新步骤见 maintenance/README.md；CI见 maintenance/CI.md。
+maintenance/downstream-lock.json 同时固定 P0–P6 补丁链与 P7 维护工具，不修改官方子模块。
+P7 完整验收要求同一批次新执行全部41项离线条件、P5/P6复验、两次独立ARM构建。
+可复现指同一锁定工具链下四配置应用bin和开发签名bin逐字节相同；不声称整目录一致。
+release-check 先验证报告、证据哈希和实际保留产物；离线通过且部署阻止时退出3，
+证据不完整退出2。具体八类部署门槛见 maintenance/release_policy.json，不能用配置解除。
+源码契约CI和预置环境完整CI分开；本地共享命令执行不能宣称GitHub远端执行通过。

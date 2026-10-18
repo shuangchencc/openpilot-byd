@@ -21,14 +21,14 @@ Flagship PLUS, with the user's existing Mr One C3XL and Panda hardware.
 
 ## Current execution boundary
 
-- The current user request authorizes P6 offline F4 capability integration,
-  composite dual-board faults and safety regression on independent P0–P5
-  patches. Replay from pinned sources, build the real Linux daemon only for its
-  explicit offline entry, and verify retained single-H7/SPI behavior with fake
-  I/O. No C3XL access, hardware constructors/enumeration, real CAN TX, system or
-  slot changes, reset, flashing, or bootstub work. Formal validation must deny
-  network and device access. P5's F413 DOS BSP remains an unconfirmed reference
-  candidate; artifacts and profiles stay nondeployable. Preserve prior reports.
+- The current user request authorizes P7 offline maintenance packaging, pinned
+  dependency/patch replay, independent rebuilds, acceptance entry, CI and release
+  gate accounting on P0–P6. Use local cached inputs and the prepared local Linux
+  VM only. No C3XL access, hardware constructors/enumeration, real CAN TX,
+  system/slot changes, reset, flashing or bootstub work. All test/compiler workers
+  deny network/device access; orchestration alone uses local Lima IPC. Candidates
+  stay nondeployable, and a complete offline report does not grant runtime or
+  installation permission. Preserve earlier evidence and uncommitted user work.
   The design/inspection statements below describe earlier authorized phases.
 - Current work is local DOS/F4 and USB dual-Panda compatibility design against
   the locked official baseline. Do not connect to C3XL or operate hardware as

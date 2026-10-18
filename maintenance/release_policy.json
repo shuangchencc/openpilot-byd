@@ -1,0 +1,50 @@
+{
+  "schema": "songplus-maintenance-release-policy/v1",
+  "policy_effect": "documentation-only; runtime_guard.py and the locked validator enforce denial",
+  "baseline_sha": "35e78a9d9518855ec0dacec919e719624a28131f",
+  "candidate_disposition": "OFFLINE_NONDEPLOYABLE",
+  "required_offline_case_ids": [
+    "A00", "A01", "A02", "A10", "A11", "A12", "A13", "A14", "A15",
+    "A20", "A21", "A22", "A23", "A24", "A30", "A31", "A32", "A33", "A34",
+    "A40", "A41", "A42", "A43", "A44", "A45", "A46", "A50", "A51", "A52",
+    "A53", "A54", "A55", "A60", "A61", "A62", "A63", "A64", "A65", "A70", "A71", "A72"
+  ],
+  "offline_acceptance": {
+    "require_exact_case_set": true,
+    "require_positive_executed_count": true,
+    "allow_failed": false,
+    "allow_skipped": false,
+    "require_evidence_file_sha256_verification_by_maintenance_entry": true,
+    "require_same_run_id_and_downstream_lock_sha256": true,
+    "allow_historical_reports_to_claim_new_execution": false,
+    "scope": "Host/native regression, actual Linux offline pandad and F4/H7 ARM application builds only. Native F4/H7 policies are distinct from executing MCU hardware."
+  },
+  "deployment": {
+    "ready": false,
+    "installable": false,
+    "can_be_enabled_by_evidence_or_configuration": false,
+    "blocked_gate_ids": [
+      "PHYSICAL_IDENTITY", "TARGET_RUNTIME", "RECOVERY_CHAIN", "DRIVER_MONITORING",
+      "AUDIBLE_ALERTS", "VEHICLE_CONTROL_SAFETY", "RESOURCE_RUNTIME_LIMITS", "CANDIDATE_TRUST"
+    ],
+    "future_work": {
+      "PHYSICAL_IDENTITY": "Confirm each actual MCU/board, bus wiring, power and peripheral capabilities; product casing and synthetic fixture identities are not physical evidence.",
+      "TARGET_RUNTIME": "Separately authorize and verify C3XL OS/camera/transport/thermal runtime after recovery prerequisites; offline pandad does not validate device runtime.",
+      "RECOVERY_CHAIN": "Establish installed bootstub compatibility, trustworthy signing and recoverable backups with an independently demonstrated recovery procedure; do not infer this from app compilation.",
+      "DRIVER_MONITORING": "Resolve and validate driver monitoring despite the sold-without-driver-camera product configuration; do not disable monitoring to satisfy readiness.",
+      "AUDIBLE_ALERTS": "Validate audible alerts and loss-of-audio detection on actual hardware.",
+      "VEHICLE_CONTROL_SAFETY": "Develop and independently validate Song PLUS signal interpretation, controller and dedicated Panda safety; legacy32/33 and current ATTO3 debug35 are not interchangeable.",
+      "RESOURCE_RUNTIME_LIMITS": "Resolve worst-case nested stack and physical RAM/flash bounds, plus inherited H7 cookie/microphone overlap before claiming runtime resource safety.",
+      "CANDIDATE_TRUST": "Replace public-development-key candidate trust only in a separately reviewed future design; this project has no installation package or bootstub replacement flow."
+    }
+  },
+  "forbidden_automatic_actions": [
+    "network_access", "auto_download", "auto_build", "runtime_launch", "device_access", "real_can_tx",
+    "system_write", "installation", "panda_reset", "firmware_flash", "bootstub_replace", "usb_role_write", "dfu"
+  ],
+  "exit_status_contract": {
+    "0": "successful requested offline check/build/validation only; never means deployable",
+    "2": "invalid or incomplete evidence, dependency/pin/artifact drift, or failed offline validation",
+    "3": "release-check validated offline acceptance but deployment remains blocked; JSON must also be checked"
+  }
+}
