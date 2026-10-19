@@ -1,0 +1,32 @@
+{
+  "schema": "songplus-current-host-offline-validation/v1",
+  "started_utc": "2026-10-19T17:26:50.586273+00:00",
+  "finished_utc": "2026-10-19T17:26:53.394301+00:00",
+  "command": [
+    "/Users/shuang/Code/openpilot/songplus-port-lab/upstream-openpilot/.venv/bin/python",
+    "-B",
+    "-m",
+    "unittest",
+    "discover",
+    "-s",
+    "hardware/current-host-recovery",
+    "-p",
+    "test_*.py",
+    "-v"
+  ],
+  "exit_code": 0,
+  "log_sha256": "f7927882e9c0ecc937aa9888325d5e44ce4b50aa215ce789171c5ede34bafe56",
+  "log": "offline-tests.txt",
+  "target_python_syntax": {
+    "startup_collector.py": "PYTHON_3_8_AST_PASS",
+    "block_stream_collector.py": "PYTHON_3_8_AST_PASS",
+    "loaded_exit_collector.py": "PYTHON_3_8_AST_PASS"
+  },
+  "hardware_io_in_tests": false,
+  "historical_p10_linux_and_mac_suites_rerun": false,
+  "tests_run": 167,
+  "passed": 167,
+  "failed": 0,
+  "errors": 0,
+  "skipped": 0
+}

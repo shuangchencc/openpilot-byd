@@ -1,0 +1,281 @@
+{
+  "schema": "songplus-current-host-snapshot-comparison/v1",
+  "profile": "UNBOUND",
+  "observations": {
+    "before_utc": "2026-10-19T17:12:12.646280+00:00",
+    "after_utc": "2026-10-19T17:33:09.730271+00:00",
+    "supervisor_before_utc": "2026-10-19T17:12:06.277333+00:00",
+    "supervisor_after_utc": "2026-10-19T17:33:08.507038+00:00"
+  },
+  "recovery_equal": {
+    "gpt": true,
+    "mounts": true,
+    "boot_parameters": true,
+    "system_files": true,
+    "partition_links": true
+  },
+  "boot_parameters_before": [
+    "root=/dev/sda6",
+    "androidboot.slot_suffix=_a"
+  ],
+  "boot_parameters_after": [
+    "root=/dev/sda6",
+    "androidboot.slot_suffix=_a"
+  ],
+  "mounts_before": [
+    "/dev/root / ext4 ro,relatime,data=ordered 0 0",
+    "/dev/sda2 /persist ext4 ro,nosuid,nodev,noexec,relatime,discard,stripe=192,data=ordered 0 0",
+    "/dev/sda8 /systemrw ext4 rw,nodev,noexec,relatime,discard,noauto_da_alloc,stripe=192,data=ordered 0 0",
+    "/dev/sda10 /data ext4 rw,nosuid,nodev,noatime,nodiratime,discard,stripe=2,data=ordered 0 0",
+    "/dev/sde26 /dsp ext4 ro,relatime,data=ordered 0 0",
+    "/dev/sde4 /firmware vfat ro,relatime,fmask=0022,dmask=0022,codepage=437,iocharset=iso8859-1,shortname=mixed,errors=remount-ro 0 0"
+  ],
+  "mounts_after": [
+    "/dev/root / ext4 ro,relatime,data=ordered 0 0",
+    "/dev/sda2 /persist ext4 ro,nosuid,nodev,noexec,relatime,discard,stripe=192,data=ordered 0 0",
+    "/dev/sda8 /systemrw ext4 rw,nodev,noexec,relatime,discard,noauto_da_alloc,stripe=192,data=ordered 0 0",
+    "/dev/sda10 /data ext4 rw,nosuid,nodev,noatime,nodiratime,discard,stripe=2,data=ordered 0 0",
+    "/dev/sde26 /dsp ext4 ro,relatime,data=ordered 0 0",
+    "/dev/sde4 /firmware vfat ro,relatime,fmask=0022,dmask=0022,codepage=437,iocharset=iso8859-1,shortname=mixed,errors=remount-ro 0 0"
+  ],
+  "supervisor": {
+    "observed_holders_before": [
+      {
+        "pid": 22855,
+        "ppid": 15747,
+        "comm": "selfdrive.panda",
+        "starttime_ticks": 2038,
+        "cgroup": [
+          {
+            "controllers": [],
+            "hierarchy": 0,
+            "path": "/system.slice/comma.service",
+            "path_bytes": 27,
+            "path_sha256": "2ce709d7ff10792a9ca523fcf6a4f64027e05e513dedf98bdfc451e7b175590e"
+          }
+        ],
+        "matching_fds": [
+          {
+            "fd": 35,
+            "rdev": [
+              153,
+              0
+            ],
+            "target_nodes": [
+              "/dev/spidev0.0"
+            ]
+          },
+          {
+            "fd": 36,
+            "rdev": [
+              153,
+              0
+            ],
+            "target_nodes": [
+              "/dev/spidev0.0"
+            ]
+          }
+        ]
+      },
+      {
+        "pid": 46699,
+        "ppid": 22855,
+        "comm": "pandad",
+        "starttime_ticks": 5265,
+        "cgroup": [
+          {
+            "controllers": [],
+            "hierarchy": 0,
+            "path": "/system.slice/comma.service",
+            "path_bytes": 27,
+            "path_sha256": "2ce709d7ff10792a9ca523fcf6a4f64027e05e513dedf98bdfc451e7b175590e"
+          }
+        ],
+        "matching_fds": [
+          {
+            "fd": 13,
+            "rdev": [
+              189,
+              5
+            ],
+            "target_nodes": [
+              "/dev/bus/usb/001/006"
+            ]
+          }
+        ]
+      }
+    ],
+    "observed_holders_after": [
+      {
+        "pid": 22855,
+        "ppid": 15747,
+        "comm": "selfdrive.panda",
+        "starttime_ticks": 2038,
+        "cgroup": [
+          {
+            "controllers": [],
+            "hierarchy": 0,
+            "path": "/system.slice/comma.service",
+            "path_bytes": 27,
+            "path_sha256": "2ce709d7ff10792a9ca523fcf6a4f64027e05e513dedf98bdfc451e7b175590e"
+          }
+        ],
+        "matching_fds": [
+          {
+            "fd": 35,
+            "rdev": [
+              153,
+              0
+            ],
+            "target_nodes": [
+              "/dev/spidev0.0"
+            ]
+          },
+          {
+            "fd": 36,
+            "rdev": [
+              153,
+              0
+            ],
+            "target_nodes": [
+              "/dev/spidev0.0"
+            ]
+          }
+        ]
+      },
+      {
+        "pid": 46699,
+        "ppid": 22855,
+        "comm": "pandad",
+        "starttime_ticks": 5265,
+        "cgroup": [
+          {
+            "controllers": [],
+            "hierarchy": 0,
+            "path": "/system.slice/comma.service",
+            "path_bytes": 27,
+            "path_sha256": "2ce709d7ff10792a9ca523fcf6a4f64027e05e513dedf98bdfc451e7b175590e"
+          }
+        ],
+        "matching_fds": [
+          {
+            "fd": 13,
+            "rdev": [
+              189,
+              5
+            ],
+            "target_nodes": [
+              "/dev/bus/usb/001/006"
+            ]
+          }
+        ]
+      }
+    ],
+    "same_observed_holders": true,
+    "same_selected_startup_file_digests": true,
+    "all_accessors_proven": false,
+    "scan_before": {
+      "all_accessors_proven": false,
+      "duration_seconds": 0.6296385599998757,
+      "fds_seen": 2145,
+      "gaps": {
+        "fd_stat:FileNotFoundError": 1,
+        "fd_stat:PermissionError": 29,
+        "list:PermissionError": 531
+      },
+      "pids_seen": 557,
+      "truncated": false
+    },
+    "scan_after": {
+      "all_accessors_proven": false,
+      "duration_seconds": 0.44978658399850246,
+      "fds_seen": 781,
+      "gaps": {
+        "fd_stat:FileNotFoundError": 2,
+        "fd_stat:PermissionError": 29,
+        "list:PermissionError": 534
+      },
+      "pids_seen": 560,
+      "truncated": false
+    }
+  },
+  "ab_raw_partition_comparisons": {
+    "system": {
+      "a": {
+        "raw_sha256": "bed1a820d95d84d00ddf3ca86e113d408e55ca4a57f68e06b7515bca129b5309",
+        "bytes": 12437225472
+      },
+      "b": {
+        "raw_sha256": "2f8ac5651352e08b8d79d7840564d93f89f8e01a65a3c309894f1b35898fbbba",
+        "bytes": 12437225472
+      },
+      "same_raw_digest": false,
+      "same_capture_instant": false,
+      "interchangeability_proven": false
+    },
+    "boot": {
+      "a": {
+        "raw_sha256": "4d879f84c2a73e42de64ea7228b5fd2dd48b65278611f60f6f52ca3acacf36a5",
+        "bytes": 67108864
+      },
+      "b": {
+        "raw_sha256": "c7b0e97ab306b29236fe5f3314c989f55cffbb1d2cdb14a021ca65a6a86e3fa3",
+        "bytes": 67108864
+      },
+      "same_raw_digest": false,
+      "same_capture_instant": false,
+      "interchangeability_proven": false
+    },
+    "xbl": {
+      "a": {
+        "raw_sha256": "86ff63cdd6b2663079c15c507121b6fb4a7d7ed58f78f84f00b9dbbcbbdfa689",
+        "bytes": 3670016
+      },
+      "b": {
+        "raw_sha256": "fa6dbac230b3033c8cb43b46574102179a42b8418e447b133d112600a44298e3",
+        "bytes": 3670016
+      },
+      "same_raw_digest": false,
+      "same_capture_instant": false,
+      "interchangeability_proven": false
+    },
+    "dsp": {
+      "a": {
+        "raw_sha256": "becc114e2ebae08b6f38ec95dce5bda8de14417f2e3a22f654f1d048db208153",
+        "bytes": 33554432
+      },
+      "b": {
+        "raw_sha256": "becc114e2ebae08b6f38ec95dce5bda8de14417f2e3a22f654f1d048db208153",
+        "bytes": 33554432
+      },
+      "same_raw_digest": true,
+      "same_capture_instant": false,
+      "interchangeability_proven": false
+    },
+    "modem": {
+      "a": {
+        "raw_sha256": "a3d014f0896d77a2df7e5a80a70f43a51a047b9d03cfc675b6f0e31a6ecc4994",
+        "bytes": 125829120
+      },
+      "b": {
+        "raw_sha256": "a3d014f0896d77a2df7e5a80a70f43a51a047b9d03cfc675b6f0e31a6ecc4994",
+        "bytes": 125829120
+      },
+      "same_raw_digest": true,
+      "same_capture_instant": false,
+      "interchangeability_proven": false
+    }
+  },
+  "archive_window_utc": {
+    "first": "2026-10-19T17:17:26.697243+00:00",
+    "last": "2026-10-19T17:32:31.689213+00:00"
+  },
+  "consistency": {
+    "cross_object_atomic": false,
+    "content_stability_proven": false,
+    "complete_partition_source_reads_each": 1,
+    "gpt_windows_read_more_than_once_for_mapping_checks": true,
+    "bootability_or_restore_tested": false,
+    "target_operations_during_comparison": []
+  }
+}

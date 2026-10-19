@@ -1,0 +1,372 @@
+{
+  "schema": "songplus-current-loaded-exit-receipt/v1",
+  "phase": "loaded-exit",
+  "started_utc": "2026-10-19T17:32:54.479846+00:00",
+  "source_sha256": {
+    "collector.py": "c65b353db30324b79856b4cb193893e4f246ee4bf94cb9b662e990a34ae0c92e",
+    "wrapper.py": "18b4d39c14d60b4a9b666cb5f274ddbd081a44dc40ad672a2b2e9e4c41a43146",
+    "shared_capture_helper.py": "207f0fedda052b7a4b231a9c53bb47000d1dbfc1c73de8e8d35fed301420b065"
+  },
+  "private_archive_directory": "/Users/shuang/Code/openpilot/migration-audit/current-host-recovery-20261019T171237Z/loaded-exit",
+  "destination_available_bytes_at_start": 605928751104,
+  "target_writes": false,
+  "service_control": false,
+  "slot_change": false,
+  "panda_active_io_reset_flash": false,
+  "can_tx": false,
+  "profile": "UNBOUND",
+  "automatic_retries": 0,
+  "remote_service_logging_possible": true,
+  "local_ssh_timeout_seconds": 45,
+  "max_received_bytes": 1048576,
+  "exit_code": 0,
+  "bytes": 11628,
+  "sha256": "bc1fd290e4e2c5b85c0c2018d3f1b4c8f0a60e5f92f79e4c1e4fa4c2d0dcd2a9",
+  "elapsed_seconds": 0.9095940836705267,
+  "validation": {
+    "schema": "songplus-current-loaded-exit-passive/v1",
+    "collected_utc": "2026-10-19T17:32:55.232762+00:00",
+    "finished_utc": "2026-10-19T17:32:55.303110+00:00",
+    "systemd_loaded": {
+      "before": {
+        "status": "VERIFIED_PASSIVE_QUERY",
+        "returncode": 0,
+        "query_kind": "fixed_systemctl_show_all_properties",
+        "stdout_bytes": 794,
+        "stderr_bytes": 0,
+        "stdout_sha256": "e7f5969898ac84d8575e3e511a091b47c4970daec3805f3322d5f159f71368b3",
+        "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "projection": {
+          "fields": {
+            "Type": {
+              "value_sha256": "3b5d2e68df5da1354faeebefcced6631c0d8b579019fd6e32fcd078c36de12cd",
+              "value_bytes": 7,
+              "empty": false,
+              "value": "oneshot"
+            },
+            "Restart": {
+              "value_sha256": "9390298f3fb0c5b160498935d79cb139aef28e1c47358b4bbba61862b9c26e59",
+              "value_bytes": 2,
+              "empty": false,
+              "value": "no"
+            },
+            "RestartUSec": {
+              "value_sha256": "82504a0320b1d3e4978a829606dd253b53db3f1d7f001015dda6a0190f76bea2",
+              "value_bytes": 5,
+              "empty": false,
+              "value": "100ms"
+            },
+            "TimeoutStopUSec": {
+              "value_sha256": "64c83df872d808a1820aab72aa20bf2cf33b96fff4933e691e30f7646dfcc1be",
+              "value_bytes": 2,
+              "empty": false,
+              "value": "1s"
+            },
+            "RemainAfterExit": {
+              "value_sha256": "8a798890fe93817163b10b5f7bd2ca4d25d84c52739a645a889c173eee7d9d3d",
+              "value_bytes": 3,
+              "empty": false,
+              "value": "yes"
+            },
+            "Result": {
+              "value_sha256": "aee408847d35e44e99430f0979c3357b85fe8dbb4535a494301198adbee85f27",
+              "value_bytes": 7,
+              "empty": false,
+              "value": "success"
+            },
+            "ExecMainPID": {
+              "value_sha256": "3a892eea646c4e4fc44df3a264545ce2e51f4bdc752cbd996dae588e5c839602",
+              "value_bytes": 4,
+              "empty": false,
+              "value": 3140
+            },
+            "ExecStart": {
+              "value_sha256": "94e69a08ac5f1be98d6b715157adaa94f16d3e9847e39bdb133f13d08e0a3d6e",
+              "value_bytes": 189,
+              "empty": false
+            },
+            "ExecStop": {
+              "value_sha256": "13155701f9bb4d781e89be369b2a7a455448830300427706309bbfdceb27205d",
+              "value_bytes": 167,
+              "empty": false
+            },
+            "ControlGroup": {
+              "value_sha256": "2ce709d7ff10792a9ca523fcf6a4f64027e05e513dedf98bdfc451e7b175590e",
+              "value_bytes": 27,
+              "empty": false,
+              "value": "/system.slice/comma.service"
+            },
+            "User": {
+              "value_sha256": "f36a4e58670569181595399beec37e22c3dba2d8d2abd191b86602a16c23289c",
+              "value_bytes": 5,
+              "empty": false,
+              "value": "comma"
+            },
+            "KillMode": {
+              "value_sha256": "c19209ba63c3d708c0fcf683a1121e0bb45f2dec0b02049ba8284fcb8ed9ab33",
+              "value_bytes": 13,
+              "empty": false,
+              "value": "control-group"
+            },
+            "KillSignal": {
+              "value_sha256": "e629fa6598d732768f7c726b4b621285f9c3b85303900aa912017db7617d8bdb",
+              "value_bytes": 2,
+              "empty": false,
+              "value": 15
+            },
+            "FinalKillSignal": {
+              "value_sha256": "19581e27de7ced00ff1ce50b2047e7a567c76b1cbaebabe5ef03f7c3017bb5b7",
+              "value_bytes": 1,
+              "empty": false,
+              "value": 9
+            },
+            "SendSIGKILL": {
+              "value_sha256": "8a798890fe93817163b10b5f7bd2ca4d25d84c52739a645a889c173eee7d9d3d",
+              "value_bytes": 3,
+              "empty": false,
+              "value": "yes"
+            },
+            "Triggers": {
+              "value_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+              "value_bytes": 0,
+              "empty": true,
+              "value": ""
+            },
+            "TriggeredBy": {
+              "value_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+              "value_bytes": 0,
+              "empty": true,
+              "value": ""
+            },
+            "LoadState": {
+              "value_sha256": "2cab953f2b3607b36259abeb3703329d6b301b31277402ebf9f2b3b93e31dd53",
+              "value_bytes": 6,
+              "empty": false,
+              "value": "loaded"
+            },
+            "ActiveState": {
+              "value_sha256": "96879611650f80a81392a52e0db9b0237669087c4518e1c130e541a505e0eeef",
+              "value_bytes": 6,
+              "empty": false,
+              "value": "active"
+            },
+            "SubState": {
+              "value_sha256": "b251994ca8108bbfdac92861ce8d3c5c82c8e62de03cd9f44a3e338643bb98cc",
+              "value_bytes": 6,
+              "empty": false,
+              "value": "exited"
+            },
+            "FragmentPath": {
+              "value_sha256": "619c026ff68e9b71083cc66b1ac0693b2af03522f0f3e68e810a69ff72ea5a35",
+              "value_bytes": 37,
+              "empty": false,
+              "value": "/usr/lib/systemd/system/comma.service"
+            },
+            "DropInPaths": {
+              "value_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+              "value_bytes": 0,
+              "empty": true,
+              "value": ""
+            },
+            "UnitFileState": {
+              "value_sha256": "fb9cf75606b4070dd6a9705810906bba28d0e2ea74ff301b999a91dbb68c7d98",
+              "value_bytes": 7,
+              "empty": false,
+              "value": "enabled"
+            },
+            "NeedDaemonReload": {
+              "value_sha256": "9390298f3fb0c5b160498935d79cb139aef28e1c47358b4bbba61862b9c26e59",
+              "value_bytes": 2,
+              "empty": false,
+              "value": "no"
+            }
+          },
+          "duplicate_properties": [],
+          "missing_properties": [
+            "ExecStartPost",
+            "ExecStartPre",
+            "ExecStopPost"
+          ],
+          "raw_arguments_and_unknown_values_redacted": true
+        }
+      },
+      "after": {
+        "status": "VERIFIED_PASSIVE_QUERY",
+        "returncode": 0,
+        "query_kind": "fixed_systemctl_show_all_properties",
+        "stdout_bytes": 794,
+        "stderr_bytes": 0,
+        "stdout_sha256": "e7f5969898ac84d8575e3e511a091b47c4970daec3805f3322d5f159f71368b3",
+        "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "projection": {
+          "fields": {
+            "Type": {
+              "value_sha256": "3b5d2e68df5da1354faeebefcced6631c0d8b579019fd6e32fcd078c36de12cd",
+              "value_bytes": 7,
+              "empty": false,
+              "value": "oneshot"
+            },
+            "Restart": {
+              "value_sha256": "9390298f3fb0c5b160498935d79cb139aef28e1c47358b4bbba61862b9c26e59",
+              "value_bytes": 2,
+              "empty": false,
+              "value": "no"
+            },
+            "RestartUSec": {
+              "value_sha256": "82504a0320b1d3e4978a829606dd253b53db3f1d7f001015dda6a0190f76bea2",
+              "value_bytes": 5,
+              "empty": false,
+              "value": "100ms"
+            },
+            "TimeoutStopUSec": {
+              "value_sha256": "64c83df872d808a1820aab72aa20bf2cf33b96fff4933e691e30f7646dfcc1be",
+              "value_bytes": 2,
+              "empty": false,
+              "value": "1s"
+            },
+            "RemainAfterExit": {
+              "value_sha256": "8a798890fe93817163b10b5f7bd2ca4d25d84c52739a645a889c173eee7d9d3d",
+              "value_bytes": 3,
+              "empty": false,
+              "value": "yes"
+            },
+            "Result": {
+              "value_sha256": "aee408847d35e44e99430f0979c3357b85fe8dbb4535a494301198adbee85f27",
+              "value_bytes": 7,
+              "empty": false,
+              "value": "success"
+            },
+            "ExecMainPID": {
+              "value_sha256": "3a892eea646c4e4fc44df3a264545ce2e51f4bdc752cbd996dae588e5c839602",
+              "value_bytes": 4,
+              "empty": false,
+              "value": 3140
+            },
+            "ExecStart": {
+              "value_sha256": "94e69a08ac5f1be98d6b715157adaa94f16d3e9847e39bdb133f13d08e0a3d6e",
+              "value_bytes": 189,
+              "empty": false
+            },
+            "ExecStop": {
+              "value_sha256": "13155701f9bb4d781e89be369b2a7a455448830300427706309bbfdceb27205d",
+              "value_bytes": 167,
+              "empty": false
+            },
+            "ControlGroup": {
+              "value_sha256": "2ce709d7ff10792a9ca523fcf6a4f64027e05e513dedf98bdfc451e7b175590e",
+              "value_bytes": 27,
+              "empty": false,
+              "value": "/system.slice/comma.service"
+            },
+            "User": {
+              "value_sha256": "f36a4e58670569181595399beec37e22c3dba2d8d2abd191b86602a16c23289c",
+              "value_bytes": 5,
+              "empty": false,
+              "value": "comma"
+            },
+            "KillMode": {
+              "value_sha256": "c19209ba63c3d708c0fcf683a1121e0bb45f2dec0b02049ba8284fcb8ed9ab33",
+              "value_bytes": 13,
+              "empty": false,
+              "value": "control-group"
+            },
+            "KillSignal": {
+              "value_sha256": "e629fa6598d732768f7c726b4b621285f9c3b85303900aa912017db7617d8bdb",
+              "value_bytes": 2,
+              "empty": false,
+              "value": 15
+            },
+            "FinalKillSignal": {
+              "value_sha256": "19581e27de7ced00ff1ce50b2047e7a567c76b1cbaebabe5ef03f7c3017bb5b7",
+              "value_bytes": 1,
+              "empty": false,
+              "value": 9
+            },
+            "SendSIGKILL": {
+              "value_sha256": "8a798890fe93817163b10b5f7bd2ca4d25d84c52739a645a889c173eee7d9d3d",
+              "value_bytes": 3,
+              "empty": false,
+              "value": "yes"
+            },
+            "Triggers": {
+              "value_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+              "value_bytes": 0,
+              "empty": true,
+              "value": ""
+            },
+            "TriggeredBy": {
+              "value_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+              "value_bytes": 0,
+              "empty": true,
+              "value": ""
+            },
+            "LoadState": {
+              "value_sha256": "2cab953f2b3607b36259abeb3703329d6b301b31277402ebf9f2b3b93e31dd53",
+              "value_bytes": 6,
+              "empty": false,
+              "value": "loaded"
+            },
+            "ActiveState": {
+              "value_sha256": "96879611650f80a81392a52e0db9b0237669087c4518e1c130e541a505e0eeef",
+              "value_bytes": 6,
+              "empty": false,
+              "value": "active"
+            },
+            "SubState": {
+              "value_sha256": "b251994ca8108bbfdac92861ce8d3c5c82c8e62de03cd9f44a3e338643bb98cc",
+              "value_bytes": 6,
+              "empty": false,
+              "value": "exited"
+            },
+            "FragmentPath": {
+              "value_sha256": "619c026ff68e9b71083cc66b1ac0693b2af03522f0f3e68e810a69ff72ea5a35",
+              "value_bytes": 37,
+              "empty": false,
+              "value": "/usr/lib/systemd/system/comma.service"
+            },
+            "DropInPaths": {
+              "value_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+              "value_bytes": 0,
+              "empty": true,
+              "value": ""
+            },
+            "UnitFileState": {
+              "value_sha256": "fb9cf75606b4070dd6a9705810906bba28d0e2ea74ff301b999a91dbb68c7d98",
+              "value_bytes": 7,
+              "empty": false,
+              "value": "enabled"
+            },
+            "NeedDaemonReload": {
+              "value_sha256": "9390298f3fb0c5b160498935d79cb139aef28e1c47358b4bbba61862b9c26e59",
+              "value_bytes": 2,
+              "empty": false,
+              "value": "no"
+            }
+          },
+          "duplicate_properties": [],
+          "missing_properties": [
+            "ExecStartPost",
+            "ExecStartPre",
+            "ExecStopPost"
+          ],
+          "raw_arguments_and_unknown_values_redacted": true
+        }
+      },
+      "same_output_across_collection": true
+    },
+    "boot_marker": {
+      "error": "FileNotFoundError",
+      "status": "unknown"
+    },
+    "boundary_verified": true,
+    "raw_payload_private_only": true,
+    "consistency": {
+      "atomic_snapshot": false,
+      "all_external_launch_sources_proven": false,
+      "process_cleanup_or_board_exit_state_verified": false
+    }
+  },
+  "status": "VERIFIED_PASSIVE_EXIT_SUPPLEMENT",
+  "artifact": "loaded-exit.json",
+  "finished_utc": "2026-10-19T17:32:55.391154+00:00"
+}

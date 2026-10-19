@@ -1,0 +1,685 @@
+{
+  "schema": "songplus-current-startup-exit-analysis/v1",
+  "status": "PASSIVE_SOURCE_AND_LOADED_METADATA_ANALYZED_WITH_EXIT_GAPS",
+  "date_asia_shanghai": "2026-10-20",
+  "capture_window_utc": {
+    "started": "2026-10-19T17:17:06.313742+00:00",
+    "finished": "2026-10-19T17:17:06.396323+00:00"
+  },
+  "boundary": {
+    "profile": "UNBOUND",
+    "device_actions_by_analysis": [],
+    "services_changed": false,
+    "target_programs_executed_imported_or_decrypted": false,
+    "system_or_slot_changes": false,
+    "panda_reset_flash_or_active_io": false,
+    "can_tx": false,
+    "raw_source_in_repository": false,
+    "private_source_material_external": true
+  },
+  "sources": [
+    {
+      "path": "/Users/shuang/Code/openpilot/migration-audit/current-host-recovery-20261019T171237Z/startup/receipt.json",
+      "bytes": 23023,
+      "sha256": "790a7896305ed0443cd5245439ee4ec9f16e90b6678664817799cbad1b803aa0"
+    },
+    {
+      "path": "/Users/shuang/Code/openpilot/migration-audit/current-host-recovery-20261019T171237Z/startup/startup.json",
+      "bytes": 247618,
+      "sha256": "6406f104ee40d344427da6799144d9772b35ac89a42e312c8fd4dfe4aba1a50e"
+    },
+    {
+      "path": "/Users/shuang/Code/openpilot/migration-audit/current-host-recovery-20261019T171237Z/loaded-exit/receipt.json",
+      "bytes": 14381,
+      "sha256": "eacf59f57d50c9fdb86a21e585fef294eb11ed4a65e8b733092ceaf629893099"
+    },
+    {
+      "path": "/Users/shuang/Code/openpilot/migration-audit/current-host-recovery-20261019T171237Z/loaded-exit/loaded-exit.json",
+      "bytes": 11628,
+      "sha256": "bc1fd290e4e2c5b85c0c2018d3f1b4c8f0a60e5f92f79e4c1e4fa4c2d0dcd2a9"
+    }
+  ],
+  "collector_sha256": "cc48f495e6b3b4a23e61194c7bf6366cace36a138b2f502a6bca82a64181d7fe",
+  "files": [
+    {
+      "source_path": "/data/continue.sh",
+      "status": "FILE_BYTES_VERIFIED",
+      "artifact": "source-00.bin",
+      "bytes": 63,
+      "sha256": "d1e8752fd5b067f765d18d240557d576cb44a0273664f389b622f22571d658b6",
+      "metadata": {
+        "bytes": 63,
+        "ctime_ns": 1768373894328364016,
+        "device": 2058,
+        "gid": 1000,
+        "inode": 12,
+        "kind": "regular",
+        "mode": 33261,
+        "mtime_ns": 1768373894318364724,
+        "uid": 1000
+      },
+      "representation": "PLAINTEXT_STATIC_SOURCE",
+      "analyzed_without_execution": true
+    },
+    {
+      "source_path": "/data/openpilot/launch_chffrplus.sh",
+      "status": "FILE_BYTES_VERIFIED",
+      "artifact": "source-01.bin",
+      "bytes": 10476,
+      "sha256": "9ac1b4c94cdedd71465230744af592a0ad32ab59f52b745d92a80cd3810c2366",
+      "metadata": {
+        "bytes": 10476,
+        "ctime_ns": 1792298266264418735,
+        "device": 2058,
+        "gid": 1000,
+        "inode": 1570999,
+        "kind": "regular",
+        "mode": 33277,
+        "mtime_ns": 1791517705000000000,
+        "uid": 1000
+      },
+      "representation": "PLAINTEXT_STATIC_SOURCE",
+      "analyzed_without_execution": true
+    },
+    {
+      "source_path": "/data/openpilot/launch_env.sh",
+      "status": "FILE_BYTES_VERIFIED",
+      "artifact": "source-02.bin",
+      "bytes": 271,
+      "sha256": "0387e4991ade0cf31e2b17c1e12dc90acc8d0c79a7dc8ad93da7526e938acc0e",
+      "metadata": {
+        "bytes": 271,
+        "ctime_ns": 1792298266144419171,
+        "device": 2058,
+        "gid": 1000,
+        "inode": 1571001,
+        "kind": "regular",
+        "mode": 33277,
+        "mtime_ns": 1790695258000000000,
+        "uid": 1000
+      },
+      "representation": "PLAINTEXT_STATIC_SOURCE",
+      "analyzed_without_execution": true
+    },
+    {
+      "source_path": "/data/openpilot/launch_openpilot.sh",
+      "status": "FILE_BYTES_VERIFIED",
+      "artifact": "source-03.bin",
+      "bytes": 578,
+      "sha256": "3b77285e884f2393b6232adfc1963fe2144e4bdb6ba66fa5d0e94d23adc31d06",
+      "metadata": {
+        "bytes": 578,
+        "ctime_ns": 1792298266144419171,
+        "device": 2058,
+        "gid": 1000,
+        "inode": 1570969,
+        "kind": "regular",
+        "mode": 33277,
+        "mtime_ns": 1790597747000000000,
+        "uid": 1000
+      },
+      "representation": "PLAINTEXT_STATIC_SOURCE",
+      "analyzed_without_execution": true
+    },
+    {
+      "source_path": "/data/openpilot/selfdrive/panda/__init__.py",
+      "status": "unknown",
+      "error": "FileNotFoundError"
+    },
+    {
+      "source_path": "/data/openpilot/selfdrive/panda/pandad.py",
+      "status": "unknown",
+      "error": "FileNotFoundError"
+    },
+    {
+      "source_path": "/data/openpilot/selfdrive/pandad/pandad.cc",
+      "status": "unknown",
+      "error": "FileNotFoundError"
+    },
+    {
+      "source_path": "/data/openpilot/selfdrive/pandad/pandad.py",
+      "status": "FILE_BYTES_VERIFIED",
+      "artifact": "source-07.bin",
+      "bytes": 36676,
+      "sha256": "4ec2eec203b3b341b07deef604bf8598f852356c41212ddc5bd3b3e623601268",
+      "metadata": {
+        "bytes": 36676,
+        "ctime_ns": 1792298266254418772,
+        "device": 2058,
+        "gid": 1000,
+        "inode": 1702069,
+        "kind": "regular",
+        "mode": 33277,
+        "mtime_ns": 1791433851000000000,
+        "uid": 1000
+      },
+      "representation": "PYARMOR_ENVELOPE_OPAQUE",
+      "analyzed_without_execution": true
+    },
+    {
+      "source_path": "/data/openpilot/sunnypilot/system/hardware/c3/hardware.py",
+      "status": "unknown",
+      "error": "FileNotFoundError"
+    },
+    {
+      "source_path": "/data/openpilot/sunnypilot/system/hardware/c3/launch_chffrplus.sh",
+      "status": "FILE_BYTES_VERIFIED",
+      "artifact": "source-09.bin",
+      "bytes": 10716,
+      "sha256": "db09a8ef86bac284f75a34145488a67eb3f01bd321691b4b8ed00a1ce30aa8f0",
+      "metadata": {
+        "bytes": 10716,
+        "ctime_ns": 1792298266104419316,
+        "device": 2058,
+        "gid": 1000,
+        "inode": 1570397,
+        "kind": "regular",
+        "mode": 33277,
+        "mtime_ns": 1791433316000000000,
+        "uid": 1000
+      },
+      "representation": "PLAINTEXT_STATIC_SOURCE",
+      "analyzed_without_execution": true
+    },
+    {
+      "source_path": "/data/openpilot/sunnypilot/system/hardware/c3/launch_env.sh",
+      "status": "FILE_BYTES_VERIFIED",
+      "artifact": "source-10.bin",
+      "bytes": 271,
+      "sha256": "0387e4991ade0cf31e2b17c1e12dc90acc8d0c79a7dc8ad93da7526e938acc0e",
+      "metadata": {
+        "bytes": 271,
+        "ctime_ns": 1792298266104419316,
+        "device": 2058,
+        "gid": 1000,
+        "inode": 1570396,
+        "kind": "regular",
+        "mode": 33277,
+        "mtime_ns": 1790695258000000000,
+        "uid": 1000
+      },
+      "representation": "PLAINTEXT_STATIC_SOURCE",
+      "analyzed_without_execution": true
+    },
+    {
+      "source_path": "/data/openpilot/system/hardware/base.py",
+      "status": "FILE_BYTES_VERIFIED",
+      "artifact": "source-11.bin",
+      "bytes": 4839,
+      "sha256": "8ccb37cf1e8c2d967e1e9e28a39121693298f25ca576486f8e38717aabf4d12f",
+      "metadata": {
+        "bytes": 4839,
+        "ctime_ns": 1792298266134419207,
+        "device": 2058,
+        "gid": 1000,
+        "inode": 1570839,
+        "kind": "regular",
+        "mode": 33204,
+        "mtime_ns": 1790477983000000000,
+        "uid": 1000
+      },
+      "representation": "PLAINTEXT_STATIC_SOURCE",
+      "analyzed_without_execution": true
+    },
+    {
+      "source_path": "/data/openpilot/system/hardware/tici/hardware.py",
+      "status": "FILE_BYTES_VERIFIED",
+      "artifact": "source-12.bin",
+      "bytes": 19858,
+      "sha256": "f154effb53a079de4092d1d66a5c6dec2e0dd8241558a790f46f42864443383e",
+      "metadata": {
+        "bytes": 19858,
+        "ctime_ns": 1792298266134419207,
+        "device": 2058,
+        "gid": 1000,
+        "inode": 1570836,
+        "kind": "regular",
+        "mode": 33204,
+        "mtime_ns": 1790477983000000000,
+        "uid": 1000
+      },
+      "representation": "PLAINTEXT_STATIC_SOURCE",
+      "analyzed_without_execution": true
+    },
+    {
+      "source_path": "/data/openpilot/system/manager/manager.py",
+      "status": "FILE_BYTES_VERIFIED",
+      "artifact": "source-13.bin",
+      "bytes": 66639,
+      "sha256": "d0c8e0c3f37850fb2a00d8a462f248c8f9802da12b556882bbde7f2e1d9f1147",
+      "metadata": {
+        "bytes": 66639,
+        "ctime_ns": 1792298266134419207,
+        "device": 2058,
+        "gid": 1000,
+        "inode": 1571542,
+        "kind": "regular",
+        "mode": 33277,
+        "mtime_ns": 1791531149000000000,
+        "uid": 1000
+      },
+      "representation": "PYARMOR_ENVELOPE_OPAQUE",
+      "analyzed_without_execution": true
+    },
+    {
+      "source_path": "/data/openpilot/system/manager/process.py",
+      "status": "FILE_BYTES_VERIFIED",
+      "artifact": "source-14.bin",
+      "bytes": 8364,
+      "sha256": "e1967e0e226285b91eb97b257b13eaff6ad842672591d90df3cb4ad139fc6ee7",
+      "metadata": {
+        "bytes": 8364,
+        "ctime_ns": 1792298266134419207,
+        "device": 2058,
+        "gid": 1000,
+        "inode": 1570855,
+        "kind": "regular",
+        "mode": 33204,
+        "mtime_ns": 1790477983000000000,
+        "uid": 1000
+      },
+      "representation": "PLAINTEXT_STATIC_SOURCE",
+      "analyzed_without_execution": true
+    },
+    {
+      "source_path": "/data/openpilot/system/manager/process_config.py",
+      "status": "FILE_BYTES_VERIFIED",
+      "artifact": "source-15.bin",
+      "bytes": 11092,
+      "sha256": "f2b7f1a2ed1e49c2b71ec89edde30758ebb6c9e1c563eb541b32e47e524e4ebb",
+      "metadata": {
+        "bytes": 11092,
+        "ctime_ns": 1792298266134419207,
+        "device": 2058,
+        "gid": 1000,
+        "inode": 1570849,
+        "kind": "regular",
+        "mode": 33204,
+        "mtime_ns": 1790554299000000000,
+        "uid": 1000
+      },
+      "representation": "PLAINTEXT_STATIC_SOURCE",
+      "analyzed_without_execution": true
+    },
+    {
+      "source_path": "/etc/systemd/system/comma.service",
+      "status": "unknown",
+      "error": "FileNotFoundError"
+    },
+    {
+      "source_path": "/usr/comma/comma.sh",
+      "status": "FILE_BYTES_VERIFIED",
+      "artifact": "source-17.bin",
+      "bytes": 2585,
+      "sha256": "932f6700e78900baf9930e0c130e1ea928c4d5cad4f8258628871c6699c72a02",
+      "metadata": {
+        "bytes": 2585,
+        "ctime_ns": 1749857436492911099,
+        "device": 2054,
+        "gid": 0,
+        "inode": 134312,
+        "kind": "regular",
+        "mode": 33277,
+        "mtime_ns": 1748044912000000000,
+        "uid": 0
+      },
+      "representation": "PLAINTEXT_STATIC_SOURCE",
+      "analyzed_without_execution": true
+    },
+    {
+      "source_path": "/usr/lib/systemd/system/comma.service",
+      "status": "FILE_BYTES_VERIFIED",
+      "artifact": "source-18.bin",
+      "bytes": 367,
+      "sha256": "eb5b82d979b5e94cdf2f089736a9d72e1b72cd08a465393405fb1c24057248bb",
+      "metadata": {
+        "bytes": 367,
+        "ctime_ns": 1749857438999970327,
+        "device": 2054,
+        "gid": 0,
+        "inode": 169265,
+        "kind": "regular",
+        "mode": 33204,
+        "mtime_ns": 1748044912000000000,
+        "uid": 0
+      },
+      "representation": "PLAINTEXT_STATIC_SOURCE",
+      "analyzed_without_execution": true
+    }
+  ],
+  "counts": {
+    "fixed_source_candidates": 19,
+    "file_bytes_verified": 14,
+    "plaintext_sources": 12,
+    "opaque_sources": 2,
+    "source_bytes_verified": 172795,
+    "missing_source_candidates": 5,
+    "dynamic_metadata_paths": 3
+  },
+  "loaded_manager": {
+    "query_before_sha256": "e7f5969898ac84d8575e3e511a091b47c4970daec3805f3322d5f159f71368b3",
+    "query_after_sha256": "e7f5969898ac84d8575e3e511a091b47c4970daec3805f3322d5f159f71368b3",
+    "same_output_across_collection": true,
+    "selected_fields": {
+      "Type": "oneshot",
+      "Restart": "no",
+      "RestartUSec": "100ms",
+      "TimeoutStopUSec": "1s",
+      "RemainAfterExit": "yes",
+      "Result": "success",
+      "ExecMainPID": 3140,
+      "ExecStart": "REDACTED_ARGUMENTS_OR_VALUE",
+      "ExecStop": "REDACTED_ARGUMENTS_OR_VALUE",
+      "ControlGroup": "/system.slice/comma.service",
+      "User": "comma",
+      "KillMode": "control-group",
+      "KillSignal": 15,
+      "FinalKillSignal": 9,
+      "SendSIGKILL": "yes",
+      "Triggers": "",
+      "TriggeredBy": "",
+      "LoadState": "loaded",
+      "ActiveState": "active",
+      "SubState": "exited",
+      "FragmentPath": "/usr/lib/systemd/system/comma.service",
+      "DropInPaths": "",
+      "UnitFileState": "enabled",
+      "NeedDaemonReload": "no"
+    },
+    "not_returned_properties": [
+      "ExecStartPost",
+      "ExecStartPre",
+      "ExecStopPost"
+    ],
+    "type_and_user_from_disk_only": false,
+    "current_execmainpid_liveness_proven": false,
+    "all_launch_sources_excluded": false,
+    "common_returned_fields_equal_to_initial_query": true,
+    "initial_query_unknowns_resolved": [
+      "Type=oneshot",
+      "User=comma"
+    ],
+    "show_all_still_omits": [
+      "ExecStartPre",
+      "ExecStartPost",
+      "ExecStopPost"
+    ]
+  },
+  "dynamic_paths": {
+    "/data/__system_reset__": {
+      "error": "FileNotFoundError",
+      "status": "unknown"
+    },
+    "/data/__system_setup__": {
+      "error": "FileNotFoundError",
+      "status": "unknown"
+    },
+    "/data/custom_op_script.sh": {
+      "error": "FileNotFoundError",
+      "status": "unknown"
+    }
+  },
+  "findings": [
+    {
+      "id": "unit_entry",
+      "evidence": [
+        "/usr/lib/systemd/system/comma.service:5-11",
+        "systemctl show ExecStart/ExecStop"
+      ],
+      "conclusion": "Current disk Type=oneshot and RemainAfterExit=true; loaded ExecStart creates tmux comma session and ExecStop kills that session. Loaded Restart=no, KillMode=control-group, KillSignal=15, FinalKillSignal=9, SendSIGKILL=yes, TimeoutStopUSec=1s. No stop executed. Independent show --all supplement confirms loaded Type=oneshot and User=comma."
+    },
+    {
+      "id": "legacy_unit_not_current",
+      "evidence": [
+        "/usr/lib/systemd/system/comma.service"
+      ],
+      "conclusion": "Current 367-byte unit differs from historical 244-byte Restart=always root snapshot; historical policy must not be used for this device state."
+    },
+    {
+      "id": "reset_gate",
+      "evidence": [
+        "/usr/comma/comma.sh:48-66"
+      ],
+      "conclusion": "Factory reset checks are guarded by /tmp/booted not being a regular file. The later fixed-path lstat returned FileNotFoundError at 2026-10-19T17:32:55Z; its content was not read or created. Future reset-marker/touch-count/userdata conditions and reset tool behavior remain unverified."
+    },
+    {
+      "id": "restart_writes",
+      "evidence": [
+        "/usr/comma/comma.sh:25-45",
+        "/usr/comma/comma.sh:68-101",
+        "/data/openpilot/launch_chffrplus.sh:7-27",
+        "/data/openpilot/launch_chffrplus.sh:173-236",
+        "/data/openpilot/sunnypilot/system/hardware/c3/launch_chffrplus.sh:3-40",
+        "/data/openpilot/sunnypilot/system/hardware/c3/launch_chffrplus.sh:184-247"
+      ],
+      "conclusion": "Startup can mutate data/setup state, slot success metadata, device permissions, software overlay, local dependency installation and logs, and can conditionally invoke reboot/updater. Restart is not a no-side-effect rollback."
+    },
+    {
+      "id": "launcher_return",
+      "evidence": [
+        "/data/openpilot/launch_chffrplus.sh:225-233",
+        "/data/openpilot/sunnypilot/system/hardware/c3/launch_chffrplus.sh:236-244"
+      ],
+      "conclusion": "When manager returns normally, current launchers enter a sleep loop, not an internal manager restart loop."
+    },
+    {
+      "id": "process_stop",
+      "evidence": [
+        "/data/openpilot/system/manager/process.py:111-156"
+      ],
+      "conclusion": "ManagerProcess.stop defaults to SIGINT unless sigkill flag, waits 5s when blocking and may SIGKILL retry; signals a registered PID. This is not the tmux/systemd stop path and does not prove descendant or board cleanup."
+    },
+    {
+      "id": "watchdog_and_daemons",
+      "evidence": [
+        "/data/openpilot/system/manager/process.py:87-107",
+        "/data/openpilot/system/manager/process.py:233-276",
+        "/data/openpilot/system/manager/process.py:279-296"
+      ],
+      "conclusion": "Watchdog restart invokes SIGKILL then start; DaemonProcess.stop is empty and creation uses a new process group. Process-group separation does not imply service-cgroup escape."
+    },
+    {
+      "id": "configured_panda",
+      "evidence": [
+        "/data/openpilot/system/manager/process_config.py:63-64",
+        "/data/openpilot/system/manager/process_config.py:141",
+        "/data/openpilot/system/manager/process_config.py:151"
+      ],
+      "conclusion": "Current plain configuration enables PythonProcess pandad at selfdrive.pandad.pandad with always_run, while _pandad NativeProcess is disabled. This does not reveal opaque wrapper internals."
+    },
+    {
+      "id": "opaque_exit",
+      "evidence": [
+        "/data/openpilot/system/manager/manager.py",
+        "/data/openpilot/selfdrive/pandad/pandad.py"
+      ],
+      "conclusion": "Both current sources are PyArmor envelopes. Signal handlers, manager cleanup order, shutdown/reboot/uninstall decisions, wrapper final Panda operations and board final state remain unknown; no decryption/import/execution performed."
+    },
+    {
+      "id": "hardware_exit_methods",
+      "evidence": [
+        "/data/openpilot/system/hardware/tici/hardware.py:108-114",
+        "/data/openpilot/system/hardware/tici/hardware.py:300-301"
+      ],
+      "conclusion": "Static hardware helper defines reboot, poweroff and uninstall marker plus reboot; opaque caller behavior is not proven."
+    }
+  ],
+  "gaps": [
+    {
+      "id": "loaded_hooks",
+      "detail": "ExecStartPre/ExecStartPost/ExecStopPost remained not returned even with independent show --all; loaded absence is unproven. Type=oneshot/User=comma are now explicitly confirmed."
+    },
+    {
+      "id": "opaque_cleanup",
+      "detail": "Current manager and Panda wrapper opaque; native pandad source candidate absent; graceful shutdown and last device operations unknown."
+    },
+    {
+      "id": "runtime_disk_equivalence",
+      "detail": "No proof that in-memory process code equals current disk sources or that current branch/environment equals defaults."
+    },
+    {
+      "id": "startup_dependencies",
+      "detail": "/etc/profile, reset/setup tools, touch-count state, current environment, optional dynamic scripts, dependency wheel/site directories and complete application tree remain outside this fixed-file capture. /tmp/booted was later lstat-only and absent at that sample; future branch conditions remain unproven."
+    },
+    {
+      "id": "all_supervisors_and_accessors",
+      "detail": "Bounded startup query is not a complete external supervisor audit or exclusive USB/SPI-access proof."
+    },
+    {
+      "id": "consistency",
+      "detail": "Per-file stable reads and identical before/after manager output do not provide an atomic cross-file or application-consistent snapshot."
+    },
+    {
+      "id": "restore_metadata",
+      "detail": "mode/uid/gid captured; ACL/xattrs/security labels/hardlink relationships/full directory tree not captured."
+    },
+    {
+      "id": "future_trial",
+      "detail": "No service stop/start or observed Panda exit-state trial performed; current materials do not establish safe stopping, restarting or restore readiness."
+    }
+  ],
+  "acceptance": {
+    "selected_source_bytes_length_hash_verified": true,
+    "private_archive_payload_hash_verified": true,
+    "loaded_query_before_after_equal": true,
+    "read_only_boundary_preserved": true,
+    "source_execution_or_decryption": false,
+    "loaded_all_properties_verified": false,
+    "complete_exit_semantics_verified": false,
+    "whole_application_recovery_covered": false,
+    "atomic_snapshot": false,
+    "restoration_exercised": false,
+    "production_authority": false,
+    "loaded_type_user_verified": true,
+    "show_all_supplement_revalidated_locally": true,
+    "boot_marker_metadata_attempted": true,
+    "boot_marker_observed_absent": true,
+    "loaded_pre_post_hook_absence_verified": false
+  },
+  "document": "hardware/current-host-recovery/STARTUP-EXIT-ANALYSIS.md",
+  "loaded_manager_samples": [
+    {
+      "id": "initial_startup",
+      "capture_window_utc": {
+        "started": "2026-10-19T17:17:06.313742+00:00",
+        "finished": "2026-10-19T17:17:06.396323+00:00"
+      },
+      "query_mode": "fixed_show_without_all",
+      "observation": {
+        "query_before_sha256": "7b335cafc6bf89fc4db435f5c194e45003810fc8f6f3fc87b2d0d6861f0eb325",
+        "query_after_sha256": "7b335cafc6bf89fc4db435f5c194e45003810fc8f6f3fc87b2d0d6861f0eb325",
+        "same_output_across_collection": true,
+        "selected_fields": {
+          "ActiveState": "active",
+          "ControlGroup": "/system.slice/comma.service",
+          "DropInPaths": "",
+          "ExecMainPID": 3140,
+          "ExecStart": "REDACTED_ARGUMENTS_OR_VALUE",
+          "ExecStop": "REDACTED_ARGUMENTS_OR_VALUE",
+          "FinalKillSignal": 9,
+          "FragmentPath": "/usr/lib/systemd/system/comma.service",
+          "KillMode": "control-group",
+          "KillSignal": 15,
+          "LoadState": "loaded",
+          "NeedDaemonReload": "no",
+          "RemainAfterExit": "yes",
+          "Restart": "no",
+          "RestartUSec": "100ms",
+          "Result": "success",
+          "SendSIGKILL": "yes",
+          "SubState": "exited",
+          "TimeoutStopUSec": "1s",
+          "TriggeredBy": "",
+          "Triggers": "",
+          "UnitFileState": "enabled"
+        },
+        "not_returned_properties": [
+          "ExecStartPost",
+          "ExecStartPre",
+          "ExecStopPost"
+        ],
+        "type_and_user_from_disk_only": true,
+        "current_execmainpid_liveness_proven": false,
+        "all_launch_sources_excluded": false
+      }
+    },
+    {
+      "id": "loaded_exit_supplement",
+      "capture_window_utc": {
+        "started": "2026-10-19T17:32:55.232762+00:00",
+        "finished": "2026-10-19T17:32:55.303110+00:00"
+      },
+      "query_mode": "fixed_show_all",
+      "observation": {
+        "query_before_sha256": "e7f5969898ac84d8575e3e511a091b47c4970daec3805f3322d5f159f71368b3",
+        "query_after_sha256": "e7f5969898ac84d8575e3e511a091b47c4970daec3805f3322d5f159f71368b3",
+        "same_output_across_collection": true,
+        "selected_fields": {
+          "Type": "oneshot",
+          "Restart": "no",
+          "RestartUSec": "100ms",
+          "TimeoutStopUSec": "1s",
+          "RemainAfterExit": "yes",
+          "Result": "success",
+          "ExecMainPID": 3140,
+          "ExecStart": "REDACTED_ARGUMENTS_OR_VALUE",
+          "ExecStop": "REDACTED_ARGUMENTS_OR_VALUE",
+          "ControlGroup": "/system.slice/comma.service",
+          "User": "comma",
+          "KillMode": "control-group",
+          "KillSignal": 15,
+          "FinalKillSignal": 9,
+          "SendSIGKILL": "yes",
+          "Triggers": "",
+          "TriggeredBy": "",
+          "LoadState": "loaded",
+          "ActiveState": "active",
+          "SubState": "exited",
+          "FragmentPath": "/usr/lib/systemd/system/comma.service",
+          "DropInPaths": "",
+          "UnitFileState": "enabled",
+          "NeedDaemonReload": "no"
+        },
+        "not_returned_properties": [
+          "ExecStartPost",
+          "ExecStartPre",
+          "ExecStopPost"
+        ],
+        "type_and_user_from_disk_only": false,
+        "current_execmainpid_liveness_proven": false,
+        "all_launch_sources_excluded": false,
+        "common_returned_fields_equal_to_initial_query": true,
+        "initial_query_unknowns_resolved": [
+          "Type=oneshot",
+          "User=comma"
+        ],
+        "show_all_still_omits": [
+          "ExecStartPre",
+          "ExecStartPost",
+          "ExecStopPost"
+        ]
+      }
+    }
+  ],
+  "supplement_capture_window_utc": {
+    "started": "2026-10-19T17:32:55.232762+00:00",
+    "finished": "2026-10-19T17:32:55.303110+00:00"
+  },
+  "supplement_source_sha256": {
+    "collector.py": "c65b353db30324b79856b4cb193893e4f246ee4bf94cb9b662e990a34ae0c92e",
+    "wrapper.py": "18b4d39c14d60b4a9b666cb5f274ddbd081a44dc40ad672a2b2e9e4c41a43146",
+    "shared_capture_helper.py": "207f0fedda052b7a4b231a9c53bb47000d1dbfc1c73de8e8d35fed301420b065"
+  },
+  "boot_marker_supplement": {
+    "observed_path": "/tmp/booted",
+    "observed_utc": "2026-10-19T17:32:55.232762+00:00",
+    "result": {
+      "error": "FileNotFoundError",
+      "status": "unknown"
+    },
+    "content_read": false,
+    "symlink_followed": false,
+    "future_marker_state_or_reset_branch_proven": false,
+    "interpretation": "Fixed-path lstat returned FileNotFoundError. Do not assume the booted marker will suppress recovery checks during a future launch."
+  }
+}

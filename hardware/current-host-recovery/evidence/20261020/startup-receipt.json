@@ -1,0 +1,649 @@
+{
+  "schema": "songplus-current-host-capture-receipt/v1",
+  "phase": "startup",
+  "object_id": null,
+  "started_utc": "2026-10-19T17:17:05.489135+00:00",
+  "collector_sha256": "cc48f495e6b3b4a23e61194c7bf6366cace36a138b2f502a6bca82a64181d7fe",
+  "entry_sha256": "207f0fedda052b7a4b231a9c53bb47000d1dbfc1c73de8e8d35fed301420b065",
+  "private_archive_directory": "/Users/shuang/Code/openpilot/migration-audit/current-host-recovery-20261019T171237Z/startup",
+  "scope_sha256": null,
+  "expected_object": null,
+  "destination_available_bytes_at_start": 629996646400,
+  "target_writes": false,
+  "service_control": false,
+  "slot_change": false,
+  "panda_active_io_reset_flash": false,
+  "can_tx": false,
+  "profile": "UNBOUND",
+  "automatic_retries": 0,
+  "remote_atime_or_service_logging_possible": true,
+  "local_ssh_timeout_seconds": 45,
+  "max_received_bytes": 8388608,
+  "exit_code": 0,
+  "bytes": 247618,
+  "sha256": "6406f104ee40d344427da6799144d9772b35ac89a42e312c8fd4dfe4aba1a50e",
+  "elapsed_seconds": 0.9962067087180912,
+  "validation": {
+    "files": [
+      {
+        "source_path": "/data/continue.sh",
+        "status": "FILE_BYTES_VERIFIED",
+        "artifact": "source-00.bin",
+        "bytes": 63,
+        "sha256": "d1e8752fd5b067f765d18d240557d576cb44a0273664f389b622f22571d658b6",
+        "metadata": {
+          "bytes": 63,
+          "ctime_ns": 1768373894328364016,
+          "device": 2058,
+          "gid": 1000,
+          "inode": 12,
+          "kind": "regular",
+          "mode": 33261,
+          "mtime_ns": 1768373894318364724,
+          "uid": 1000
+        }
+      },
+      {
+        "source_path": "/data/openpilot/launch_chffrplus.sh",
+        "status": "FILE_BYTES_VERIFIED",
+        "artifact": "source-01.bin",
+        "bytes": 10476,
+        "sha256": "9ac1b4c94cdedd71465230744af592a0ad32ab59f52b745d92a80cd3810c2366",
+        "metadata": {
+          "bytes": 10476,
+          "ctime_ns": 1792298266264418735,
+          "device": 2058,
+          "gid": 1000,
+          "inode": 1570999,
+          "kind": "regular",
+          "mode": 33277,
+          "mtime_ns": 1791517705000000000,
+          "uid": 1000
+        }
+      },
+      {
+        "source_path": "/data/openpilot/launch_env.sh",
+        "status": "FILE_BYTES_VERIFIED",
+        "artifact": "source-02.bin",
+        "bytes": 271,
+        "sha256": "0387e4991ade0cf31e2b17c1e12dc90acc8d0c79a7dc8ad93da7526e938acc0e",
+        "metadata": {
+          "bytes": 271,
+          "ctime_ns": 1792298266144419171,
+          "device": 2058,
+          "gid": 1000,
+          "inode": 1571001,
+          "kind": "regular",
+          "mode": 33277,
+          "mtime_ns": 1790695258000000000,
+          "uid": 1000
+        }
+      },
+      {
+        "source_path": "/data/openpilot/launch_openpilot.sh",
+        "status": "FILE_BYTES_VERIFIED",
+        "artifact": "source-03.bin",
+        "bytes": 578,
+        "sha256": "3b77285e884f2393b6232adfc1963fe2144e4bdb6ba66fa5d0e94d23adc31d06",
+        "metadata": {
+          "bytes": 578,
+          "ctime_ns": 1792298266144419171,
+          "device": 2058,
+          "gid": 1000,
+          "inode": 1570969,
+          "kind": "regular",
+          "mode": 33277,
+          "mtime_ns": 1790597747000000000,
+          "uid": 1000
+        }
+      },
+      {
+        "source_path": "/data/openpilot/selfdrive/panda/__init__.py",
+        "status": "unknown",
+        "error": "FileNotFoundError"
+      },
+      {
+        "source_path": "/data/openpilot/selfdrive/panda/pandad.py",
+        "status": "unknown",
+        "error": "FileNotFoundError"
+      },
+      {
+        "source_path": "/data/openpilot/selfdrive/pandad/pandad.cc",
+        "status": "unknown",
+        "error": "FileNotFoundError"
+      },
+      {
+        "source_path": "/data/openpilot/selfdrive/pandad/pandad.py",
+        "status": "FILE_BYTES_VERIFIED",
+        "artifact": "source-07.bin",
+        "bytes": 36676,
+        "sha256": "4ec2eec203b3b341b07deef604bf8598f852356c41212ddc5bd3b3e623601268",
+        "metadata": {
+          "bytes": 36676,
+          "ctime_ns": 1792298266254418772,
+          "device": 2058,
+          "gid": 1000,
+          "inode": 1702069,
+          "kind": "regular",
+          "mode": 33277,
+          "mtime_ns": 1791433851000000000,
+          "uid": 1000
+        }
+      },
+      {
+        "source_path": "/data/openpilot/sunnypilot/system/hardware/c3/hardware.py",
+        "status": "unknown",
+        "error": "FileNotFoundError"
+      },
+      {
+        "source_path": "/data/openpilot/sunnypilot/system/hardware/c3/launch_chffrplus.sh",
+        "status": "FILE_BYTES_VERIFIED",
+        "artifact": "source-09.bin",
+        "bytes": 10716,
+        "sha256": "db09a8ef86bac284f75a34145488a67eb3f01bd321691b4b8ed00a1ce30aa8f0",
+        "metadata": {
+          "bytes": 10716,
+          "ctime_ns": 1792298266104419316,
+          "device": 2058,
+          "gid": 1000,
+          "inode": 1570397,
+          "kind": "regular",
+          "mode": 33277,
+          "mtime_ns": 1791433316000000000,
+          "uid": 1000
+        }
+      },
+      {
+        "source_path": "/data/openpilot/sunnypilot/system/hardware/c3/launch_env.sh",
+        "status": "FILE_BYTES_VERIFIED",
+        "artifact": "source-10.bin",
+        "bytes": 271,
+        "sha256": "0387e4991ade0cf31e2b17c1e12dc90acc8d0c79a7dc8ad93da7526e938acc0e",
+        "metadata": {
+          "bytes": 271,
+          "ctime_ns": 1792298266104419316,
+          "device": 2058,
+          "gid": 1000,
+          "inode": 1570396,
+          "kind": "regular",
+          "mode": 33277,
+          "mtime_ns": 1790695258000000000,
+          "uid": 1000
+        }
+      },
+      {
+        "source_path": "/data/openpilot/system/hardware/base.py",
+        "status": "FILE_BYTES_VERIFIED",
+        "artifact": "source-11.bin",
+        "bytes": 4839,
+        "sha256": "8ccb37cf1e8c2d967e1e9e28a39121693298f25ca576486f8e38717aabf4d12f",
+        "metadata": {
+          "bytes": 4839,
+          "ctime_ns": 1792298266134419207,
+          "device": 2058,
+          "gid": 1000,
+          "inode": 1570839,
+          "kind": "regular",
+          "mode": 33204,
+          "mtime_ns": 1790477983000000000,
+          "uid": 1000
+        }
+      },
+      {
+        "source_path": "/data/openpilot/system/hardware/tici/hardware.py",
+        "status": "FILE_BYTES_VERIFIED",
+        "artifact": "source-12.bin",
+        "bytes": 19858,
+        "sha256": "f154effb53a079de4092d1d66a5c6dec2e0dd8241558a790f46f42864443383e",
+        "metadata": {
+          "bytes": 19858,
+          "ctime_ns": 1792298266134419207,
+          "device": 2058,
+          "gid": 1000,
+          "inode": 1570836,
+          "kind": "regular",
+          "mode": 33204,
+          "mtime_ns": 1790477983000000000,
+          "uid": 1000
+        }
+      },
+      {
+        "source_path": "/data/openpilot/system/manager/manager.py",
+        "status": "FILE_BYTES_VERIFIED",
+        "artifact": "source-13.bin",
+        "bytes": 66639,
+        "sha256": "d0c8e0c3f37850fb2a00d8a462f248c8f9802da12b556882bbde7f2e1d9f1147",
+        "metadata": {
+          "bytes": 66639,
+          "ctime_ns": 1792298266134419207,
+          "device": 2058,
+          "gid": 1000,
+          "inode": 1571542,
+          "kind": "regular",
+          "mode": 33277,
+          "mtime_ns": 1791531149000000000,
+          "uid": 1000
+        }
+      },
+      {
+        "source_path": "/data/openpilot/system/manager/process.py",
+        "status": "FILE_BYTES_VERIFIED",
+        "artifact": "source-14.bin",
+        "bytes": 8364,
+        "sha256": "e1967e0e226285b91eb97b257b13eaff6ad842672591d90df3cb4ad139fc6ee7",
+        "metadata": {
+          "bytes": 8364,
+          "ctime_ns": 1792298266134419207,
+          "device": 2058,
+          "gid": 1000,
+          "inode": 1570855,
+          "kind": "regular",
+          "mode": 33204,
+          "mtime_ns": 1790477983000000000,
+          "uid": 1000
+        }
+      },
+      {
+        "source_path": "/data/openpilot/system/manager/process_config.py",
+        "status": "FILE_BYTES_VERIFIED",
+        "artifact": "source-15.bin",
+        "bytes": 11092,
+        "sha256": "f2b7f1a2ed1e49c2b71ec89edde30758ebb6c9e1c563eb541b32e47e524e4ebb",
+        "metadata": {
+          "bytes": 11092,
+          "ctime_ns": 1792298266134419207,
+          "device": 2058,
+          "gid": 1000,
+          "inode": 1570849,
+          "kind": "regular",
+          "mode": 33204,
+          "mtime_ns": 1790554299000000000,
+          "uid": 1000
+        }
+      },
+      {
+        "source_path": "/etc/systemd/system/comma.service",
+        "status": "unknown",
+        "error": "FileNotFoundError"
+      },
+      {
+        "source_path": "/usr/comma/comma.sh",
+        "status": "FILE_BYTES_VERIFIED",
+        "artifact": "source-17.bin",
+        "bytes": 2585,
+        "sha256": "932f6700e78900baf9930e0c130e1ea928c4d5cad4f8258628871c6699c72a02",
+        "metadata": {
+          "bytes": 2585,
+          "ctime_ns": 1749857436492911099,
+          "device": 2054,
+          "gid": 0,
+          "inode": 134312,
+          "kind": "regular",
+          "mode": 33277,
+          "mtime_ns": 1748044912000000000,
+          "uid": 0
+        }
+      },
+      {
+        "source_path": "/usr/lib/systemd/system/comma.service",
+        "status": "FILE_BYTES_VERIFIED",
+        "artifact": "source-18.bin",
+        "bytes": 367,
+        "sha256": "eb5b82d979b5e94cdf2f089736a9d72e1b72cd08a465393405fb1c24057248bb",
+        "metadata": {
+          "bytes": 367,
+          "ctime_ns": 1749857438999970327,
+          "device": 2054,
+          "gid": 0,
+          "inode": 169265,
+          "kind": "regular",
+          "mode": 33204,
+          "mtime_ns": 1748044912000000000,
+          "uid": 0
+        }
+      }
+    ],
+    "systemd_loaded": {
+      "after": {
+        "argv": [
+          "/bin/systemctl",
+          "show",
+          "comma.service",
+          "--no-pager",
+          "--property=ActiveState,SubState,LoadState,UnitFileState,NeedDaemonReload,Result,FragmentPath,DropInPaths,KillMode,KillSignal,FinalKillSignal,SendSIGKILL,Restart,RestartUSec,TimeoutStopUSec,RemainAfterExit,ExecMainPID,ControlGroup,Triggers,TriggeredBy,ExecStart,ExecStartPre,ExecStartPost,ExecStop,ExecStopPost"
+        ],
+        "projection": {
+          "duplicate_properties": [],
+          "fields": {
+            "ActiveState": {
+              "empty": false,
+              "value": "active",
+              "value_bytes": 6,
+              "value_sha256": "96879611650f80a81392a52e0db9b0237669087c4518e1c130e541a505e0eeef"
+            },
+            "ControlGroup": {
+              "empty": false,
+              "value": "/system.slice/comma.service",
+              "value_bytes": 27,
+              "value_sha256": "2ce709d7ff10792a9ca523fcf6a4f64027e05e513dedf98bdfc451e7b175590e"
+            },
+            "DropInPaths": {
+              "empty": true,
+              "value": "",
+              "value_bytes": 0,
+              "value_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+            },
+            "ExecMainPID": {
+              "empty": false,
+              "value": 3140,
+              "value_bytes": 4,
+              "value_sha256": "3a892eea646c4e4fc44df3a264545ce2e51f4bdc752cbd996dae588e5c839602"
+            },
+            "ExecStart": {
+              "empty": false,
+              "value_bytes": 189,
+              "value_sha256": "94e69a08ac5f1be98d6b715157adaa94f16d3e9847e39bdb133f13d08e0a3d6e"
+            },
+            "ExecStop": {
+              "empty": false,
+              "value_bytes": 167,
+              "value_sha256": "13155701f9bb4d781e89be369b2a7a455448830300427706309bbfdceb27205d"
+            },
+            "FinalKillSignal": {
+              "empty": false,
+              "value": 9,
+              "value_bytes": 1,
+              "value_sha256": "19581e27de7ced00ff1ce50b2047e7a567c76b1cbaebabe5ef03f7c3017bb5b7"
+            },
+            "FragmentPath": {
+              "empty": false,
+              "value": "/usr/lib/systemd/system/comma.service",
+              "value_bytes": 37,
+              "value_sha256": "619c026ff68e9b71083cc66b1ac0693b2af03522f0f3e68e810a69ff72ea5a35"
+            },
+            "KillMode": {
+              "empty": false,
+              "value": "control-group",
+              "value_bytes": 13,
+              "value_sha256": "c19209ba63c3d708c0fcf683a1121e0bb45f2dec0b02049ba8284fcb8ed9ab33"
+            },
+            "KillSignal": {
+              "empty": false,
+              "value": 15,
+              "value_bytes": 2,
+              "value_sha256": "e629fa6598d732768f7c726b4b621285f9c3b85303900aa912017db7617d8bdb"
+            },
+            "LoadState": {
+              "empty": false,
+              "value": "loaded",
+              "value_bytes": 6,
+              "value_sha256": "2cab953f2b3607b36259abeb3703329d6b301b31277402ebf9f2b3b93e31dd53"
+            },
+            "NeedDaemonReload": {
+              "empty": false,
+              "value": "no",
+              "value_bytes": 2,
+              "value_sha256": "9390298f3fb0c5b160498935d79cb139aef28e1c47358b4bbba61862b9c26e59"
+            },
+            "RemainAfterExit": {
+              "empty": false,
+              "value": "yes",
+              "value_bytes": 3,
+              "value_sha256": "8a798890fe93817163b10b5f7bd2ca4d25d84c52739a645a889c173eee7d9d3d"
+            },
+            "Restart": {
+              "empty": false,
+              "value": "no",
+              "value_bytes": 2,
+              "value_sha256": "9390298f3fb0c5b160498935d79cb139aef28e1c47358b4bbba61862b9c26e59"
+            },
+            "RestartUSec": {
+              "empty": false,
+              "value": "100ms",
+              "value_bytes": 5,
+              "value_sha256": "82504a0320b1d3e4978a829606dd253b53db3f1d7f001015dda6a0190f76bea2"
+            },
+            "Result": {
+              "empty": false,
+              "value": "success",
+              "value_bytes": 7,
+              "value_sha256": "aee408847d35e44e99430f0979c3357b85fe8dbb4535a494301198adbee85f27"
+            },
+            "SendSIGKILL": {
+              "empty": false,
+              "value": "yes",
+              "value_bytes": 3,
+              "value_sha256": "8a798890fe93817163b10b5f7bd2ca4d25d84c52739a645a889c173eee7d9d3d"
+            },
+            "SubState": {
+              "empty": false,
+              "value": "exited",
+              "value_bytes": 6,
+              "value_sha256": "b251994ca8108bbfdac92861ce8d3c5c82c8e62de03cd9f44a3e338643bb98cc"
+            },
+            "TimeoutStopUSec": {
+              "empty": false,
+              "value": "1s",
+              "value_bytes": 2,
+              "value_sha256": "64c83df872d808a1820aab72aa20bf2cf33b96fff4933e691e30f7646dfcc1be"
+            },
+            "TriggeredBy": {
+              "empty": true,
+              "value": "",
+              "value_bytes": 0,
+              "value_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+            },
+            "Triggers": {
+              "empty": true,
+              "value": "",
+              "value_bytes": 0,
+              "value_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+            },
+            "UnitFileState": {
+              "empty": false,
+              "value": "enabled",
+              "value_bytes": 7,
+              "value_sha256": "fb9cf75606b4070dd6a9705810906bba28d0e2ea74ff301b999a91dbb68c7d98"
+            }
+          },
+          "missing_properties": [
+            "ExecStartPost",
+            "ExecStartPre",
+            "ExecStopPost"
+          ],
+          "raw_arguments_and_unknown_values_redacted": true
+        },
+        "returncode": 0,
+        "status": "collected",
+        "stderr_bytes": 0,
+        "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stdout_bytes": 770,
+        "stdout_sha256": "7b335cafc6bf89fc4db435f5c194e45003810fc8f6f3fc87b2d0d6861f0eb325"
+      },
+      "before": {
+        "argv": [
+          "/bin/systemctl",
+          "show",
+          "comma.service",
+          "--no-pager",
+          "--property=ActiveState,SubState,LoadState,UnitFileState,NeedDaemonReload,Result,FragmentPath,DropInPaths,KillMode,KillSignal,FinalKillSignal,SendSIGKILL,Restart,RestartUSec,TimeoutStopUSec,RemainAfterExit,ExecMainPID,ControlGroup,Triggers,TriggeredBy,ExecStart,ExecStartPre,ExecStartPost,ExecStop,ExecStopPost"
+        ],
+        "projection": {
+          "duplicate_properties": [],
+          "fields": {
+            "ActiveState": {
+              "empty": false,
+              "value": "active",
+              "value_bytes": 6,
+              "value_sha256": "96879611650f80a81392a52e0db9b0237669087c4518e1c130e541a505e0eeef"
+            },
+            "ControlGroup": {
+              "empty": false,
+              "value": "/system.slice/comma.service",
+              "value_bytes": 27,
+              "value_sha256": "2ce709d7ff10792a9ca523fcf6a4f64027e05e513dedf98bdfc451e7b175590e"
+            },
+            "DropInPaths": {
+              "empty": true,
+              "value": "",
+              "value_bytes": 0,
+              "value_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+            },
+            "ExecMainPID": {
+              "empty": false,
+              "value": 3140,
+              "value_bytes": 4,
+              "value_sha256": "3a892eea646c4e4fc44df3a264545ce2e51f4bdc752cbd996dae588e5c839602"
+            },
+            "ExecStart": {
+              "empty": false,
+              "value_bytes": 189,
+              "value_sha256": "94e69a08ac5f1be98d6b715157adaa94f16d3e9847e39bdb133f13d08e0a3d6e"
+            },
+            "ExecStop": {
+              "empty": false,
+              "value_bytes": 167,
+              "value_sha256": "13155701f9bb4d781e89be369b2a7a455448830300427706309bbfdceb27205d"
+            },
+            "FinalKillSignal": {
+              "empty": false,
+              "value": 9,
+              "value_bytes": 1,
+              "value_sha256": "19581e27de7ced00ff1ce50b2047e7a567c76b1cbaebabe5ef03f7c3017bb5b7"
+            },
+            "FragmentPath": {
+              "empty": false,
+              "value": "/usr/lib/systemd/system/comma.service",
+              "value_bytes": 37,
+              "value_sha256": "619c026ff68e9b71083cc66b1ac0693b2af03522f0f3e68e810a69ff72ea5a35"
+            },
+            "KillMode": {
+              "empty": false,
+              "value": "control-group",
+              "value_bytes": 13,
+              "value_sha256": "c19209ba63c3d708c0fcf683a1121e0bb45f2dec0b02049ba8284fcb8ed9ab33"
+            },
+            "KillSignal": {
+              "empty": false,
+              "value": 15,
+              "value_bytes": 2,
+              "value_sha256": "e629fa6598d732768f7c726b4b621285f9c3b85303900aa912017db7617d8bdb"
+            },
+            "LoadState": {
+              "empty": false,
+              "value": "loaded",
+              "value_bytes": 6,
+              "value_sha256": "2cab953f2b3607b36259abeb3703329d6b301b31277402ebf9f2b3b93e31dd53"
+            },
+            "NeedDaemonReload": {
+              "empty": false,
+              "value": "no",
+              "value_bytes": 2,
+              "value_sha256": "9390298f3fb0c5b160498935d79cb139aef28e1c47358b4bbba61862b9c26e59"
+            },
+            "RemainAfterExit": {
+              "empty": false,
+              "value": "yes",
+              "value_bytes": 3,
+              "value_sha256": "8a798890fe93817163b10b5f7bd2ca4d25d84c52739a645a889c173eee7d9d3d"
+            },
+            "Restart": {
+              "empty": false,
+              "value": "no",
+              "value_bytes": 2,
+              "value_sha256": "9390298f3fb0c5b160498935d79cb139aef28e1c47358b4bbba61862b9c26e59"
+            },
+            "RestartUSec": {
+              "empty": false,
+              "value": "100ms",
+              "value_bytes": 5,
+              "value_sha256": "82504a0320b1d3e4978a829606dd253b53db3f1d7f001015dda6a0190f76bea2"
+            },
+            "Result": {
+              "empty": false,
+              "value": "success",
+              "value_bytes": 7,
+              "value_sha256": "aee408847d35e44e99430f0979c3357b85fe8dbb4535a494301198adbee85f27"
+            },
+            "SendSIGKILL": {
+              "empty": false,
+              "value": "yes",
+              "value_bytes": 3,
+              "value_sha256": "8a798890fe93817163b10b5f7bd2ca4d25d84c52739a645a889c173eee7d9d3d"
+            },
+            "SubState": {
+              "empty": false,
+              "value": "exited",
+              "value_bytes": 6,
+              "value_sha256": "b251994ca8108bbfdac92861ce8d3c5c82c8e62de03cd9f44a3e338643bb98cc"
+            },
+            "TimeoutStopUSec": {
+              "empty": false,
+              "value": "1s",
+              "value_bytes": 2,
+              "value_sha256": "64c83df872d808a1820aab72aa20bf2cf33b96fff4933e691e30f7646dfcc1be"
+            },
+            "TriggeredBy": {
+              "empty": true,
+              "value": "",
+              "value_bytes": 0,
+              "value_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+            },
+            "Triggers": {
+              "empty": true,
+              "value": "",
+              "value_bytes": 0,
+              "value_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+            },
+            "UnitFileState": {
+              "empty": false,
+              "value": "enabled",
+              "value_bytes": 7,
+              "value_sha256": "fb9cf75606b4070dd6a9705810906bba28d0e2ea74ff301b999a91dbb68c7d98"
+            }
+          },
+          "missing_properties": [
+            "ExecStartPost",
+            "ExecStartPre",
+            "ExecStopPost"
+          ],
+          "raw_arguments_and_unknown_values_redacted": true
+        },
+        "returncode": 0,
+        "status": "collected",
+        "stderr_bytes": 0,
+        "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stdout_bytes": 770,
+        "stdout_sha256": "7b335cafc6bf89fc4db435f5c194e45003810fc8f6f3fc87b2d0d6861f0eb325"
+      },
+      "same_output_across_collection": true
+    },
+    "dynamic_paths": {
+      "/data/__system_reset__": {
+        "error": "FileNotFoundError",
+        "status": "unknown"
+      },
+      "/data/__system_setup__": {
+        "error": "FileNotFoundError",
+        "status": "unknown"
+      },
+      "/data/custom_op_script.sh": {
+        "error": "FileNotFoundError",
+        "status": "unknown"
+      }
+    },
+    "gaps": {
+      "dynamic_metadata:FileNotFoundError": 3,
+      "source:FileNotFoundError": 5
+    },
+    "consistency": {
+      "atomic_across_objects": false,
+      "dropin_contents_collected": false,
+      "live_runtime_code_equivalence_proven": false,
+      "loaded_disk_equivalence_proven": false
+    }
+  },
+  "status": "VERIFIED_SELECTED_FILES",
+  "artifact": "startup.json",
+  "finished_utc": "2026-10-19T17:17:06.492271+00:00"
+}
