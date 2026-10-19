@@ -1,0 +1,21 @@
+{
+  "schema": "songplus-p10-readonly-receipt/v1",
+  "phase": "software",
+  "started_at_utc": "2026-10-19T14:50:53.204763+00:00",
+  "collector": "hardware/p10-readonly/software_collector.py",
+  "collector_sha256": "cca883d1daa04a0d600095b2531207442bacf402a7fd2c8fd7749b313d531a73",
+  "entry_sha256": "78ef2bf94a7a10c3a67f261aadc503d81c20743d5f7cbf148df175d48e999c33",
+  "host_key_check": "StrictHostKeyChecking=yes against preexisting known_hosts",
+  "target_writes_requested": false,
+  "services_controlled": false,
+  "panda_control_io": false,
+  "can_tx": false,
+  "profile_binding_changed": false,
+  "note": "SSH and existing services may log/update their own state; snapshots are non-atomic.",
+  "exit_code": 0,
+  "valid_json": true,
+  "status": "COLLECTED",
+  "completed_at_utc": "2026-10-19T14:50:53.890277+00:00",
+  "stdout_sha256": "2618d1b3d98061871c89cafa7a487382431ee99e300a22d26418355aab3b3b73",
+  "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+}

@@ -1,0 +1,549 @@
+{
+  "schema": "songplus-p10-passive-software-provenance/v1",
+  "installed_comparison": {
+    "build.json": {
+      "historical_reference_path": "build.json",
+      "installed_sha256": "4dbd21a8556d2741ce3d8b0ffba7bc0d907809516dd2871396f44576ec212d83",
+      "bytes": 725,
+      "matches_historical_install_manifest": true
+    },
+    "common/version.h": {
+      "historical_reference_path": "common/version.h",
+      "installed_sha256": "ea59515e7e8a6a83ce92c89ae5245a164e66542262a406455fe71931ceca2411",
+      "bytes": 31,
+      "matches_historical_install_manifest": true
+    },
+    "openpilot/common/version.h": {
+      "historical_reference_path": "common/version.h",
+      "installed_sha256": "ea59515e7e8a6a83ce92c89ae5245a164e66542262a406455fe71931ceca2411",
+      "bytes": 31,
+      "matches_historical_install_manifest": true
+    },
+    "launch_env.sh": {
+      "historical_reference_path": "launch_env.sh",
+      "installed_sha256": "0387e4991ade0cf31e2b17c1e12dc90acc8d0c79a7dc8ad93da7526e938acc0e",
+      "bytes": 271,
+      "matches_historical_install_manifest": true
+    },
+    "panda/board/obj/version": {
+      "historical_reference_path": "panda/board/obj/version",
+      "installed_sha256": "f0910c7384cb35a53694df7c6e530d59c3c53be5e5ab1ddf9a34e1fef5817921",
+      "bytes": 20,
+      "matches_historical_install_manifest": true
+    },
+    "panda/board/obj/panda.bin.signed": {
+      "historical_reference_path": "panda/board/obj/panda.bin.signed",
+      "installed_sha256": "6a5bb6d2dc3e814d2034f339a83f9c652d1a60bdf8d699f3015c40099717fb51",
+      "bytes": 96456,
+      "matches_historical_install_manifest": true
+    },
+    "panda/board/obj/panda_h7.bin.signed": {
+      "historical_reference_path": "panda/board/obj/panda_h7.bin.signed",
+      "installed_sha256": "2c4acbf42892dda5a06e36d66c34e4b12becfe8a545e390c6149c3089c2c8440",
+      "bytes": 103604,
+      "matches_historical_install_manifest": true
+    },
+    "panda/board/obj/bootstub.panda.bin": {
+      "historical_reference_path": "panda/board/obj/bootstub.panda.bin",
+      "installed_sha256": "304a662337b8650db89b4d5d4d53aaafc312f46ffe352731e5070c9b26876621",
+      "bytes": 16384,
+      "matches_historical_install_manifest": true
+    },
+    "panda/board/obj/bootstub.panda_h7.bin": {
+      "historical_reference_path": "panda/board/obj/bootstub.panda_h7.bin",
+      "installed_sha256": "b63285b1f919e18ab308515a05bc5aade4998671dd835bd71f08f7bd46794c33",
+      "bytes": 131072,
+      "matches_historical_install_manifest": true
+    },
+    "panda/python/__init__.py": {
+      "historical_reference_path": "panda/python/__init__.py",
+      "installed_sha256": "1f99943744e7b286f0e7fcc46ca9f24669676a168548269f12084d3fc38450bf",
+      "bytes": 30406,
+      "matches_historical_install_manifest": true
+    },
+    "panda/python/spi.py": {
+      "historical_reference_path": "panda/python/spi.py",
+      "installed_sha256": "5abd55f79e0fa598c0885543e465b546c841ebf2853c20a8b5e404b0ecf417d1",
+      "bytes": 13560,
+      "matches_historical_install_manifest": true
+    },
+    "panda/board/drivers/spi.h": {
+      "observed_error": "FileNotFoundError"
+    },
+    "selfdrive/pandad/pandad.py": {
+      "historical_reference_path": "selfdrive/pandad/pandad.py",
+      "installed_sha256": "4ec2eec203b3b341b07deef604bf8598f852356c41212ddc5bd3b3e623601268",
+      "bytes": 36676,
+      "matches_historical_install_manifest": true
+    },
+    "selfdrive/pandad/pandad": {
+      "historical_reference_path": "selfdrive/pandad/pandad",
+      "installed_sha256": "ba45b4d3cdf8e46beb6d4b212d581b83e30475c58b371dc15ef46fe9f076fb2a",
+      "bytes": 5089416,
+      "matches_historical_install_manifest": true
+    },
+    "openpilot/selfdrive/pandad/pandad.py": {
+      "historical_reference_path": "selfdrive/pandad/pandad.py",
+      "installed_sha256": "4ec2eec203b3b341b07deef604bf8598f852356c41212ddc5bd3b3e623601268",
+      "bytes": 36676,
+      "matches_historical_install_manifest": true
+    },
+    "openpilot/selfdrive/pandad/pandad": {
+      "historical_reference_path": "selfdrive/pandad/pandad",
+      "installed_sha256": "ba45b4d3cdf8e46beb6d4b212d581b83e30475c58b371dc15ef46fe9f076fb2a",
+      "bytes": 5089416,
+      "matches_historical_install_manifest": true
+    },
+    "system/hardware/tici/agnos.json": {
+      "historical_reference_path": "system/hardware/tici/agnos.json",
+      "installed_sha256": "a59d3db64df9715bce8857ae00d52f5e1c4f148fd1d0f9502aa2b232a9dd0ba0",
+      "bytes": 3791,
+      "matches_historical_install_manifest": true
+    },
+    "system/camerad/camerad": {
+      "historical_reference_path": "system/camerad/camerad",
+      "installed_sha256": "6bed8e9f7f8c0735468da5ff7c5aabad973cd43abd3650a7e3c83ac99bce8042",
+      "bytes": 5585816,
+      "matches_historical_install_manifest": true
+    }
+  },
+  "historical_install_manifest": {
+    "path": "/Users/shuang/Code/openpilot/migration-audit/sp2027-base-execution-20261018/installed-file-manifest.json",
+    "sha256": "364a4927b33ef4bccc421f918b348adc2534b58911183783f01922da7f947733"
+  },
+  "api_source": {
+    "path": "/Users/shuang/Code/openpilot/migration-audit/sp2027-review-20261017/factory-evidence/op_full/panda/python/__init__.py",
+    "sha256": "1f99943744e7b286f0e7fcc46ca9f24669676a168548269f12084d3fc38450bf",
+    "excerpts": [
+      {
+        "line": 112,
+        "text": "  USB_VIDS = (0xbbaa, 0x3801)  # 0x3801 is comma's registered VID"
+      },
+      {
+        "line": 113,
+        "text": "  USB_PIDS = (0xddee, 0xddcc)"
+      },
+      {
+        "line": 114,
+        "text": "  REQUEST_IN = usb1.ENDPOINT_IN | usb1.TYPE_VENDOR | usb1.RECIPIENT_DEVICE"
+      },
+      {
+        "line": 115,
+        "text": "  REQUEST_OUT = usb1.ENDPOINT_OUT | usb1.TYPE_VENDOR | usb1.RECIPIENT_DEVICE"
+      },
+      {
+        "line": 116,
+        "text": ""
+      },
+      {
+        "line": 117,
+        "text": "  # from https://github.com/commaai/openpilot/blob/103b4df18cbc38f4129555ab8b15824d1a672bdf/cereal/log.capnp#L648"
+      },
+      {
+        "line": 118,
+        "text": "  HW_TYPE_UNKNOWN = b'\\x00'"
+      },
+      {
+        "line": 119,
+        "text": "  HW_TYPE_WHITE = b'\\x01'"
+      },
+      {
+        "line": 120,
+        "text": "  HW_TYPE_BLACK = b'\\x03'"
+      },
+      {
+        "line": 121,
+        "text": "  HW_TYPE_UNO = b'\\x05'"
+      },
+      {
+        "line": 122,
+        "text": "  HW_TYPE_DOS = b'\\x06'"
+      },
+      {
+        "line": 123,
+        "text": "  HW_TYPE_RED_PANDA = b'\\x07'"
+      },
+      {
+        "line": 124,
+        "text": "  HW_TYPE_TRES = b'\\x09'"
+      },
+      {
+        "line": 125,
+        "text": "  HW_TYPE_CUATRO = b'\\x0a'"
+      },
+      {
+        "line": 126,
+        "text": ""
+      },
+      {
+        "line": 127,
+        "text": "  CAN_PACKET_VERSION = 4"
+      },
+      {
+        "line": 128,
+        "text": "  HEALTH_PACKET_VERSION = 17"
+      },
+      {
+        "line": 129,
+        "text": "  CAN_HEALTH_PACKET_VERSION = 5"
+      },
+      {
+        "line": 130,
+        "text": "  HEALTH_STRUCT = struct.Struct(\"<IIIIIIIIBBBBBHBBBHfBBHHHB\")"
+      },
+      {
+        "line": 131,
+        "text": "  CAN_HEALTH_STRUCT = struct.Struct(\"<BIBBBBBBBBIIIIIIIHHBBBIIII\")"
+      },
+      {
+        "line": 132,
+        "text": ""
+      },
+      {
+        "line": 133,
+        "text": "  F4_DEVICES = [HW_TYPE_WHITE, HW_TYPE_BLACK, HW_TYPE_UNO, HW_TYPE_DOS]"
+      },
+      {
+        "line": 134,
+        "text": "  H7_DEVICES = [HW_TYPE_RED_PANDA, HW_TYPE_TRES, HW_TYPE_CUATRO]"
+      },
+      {
+        "line": 135,
+        "text": "  SUPPORTED_DEVICES = [HW_TYPE_UNO, HW_TYPE_DOS] + H7_DEVICES"
+      },
+      {
+        "line": 136,
+        "text": ""
+      },
+      {
+        "line": 137,
+        "text": "  INTERNAL_DEVICES = (HW_TYPE_UNO, HW_TYPE_DOS, HW_TYPE_TRES, HW_TYPE_CUATRO)"
+      },
+      {
+        "line": 138,
+        "text": ""
+      },
+      {
+        "line": 167,
+        "text": "  def __init__(self, serial: str | None = None, claim: bool = True, disable_checks: bool = True, can_speed_kbps: int = 500, cli: bool = True):"
+      },
+      {
+        "line": 168,
+        "text": "    self._disable_checks = disable_checks"
+      },
+      {
+        "line": 169,
+        "text": ""
+      },
+      {
+        "line": 170,
+        "text": "    self._handle: BaseHandle"
+      },
+      {
+        "line": 171,
+        "text": "    self._handle_open = False"
+      },
+      {
+        "line": 172,
+        "text": "    self.can_rx_overflow_buffer = b''"
+      },
+      {
+        "line": 173,
+        "text": "    self._can_speed_kbps = can_speed_kbps"
+      },
+      {
+        "line": 174,
+        "text": ""
+      },
+      {
+        "line": 175,
+        "text": "    if cli and serial is None:"
+      },
+      {
+        "line": 176,
+        "text": "        self._connect_serial = self._cli_select_panda()"
+      },
+      {
+        "line": 177,
+        "text": "    else:"
+      },
+      {
+        "line": 178,
+        "text": "        self._connect_serial = serial"
+      },
+      {
+        "line": 179,
+        "text": ""
+      },
+      {
+        "line": 180,
+        "text": "    # connect and set mcu type"
+      },
+      {
+        "line": 181,
+        "text": "    self.connect(claim)"
+      },
+      {
+        "line": 247,
+        "text": "      self.set_heartbeat_disabled()"
+      },
+      {
+        "line": 248,
+        "text": "      self.set_power_save(0)"
+      },
+      {
+        "line": 249,
+        "text": ""
+      },
+      {
+        "line": 250,
+        "text": "    # reset comms"
+      },
+      {
+        "line": 251,
+        "text": "    self.can_reset_communications()"
+      },
+      {
+        "line": 252,
+        "text": ""
+      },
+      {
+        "line": 253,
+        "text": "    # disable automatic CAN-FD switching"
+      },
+      {
+        "line": 254,
+        "text": "    for bus in range(PANDA_BUS_CNT):"
+      },
+      {
+        "line": 255,
+        "text": "      self.set_canfd_auto(bus, False)"
+      },
+      {
+        "line": 256,
+        "text": ""
+      },
+      {
+        "line": 257,
+        "text": "    # set CAN speed"
+      },
+      {
+        "line": 258,
+        "text": "    for bus in range(PANDA_BUS_CNT):"
+      },
+      {
+        "line": 259,
+        "text": "      self.set_can_speed_kbps(bus, self._can_speed_kbps)"
+      },
+      {
+        "line": 675,
+        "text": "  def get_packets_versions(self):"
+      },
+      {
+        "line": 676,
+        "text": "    dat = self._handle.controlRead(Panda.REQUEST_IN, 0xdd, 0, 0, 3)"
+      },
+      {
+        "line": 677,
+        "text": "    if dat and len(dat) == 3:"
+      }
+    ]
+  },
+  "spi_source": {
+    "archive": "/Users/shuang/Code/openpilot/migration-audit/sp2027-install-20261018/packages/op_full_c3sp_factory.tar.gz",
+    "member": "op_full/panda/python/spi.py",
+    "sha256": "5abd55f79e0fa598c0885543e465b546c841ebf2853c20a8b5e404b0ecf417d1",
+    "excerpts": [
+      {
+        "line": 34,
+        "text": "DEV_PATH = \"/dev/spidev0.0\""
+      },
+      {
+        "line": 107,
+        "text": "        SPI_DEVICES[speed].open(0, 0)"
+      },
+      {
+        "line": 108,
+        "text": "        SPI_DEVICES[speed].max_speed_hz = speed"
+      },
+      {
+        "line": 109,
+        "text": "      self._spidev = SPI_DEVICES[speed]"
+      },
+      {
+        "line": 110,
+        "text": ""
+      },
+      {
+        "line": 111,
+        "text": "  @contextmanager"
+      },
+      {
+        "line": 112,
+        "text": "  def acquire(self):"
+      },
+      {
+        "line": 113,
+        "text": "    try:"
+      },
+      {
+        "line": 114,
+        "text": "      SPI_LOCK.acquire()"
+      },
+      {
+        "line": 115,
+        "text": "      fcntl.flock(self._spidev, fcntl.LOCK_EX)"
+      },
+      {
+        "line": 116,
+        "text": "      yield self._spidev"
+      },
+      {
+        "line": 117,
+        "text": "    finally:"
+      },
+      {
+        "line": 118,
+        "text": "      fcntl.flock(self._spidev, fcntl.LOCK_UN)"
+      },
+      {
+        "line": 119,
+        "text": "      SPI_LOCK.release()"
+      },
+      {
+        "line": 120,
+        "text": ""
+      },
+      {
+        "line": 121,
+        "text": "  def close(self):"
+      },
+      {
+        "line": 122,
+        "text": "    pass"
+      },
+      {
+        "line": 123,
+        "text": ""
+      },
+      {
+        "line": 124,
+        "text": ""
+      },
+      {
+        "line": 125,
+        "text": "class PandaSpiHandle(BaseHandle):"
+      },
+      {
+        "line": 126,
+        "text": "  \"\"\""
+      },
+      {
+        "line": 127,
+        "text": "  A class that mimics a libusb1 handle for panda SPI communications."
+      },
+      {
+        "line": 128,
+        "text": "  \"\"\""
+      },
+      {
+        "line": 129,
+        "text": ""
+      },
+      {
+        "line": 130,
+        "text": "  PROTOCOL_VERSION = 2"
+      },
+      {
+        "line": 232,
+        "text": "    start_time = time.monotonic()"
+      },
+      {
+        "line": 233,
+        "text": "    exc = PandaSpiException()"
+      },
+      {
+        "line": 234,
+        "text": "    while (timeout == 0) or (time.monotonic() - start_time) < timeout*1e-3:"
+      },
+      {
+        "line": 235,
+        "text": "      n += 1"
+      },
+      {
+        "line": 236,
+        "text": "      logger.debug(\"\\ntry #%d\", n)"
+      },
+      {
+        "line": 237,
+        "text": "      with self.dev.acquire() as spi:"
+      },
+      {
+        "line": 238,
+        "text": "        try:"
+      },
+      {
+        "line": 239,
+        "text": "          return self._transfer_raw(spi, endpoint, data, timeout, max_rx_len, expect_disconnect)"
+      },
+      {
+        "line": 240,
+        "text": "        except PandaSpiException as e:"
+      },
+      {
+        "line": 270,
+        "text": "      return bytes(resp)"
+      },
+      {
+        "line": 271,
+        "text": ""
+      },
+      {
+        "line": 272,
+        "text": "    exc = PandaSpiException()"
+      },
+      {
+        "line": 273,
+        "text": "    with self.dev.acquire() as spi:"
+      },
+      {
+        "line": 274,
+        "text": "      for _ in range(10):"
+      },
+      {
+        "line": 275,
+        "text": "        try:"
+      },
+      {
+        "line": 276,
+        "text": "          return _get_version(spi)"
+      }
+    ]
+  },
+  "wrapper": {
+    "path": "/Users/shuang/Code/openpilot/migration-audit/sp2027-review-20261017/factory-evidence/op_full/selfdrive/pandad/pandad.py",
+    "sha256": "4ec2eec203b3b341b07deef604bf8598f852356c41212ddc5bd3b3e623601268",
+    "pyarmor_payload_present": true,
+    "not_executed_or_decrypted": true
+  },
+  "p10_sources": {
+    "openpilot/selfdrive/pandad/compatibility/native_usb.cc": {
+      "sha256": "89967b9f60f8f2735443b2575db9b2ee5b81a7026c5f2ca495e253902804af47",
+      "source_commit": "8cb3acecc0189d62920144cdc27b7d58ea69f8b4"
+    },
+    "openpilot/selfdrive/pandad/compatibility/native_binding.cc": {
+      "sha256": "7341fcb4ddfeb77f904e0d4c892dfd6360005b2bf91e7df43ed5dcc2b3324290",
+      "source_commit": "8cb3acecc0189d62920144cdc27b7d58ea69f8b4"
+    },
+    "openpilot/selfdrive/pandad/compatibility/spi_freshness.cc": {
+      "sha256": "37f04a30eb4b3a9cbca4ace8eaf542671d9c366211eb45c32ec8df5019320d65",
+      "source_commit": "8cb3acecc0189d62920144cdc27b7d58ea69f8b4"
+    },
+    "openpilot/selfdrive/pandad/compatibility/session_registry.h": {
+      "sha256": "5a34fce6f2ed21baeb75c47a1d14fe2f07f0064da9eabdf46e395df05033fbc1",
+      "source_commit": "8cb3acecc0189d62920144cdc27b7d58ea69f8b4"
+    }
+  },
+  "live_mcu_protocol_confirmed": false,
+  "limitation": "Disk files and hash-matched static source do not establish loaded MCU firmware, running process image, or native probe compatibility."
+}

@@ -1,0 +1,99 @@
+{
+  "schema": "songplus-p10-passive-software/v1",
+  "collected_utc": "2026-10-19T14:50:54.007624+00:00",
+  "scope": "Selected disk artifact hashes; not live MCU flash/signature/ABI",
+  "read_method": "Linux O_PATH|O_NOFOLLOW metadata pin; reopen only confirmed regular inode via /proc/self/fd",
+  "files": {
+    "build.json": {
+      "bytes": 725,
+      "sha256": "4dbd21a8556d2741ce3d8b0ffba7bc0d907809516dd2871396f44576ec212d83",
+      "stable_during_read": true
+    },
+    "common/version.h": {
+      "bytes": 31,
+      "sha256": "ea59515e7e8a6a83ce92c89ae5245a164e66542262a406455fe71931ceca2411",
+      "stable_during_read": true
+    },
+    "openpilot/common/version.h": {
+      "bytes": 31,
+      "sha256": "ea59515e7e8a6a83ce92c89ae5245a164e66542262a406455fe71931ceca2411",
+      "stable_during_read": true
+    },
+    "launch_env.sh": {
+      "bytes": 271,
+      "sha256": "0387e4991ade0cf31e2b17c1e12dc90acc8d0c79a7dc8ad93da7526e938acc0e",
+      "stable_during_read": true
+    },
+    "panda/board/obj/version": {
+      "bytes": 20,
+      "sha256": "f0910c7384cb35a53694df7c6e530d59c3c53be5e5ab1ddf9a34e1fef5817921",
+      "stable_during_read": true
+    },
+    "panda/board/obj/panda.bin.signed": {
+      "bytes": 96456,
+      "sha256": "6a5bb6d2dc3e814d2034f339a83f9c652d1a60bdf8d699f3015c40099717fb51",
+      "stable_during_read": true
+    },
+    "panda/board/obj/panda_h7.bin.signed": {
+      "bytes": 103604,
+      "sha256": "2c4acbf42892dda5a06e36d66c34e4b12becfe8a545e390c6149c3089c2c8440",
+      "stable_during_read": true
+    },
+    "panda/board/obj/bootstub.panda.bin": {
+      "bytes": 16384,
+      "sha256": "304a662337b8650db89b4d5d4d53aaafc312f46ffe352731e5070c9b26876621",
+      "stable_during_read": true
+    },
+    "panda/board/obj/bootstub.panda_h7.bin": {
+      "bytes": 131072,
+      "sha256": "b63285b1f919e18ab308515a05bc5aade4998671dd835bd71f08f7bd46794c33",
+      "stable_during_read": true
+    },
+    "panda/python/__init__.py": {
+      "bytes": 30406,
+      "sha256": "1f99943744e7b286f0e7fcc46ca9f24669676a168548269f12084d3fc38450bf",
+      "stable_during_read": true
+    },
+    "panda/python/spi.py": {
+      "bytes": 13560,
+      "sha256": "5abd55f79e0fa598c0885543e465b546c841ebf2853c20a8b5e404b0ecf417d1",
+      "stable_during_read": true
+    },
+    "panda/board/drivers/spi.h": {
+      "error": "FileNotFoundError"
+    },
+    "selfdrive/pandad/pandad.py": {
+      "bytes": 36676,
+      "sha256": "4ec2eec203b3b341b07deef604bf8598f852356c41212ddc5bd3b3e623601268",
+      "stable_during_read": true
+    },
+    "selfdrive/pandad/pandad": {
+      "bytes": 5089416,
+      "sha256": "ba45b4d3cdf8e46beb6d4b212d581b83e30475c58b371dc15ef46fe9f076fb2a",
+      "stable_during_read": true
+    },
+    "openpilot/selfdrive/pandad/pandad.py": {
+      "bytes": 36676,
+      "sha256": "4ec2eec203b3b341b07deef604bf8598f852356c41212ddc5bd3b3e623601268",
+      "stable_during_read": true
+    },
+    "openpilot/selfdrive/pandad/pandad": {
+      "bytes": 5089416,
+      "sha256": "ba45b4d3cdf8e46beb6d4b212d581b83e30475c58b371dc15ef46fe9f076fb2a",
+      "stable_during_read": true
+    },
+    "system/hardware/tici/agnos.json": {
+      "bytes": 3791,
+      "sha256": "a59d3db64df9715bce8857ae00d52f5e1c4f148fd1d0f9502aa2b232a9dd0ba0",
+      "stable_during_read": true
+    },
+    "system/camerad/camerad": {
+      "bytes": 5585816,
+      "sha256": "6bed8e9f7f8c0735468da5ff7c5aabad973cd43abd3650a7e3c83ac99bce8042",
+      "stable_during_read": true
+    }
+  },
+  "target_writes": false,
+  "target_software_executed_or_imported": false,
+  "application_path": "/data/openpilot"
+}

@@ -1,0 +1,41 @@
+test_character_file_never_opened (test_io_collector.CollectorTests.test_character_file_never_opened) ... ok
+test_collect_fake_tree_is_unbound_no_secret (test_io_collector.CollectorTests.test_collect_fake_tree_is_unbound_no_secret) ... ok
+test_constructor_inert_and_explicit_root (test_io_collector.CollectorTests.test_constructor_inert_and_explicit_root) ... ok
+test_dt_u32_and_missing_is_not_runtime (test_io_collector.CollectorTests.test_dt_u32_and_missing_is_not_runtime) ... ok
+test_fd_holder_and_lock_are_matched_by_stat_without_open (test_io_collector.CollectorTests.test_fd_holder_and_lock_are_matched_by_stat_without_open) ... ok
+test_fdinfo_ignores_unrequested_fields (test_io_collector.CollectorTests.test_fdinfo_ignores_unrequested_fields) ... ok
+test_fixed_read_whitelist_and_symlink_no_open (test_io_collector.CollectorTests.test_fixed_read_whitelist_and_symlink_no_open) ... ok
+test_inaccessible_fd_directory_not_counted_complete (test_io_collector.CollectorTests.test_inaccessible_fd_directory_not_counted_complete) ... ok
+test_inaccessible_fd_never_counts_pid_complete_or_idle (test_io_collector.CollectorTests.test_inaccessible_fd_never_counts_pid_complete_or_idle) ... ok
+test_lock_key_is_filesystem_dev_inode (test_io_collector.CollectorTests.test_lock_key_is_filesystem_dev_inode) ... ok
+test_locks_only_matching_node_inode (test_io_collector.CollectorTests.test_locks_only_matching_node_inode) ... ok
+test_node_stat_target_and_alias_mapping (test_io_collector.CollectorTests.test_node_stat_target_and_alias_mapping) ... ok
+test_permission_gap_counted_no_message_leak (test_io_collector.CollectorTests.test_permission_gap_counted_no_message_leak) ... ok
+test_pid_reuse_discards_holder (test_io_collector.CollectorTests.test_pid_reuse_discards_holder) ... ok
+test_proc_stat_parentheses_and_spaces (test_io_collector.CollectorTests.test_proc_stat_parentheses_and_spaces) ... ok
+test_rdev_requires_character_node (test_io_collector.CollectorTests.test_rdev_requires_character_node) ... ok
+test_read_limits_and_redacted_errors (test_io_collector.CollectorTests.test_read_limits_and_redacted_errors) ... ok
+test_serial_hash_never_retains_plaintext (test_io_collector.CollectorTests.test_serial_hash_never_retains_plaintext) ... ok
+test_usb_only_candidate_serial_read_keeps_vendor (test_io_collector.CollectorTests.test_usb_only_candidate_serial_read_keeps_vendor) ... ok
+test_block_device_never_gets_data_capable_open (test_software_collector.SoftwareCollectorTests.test_block_device_never_gets_data_capable_open) ... ok
+test_change_between_pin_and_read_open_rejected (test_software_collector.SoftwareCollectorTests.test_change_between_pin_and_read_open_rejected) ... ok
+test_change_during_read_rejected (test_software_collector.SoftwareCollectorTests.test_change_during_read_rejected) ... ok
+test_character_device_never_gets_data_capable_open (test_software_collector.SoftwareCollectorTests.test_character_device_never_gets_data_capable_open) ... ok
+test_empty_file_hash (test_software_collector.SoftwareCollectorTests.test_empty_file_hash) ... ok
+test_fifo_and_directory_rejected_before_data_open (test_software_collector.SoftwareCollectorTests.test_fifo_and_directory_rejected_before_data_open) ... ok
+test_inode_mismatch_rejected_before_read (test_software_collector.SoftwareCollectorTests.test_inode_mismatch_rejected_before_read) ... ok
+test_leaf_symlink_not_followed_to_device_or_secret (test_software_collector.SoftwareCollectorTests.test_leaf_symlink_not_followed_to_device_or_secret) ... ok
+test_metadata_open_permission_error_redacted (test_software_collector.SoftwareCollectorTests.test_metadata_open_permission_error_redacted) ... ok
+test_missing_o_path_fails_closed (test_software_collector.SoftwareCollectorTests.test_missing_o_path_fails_closed) ... ok
+test_no_original_path_reopen_even_if_replaced_after_pin (test_software_collector.SoftwareCollectorTests.test_no_original_path_reopen_even_if_replaced_after_pin) ... ok
+test_proc_fd_open_failure_closes_metadata_without_fallback (test_software_collector.SoftwareCollectorTests.test_proc_fd_open_failure_closes_metadata_without_fallback) ... ok
+test_python38_grammar_and_only_stdlib_imports (test_software_collector.SoftwareCollectorTests.test_python38_grammar_and_only_stdlib_imports) ... ok
+test_read_failure_closes_both_fds (test_software_collector.SoftwareCollectorTests.test_read_failure_closes_both_fds) ... ok
+test_regular_inode_pinned_then_read_and_hashed (test_software_collector.SoftwareCollectorTests.test_regular_inode_pinned_then_read_and_hashed) ... ok
+test_short_and_grown_file_rejected (test_software_collector.SoftwareCollectorTests.test_short_and_grown_file_rejected) ... ok
+test_size_budget_checked_before_data_open (test_software_collector.SoftwareCollectorTests.test_size_budget_checked_before_data_open) ... ok
+
+----------------------------------------------------------------------
+Ran 36 tests in 0.032s
+
+OK

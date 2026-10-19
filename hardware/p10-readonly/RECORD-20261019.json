@@ -1,0 +1,44 @@
+{
+  "schema": "songplus-p10-passive-hardware-review/v1",
+  "date_asia_shanghai": "2026-10-19",
+  "status": "PASS_PASSIVE_COLLECTION_WITH_OPEN_GATES",
+  "profile_binding": "UNBOUND",
+  "production_authorized": false,
+  "p10_lock_sha256": "64fe409526045fd23ef5b80fb6b80666af42ce32cc28bb915358d3f793af8611",
+  "evidence_index": "hardware/p10-readonly/evidence/20261019/index.json",
+  "evidence_index_sha256": "daa20e6c25b7586b37ea55e0ba06be19932760509e78d8f83b7dc95afe73aba8",
+  "files": {
+    "hardware/p10-readonly/README.md": "934d7e1dfa7581ccf9b2b6fe7c745fc078f8270c38bc6eedf3b8bc40b9c9d17c",
+    "hardware/p10-readonly/RESULT-20261019.md": "995607bcf2c74101836142b99c3ca6cd460f038cec3da605a59afbd9af6183c5",
+    "hardware/p10-readonly/filesystem_collector.py": "81fbd66708dd5958beae1a8a650b7658a150dd0e40fef92c7146e8c46ff48693",
+    "hardware/p10-readonly/io_collector.py": "2161334f7a170b8170ed67e005c6e35ca83ceba43f7bfde231ccf8d62490eac7",
+    "hardware/p10-readonly/recovery_detail_collector.py": "49ffbabb6390d1e1707860ec227b33818f72b95f8426e4253e451c8948cc9074",
+    "hardware/p10-readonly/software_collector.py": "cca883d1daa04a0d600095b2531207442bacf402a7fd2c8fd7749b313d531a73",
+    "hardware/p10-readonly/test_io_collector.py": "0b4299274ff6bb5c8602d5dfac93e8eb51368007554db14ad43662d99765bfbe",
+    "hardware/p10-readonly/test_software_collector.py": "d4a2f9e7aab948115dfc984013e33a31b6bec7d72679e5fa6bab3a836a1bb381",
+    "tools/inspect_c3xl_p10_readonly.py": "78ef2bf94a7a10c3a67f261aadc503d81c20743d5f7cbf148df175d48e999c33"
+  },
+  "confirmed": [
+    "host_system_and_current_root_slot",
+    "cached_usb_and_spi_metadata",
+    "two_nonatomic_process_holder_samples",
+    "gpt_and_duplicate_dsp_label_uuid_metadata",
+    "selected_installed_artifacts_match_historical_manifest",
+    "13_historical_compressed_backups_hash_match"
+  ],
+  "open_gates": [
+    "physical_mcu_identity_and_two_board_roles",
+    "running_firmware_abi_signature_and_f4_capability",
+    "all_spi_masters_and_session_exclusivity",
+    "current_environment_recovery_coverage_and_exercise",
+    "kernel_deadlines_and_bench_faults",
+    "production_verifier_launcher_and_vehicle_validation"
+  ],
+  "new_tests": {
+    "collector_tests": 36,
+    "synthetic_gpt_tests": 10,
+    "failed": 0,
+    "skipped": 0
+  },
+  "fresh_p10_compile_or_firmware_or_vehicle_tests": false
+}

@@ -1,0 +1,44 @@
+{
+  "checks": [
+    {
+      "name": "collector-tests",
+      "argv": [
+        "/Users/shuang/Code/openpilot/songplus-port-lab/upstream-openpilot/.venv/bin/python",
+        "-B",
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        "hardware/p10-readonly",
+        "-p",
+        "test_*.py",
+        "-v"
+      ],
+      "exit_code": 0,
+      "passed": 36,
+      "failed": 0,
+      "skipped": 0
+    },
+    {
+      "name": "gpt-parser-tests",
+      "argv": [
+        "/Users/shuang/Code/openpilot/songplus-port-lab/upstream-openpilot/.venv/bin/python",
+        "-B",
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        "hardware/step1/followup/tests",
+        "-p",
+        "test_collector.py",
+        "-v"
+      ],
+      "exit_code": 0,
+      "passed": 10,
+      "failed": 0,
+      "skipped": 0
+    }
+  ],
+  "remote_execution": false,
+  "p10_verification_scope": "metadata-only; historical offline P10 lock remains unchanged. This is not a fresh P10 compile/firmware/vehicle test."
+}

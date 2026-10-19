@@ -1,0 +1,71 @@
+{
+  "schema": "songplus-p10-passive-hardware-evidence/v1",
+  "created_at_utc": "2026-10-19T14:54:02.359438+00:00",
+  "date_asia_shanghai": "2026-10-19",
+  "phases": {
+    "io": {
+      "original_local_run": "results/p10-hardware-io-20261019T144925Z-1e56f3ed",
+      "data_file": "io.json",
+      "receipt_file": "io.receipt.json"
+    },
+    "recovery": {
+      "original_local_run": "results/p10-hardware-recovery-20261019T144951Z-b40666f5",
+      "data_file": "recovery.json",
+      "receipt_file": "recovery.receipt.json"
+    },
+    "filesystem": {
+      "original_local_run": "results/p10-hardware-filesystem-20261019T144951Z-a5d01e76",
+      "data_file": "filesystem.json",
+      "receipt_file": "filesystem.receipt.json"
+    },
+    "recovery-detail": {
+      "original_local_run": "results/p10-hardware-recovery-detail-20261019T145006Z-a7f6741b",
+      "data_file": "recovery-detail.json",
+      "receipt_file": "recovery-detail.receipt.json"
+    },
+    "software": {
+      "original_local_run": "results/p10-hardware-software-20261019T145053Z-db6a82ce",
+      "data_file": "software.json",
+      "receipt_file": "software.receipt.json"
+    }
+  },
+  "status": "PASS_PASSIVE_COLLECTION_WITH_OPEN_GATES",
+  "profile_binding": "UNBOUND",
+  "target_side_actions": {
+    "ssh_readonly": true,
+    "bounded_block_metadata_reads": true,
+    "usb_spi_control_io": false,
+    "software_imported_or_started": false,
+    "system_changes": false,
+    "slot_changes": false,
+    "services_started_or_stopped": false,
+    "panda_reset_or_flash": false,
+    "can_tx_by_collector": false
+  },
+  "files": {
+    "backup-integrity.json": "995545c345f5ee428bac9e17295047262ba97dd1c9360c18c6fa63463ef10120",
+    "binding-unchanged.json": "190945be6da9bbfd229f96711ae22697fd11b84467844924a71fbe59a9868c2c",
+    "collector-tests.stderr.txt": "4b4a8143acd79fbd75e6f198a812ccdbb257d14e121848de1d9862ecbbc717fa",
+    "collector-tests.stdout.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "filesystem.json": "77ef55b39ceb0a94dcbaff9a54a5c0be96379ad33827fcbf10eb829d41dcf732",
+    "filesystem.receipt.json": "f0f316cdd240b0c5af3d1f8df3c85e6bf9e44b44149be75b7537fb8c5520fd48",
+    "gpt-parser-tests.stderr.txt": "5bc4ef923aecc0d92cbe14ac0c8dc0e0e80a19b6affbfa4cde6a3840648d453b",
+    "gpt-parser-tests.stdout.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "io.json": "5160d3a0d6faf4e0c55299d24355d6cb1fa8be38e163a9f3d00fc98c9276036f",
+    "io.receipt.json": "41ad95cae43df248581d0081bc43e6b172f793fb28baea583f11534ec0ab8b3e",
+    "local-checks.json": "3d8144e8c11988bffa7e40ffbc2b1d2074e8ccec9f6e0c74fee435bd24e5886c",
+    "p10-lock-verification.json": "e6b57220d731c05f1bfd3d6e1cbaf8f924f5f5c9975197c1ff80d4975a68cf80",
+    "recovery-detail.json": "d095816e305e4c901ebd8a4a6a996a88d9445ad98268251cbcf82e4cb74876ea",
+    "recovery-detail.receipt.json": "ed9a13796af21cdc9442000181914e18797b8e759db9d46c4c5342ce2a79fe78",
+    "recovery.json": "c4f492750310bf2ef8aa81769dea9ad243f6dd696befe68ebda957055fc343eb",
+    "recovery.receipt.json": "4c0dea81a51d55c1a70e498bf51dc6dd1ac7fc8c178818beda95f776294a2fff",
+    "software-provenance.json": "2ba438bbda3859f6bde40b55537b3c5e12b73d8d1efbb4953170fef6ec79d5cf",
+    "software.json": "2618d1b3d98061871c89cafa7a487382431ee99e300a22d26418355aab3b3b73",
+    "software.receipt.json": "c318f07fabc8cebafb6fc89df8d080f589954d42235d592dfff166b4e6b3f506"
+  },
+  "limitations": [
+    "Existing services remained running; snapshots are non-atomic and not an all-accessors proof.",
+    "SSH and existing services may update their own logs/state; no target state mutation was requested.",
+    "No physical identity, firmware ABI, exclusive-access, recovery-operation or P10 production gate is approved."
+  ]
+}

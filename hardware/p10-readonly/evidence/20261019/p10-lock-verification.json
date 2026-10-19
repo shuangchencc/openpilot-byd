@@ -1,0 +1,87 @@
+{
+  "status": "PASS",
+  "lock_sha256": "64fe409526045fd23ef5b80fb6b80666af42ce32cc28bb915358d3f793af8611",
+  "parent_lock_sha256": "d8b3bb3c42a394f178f3ed8325a2276d38f28ff15596459e8fe8806eeb98e7eb",
+  "metadata_only": true,
+  "protected_files": 17,
+  "parent": {
+    "status": "PASS",
+    "lock_sha256": "d8b3bb3c42a394f178f3ed8325a2276d38f28ff15596459e8fe8806eeb98e7eb",
+    "parent_lock_sha256": "1ee1afdd5a7931128f1f3aaaca1facdef4570858ea1dcb1815556f4c024d2838",
+    "metadata_only": true,
+    "protected_files": 16,
+    "parent": {
+      "status": "PASS",
+      "metadata_only": true,
+      "lock_sha256": "1ee1afdd5a7931128f1f3aaaca1facdef4570858ea1dcb1815556f4c024d2838",
+      "parent": {
+        "status": "PASS",
+        "metadata_only": true,
+        "lock_sha256": "3ee3704aeaad414e0024f7e4c246b58cea84c54a970ddba2ee3c4a346b6c5806",
+        "checks": {
+          "metadata_files": 76,
+          "source_files": 0,
+          "dependency_files": 0
+        },
+        "device_access": false,
+        "deployment_ready": false
+      },
+      "vehicle": {
+        "schema": "songplus-readonly-source-contract/v1",
+        "status": "PASS_SOURCE_CONTRACT",
+        "source_files": 13,
+        "source_files_sha256": {
+          "songplus_readonly/__init__.py": "337b10a38d1e573313d5e5d0bfe898ee4c4a67b39bdad94bf5f08fbace59ec35",
+          "songplus_readonly/runtime.py": "520f6d62be0fb7b214e479c7faf62bf76f4281e402c7be175054f2680b4af0d2",
+          "songplus_readonly/carstate.py": "dde749027381b1fb196cbe1d55139aed7dea6ed8e119547b49567a24bde44c54",
+          "songplus_readonly/dbc/byd_song_plus_readonly.dbc": "e1bbcfa7cf433baaf2d6a8fbf00a086ebd6adc06f1cc6d7364ee879cce3343c6",
+          "songplus_readonly/replay.py": "eaddd638d1f2a4678574302d76eac73287139d712c24be8894891c381e387aa2",
+          "songplus_readonly/tests/test_carstate.py": "67980e2de5d238be66eb5d62c9a0de6a03919c249070efa4e7b702e0ec65ce49",
+          "songplus_readonly/tests/test_candidate_fields.py": "c63af430d6fe3c0db13e31da820a57151e417e86ab6a2185303f898cfb2edb3d",
+          "songplus_readonly/tests/test_replay.py": "22f67165ead83e4aaded731fc7771732e2f81e5fb0c27899030fa7fcd0263f3a",
+          "songplus_readonly/README.txt": "72244b1e508d6c64fe9f6cbd1f2284a3628cfa9afe2515017c81cd6641613f03",
+          "songplus_readonly/VALIDATION.txt": "b27d6c664ffa06360fe4fcd2aa10dd87bc8a14393b91f472adae548a7f9b0d56",
+          "songplus_readonly/CANDIDATES-VALIDATION.txt": "32eab750a3f0dd222304aae29805c14c855cec7e86a9d57f437c4d3c0f92120d",
+          "songplus_readonly/MAINTENANCE.txt": "e5910faa59b54d7d58b2542e60babf8a30f5d84aae4de2a9bc1fb4668decd1c6",
+          "songplus_readonly/field-evidence.json": "a9bf3d46de1473224049e71e6c962a6a2f49188feea5d5bbd3a6feddaeb2c44a"
+        },
+        "lock_sha256": "a78a7ddfe3d903c633c0e421776de1bde4f87e33492ae513e834caaa0794c844",
+        "fields": 32,
+        "evidence_tiers": {
+          "supported_encoding": 5,
+          "empirical_candidate": 10,
+          "unconfirmed": 17
+        },
+        "segments_manifested": 98,
+        "raw_logs_read": false,
+        "replay_executed": false,
+        "permissions": {
+          "device_access": false,
+          "network_access": false,
+          "real_can_tx": false,
+          "runtime_launch": false,
+          "firmware_flash": false,
+          "system_write": false,
+          "deployment_ready": false,
+          "vehicle_semantics_independently_confirmed": false
+        }
+      },
+      "locked_files": 40,
+      "device_access": false,
+      "real_can_tx": false,
+      "deployment_ready": false,
+      "actual_mcu_executed": false,
+      "vehicle_validated": false
+    },
+    "real_device_discovery": false,
+    "real_device_io": false,
+    "real_can_tx": false,
+    "profile_bound_to_real_hardware": false,
+    "deployment_ready": false
+  },
+  "real_device_discovery": false,
+  "real_device_io": false,
+  "real_can_tx": false,
+  "profile_bound_to_real_hardware": false,
+  "deployment_ready": false
+}

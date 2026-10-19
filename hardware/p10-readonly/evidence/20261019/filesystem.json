@@ -1,0 +1,28 @@
+{
+  "schema": "songplus-p10-passive-dsp-labels/v1",
+  "collected_utc": "2026-10-19T14:49:54.656176+00:00",
+  "scope": "Two bounded ext4 metadata reads only; no filesystem contents or recovery action",
+  "partitions": {
+    "sde9": {
+      "label": "dsp",
+      "uuid_sha256": "196157642589e5b86d924554a3a8acf3e1c1d04cd680317795342be01815e598",
+      "rdev": [
+        8,
+        73
+      ],
+      "bytes_read": 1024,
+      "offset": 1024
+    },
+    "sde26": {
+      "label": "dsp",
+      "uuid_sha256": "196157642589e5b86d924554a3a8acf3e1c1d04cd680317795342be01815e598",
+      "rdev": [
+        259,
+        10
+      ],
+      "bytes_read": 1024,
+      "offset": 1024
+    }
+  },
+  "by_label_dsp": "../../sde9"
+}

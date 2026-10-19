@@ -1,0 +1,1730 @@
+{
+  "schema": "songplus-c3xl-passive-followup/v1",
+  "collected_utc": "2026-10-19T14:49:54.681255+00:00",
+  "method": "O_RDONLY file/sysfs reads and bounded GPT pread; no commands or device controls",
+  "soc": {
+    "soc_id": "341",
+    "family": "Snapdragon",
+    "machine": "SDA845",
+    "revision": "2.1",
+    "platform_subtype": "Unknown",
+    "platform_version": "65536",
+    "platform_subtype_id": "0"
+  },
+  "device_tree": {
+    "model": "comma tici",
+    "compatible": "qcom,sda845-mtp\u0000qcom,sda845\u0000qcom,mtp",
+    "qcom,msm-id_u32": [
+      341,
+      131073,
+      321,
+      131073,
+      321,
+      131072
+    ],
+    "qcom,board-id_u32": [
+      8,
+      0,
+      32,
+      0
+    ]
+  },
+  "camera_dt": [
+    {
+      "path": "reserved-memory/camera_region@0x8bf00000",
+      "compatible": "removed-dma-pool",
+      "reg_u32": [
+        0,
+        2347761664,
+        0,
+        5242880
+      ]
+    },
+    {
+      "path": "soc/qcom,csiphy@ac66000",
+      "compatible": "qcom,csiphy-v1.0\u0000qcom,csiphy",
+      "status": "ok",
+      "reg_u32": [
+        180772864,
+        4096
+      ],
+      "cell-index_u32": [
+        1
+      ]
+    },
+    {
+      "path": "soc/pinctrl@03400000/cam_sensor_mclk3_suspend"
+    },
+    {
+      "path": "soc/pinctrl@03400000/cam_sensor_iris_active"
+    },
+    {
+      "path": "soc/pinctrl@03400000/cam_sensor_mclk0_suspend"
+    },
+    {
+      "path": "soc/pinctrl@03400000/cam_sensor_rear2_suspend"
+    },
+    {
+      "path": "soc/pinctrl@03400000/cam_sensor_rear_active"
+    },
+    {
+      "path": "soc/pinctrl@03400000/cam_sensor_iris_suspend"
+    },
+    {
+      "path": "soc/pinctrl@03400000/cam_sensor_rear2_active"
+    },
+    {
+      "path": "soc/pinctrl@03400000/cam_sensor_mclk3_active"
+    },
+    {
+      "path": "soc/pinctrl@03400000/cam_sensor_mclk1_suspend"
+    },
+    {
+      "path": "soc/pinctrl@03400000/cam_sensor_rear_vana"
+    },
+    {
+      "path": "soc/pinctrl@03400000/cam_sensor_mclk2_active"
+    },
+    {
+      "path": "soc/pinctrl@03400000/cam_sensor_front_active"
+    },
+    {
+      "path": "soc/pinctrl@03400000/cam_sensor_rear_suspend"
+    },
+    {
+      "path": "soc/pinctrl@03400000/cam_sensor_mclk1_active"
+    },
+    {
+      "path": "soc/pinctrl@03400000/cam_sensor_miniisp_suspend"
+    },
+    {
+      "path": "soc/pinctrl@03400000/cam_sensor_mclk2_suspend"
+    },
+    {
+      "path": "soc/pinctrl@03400000/cam_sensor_depth_active"
+    },
+    {
+      "path": "soc/pinctrl@03400000/cam_sensor_front_suspend"
+    },
+    {
+      "path": "soc/pinctrl@03400000/cam_sensor_miniisp_active"
+    },
+    {
+      "path": "soc/pinctrl@03400000/cam_sensor_depth_suspend"
+    },
+    {
+      "path": "soc/pinctrl@03400000/cam_sensor_mclk0_active"
+    },
+    {
+      "path": "soc/pinctrl@03400000/cam_sensor_fisheye_active"
+    },
+    {
+      "path": "soc/pinctrl@03400000/cam_sensor_fisheye_suspend"
+    },
+    {
+      "path": "soc/qcom,spmi@c440000/qcom,pm8998@0/pinctrl@c000/camera_rear_dvdd_en"
+    },
+    {
+      "path": "soc/qcom,spmi@c440000/qcom,pm8998@0/pinctrl@c000/camera_rear_dvdd_en/camera_rear_dvdd_en_default"
+    },
+    {
+      "path": "soc/qcom,spmi@c440000/qcom,pm8998@0/pinctrl@c000/camera_dvdd_en"
+    },
+    {
+      "path": "soc/qcom,spmi@c440000/qcom,pm8998@0/pinctrl@c000/camera_dvdd_en/camera_dvdd_en_default"
+    },
+    {
+      "path": "soc/qcom,csiphy@ac68000",
+      "compatible": "qcom,csiphy-v1.0\u0000qcom,csiphy",
+      "status": "ok",
+      "reg_u32": [
+        180781056,
+        4096
+      ],
+      "cell-index_u32": [
+        3
+      ]
+    },
+    {
+      "path": "soc/qcom,csiphy@ac65000",
+      "compatible": "qcom,csiphy-v1.0\u0000qcom,csiphy",
+      "status": "ok",
+      "reg_u32": [
+        180768768,
+        4096
+      ],
+      "cell-index_u32": [
+        0
+      ]
+    },
+    {
+      "path": "soc/qcom,cci@ac4a000",
+      "compatible": "qcom,cci",
+      "status": "ok",
+      "reg_u32": [
+        180658176,
+        16384
+      ],
+      "cell-index_u32": [
+        0
+      ]
+    },
+    {
+      "path": "soc/qcom,cci@ac4a000/qcom,cam-sensor@3",
+      "compatible": "qcom,cam-sensor",
+      "status": "ok",
+      "reg_u32": [
+        3
+      ],
+      "cell-index_u32": [
+        3
+      ]
+    },
+    {
+      "path": "soc/qcom,cci@ac4a000/qcom,cam-sensor@1",
+      "compatible": "qcom,cam-sensor",
+      "status": "ok",
+      "reg_u32": [
+        1
+      ],
+      "cell-index_u32": [
+        1
+      ]
+    },
+    {
+      "path": "soc/qcom,cci@ac4a000/qcom,cam-sensor@2",
+      "compatible": "qcom,cam-sensor",
+      "status": "ok",
+      "reg_u32": [
+        2
+      ],
+      "cell-index_u32": [
+        2
+      ]
+    },
+    {
+      "path": "soc/qcom,cci@ac4a000/qcom,cam-sensor@0",
+      "compatible": "qcom,cam-sensor",
+      "status": "ok",
+      "reg_u32": [
+        0
+      ],
+      "cell-index_u32": [
+        0
+      ]
+    },
+    {
+      "path": "soc/thermal-zones/camera-lowf"
+    },
+    {
+      "path": "soc/thermal-zones/camera-lowf/trips/camera-trip"
+    },
+    {
+      "path": "soc/thermal-zones/camera-usr"
+    },
+    {
+      "path": "soc/qcom,csiphy@ac67000",
+      "compatible": "qcom,csiphy-v1.0\u0000qcom,csiphy",
+      "status": "ok",
+      "reg_u32": [
+        180776960,
+        4096
+      ],
+      "cell-index_u32": [
+        2
+      ]
+    },
+    {
+      "path": "soc/ad-hoc-bus/slv-qhs-camera-cfg"
+    }
+  ],
+  "video_nodes": [
+    {
+      "node": "v4l-subdev0",
+      "name": "cam-cpas",
+      "index": "1",
+      "device": "/sys/devices/platform/soc/soc:qcom,cam-req-mgr"
+    },
+    {
+      "node": "v4l-subdev1",
+      "name": "cam-isp",
+      "index": "2",
+      "device": "/sys/devices/platform/soc/soc:qcom,cam-req-mgr"
+    },
+    {
+      "node": "v4l-subdev10",
+      "name": "cam-sensor-driver",
+      "index": "11",
+      "device": "/sys/devices/platform/soc/soc:qcom,cam-req-mgr"
+    },
+    {
+      "node": "v4l-subdev11",
+      "name": "cam-icp",
+      "index": "12",
+      "device": "/sys/devices/platform/soc/soc:qcom,cam-req-mgr"
+    },
+    {
+      "node": "v4l-subdev12",
+      "name": "cam-jpeg",
+      "index": "13",
+      "device": "/sys/devices/platform/soc/soc:qcom,cam-req-mgr"
+    },
+    {
+      "node": "v4l-subdev13",
+      "name": "cam-fd",
+      "index": "14",
+      "device": "/sys/devices/platform/soc/soc:qcom,cam-req-mgr"
+    },
+    {
+      "node": "v4l-subdev14",
+      "name": "cam-lrme",
+      "index": "15",
+      "device": "/sys/devices/platform/soc/soc:qcom,cam-req-mgr"
+    },
+    {
+      "node": "v4l-subdev2",
+      "name": "cam-cci-driver",
+      "index": "3",
+      "device": "/sys/devices/platform/soc/soc:qcom,cam-req-mgr"
+    },
+    {
+      "node": "v4l-subdev3",
+      "name": "cam-csiphy-driver",
+      "index": "4",
+      "device": "/sys/devices/platform/soc/soc:qcom,cam-req-mgr"
+    },
+    {
+      "node": "v4l-subdev4",
+      "name": "cam-csiphy-driver",
+      "index": "5",
+      "device": "/sys/devices/platform/soc/soc:qcom,cam-req-mgr"
+    },
+    {
+      "node": "v4l-subdev5",
+      "name": "cam-csiphy-driver",
+      "index": "6",
+      "device": "/sys/devices/platform/soc/soc:qcom,cam-req-mgr"
+    },
+    {
+      "node": "v4l-subdev6",
+      "name": "cam-csiphy-driver",
+      "index": "7",
+      "device": "/sys/devices/platform/soc/soc:qcom,cam-req-mgr"
+    },
+    {
+      "node": "v4l-subdev7",
+      "name": "cam-sensor-driver",
+      "index": "8",
+      "device": "/sys/devices/platform/soc/soc:qcom,cam-req-mgr"
+    },
+    {
+      "node": "v4l-subdev8",
+      "name": "cam-sensor-driver",
+      "index": "9",
+      "device": "/sys/devices/platform/soc/soc:qcom,cam-req-mgr"
+    },
+    {
+      "node": "v4l-subdev9",
+      "name": "cam-sensor-driver",
+      "index": "10",
+      "device": "/sys/devices/platform/soc/soc:qcom,cam-req-mgr"
+    },
+    {
+      "node": "video0",
+      "name": "cam-req-mgr",
+      "index": "0",
+      "device": "/sys/devices/platform/soc/soc:qcom,cam-req-mgr"
+    },
+    {
+      "node": "video1",
+      "name": "cam_sync",
+      "index": "0",
+      "device": "/sys/devices/platform/cam_sync"
+    },
+    {
+      "node": "video2",
+      "name": "sde_rotator",
+      "index": "0",
+      "device": "/sys/devices/platform/soc/ae00000.qcom,mdss_rotator"
+    },
+    {
+      "node": "video32",
+      "name": "",
+      "index": "0",
+      "device": "/sys/devices/platform/soc/aa00000.qcom,vidc"
+    },
+    {
+      "node": "video33",
+      "name": "",
+      "index": "1",
+      "device": "/sys/devices/platform/soc/aa00000.qcom,vidc"
+    }
+  ],
+  "usb_devices": [
+    {
+      "name": "1-1",
+      "path": "/sys/devices/platform/soc/a800000.ssusb/a800000.dwc3/xhci-hcd.0.auto/usb1/1-1",
+      "idVendor": "0000",
+      "idProduct": "0000",
+      "bcdDevice": "0000",
+      "speed": "480",
+      "bDeviceClass": "09",
+      "bNumInterfaces": " 1",
+      "interfaces": [
+        {
+          "name": "1-1:1.0",
+          "bInterfaceNumber": "00",
+          "bInterfaceClass": "09",
+          "bInterfaceSubClass": "00",
+          "bInterfaceProtocol": "00",
+          "driver": "/sys/bus/usb/drivers/hub"
+        }
+      ]
+    },
+    {
+      "name": "1-1.1",
+      "path": "/sys/devices/platform/soc/a800000.ssusb/a800000.dwc3/xhci-hcd.0.auto/usb1/1-1/1-1.1",
+      "idVendor": "2c7c",
+      "idProduct": "0125",
+      "bcdDevice": "0318",
+      "product": "Android",
+      "manufacturer": "Android",
+      "speed": "480",
+      "bDeviceClass": "ef",
+      "bNumInterfaces": " 5",
+      "interfaces": [
+        {
+          "name": "1-1.1:1.0",
+          "bInterfaceNumber": "00",
+          "bInterfaceClass": "ff",
+          "bInterfaceSubClass": "ff",
+          "bInterfaceProtocol": "ff",
+          "driver": "/sys/bus/usb/drivers/option"
+        },
+        {
+          "name": "1-1.1:1.1",
+          "bInterfaceNumber": "01",
+          "bInterfaceClass": "ff",
+          "bInterfaceSubClass": "00",
+          "bInterfaceProtocol": "00",
+          "driver": "/sys/bus/usb/drivers/option"
+        },
+        {
+          "name": "1-1.1:1.2",
+          "bInterfaceNumber": "02",
+          "bInterfaceClass": "ff",
+          "bInterfaceSubClass": "00",
+          "bInterfaceProtocol": "00",
+          "driver": "/sys/bus/usb/drivers/option"
+        },
+        {
+          "name": "1-1.1:1.3",
+          "bInterfaceNumber": "03",
+          "bInterfaceClass": "ff",
+          "bInterfaceSubClass": "00",
+          "bInterfaceProtocol": "00",
+          "driver": "/sys/bus/usb/drivers/option"
+        },
+        {
+          "name": "1-1.1:1.4",
+          "bInterfaceNumber": "04",
+          "bInterfaceClass": "ff",
+          "bInterfaceSubClass": "ff",
+          "bInterfaceProtocol": "ff",
+          "driver": "/sys/bus/usb/drivers/qmi_wwan"
+        }
+      ]
+    },
+    {
+      "name": "1-1.2",
+      "path": "/sys/devices/platform/soc/a800000.ssusb/a800000.dwc3/xhci-hcd.0.auto/usb1/1-1/1-1.2",
+      "idVendor": "3801",
+      "idProduct": "ddcc",
+      "bcdDevice": "0600",
+      "product": "panda",
+      "manufacturer": "comma.ai",
+      "speed": "12",
+      "bDeviceClass": "ff",
+      "bNumInterfaces": " 1",
+      "interfaces": [
+        {
+          "name": "1-1.2:1.0",
+          "bInterfaceNumber": "00",
+          "bInterfaceClass": "ff",
+          "bInterfaceSubClass": "ff",
+          "bInterfaceProtocol": "ff",
+          "driver": "/sys/bus/usb/drivers/usbfs"
+        }
+      ]
+    },
+    {
+      "name": "usb1",
+      "path": "/sys/devices/platform/soc/a800000.ssusb/a800000.dwc3/xhci-hcd.0.auto/usb1",
+      "idVendor": "1d6b",
+      "idProduct": "0002",
+      "bcdDevice": "0409",
+      "product": "xHCI Host Controller",
+      "manufacturer": "Linux 4.9.103 xhci-hcd",
+      "speed": "480",
+      "bDeviceClass": "09",
+      "bNumInterfaces": " 1",
+      "interfaces": []
+    },
+    {
+      "name": "usb2",
+      "path": "/sys/devices/platform/soc/a800000.ssusb/a800000.dwc3/xhci-hcd.0.auto/usb2",
+      "idVendor": "1d6b",
+      "idProduct": "0003",
+      "bcdDevice": "0409",
+      "product": "xHCI Host Controller",
+      "manufacturer": "Linux 4.9.103 xhci-hcd",
+      "speed": "5000",
+      "bDeviceClass": "09",
+      "bNumInterfaces": " 1",
+      "interfaces": []
+    }
+  ],
+  "communication_nodes": [
+    {
+      "class": "/sys/class/tty",
+      "name": "ttyUSB0",
+      "device": "/sys/devices/platform/soc/a800000.ssusb/a800000.dwc3/xhci-hcd.0.auto/usb1/1-1/1-1.1/1-1.1:1.0/ttyUSB0"
+    },
+    {
+      "class": "/sys/class/tty",
+      "name": "ttyUSB1",
+      "device": "/sys/devices/platform/soc/a800000.ssusb/a800000.dwc3/xhci-hcd.0.auto/usb1/1-1/1-1.1/1-1.1:1.1/ttyUSB1"
+    },
+    {
+      "class": "/sys/class/tty",
+      "name": "ttyUSB2",
+      "device": "/sys/devices/platform/soc/a800000.ssusb/a800000.dwc3/xhci-hcd.0.auto/usb1/1-1/1-1.1/1-1.1:1.2/ttyUSB2"
+    },
+    {
+      "class": "/sys/class/tty",
+      "name": "ttyUSB3",
+      "device": "/sys/devices/platform/soc/a800000.ssusb/a800000.dwc3/xhci-hcd.0.auto/usb1/1-1/1-1.1/1-1.1:1.3/ttyUSB3"
+    },
+    {
+      "class": "/sys/class/usbmisc",
+      "name": "cdc-wdm0",
+      "device": "/sys/devices/platform/soc/a800000.ssusb/a800000.dwc3/xhci-hcd.0.auto/usb1/1-1/1-1.1/1-1.1:1.4"
+    },
+    {
+      "class": "/sys/class/net",
+      "name": "wwan0",
+      "device": "/sys/devices/platform/soc/a800000.ssusb/a800000.dwc3/xhci-hcd.0.auto/usb1/1-1/1-1.1/1-1.1:1.4"
+    },
+    {
+      "class": "/sys/class/net",
+      "name": "rmnet_ipa0",
+      "device": {
+        "error": "FileNotFoundError"
+      }
+    }
+  ],
+  "udc": {
+    "a600000.dwc3": {
+      "state": "not attached",
+      "current_speed": "UNKNOWN",
+      "maximum_speed": "super-speed"
+    }
+  },
+  "usb_roles": {
+    "otg_default": {
+      "mode": "none",
+      "data_role": "none",
+      "power_role": "none",
+      "supported_modes": "ufp dfp"
+    }
+  },
+  "gadget_bindings": {},
+  "mounts": [
+    "/dev/root / ext4 ro,relatime,data=ordered 0 0",
+    "/dev/sda2 /persist ext4 ro,nosuid,nodev,noexec,relatime,discard,stripe=192,data=ordered 0 0",
+    "/dev/sda8 /systemrw ext4 rw,nodev,noexec,relatime,discard,noauto_da_alloc,stripe=192,data=ordered 0 0",
+    "/dev/sda10 /data ext4 rw,nosuid,nodev,noatime,nodiratime,discard,stripe=2,data=ordered 0 0",
+    "/dev/sde26 /dsp ext4 ro,relatime,data=ordered 0 0",
+    "/dev/sde4 /firmware vfat ro,relatime,fmask=0022,dmask=0022,codepage=437,iocharset=iso8859-1,shortname=mixed,errors=remount-ro 0 0"
+  ],
+  "boot_parameters": [
+    "root=/dev/sda6",
+    "androidboot.slot_suffix=_a"
+  ],
+  "system_files": {
+    "/etc/fstab": {
+      "sha256": "6f4efe73292402236d94dbf04df9d19b4915d51071b22b313ad61d774ff71a09",
+      "bytes": 645,
+      "selected_lines": [
+        {
+          "line": 1,
+          "text": "/dev/disk/by-label/dsp /dsp auto ro"
+        },
+        {
+          "line": 2,
+          "text": "/dev/disk/by-partlabel/modem_a /firmware auto ro"
+        },
+        {
+          "line": 3,
+          "text": "/dev/disk/by-partlabel/persist /persist auto ro,discard,nosuid,nodev,noexec"
+        },
+        {
+          "line": 4,
+          "text": "/dev/disk/by-partlabel/userdata /data auto discard,noatime,nodiratime,nosuid,nodev,nofail 0 0"
+        }
+      ]
+    },
+    "/etc/initscripts/ab_mount.sh": {
+      "sha256": "f67c4bdb6e07c5ff8b0b12501a2f2d7c778852f9af84fc2688f3ecb91bdf697e",
+      "bytes": 1921
+    },
+    "/etc/initscripts/usb": {
+      "sha256": "8bc29eda16491ea8dd3e5a34bbc4d59b3f1fb83f24f6bd2a21de351123646b3d",
+      "bytes": 6088
+    },
+    "/usr/lib/systemd/system/usb.service": {
+      "sha256": "7ab78277b754778865aa98a3960aad94b0a54f4a8f6a82c69e90e6cbcf9ec4e8",
+      "bytes": 1904
+    },
+    "/etc/systemd/system/systemrw.mount": {
+      "sha256": "0a1af6db66999d5f27b2a35fc7902ea49289bbaa792e2c21553dbdc6bac9fb0f",
+      "bytes": 1701
+    },
+    "/usr/lib/aarch64-linux-gnu/libabctl.so.0.0.0": {
+      "sha256": "6516e1da564d22729ad3c4fad05edfaa9d810308d76cfe4f51b9eabf43e18843",
+      "bytes": 60160
+    },
+    "/usr/sbin/abctl": {
+      "sha256": "499b2ce8b0de9b1bef13a58a6c467ac5a8700b5502efa6b31619906eacc0de53",
+      "bytes": 10496
+    }
+  },
+  "partition_links": {
+    "/dev/disk/by-label/dsp": "/dev/sde9",
+    "/dev/disk/by-partlabel/dsp_a": "/dev/sde9",
+    "/dev/disk/by-partlabel/dsp_b": "/dev/sde26",
+    "/dev/disk/by-partlabel/modem_a": "/dev/sde4",
+    "/dev/disk/by-partlabel/modem_b": "/dev/sde21",
+    "/dev/disk/by-partlabel/system_a": "/dev/sda6",
+    "/dev/disk/by-partlabel/system_b": "/dev/sda7",
+    "/dev/disk/by-partlabel/boot_a": "/dev/sde11",
+    "/dev/disk/by-partlabel/boot_b": "/dev/sde28",
+    "/dev/disk/by-partlabel/misc": "/dev/sda3",
+    "/dev/disk/by-partlabel/persist": "/dev/sda2",
+    "/dev/disk/by-partlabel/userdata": "/dev/sda10"
+  },
+  "gpt": {
+    "sda": {
+      "bytes": 57948504064,
+      "sector_bytes": 4096,
+      "primary": {
+        "header_lba": 1,
+        "header_crc_valid": true,
+        "entries_crc_valid": true,
+        "entries_sha256": "2543786ed6907d188964128d78a34cdc4880d5266eabe120bd968e764ca89c76",
+        "partitions": [
+          {
+            "partition": 1,
+            "name": "ssd",
+            "first_lba": 6,
+            "last_lba": 7,
+            "attributes_hex": "0x0000000000000000"
+          },
+          {
+            "partition": 2,
+            "name": "persist",
+            "first_lba": 8,
+            "last_lba": 8199,
+            "attributes_hex": "0x0000000000000000"
+          },
+          {
+            "partition": 3,
+            "name": "misc",
+            "first_lba": 8200,
+            "last_lba": 8455,
+            "attributes_hex": "0x0000000000000000"
+          },
+          {
+            "partition": 4,
+            "name": "keystore",
+            "first_lba": 8456,
+            "last_lba": 8583,
+            "attributes_hex": "0x0000000000000000"
+          },
+          {
+            "partition": 5,
+            "name": "frp",
+            "first_lba": 8584,
+            "last_lba": 8711,
+            "attributes_hex": "0x0000000000000000"
+          },
+          {
+            "partition": 6,
+            "name": "system_a",
+            "first_lba": 8712,
+            "last_lba": 3045143,
+            "attributes_hex": "0x0004000000000000"
+          },
+          {
+            "partition": 7,
+            "name": "system_b",
+            "first_lba": 3045144,
+            "last_lba": 6081575,
+            "attributes_hex": "0x0000000000000000"
+          },
+          {
+            "partition": 8,
+            "name": "systemrw",
+            "first_lba": 6081576,
+            "last_lba": 6085671,
+            "attributes_hex": "0x0000000000000000"
+          },
+          {
+            "partition": 9,
+            "name": "cache",
+            "first_lba": 6085672,
+            "last_lba": 6118439,
+            "attributes_hex": "0x0000000000000000"
+          },
+          {
+            "partition": 10,
+            "name": "userdata",
+            "first_lba": 6118440,
+            "last_lba": 14147578,
+            "attributes_hex": "0x0000000000000000"
+          }
+        ],
+        "read_bytes": 8192
+      },
+      "secondary": {
+        "header_lba": 14147583,
+        "header_crc_valid": true,
+        "entries_crc_valid": true,
+        "entries_sha256": "2543786ed6907d188964128d78a34cdc4880d5266eabe120bd968e764ca89c76",
+        "partitions": [
+          {
+            "partition": 1,
+            "name": "ssd",
+            "first_lba": 6,
+            "last_lba": 7,
+            "attributes_hex": "0x0000000000000000"
+          },
+          {
+            "partition": 2,
+            "name": "persist",
+            "first_lba": 8,
+            "last_lba": 8199,
+            "attributes_hex": "0x0000000000000000"
+          },
+          {
+            "partition": 3,
+            "name": "misc",
+            "first_lba": 8200,
+            "last_lba": 8455,
+            "attributes_hex": "0x0000000000000000"
+          },
+          {
+            "partition": 4,
+            "name": "keystore",
+            "first_lba": 8456,
+            "last_lba": 8583,
+            "attributes_hex": "0x0000000000000000"
+          },
+          {
+            "partition": 5,
+            "name": "frp",
+            "first_lba": 8584,
+            "last_lba": 8711,
+            "attributes_hex": "0x0000000000000000"
+          },
+          {
+            "partition": 6,
+            "name": "system_a",
+            "first_lba": 8712,
+            "last_lba": 3045143,
+            "attributes_hex": "0x0004000000000000"
+          },
+          {
+            "partition": 7,
+            "name": "system_b",
+            "first_lba": 3045144,
+            "last_lba": 6081575,
+            "attributes_hex": "0x0000000000000000"
+          },
+          {
+            "partition": 8,
+            "name": "systemrw",
+            "first_lba": 6081576,
+            "last_lba": 6085671,
+            "attributes_hex": "0x0000000000000000"
+          },
+          {
+            "partition": 9,
+            "name": "cache",
+            "first_lba": 6085672,
+            "last_lba": 6118439,
+            "attributes_hex": "0x0000000000000000"
+          },
+          {
+            "partition": 10,
+            "name": "userdata",
+            "first_lba": 6118440,
+            "last_lba": 14147578,
+            "attributes_hex": "0x0000000000000000"
+          }
+        ],
+        "read_bytes": 8192
+      }
+    },
+    "sdb": {
+      "bytes": 4194304,
+      "sector_bytes": 4096,
+      "primary": {
+        "header_lba": 1,
+        "header_crc_valid": true,
+        "entries_crc_valid": true,
+        "entries_sha256": "0a80857c10441f470eb7a7ec3a942532b4593c648e5ff5da81eb5293fe689814",
+        "partitions": [
+          {
+            "partition": 1,
+            "name": "xbl_a",
+            "first_lba": 6,
+            "last_lba": 901,
+            "attributes_hex": "0x103f000000000000"
+          },
+          {
+            "partition": 2,
+            "name": "xbl_config_a",
+            "first_lba": 902,
+            "last_lba": 990,
+            "attributes_hex": "0x003f000000000000"
+          }
+        ],
+        "read_bytes": 4608
+      },
+      "secondary": {
+        "header_lba": 1023,
+        "header_crc_valid": true,
+        "entries_crc_valid": true,
+        "entries_sha256": "0a80857c10441f470eb7a7ec3a942532b4593c648e5ff5da81eb5293fe689814",
+        "partitions": [
+          {
+            "partition": 1,
+            "name": "xbl_a",
+            "first_lba": 6,
+            "last_lba": 901,
+            "attributes_hex": "0x103f000000000000"
+          },
+          {
+            "partition": 2,
+            "name": "xbl_config_a",
+            "first_lba": 902,
+            "last_lba": 990,
+            "attributes_hex": "0x003f000000000000"
+          }
+        ],
+        "read_bytes": 4608
+      }
+    },
+    "sdc": {
+      "bytes": 4194304,
+      "sector_bytes": 4096,
+      "primary": {
+        "header_lba": 1,
+        "header_crc_valid": true,
+        "entries_crc_valid": true,
+        "entries_sha256": "1ae1c2c9a49b5cc0b3c8df358278dd260056a5c42a7412b88784c093a58c84ae",
+        "partitions": [
+          {
+            "partition": 1,
+            "name": "xbl_b",
+            "first_lba": 6,
+            "last_lba": 901,
+            "attributes_hex": "0x1039000000000000"
+          },
+          {
+            "partition": 2,
+            "name": "xbl_config_b",
+            "first_lba": 902,
+            "last_lba": 990,
+            "attributes_hex": "0x0039000000000000"
+          }
+        ],
+        "read_bytes": 4608
+      },
+      "secondary": {
+        "header_lba": 1023,
+        "header_crc_valid": true,
+        "entries_crc_valid": true,
+        "entries_sha256": "1ae1c2c9a49b5cc0b3c8df358278dd260056a5c42a7412b88784c093a58c84ae",
+        "partitions": [
+          {
+            "partition": 1,
+            "name": "xbl_b",
+            "first_lba": 6,
+            "last_lba": 901,
+            "attributes_hex": "0x1039000000000000"
+          },
+          {
+            "partition": 2,
+            "name": "xbl_config_b",
+            "first_lba": 902,
+            "last_lba": 990,
+            "attributes_hex": "0x0039000000000000"
+          }
+        ],
+        "read_bytes": 4608
+      }
+    },
+    "sdd": {
+      "bytes": 134217728,
+      "sector_bytes": 4096,
+      "primary": {
+        "header_lba": 1,
+        "header_crc_valid": true,
+        "entries_crc_valid": true,
+        "entries_sha256": "3553f8730f5c5ca9db454df3719fbbb19992f1a6e85ef913b7c66eadd6ed0bc4",
+        "partitions": [
+          {
+            "partition": 1,
+            "name": "ALIGN_TO_128K_1",
+            "first_lba": 6,
+            "last_lba": 31,
+            "attributes_hex": "0x1000000000000000"
+          },
+          {
+            "partition": 2,
+            "name": "cdt",
+            "first_lba": 32,
+            "last_lba": 63,
+            "attributes_hex": "0x1000000000000000"
+          },
+          {
+            "partition": 3,
+            "name": "ddr",
+            "first_lba": 64,
+            "last_lba": 319,
+            "attributes_hex": "0x1000000000000000"
+          }
+        ],
+        "read_bytes": 8192
+      },
+      "secondary": {
+        "header_lba": 32767,
+        "header_crc_valid": true,
+        "entries_crc_valid": true,
+        "entries_sha256": "3553f8730f5c5ca9db454df3719fbbb19992f1a6e85ef913b7c66eadd6ed0bc4",
+        "partitions": [
+          {
+            "partition": 1,
+            "name": "ALIGN_TO_128K_1",
+            "first_lba": 6,
+            "last_lba": 31,
+            "attributes_hex": "0x1000000000000000"
+          },
+          {
+            "partition": 2,
+            "name": "cdt",
+            "first_lba": 32,
+            "last_lba": 63,
+            "attributes_hex": "0x1000000000000000"
+          },
+          {
+            "partition": 3,
+            "name": "ddr",
+            "first_lba": 64,
+            "last_lba": 319,
+            "attributes_hex": "0x1000000000000000"
+          }
+        ],
+        "read_bytes": 8192
+      }
+    },
+    "sde": {
+      "bytes": 4294967296,
+      "sector_bytes": 4096,
+      "primary": {
+        "header_lba": 1,
+        "header_crc_valid": true,
+        "entries_crc_valid": true,
+        "entries_sha256": "799842357d5111d451fe234f30dbbf4636bf6fb6b8dc263aa6a499adef20fcc5",
+        "partitions": [
+          {
+            "partition": 1,
+            "name": "aop_a",
+            "first_lba": 6,
+            "last_lba": 133,
+            "attributes_hex": "0x103f000000000000"
+          },
+          {
+            "partition": 2,
+            "name": "tz_a",
+            "first_lba": 134,
+            "last_lba": 645,
+            "attributes_hex": "0x103f000000000000"
+          },
+          {
+            "partition": 3,
+            "name": "hyp_a",
+            "first_lba": 646,
+            "last_lba": 773,
+            "attributes_hex": "0x003f000000000000"
+          },
+          {
+            "partition": 4,
+            "name": "modem_a",
+            "first_lba": 774,
+            "last_lba": 31493,
+            "attributes_hex": "0x103f000000000000"
+          },
+          {
+            "partition": 5,
+            "name": "bluetooth_a",
+            "first_lba": 31494,
+            "last_lba": 31749,
+            "attributes_hex": "0x103f000000000000"
+          },
+          {
+            "partition": 6,
+            "name": "mdtpsecapp_a",
+            "first_lba": 31750,
+            "last_lba": 32773,
+            "attributes_hex": "0x103f000000000000"
+          },
+          {
+            "partition": 7,
+            "name": "mdtp_a",
+            "first_lba": 32774,
+            "last_lba": 40965,
+            "attributes_hex": "0x103f000000000000"
+          },
+          {
+            "partition": 8,
+            "name": "abl_a",
+            "first_lba": 40966,
+            "last_lba": 41221,
+            "attributes_hex": "0x103f000000000000"
+          },
+          {
+            "partition": 9,
+            "name": "dsp_a",
+            "first_lba": 41222,
+            "last_lba": 49413,
+            "attributes_hex": "0x103f000000000000"
+          },
+          {
+            "partition": 10,
+            "name": "keymaster_a",
+            "first_lba": 49414,
+            "last_lba": 49541,
+            "attributes_hex": "0x103f000000000000"
+          },
+          {
+            "partition": 11,
+            "name": "boot_a",
+            "first_lba": 49542,
+            "last_lba": 65925,
+            "attributes_hex": "0x0077000000000000"
+          },
+          {
+            "partition": 12,
+            "name": "cmnlib_a",
+            "first_lba": 65926,
+            "last_lba": 66053,
+            "attributes_hex": "0x103f000000000000"
+          },
+          {
+            "partition": 13,
+            "name": "cmnlib64_a",
+            "first_lba": 66054,
+            "last_lba": 66181,
+            "attributes_hex": "0x103f000000000000"
+          },
+          {
+            "partition": 14,
+            "name": "devcfg_a",
+            "first_lba": 66182,
+            "last_lba": 66213,
+            "attributes_hex": "0x003f000000000000"
+          },
+          {
+            "partition": 15,
+            "name": "qupfw_a",
+            "first_lba": 66214,
+            "last_lba": 66229,
+            "attributes_hex": "0x003f000000000000"
+          },
+          {
+            "partition": 16,
+            "name": "storsec_a",
+            "first_lba": 66230,
+            "last_lba": 66261,
+            "attributes_hex": "0x003f000000000000"
+          },
+          {
+            "partition": 17,
+            "name": "ImageFv_a",
+            "first_lba": 66262,
+            "last_lba": 66517,
+            "attributes_hex": "0x003f000000000000"
+          },
+          {
+            "partition": 18,
+            "name": "aop_b",
+            "first_lba": 66518,
+            "last_lba": 66645,
+            "attributes_hex": "0x0039000000000000"
+          },
+          {
+            "partition": 19,
+            "name": "tz_b",
+            "first_lba": 66646,
+            "last_lba": 67157,
+            "attributes_hex": "0x0039000000000000"
+          },
+          {
+            "partition": 20,
+            "name": "hyp_b",
+            "first_lba": 67158,
+            "last_lba": 67285,
+            "attributes_hex": "0x0039000000000000"
+          },
+          {
+            "partition": 21,
+            "name": "modem_b",
+            "first_lba": 67286,
+            "last_lba": 98005,
+            "attributes_hex": "0x1039000000000000"
+          },
+          {
+            "partition": 22,
+            "name": "bluetooth_b",
+            "first_lba": 98006,
+            "last_lba": 98261,
+            "attributes_hex": "0x1039000000000000"
+          },
+          {
+            "partition": 23,
+            "name": "mdtpsecapp_b",
+            "first_lba": 98262,
+            "last_lba": 99285,
+            "attributes_hex": "0x1039000000000000"
+          },
+          {
+            "partition": 24,
+            "name": "mdtp_b",
+            "first_lba": 99286,
+            "last_lba": 107477,
+            "attributes_hex": "0x1039000000000000"
+          },
+          {
+            "partition": 25,
+            "name": "abl_b",
+            "first_lba": 107478,
+            "last_lba": 107733,
+            "attributes_hex": "0x1039000000000000"
+          },
+          {
+            "partition": 26,
+            "name": "dsp_b",
+            "first_lba": 107734,
+            "last_lba": 115925,
+            "attributes_hex": "0x1039000000000000"
+          },
+          {
+            "partition": 27,
+            "name": "keymaster_b",
+            "first_lba": 115926,
+            "last_lba": 116053,
+            "attributes_hex": "0x1039000000000000"
+          },
+          {
+            "partition": 28,
+            "name": "boot_b",
+            "first_lba": 116054,
+            "last_lba": 132437,
+            "attributes_hex": "0x0071000000000000"
+          },
+          {
+            "partition": 29,
+            "name": "cmnlib_b",
+            "first_lba": 132438,
+            "last_lba": 132565,
+            "attributes_hex": "0x1039000000000000"
+          },
+          {
+            "partition": 30,
+            "name": "cmnlib64_b",
+            "first_lba": 132566,
+            "last_lba": 132693,
+            "attributes_hex": "0x1039000000000000"
+          },
+          {
+            "partition": 31,
+            "name": "devcfg_b",
+            "first_lba": 132694,
+            "last_lba": 132725,
+            "attributes_hex": "0x0039000000000000"
+          },
+          {
+            "partition": 32,
+            "name": "qupfw_b",
+            "first_lba": 132726,
+            "last_lba": 132741,
+            "attributes_hex": "0x0039000000000000"
+          },
+          {
+            "partition": 33,
+            "name": "storsec_b",
+            "first_lba": 132742,
+            "last_lba": 132773,
+            "attributes_hex": "0x0039000000000000"
+          },
+          {
+            "partition": 34,
+            "name": "ImageFv_b",
+            "first_lba": 132774,
+            "last_lba": 133029,
+            "attributes_hex": "0x0039000000000000"
+          },
+          {
+            "partition": 35,
+            "name": "sec",
+            "first_lba": 133030,
+            "last_lba": 133033,
+            "attributes_hex": "0x1000000000000000"
+          },
+          {
+            "partition": 36,
+            "name": "devinfo",
+            "first_lba": 133034,
+            "last_lba": 133034,
+            "attributes_hex": "0x1000000000000000"
+          },
+          {
+            "partition": 37,
+            "name": "dip",
+            "first_lba": 133035,
+            "last_lba": 133290,
+            "attributes_hex": "0x1000000000000000"
+          },
+          {
+            "partition": 38,
+            "name": "fdemeta",
+            "first_lba": 133291,
+            "last_lba": 133418,
+            "attributes_hex": "0x0000000000000000"
+          },
+          {
+            "partition": 39,
+            "name": "apdp",
+            "first_lba": 133419,
+            "last_lba": 133482,
+            "attributes_hex": "0x0000000000000000"
+          },
+          {
+            "partition": 40,
+            "name": "msadp",
+            "first_lba": 133483,
+            "last_lba": 133546,
+            "attributes_hex": "0x0000000000000000"
+          },
+          {
+            "partition": 41,
+            "name": "spunvm",
+            "first_lba": 133547,
+            "last_lba": 135594,
+            "attributes_hex": "0x0000000000000000"
+          },
+          {
+            "partition": 42,
+            "name": "splash",
+            "first_lba": 135595,
+            "last_lba": 143950,
+            "attributes_hex": "0x0000000000000000"
+          },
+          {
+            "partition": 43,
+            "name": "limits",
+            "first_lba": 143951,
+            "last_lba": 143951,
+            "attributes_hex": "0x1000000000000000"
+          },
+          {
+            "partition": 44,
+            "name": "toolsfv",
+            "first_lba": 143952,
+            "last_lba": 144207,
+            "attributes_hex": "0x1000000000000000"
+          },
+          {
+            "partition": 45,
+            "name": "logfs",
+            "first_lba": 144208,
+            "last_lba": 146255,
+            "attributes_hex": "0x0000000000000000"
+          },
+          {
+            "partition": 46,
+            "name": "sti",
+            "first_lba": 146256,
+            "last_lba": 146767,
+            "attributes_hex": "0x0000000000000000"
+          },
+          {
+            "partition": 47,
+            "name": "rawdump",
+            "first_lba": 146768,
+            "last_lba": 179535,
+            "attributes_hex": "0x0000000000000000"
+          },
+          {
+            "partition": 48,
+            "name": "logdump",
+            "first_lba": 179536,
+            "last_lba": 195919,
+            "attributes_hex": "0x0000000000000000"
+          }
+        ],
+        "read_bytes": 12288
+      },
+      "secondary": {
+        "header_lba": 1048575,
+        "header_crc_valid": true,
+        "entries_crc_valid": false,
+        "entries_sha256": "799842357d5111d451fe234f30dbbf4636bf6fb6b8dc263aa6a499adef20fcc5",
+        "partitions": [
+          {
+            "partition": 1,
+            "name": "aop_a",
+            "first_lba": 6,
+            "last_lba": 133,
+            "attributes_hex": "0x103f000000000000"
+          },
+          {
+            "partition": 2,
+            "name": "tz_a",
+            "first_lba": 134,
+            "last_lba": 645,
+            "attributes_hex": "0x103f000000000000"
+          },
+          {
+            "partition": 3,
+            "name": "hyp_a",
+            "first_lba": 646,
+            "last_lba": 773,
+            "attributes_hex": "0x003f000000000000"
+          },
+          {
+            "partition": 4,
+            "name": "modem_a",
+            "first_lba": 774,
+            "last_lba": 31493,
+            "attributes_hex": "0x103f000000000000"
+          },
+          {
+            "partition": 5,
+            "name": "bluetooth_a",
+            "first_lba": 31494,
+            "last_lba": 31749,
+            "attributes_hex": "0x103f000000000000"
+          },
+          {
+            "partition": 6,
+            "name": "mdtpsecapp_a",
+            "first_lba": 31750,
+            "last_lba": 32773,
+            "attributes_hex": "0x103f000000000000"
+          },
+          {
+            "partition": 7,
+            "name": "mdtp_a",
+            "first_lba": 32774,
+            "last_lba": 40965,
+            "attributes_hex": "0x103f000000000000"
+          },
+          {
+            "partition": 8,
+            "name": "abl_a",
+            "first_lba": 40966,
+            "last_lba": 41221,
+            "attributes_hex": "0x103f000000000000"
+          },
+          {
+            "partition": 9,
+            "name": "dsp_a",
+            "first_lba": 41222,
+            "last_lba": 49413,
+            "attributes_hex": "0x103f000000000000"
+          },
+          {
+            "partition": 10,
+            "name": "keymaster_a",
+            "first_lba": 49414,
+            "last_lba": 49541,
+            "attributes_hex": "0x103f000000000000"
+          },
+          {
+            "partition": 11,
+            "name": "boot_a",
+            "first_lba": 49542,
+            "last_lba": 65925,
+            "attributes_hex": "0x0077000000000000"
+          },
+          {
+            "partition": 12,
+            "name": "cmnlib_a",
+            "first_lba": 65926,
+            "last_lba": 66053,
+            "attributes_hex": "0x103f000000000000"
+          },
+          {
+            "partition": 13,
+            "name": "cmnlib64_a",
+            "first_lba": 66054,
+            "last_lba": 66181,
+            "attributes_hex": "0x103f000000000000"
+          },
+          {
+            "partition": 14,
+            "name": "devcfg_a",
+            "first_lba": 66182,
+            "last_lba": 66213,
+            "attributes_hex": "0x003f000000000000"
+          },
+          {
+            "partition": 15,
+            "name": "qupfw_a",
+            "first_lba": 66214,
+            "last_lba": 66229,
+            "attributes_hex": "0x003f000000000000"
+          },
+          {
+            "partition": 16,
+            "name": "storsec_a",
+            "first_lba": 66230,
+            "last_lba": 66261,
+            "attributes_hex": "0x003f000000000000"
+          },
+          {
+            "partition": 17,
+            "name": "ImageFv_a",
+            "first_lba": 66262,
+            "last_lba": 66517,
+            "attributes_hex": "0x003f000000000000"
+          },
+          {
+            "partition": 18,
+            "name": "aop_b",
+            "first_lba": 66518,
+            "last_lba": 66645,
+            "attributes_hex": "0x0039000000000000"
+          },
+          {
+            "partition": 19,
+            "name": "tz_b",
+            "first_lba": 66646,
+            "last_lba": 67157,
+            "attributes_hex": "0x0039000000000000"
+          },
+          {
+            "partition": 20,
+            "name": "hyp_b",
+            "first_lba": 67158,
+            "last_lba": 67285,
+            "attributes_hex": "0x0039000000000000"
+          },
+          {
+            "partition": 21,
+            "name": "modem_b",
+            "first_lba": 67286,
+            "last_lba": 98005,
+            "attributes_hex": "0x1039000000000000"
+          },
+          {
+            "partition": 22,
+            "name": "bluetooth_b",
+            "first_lba": 98006,
+            "last_lba": 98261,
+            "attributes_hex": "0x1039000000000000"
+          },
+          {
+            "partition": 23,
+            "name": "mdtpsecapp_b",
+            "first_lba": 98262,
+            "last_lba": 99285,
+            "attributes_hex": "0x1039000000000000"
+          },
+          {
+            "partition": 24,
+            "name": "mdtp_b",
+            "first_lba": 99286,
+            "last_lba": 107477,
+            "attributes_hex": "0x1039000000000000"
+          },
+          {
+            "partition": 25,
+            "name": "abl_b",
+            "first_lba": 107478,
+            "last_lba": 107733,
+            "attributes_hex": "0x1039000000000000"
+          },
+          {
+            "partition": 26,
+            "name": "dsp_b",
+            "first_lba": 107734,
+            "last_lba": 115925,
+            "attributes_hex": "0x1039000000000000"
+          },
+          {
+            "partition": 27,
+            "name": "keymaster_b",
+            "first_lba": 115926,
+            "last_lba": 116053,
+            "attributes_hex": "0x1039000000000000"
+          },
+          {
+            "partition": 28,
+            "name": "boot_b",
+            "first_lba": 116054,
+            "last_lba": 132437,
+            "attributes_hex": "0x0071000000000000"
+          },
+          {
+            "partition": 29,
+            "name": "cmnlib_b",
+            "first_lba": 132438,
+            "last_lba": 132565,
+            "attributes_hex": "0x1039000000000000"
+          },
+          {
+            "partition": 30,
+            "name": "cmnlib64_b",
+            "first_lba": 132566,
+            "last_lba": 132693,
+            "attributes_hex": "0x1039000000000000"
+          },
+          {
+            "partition": 31,
+            "name": "devcfg_b",
+            "first_lba": 132694,
+            "last_lba": 132725,
+            "attributes_hex": "0x0039000000000000"
+          },
+          {
+            "partition": 32,
+            "name": "qupfw_b",
+            "first_lba": 132726,
+            "last_lba": 132741,
+            "attributes_hex": "0x0039000000000000"
+          },
+          {
+            "partition": 33,
+            "name": "storsec_b",
+            "first_lba": 132742,
+            "last_lba": 132773,
+            "attributes_hex": "0x0039000000000000"
+          },
+          {
+            "partition": 34,
+            "name": "ImageFv_b",
+            "first_lba": 132774,
+            "last_lba": 133029,
+            "attributes_hex": "0x0039000000000000"
+          },
+          {
+            "partition": 35,
+            "name": "sec",
+            "first_lba": 133030,
+            "last_lba": 133033,
+            "attributes_hex": "0x1000000000000000"
+          },
+          {
+            "partition": 36,
+            "name": "devinfo",
+            "first_lba": 133034,
+            "last_lba": 133034,
+            "attributes_hex": "0x1000000000000000"
+          },
+          {
+            "partition": 37,
+            "name": "dip",
+            "first_lba": 133035,
+            "last_lba": 133290,
+            "attributes_hex": "0x1000000000000000"
+          },
+          {
+            "partition": 38,
+            "name": "fdemeta",
+            "first_lba": 133291,
+            "last_lba": 133418,
+            "attributes_hex": "0x0000000000000000"
+          },
+          {
+            "partition": 39,
+            "name": "apdp",
+            "first_lba": 133419,
+            "last_lba": 133482,
+            "attributes_hex": "0x0000000000000000"
+          },
+          {
+            "partition": 40,
+            "name": "msadp",
+            "first_lba": 133483,
+            "last_lba": 133546,
+            "attributes_hex": "0x0000000000000000"
+          },
+          {
+            "partition": 41,
+            "name": "spunvm",
+            "first_lba": 133547,
+            "last_lba": 135594,
+            "attributes_hex": "0x0000000000000000"
+          },
+          {
+            "partition": 42,
+            "name": "splash",
+            "first_lba": 135595,
+            "last_lba": 143950,
+            "attributes_hex": "0x0000000000000000"
+          },
+          {
+            "partition": 43,
+            "name": "limits",
+            "first_lba": 143951,
+            "last_lba": 143951,
+            "attributes_hex": "0x1000000000000000"
+          },
+          {
+            "partition": 44,
+            "name": "toolsfv",
+            "first_lba": 143952,
+            "last_lba": 144207,
+            "attributes_hex": "0x1000000000000000"
+          },
+          {
+            "partition": 45,
+            "name": "logfs",
+            "first_lba": 144208,
+            "last_lba": 146255,
+            "attributes_hex": "0x0000000000000000"
+          },
+          {
+            "partition": 46,
+            "name": "sti",
+            "first_lba": 146256,
+            "last_lba": 146767,
+            "attributes_hex": "0x0000000000000000"
+          },
+          {
+            "partition": 47,
+            "name": "rawdump",
+            "first_lba": 146768,
+            "last_lba": 179535,
+            "attributes_hex": "0x0000000000000000"
+          },
+          {
+            "partition": 48,
+            "name": "logdump",
+            "first_lba": 179536,
+            "last_lba": 195919,
+            "attributes_hex": "0x0000000000000000"
+          }
+        ],
+        "read_bytes": 12288
+      }
+    },
+    "sdf": {
+      "bytes": 1610612736,
+      "sector_bytes": 4096,
+      "primary": {
+        "header_lba": 1,
+        "header_crc_valid": true,
+        "entries_crc_valid": true,
+        "entries_sha256": "8f0528d3b9d838ef4fc5f266b96050c74fe2909c087a55472cf0734ec42cfc4a",
+        "partitions": [
+          {
+            "partition": 1,
+            "name": "ALIGN_TO_128K_2",
+            "first_lba": 6,
+            "last_lba": 31,
+            "attributes_hex": "0x1000000000000000"
+          },
+          {
+            "partition": 2,
+            "name": "modemst1",
+            "first_lba": 32,
+            "last_lba": 543,
+            "attributes_hex": "0x0000000000000000"
+          },
+          {
+            "partition": 3,
+            "name": "modemst2",
+            "first_lba": 544,
+            "last_lba": 1055,
+            "attributes_hex": "0x0000000000000000"
+          },
+          {
+            "partition": 4,
+            "name": "fsg",
+            "first_lba": 1056,
+            "last_lba": 1567,
+            "attributes_hex": "0x1000000000000000"
+          },
+          {
+            "partition": 5,
+            "name": "fsc",
+            "first_lba": 1568,
+            "last_lba": 1599,
+            "attributes_hex": "0x0000000000000000"
+          }
+        ],
+        "read_bytes": 8192
+      },
+      "secondary": {
+        "header_lba": 393215,
+        "header_crc_valid": true,
+        "entries_crc_valid": true,
+        "entries_sha256": "8f0528d3b9d838ef4fc5f266b96050c74fe2909c087a55472cf0734ec42cfc4a",
+        "partitions": [
+          {
+            "partition": 1,
+            "name": "ALIGN_TO_128K_2",
+            "first_lba": 6,
+            "last_lba": 31,
+            "attributes_hex": "0x1000000000000000"
+          },
+          {
+            "partition": 2,
+            "name": "modemst1",
+            "first_lba": 32,
+            "last_lba": 543,
+            "attributes_hex": "0x0000000000000000"
+          },
+          {
+            "partition": 3,
+            "name": "modemst2",
+            "first_lba": 544,
+            "last_lba": 1055,
+            "attributes_hex": "0x0000000000000000"
+          },
+          {
+            "partition": 4,
+            "name": "fsg",
+            "first_lba": 1056,
+            "last_lba": 1567,
+            "attributes_hex": "0x1000000000000000"
+          },
+          {
+            "partition": 5,
+            "name": "fsc",
+            "first_lba": 1568,
+            "last_lba": 1599,
+            "attributes_hex": "0x0000000000000000"
+          }
+        ],
+        "read_bytes": 8192
+      }
+    }
+  }
+}

@@ -1,0 +1,142 @@
+{
+  "profile_binding": "UNBOUND",
+  "production_authorized": false,
+  "profiles": {
+    "lifecycle_maintenance/profiles/unbound.json": {
+      "sha256": "3db97c59f88622ef9dc6170265f89af5197003e42269a9bd499c8b6818b5aacb",
+      "content": {
+        "schema": "songplus-lifecycle-binding/v1",
+        "binding_status": "UNBOUND",
+        "device_access_enabled": false,
+        "can_tx_enabled": false,
+        "firmware_install_enabled": false,
+        "slots": [
+          {
+            "slot": 0,
+            "expected": null,
+            "transport": null,
+            "exact_mcu": null,
+            "capabilities": null,
+            "physical_evidence_sha256": null,
+            "spi_selector": null
+          },
+          {
+            "slot": 1,
+            "expected": null,
+            "transport": null,
+            "exact_mcu": null,
+            "capabilities": null,
+            "physical_evidence_sha256": null,
+            "spi_selector": null
+          }
+        ],
+        "roles": {
+          "vehicle_can": -1,
+          "diagnostic": -1,
+          "harness": -1,
+          "fan_control": -1,
+          "power_monitor": -1,
+          "ir_control": -1,
+          "ignition_sources": []
+        }
+      }
+    },
+    "native_maintenance/profiles/unbound.json": {
+      "sha256": "4ddee13c027e7a551a1b0d9f1bbe0f0110e8203e5a134386eed9cea224d0695e",
+      "content": {
+        "schema": "songplus-native-binding/v1",
+        "binding_status": "UNBOUND",
+        "device_access_enabled": false,
+        "can_tx_enabled": false,
+        "firmware_install_enabled": false,
+        "slots": [
+          {
+            "slot": 0,
+            "expected": null,
+            "transport": null,
+            "exact_mcu": null,
+            "capabilities": null,
+            "physical_evidence_sha256": null,
+            "spi_selector": null
+          },
+          {
+            "slot": 1,
+            "expected": null,
+            "transport": null,
+            "exact_mcu": null,
+            "capabilities": null,
+            "physical_evidence_sha256": null,
+            "spi_selector": null
+          }
+        ],
+        "roles": {
+          "vehicle_can": -1,
+          "diagnostic": -1,
+          "harness": -1,
+          "fan_control": -1,
+          "power_monitor": -1,
+          "ir_control": -1,
+          "ignition_sources": []
+        }
+      }
+    },
+    "local/worktrees/openpilot-p0p1/openpilot/selfdrive/pandad/compatibility/profiles/unbound.json": {
+      "sha256": "5c867ca4f5f95f06e0e5cda1c0bc54f03ee36f6025e0017e7420a050d10984f9",
+      "content": {
+        "schema": "songplus-dual-panda-offline-profile/v1",
+        "purpose": "offline_fixture",
+        "binding_status": "UNBOUND",
+        "device_access_enabled": false,
+        "can_tx_enabled": false,
+        "firmware_install_enabled": false,
+        "expected_board_count": 2,
+        "required_slots": [
+          0,
+          1
+        ],
+        "bus_stride": 4,
+        "ordinary_local_can_buses": [
+          0,
+          1,
+          2
+        ],
+        "slots": [
+          {
+            "slot": 0,
+            "identity_binding": null,
+            "expected_board_type": null,
+            "mcu_family": null,
+            "exact_mcu": null,
+            "transport": null,
+            "protocol_profile": null,
+            "capabilities": null,
+            "application_signature": null,
+            "safety_config_semantics": null
+          },
+          {
+            "slot": 1,
+            "identity_binding": null,
+            "expected_board_type": null,
+            "mcu_family": null,
+            "exact_mcu": null,
+            "transport": null,
+            "protocol_profile": null,
+            "capabilities": null,
+            "application_signature": null,
+            "safety_config_semantics": null
+          }
+        ],
+        "roles": {
+          "vehicle_can": null,
+          "diagnostic": null,
+          "harness": null,
+          "ignition_sources": null,
+          "fan_control": null,
+          "power_monitor": null,
+          "ir_control": null
+        }
+      }
+    }
+  },
+  "profiles_written": false
+}

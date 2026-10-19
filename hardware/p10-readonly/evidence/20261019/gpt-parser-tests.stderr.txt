@@ -1,0 +1,15 @@
+test_corrupt_header_crc_is_reported (test_collector.CollectorTests.test_corrupt_header_crc_is_reported) ... ok
+test_header_lba_outside_declared_disk_rejected (test_collector.CollectorTests.test_header_lba_outside_declared_disk_rejected) ... ok
+test_invalid_signature_and_header_size_rejected (test_collector.CollectorTests.test_invalid_signature_and_header_size_rejected) ... ok
+test_known_style_stale_entry_crc_is_reported_not_repaired (test_collector.CollectorTests.test_known_style_stale_entry_crc_is_reported_not_repaired) ... ok
+test_nonregular_fifo_is_rejected_without_blocking (test_collector.CollectorTests.test_nonregular_fifo_is_rejected_without_blocking) ... ok
+test_regular_file_read_bound_is_enforced (test_collector.CollectorTests.test_regular_file_read_bound_is_enforced) ... ok
+test_short_header_and_table_rejected (test_collector.CollectorTests.test_short_header_and_table_rejected) ... ok
+test_table_bounds_and_dimensions_rejected (test_collector.CollectorTests.test_table_bounds_and_dimensions_rejected) ... ok
+test_unexpected_partition_label_rejected (test_collector.CollectorTests.test_unexpected_partition_label_rejected) ... ok
+test_valid_header_table_and_attributes_without_mutation (test_collector.CollectorTests.test_valid_header_table_and_attributes_without_mutation) ... ok
+
+----------------------------------------------------------------------
+Ran 10 tests in 0.011s
+
+OK
