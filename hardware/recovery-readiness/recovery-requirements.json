@@ -1,0 +1,3547 @@
+{
+  "schema": "songplus-recovery-readiness/v1",
+  "date_asia_shanghai": "2026-10-20",
+  "document": "hardware/recovery-readiness/RECOVERY-PLAN.md",
+  "status": "LOCAL_PLAN_AND_RETAINED_EVIDENCE_ONLY",
+  "scope": {
+    "device_actions": [],
+    "private_configuration_read": false,
+    "large_archive_or_partition_read": false,
+    "existing_evidence_modified": false,
+    "real_profile": "UNBOUND",
+    "production_authority": false,
+    "current_capture_set_id": null,
+    "current_whole_device_recovery_verified": null,
+    "note": "This matrix uses retained 2026-10-19 evidence. Fresh passive observations from the same task are recorded separately in RESULT-20261020.md; no current content backups or stateful permissions follow from this matrix.",
+    "device_connected_by_matrix_preparation": false
+  },
+  "sources": [
+    {
+      "id": "p10_report",
+      "path": "hardware/p10-readonly/RESULT-20261019.md",
+      "bytes": 9750,
+      "sha256": "995607bcf2c74101836142b99c3ca6cd460f038cec3da605a59afbd9af6183c5",
+      "class": "retained_device_report"
+    },
+    {
+      "id": "p10_index",
+      "path": "hardware/p10-readonly/evidence/20261019/index.json",
+      "bytes": 3781,
+      "sha256": "daa20e6c25b7586b37ea55e0ba06be19932760509e78d8f83b7dc95afe73aba8",
+      "class": "retained_evidence_index"
+    },
+    {
+      "id": "io",
+      "path": "hardware/p10-readonly/evidence/20261019/io.json",
+      "bytes": 27944,
+      "sha256": "5160d3a0d6faf4e0c55299d24355d6cb1fa8be38e163a9f3d00fc98c9276036f",
+      "class": "device_observation_20261019"
+    },
+    {
+      "id": "recovery",
+      "path": "hardware/p10-readonly/evidence/20261019/recovery.json",
+      "bytes": 48176,
+      "sha256": "c4f492750310bf2ef8aa81769dea9ad243f6dd696befe68ebda957055fc343eb",
+      "class": "device_observation_20261019"
+    },
+    {
+      "id": "recovery_detail",
+      "path": "hardware/p10-readonly/evidence/20261019/recovery-detail.json",
+      "bytes": 70968,
+      "sha256": "d095816e305e4c901ebd8a4a6a996a88d9445ad98268251cbcf82e4cb74876ea",
+      "class": "device_observation_20261019"
+    },
+    {
+      "id": "filesystem",
+      "path": "hardware/p10-readonly/evidence/20261019/filesystem.json",
+      "bytes": 711,
+      "sha256": "77ef55b39ceb0a94dcbaff9a54a5c0be96379ad33827fcbf10eb829d41dcf732",
+      "class": "device_observation_20261019"
+    },
+    {
+      "id": "software",
+      "path": "hardware/p10-readonly/evidence/20261019/software.json",
+      "bytes": 3592,
+      "sha256": "2618d1b3d98061871c89cafa7a487382431ee99e300a22d26418355aab3b3b73",
+      "class": "device_observation_20261019"
+    },
+    {
+      "id": "software_provenance",
+      "path": "hardware/p10-readonly/evidence/20261019/software-provenance.json",
+      "bytes": 15753,
+      "sha256": "2ba438bbda3859f6bde40b55537b3c5e12b73d8d1efbb4953170fef6ec79d5cf",
+      "class": "local_static_evidence"
+    },
+    {
+      "id": "backup_integrity",
+      "path": "hardware/p10-readonly/evidence/20261019/backup-integrity.json",
+      "bytes": 29563,
+      "sha256": "995545c345f5ee428bac9e17295047262ba97dd1c9360c18c6fa63463ef10120",
+      "class": "historical_archives_rehashed_20261019"
+    },
+    {
+      "id": "step1_recovery",
+      "path": "hardware/step1/recovery-prerequisites.json",
+      "bytes": 47825,
+      "sha256": "9832bea37fc397442424d9c616cd2b39dccacc5f134eba2b064d7fac4f2e6bcb",
+      "class": "historical_coverage_reference"
+    },
+    {
+      "id": "step1_followup",
+      "path": "hardware/step1/followup/recovery-findings.json",
+      "bytes": 31754,
+      "sha256": "a16c6a50e526f287b7ab94c03af292a3d1796246e2fee57cc73335926c476130",
+      "class": "historical_coverage_and_static_decoder"
+    },
+    {
+      "id": "backup_preparation",
+      "path": "../migration-audit/recovery-backup-20261017/preparation-result.json",
+      "bytes": 1491,
+      "sha256": "4e2fafb4bf633acaf0d697656d6a49d010fafadadc0cc9480cf733895be1d593",
+      "class": "historical_20261017_manifest"
+    },
+    {
+      "id": "cp_migration",
+      "path": "../migration-audit/ssh-cp-os-review-20261018/completion-report.json",
+      "bytes": 4361,
+      "sha256": "168c24e8b1ef2a35cb2b7b677d7fbedce8357ebad98a2e1f73f901299db2fddf",
+      "class": "historical_20261018_migration_report"
+    },
+    {
+      "id": "cp_readback",
+      "path": "../migration-audit/ssh-cp-os-review-20261018/inactive-a-readback.json",
+      "bytes": 1828,
+      "sha256": "39e11eeb68cb275409653ed90106242dd1f23398d5e90e571398a64238b95075",
+      "class": "historical_20261018_partition_readback"
+    },
+    {
+      "id": "sp2027_migration",
+      "path": "../migration-audit/sp2027-base-execution-20261018/completion-report.json",
+      "bytes": 2298,
+      "sha256": "ea13352118cc1d31080e6e61ce2a7513d192d9245a0ed28d8ee754c50c9172b4",
+      "class": "historical_20261018_migration_report"
+    },
+    {
+      "id": "sp2027_manifest",
+      "path": "../migration-audit/sp2027-base-execution-20261018/installed-file-manifest.json",
+      "bytes": 650673,
+      "sha256": "364a4927b33ef4bccc421f918b348adc2534b58911183783f01922da7f947733",
+      "class": "historical_20261018_disk_manifest"
+    },
+    {
+      "id": "p10_gates",
+      "path": "lifecycle_maintenance/HARDWARE_GATES.md",
+      "bytes": 3075,
+      "sha256": "1e3e07562dc8b997efad3fdcee200d9701ac20e711b6945d3cd9acb4776f6df9",
+      "class": "locked_stage_requirement"
+    },
+    {
+      "id": "backup_metadata_frp",
+      "path": "../migration-audit/recovery-backup-20261017/frp.json",
+      "bytes": 385,
+      "sha256": "2944f55cff7b51e16e50820b8b213a8877a8561ffda143c2340623db18bff633",
+      "class": "historical_20261017_capture_metadata"
+    },
+    {
+      "id": "backup_metadata_keystore",
+      "path": "../migration-audit/recovery-backup-20261017/keystore.json",
+      "bytes": 390,
+      "sha256": "31a204a2a78d30112b063bfec5a8e70fe6e89026812813696d7e768d7998bd69",
+      "class": "historical_20261017_capture_metadata"
+    },
+    {
+      "id": "backup_metadata_misc",
+      "path": "../migration-audit/recovery-backup-20261017/misc.json",
+      "bytes": 387,
+      "sha256": "939cdf6ae12a96d45f172e30a918958a9fe1d8ff7e1e774d029e11d26735312d",
+      "class": "historical_20261017_capture_metadata"
+    },
+    {
+      "id": "backup_metadata_persist",
+      "path": "../migration-audit/recovery-backup-20261017/persist.json",
+      "bytes": 393,
+      "sha256": "798370fd59cb33f8a207b93148fdcf1ac9671a098ca7cf929ad88ee1d460cd37",
+      "class": "historical_20261017_capture_metadata"
+    },
+    {
+      "id": "backup_metadata_sdb",
+      "path": "../migration-audit/recovery-backup-20261017/sdb.json",
+      "bytes": 371,
+      "sha256": "e73cabc9d7847c85892478646c2e9af751620c7c8cbc706e36ec0616ae09b057",
+      "class": "historical_20261017_capture_metadata"
+    },
+    {
+      "id": "backup_metadata_sdc",
+      "path": "../migration-audit/recovery-backup-20261017/sdc.json",
+      "bytes": 371,
+      "sha256": "0714ecf95bf617eb66d48172bef3f3289a430f357ce7170fed7564ff54687f89",
+      "class": "historical_20261017_capture_metadata"
+    },
+    {
+      "id": "backup_metadata_sdd",
+      "path": "../migration-audit/recovery-backup-20261017/sdd.json",
+      "bytes": 372,
+      "sha256": "dc378ea4271f7e10d03b948315d849ed820f685dab0e084ca508b813075e46be",
+      "class": "historical_20261017_capture_metadata"
+    },
+    {
+      "id": "backup_metadata_sde",
+      "path": "../migration-audit/recovery-backup-20261017/sde.json",
+      "bytes": 376,
+      "sha256": "12216eb982ede514dc1a18f477dba65093744f94823ba11e95cd0eaa3a1ddadf",
+      "class": "historical_20261017_capture_metadata"
+    },
+    {
+      "id": "backup_metadata_sdf",
+      "path": "../migration-audit/recovery-backup-20261017/sdf.json",
+      "bytes": 375,
+      "sha256": "d9c453388d0431ebfa779d3c1202e299d2fee063aa697645a5f96c14207f7d11",
+      "class": "historical_20261017_capture_metadata"
+    },
+    {
+      "id": "backup_metadata_ssd",
+      "path": "../migration-audit/recovery-backup-20261017/ssd.json",
+      "bytes": 381,
+      "sha256": "7697e8dfbc0882f18672e63c033df6a2371326b1142471aa2c2782ac1781ba74",
+      "class": "historical_20261017_capture_metadata"
+    },
+    {
+      "id": "backup_metadata_system_a",
+      "path": "../migration-audit/recovery-backup-20261017/system_a.json",
+      "bytes": 401,
+      "sha256": "db2d6b71a8035d94e1d2cca8fc716bd253d1835b54180951a957c94e5515436a",
+      "class": "historical_20261017_capture_metadata"
+    },
+    {
+      "id": "backup_metadata_system_b",
+      "path": "../migration-audit/recovery-backup-20261017/system_b.json",
+      "bytes": 401,
+      "sha256": "35823770c5b8ccd9f95df815842c3500d254c48628f8d4c996e00fba06a868e8",
+      "class": "historical_20261017_capture_metadata"
+    },
+    {
+      "id": "backup_metadata_systemrw",
+      "path": "../migration-audit/recovery-backup-20261017/systemrw.json",
+      "bytes": 393,
+      "sha256": "a5243ec356a831c4e09b01fe3c9a277f4ff56b64389dcf444af698baf0fc33de",
+      "class": "historical_20261017_capture_metadata"
+    }
+  ],
+  "retained_observation_window": {
+    "device_samples_utc_start": "2026-10-19T14:49:30.305100+00:00",
+    "device_samples_utc_end": "2026-10-19T14:50:54.007624+00:00",
+    "archive_integrity_check_utc_start": "2026-10-19T14:52:03.565380+00:00",
+    "archive_integrity_check_utc_end": "2026-10-19T14:52:05.968211+00:00"
+  },
+  "facts": {
+    "os": "12.4",
+    "kernel": "4.9.103",
+    "slot_suffix": "_a",
+    "root": "/dev/sda6",
+    "software_family_reference": "SP2027",
+    "software_scope": "17 selected paths; complete current tree and running firmware unproven",
+    "historical_archive_count": 13,
+    "historical_archive_compressed_bytes": 3163905414,
+    "historical_archive_recheck": "13/13 compressed SHA256 passed on 2026-10-19; retained result, not rerun by this work",
+    "gpt_headers_crc_valid": 12,
+    "gpt_entries_crc_valid": 11,
+    "gpt_entries_crc_failure": [
+      "sde.secondary"
+    ],
+    "gpt_layout_change_from_step1": false,
+    "sde_type_guid_pairs_exchanged_from_step1": 17,
+    "sde_attributes_changed_from_step1": 34,
+    "sde_entries_sha256": "799842357d5111d451fe234f30dbbf4636bf6fb6b8dc263aa6a499adef20fcc5",
+    "dsp_mounted": "/dev/sde26",
+    "dsp_label_link": "../../sde9",
+    "dsp_label_duplicate": true,
+    "dsp_uuid_digest_duplicate": true,
+    "dsp_full_content_equivalent": null,
+    "dsp_boot_selection_sequence": null,
+    "firmware_mount": "/dev/sde4",
+    "current_recovery_port": null,
+    "current_loader": null,
+    "current_b_slot_bootable": null,
+    "current_mcu_recovery_verified": null
+  },
+  "object_coverage": {
+    "luns": [
+      {
+        "id": "lun_sda",
+        "device_at_observation": "/dev/sda",
+        "bytes": 57948504064,
+        "sector_bytes": 4096,
+        "historical_full_lun_archive": null,
+        "current_full_lun_capture_sha256": null,
+        "capture_policy": "Do not copy the whole LUN automatically; its ranges include unique state and/or historical GPT. Use the reviewed per-object scope.",
+        "gpt_metadata": {
+          "sources": [
+            "recovery"
+          ],
+          "primary_entries_sha256": "2543786ed6907d188964128d78a34cdc4880d5266eabe120bd968e764ca89c76",
+          "secondary_entries_sha256": "2543786ed6907d188964128d78a34cdc4880d5266eabe120bd968e764ca89c76",
+          "primary_header_crc_valid": true,
+          "secondary_header_crc_valid": true,
+          "primary_entries_crc_valid": true,
+          "secondary_entries_crc_valid": true,
+          "raw_restore_candidate": null
+        }
+      },
+      {
+        "id": "lun_sdb",
+        "device_at_observation": "/dev/sdb",
+        "bytes": 4194304,
+        "sector_bytes": 4096,
+        "historical_full_lun_archive": "/Users/shuang/Code/openpilot/migration-audit/recovery-backup-20261017/sdb.img.gz",
+        "current_full_lun_capture_sha256": null,
+        "capture_policy": "Do not copy the whole LUN automatically; its ranges include unique state and/or historical GPT. Use the reviewed per-object scope.",
+        "gpt_metadata": {
+          "sources": [
+            "recovery"
+          ],
+          "primary_entries_sha256": "0a80857c10441f470eb7a7ec3a942532b4593c648e5ff5da81eb5293fe689814",
+          "secondary_entries_sha256": "0a80857c10441f470eb7a7ec3a942532b4593c648e5ff5da81eb5293fe689814",
+          "primary_header_crc_valid": true,
+          "secondary_header_crc_valid": true,
+          "primary_entries_crc_valid": true,
+          "secondary_entries_crc_valid": true,
+          "raw_restore_candidate": null
+        }
+      },
+      {
+        "id": "lun_sdc",
+        "device_at_observation": "/dev/sdc",
+        "bytes": 4194304,
+        "sector_bytes": 4096,
+        "historical_full_lun_archive": "/Users/shuang/Code/openpilot/migration-audit/recovery-backup-20261017/sdc.img.gz",
+        "current_full_lun_capture_sha256": null,
+        "capture_policy": "Do not copy the whole LUN automatically; its ranges include unique state and/or historical GPT. Use the reviewed per-object scope.",
+        "gpt_metadata": {
+          "sources": [
+            "recovery"
+          ],
+          "primary_entries_sha256": "1ae1c2c9a49b5cc0b3c8df358278dd260056a5c42a7412b88784c093a58c84ae",
+          "secondary_entries_sha256": "1ae1c2c9a49b5cc0b3c8df358278dd260056a5c42a7412b88784c093a58c84ae",
+          "primary_header_crc_valid": true,
+          "secondary_header_crc_valid": true,
+          "primary_entries_crc_valid": true,
+          "secondary_entries_crc_valid": true,
+          "raw_restore_candidate": null
+        }
+      },
+      {
+        "id": "lun_sdd",
+        "device_at_observation": "/dev/sdd",
+        "bytes": 134217728,
+        "sector_bytes": 4096,
+        "historical_full_lun_archive": "/Users/shuang/Code/openpilot/migration-audit/recovery-backup-20261017/sdd.img.gz",
+        "current_full_lun_capture_sha256": null,
+        "capture_policy": "Do not copy the whole LUN automatically; its ranges include unique state and/or historical GPT. Use the reviewed per-object scope.",
+        "gpt_metadata": {
+          "sources": [
+            "recovery"
+          ],
+          "primary_entries_sha256": "3553f8730f5c5ca9db454df3719fbbb19992f1a6e85ef913b7c66eadd6ed0bc4",
+          "secondary_entries_sha256": "3553f8730f5c5ca9db454df3719fbbb19992f1a6e85ef913b7c66eadd6ed0bc4",
+          "primary_header_crc_valid": true,
+          "secondary_header_crc_valid": true,
+          "primary_entries_crc_valid": true,
+          "secondary_entries_crc_valid": true,
+          "raw_restore_candidate": null
+        }
+      },
+      {
+        "id": "lun_sde",
+        "device_at_observation": "/dev/sde",
+        "bytes": 4294967296,
+        "sector_bytes": 4096,
+        "historical_full_lun_archive": "/Users/shuang/Code/openpilot/migration-audit/recovery-backup-20261017/sde.img.gz",
+        "current_full_lun_capture_sha256": null,
+        "capture_policy": "Do not copy the whole LUN automatically; its ranges include unique state and/or historical GPT. Use the reviewed per-object scope.",
+        "gpt_metadata": {
+          "sources": [
+            "recovery",
+            "recovery_detail"
+          ],
+          "primary_entries_sha256": "799842357d5111d451fe234f30dbbf4636bf6fb6b8dc263aa6a499adef20fcc5",
+          "secondary_entries_sha256": "799842357d5111d451fe234f30dbbf4636bf6fb6b8dc263aa6a499adef20fcc5",
+          "primary_header_crc_valid": true,
+          "secondary_header_crc_valid": true,
+          "primary_entries_crc_valid": true,
+          "secondary_entries_crc_valid": false,
+          "raw_restore_candidate": null
+        }
+      },
+      {
+        "id": "lun_sdf",
+        "device_at_observation": "/dev/sdf",
+        "bytes": 1610612736,
+        "sector_bytes": 4096,
+        "historical_full_lun_archive": "/Users/shuang/Code/openpilot/migration-audit/recovery-backup-20261017/sdf.img.gz",
+        "current_full_lun_capture_sha256": null,
+        "capture_policy": "Do not copy the whole LUN automatically; its ranges include unique state and/or historical GPT. Use the reviewed per-object scope.",
+        "gpt_metadata": {
+          "sources": [
+            "recovery"
+          ],
+          "primary_entries_sha256": "8f0528d3b9d838ef4fc5f266b96050c74fe2909c087a55472cf0734ec42cfc4a",
+          "secondary_entries_sha256": "8f0528d3b9d838ef4fc5f266b96050c74fe2909c087a55472cf0734ec42cfc4a",
+          "primary_header_crc_valid": true,
+          "secondary_header_crc_valid": true,
+          "primary_entries_crc_valid": true,
+          "secondary_entries_crc_valid": true,
+          "raw_restore_candidate": null
+        }
+      }
+    ],
+    "partitions": [
+      {
+        "id": "partition_ssd",
+        "name": "ssd",
+        "lun": "sda",
+        "partition_number": 1,
+        "device_at_observation": "/dev/sda1",
+        "first_lba": 6,
+        "last_lba": 7,
+        "bytes": 8192,
+        "attributes_hex_at_observation": "0x0000000000000000",
+        "mapping_evidence": [
+          "recovery"
+        ],
+        "mounted_at_observation": null,
+        "historical_backup": {
+          "path": "/Users/shuang/Code/openpilot/migration-audit/recovery-backup-20261017/ssd.img.gz",
+          "scope": "whole_partition",
+          "captured_at": "2026-10-17T20:02:58+0800",
+          "archive_compressed_sha256": "192b25e22cb6b47a98d110ffdf39309fd73bb7f91ef163c5b181d97689878fbf",
+          "compressed_integrity_verified_on": "2026-10-19",
+          "contained_partition_sha256": "55b041927239bb6d5ce1429affe738629c48bd8582fbce03889dcc597e93dae6",
+          "metadata_source_id": "backup_metadata_ssd"
+        },
+        "current_content_sha256": null,
+        "current_capture": null,
+        "current_consistency": null,
+        "contains_potentially_private_or_unique_state": true,
+        "preserve_or_rebuild_decision": null,
+        "current_capture_policy": "SCOPE_AND_PRIVATE_HANDLING_REQUIRED",
+        "dependencies": [
+          "gpt_sda",
+          "host_boot_selection"
+        ],
+        "acceptance": [
+          "Source identity, exact LBA range and expected length are bound to the capture set; device node alone is insufficient.",
+          "Archive and raw-stream hashes, source drift checks and consistency class are recorded; a historical LUN hash is not this partition hash.",
+          "Unknown or excluded objects remain gaps; no automatic restore or write is authorized."
+        ]
+      },
+      {
+        "id": "partition_persist",
+        "name": "persist",
+        "lun": "sda",
+        "partition_number": 2,
+        "device_at_observation": "/dev/sda2",
+        "first_lba": 8,
+        "last_lba": 8199,
+        "bytes": 33554432,
+        "attributes_hex_at_observation": "0x0000000000000000",
+        "mapping_evidence": [
+          "recovery"
+        ],
+        "mounted_at_observation": {
+          "mount": "/persist",
+          "mode": "ro",
+          "device": "/dev/sda2"
+        },
+        "historical_backup": {
+          "path": "/Users/shuang/Code/openpilot/migration-audit/recovery-backup-20261017/persist.img.gz",
+          "scope": "whole_partition",
+          "captured_at": "2026-10-17T20:02:55+0800",
+          "archive_compressed_sha256": "3c53e82c1ccabc921c4fc5b2160320bb9fdabd6ecff0413825c1245009dbc4ba",
+          "compressed_integrity_verified_on": "2026-10-19",
+          "contained_partition_sha256": "16f385755c262040833cc2949c997e2b2baf020d56d0ff33e8d1160ef96a7994",
+          "metadata_source_id": "backup_metadata_persist"
+        },
+        "current_content_sha256": null,
+        "current_capture": null,
+        "current_consistency": null,
+        "contains_potentially_private_or_unique_state": true,
+        "preserve_or_rebuild_decision": null,
+        "current_capture_policy": "SCOPE_AND_PRIVATE_HANDLING_REQUIRED",
+        "dependencies": [
+          "gpt_sda",
+          "host_boot_selection",
+          "application_tree",
+          "host_system",
+          "panda_application_pairing"
+        ],
+        "acceptance": [
+          "Source identity, exact LBA range and expected length are bound to the capture set; device node alone is insufficient.",
+          "Archive and raw-stream hashes, source drift checks and consistency class are recorded; a historical LUN hash is not this partition hash.",
+          "Unknown or excluded objects remain gaps; no automatic restore or write is authorized."
+        ]
+      },
+      {
+        "id": "partition_misc",
+        "name": "misc",
+        "lun": "sda",
+        "partition_number": 3,
+        "device_at_observation": "/dev/sda3",
+        "first_lba": 8200,
+        "last_lba": 8455,
+        "bytes": 1048576,
+        "attributes_hex_at_observation": "0x0000000000000000",
+        "mapping_evidence": [
+          "recovery"
+        ],
+        "mounted_at_observation": null,
+        "historical_backup": {
+          "path": "/Users/shuang/Code/openpilot/migration-audit/recovery-backup-20261017/misc.img.gz",
+          "scope": "whole_partition",
+          "captured_at": "2026-10-17T20:02:56+0800",
+          "archive_compressed_sha256": "e8e0eedcbc21a4e2dbe99e9fe2f1301f63ae5e64a51e793cb123d3229cc49ded",
+          "compressed_integrity_verified_on": "2026-10-19",
+          "contained_partition_sha256": "30e14955ebf1352266dc2ff8067e68104607e750abb9d3b36582b8af909fcb58",
+          "metadata_source_id": "backup_metadata_misc"
+        },
+        "current_content_sha256": null,
+        "current_capture": null,
+        "current_consistency": null,
+        "contains_potentially_private_or_unique_state": true,
+        "preserve_or_rebuild_decision": null,
+        "current_capture_policy": "SCOPE_AND_PRIVATE_HANDLING_REQUIRED",
+        "dependencies": [
+          "gpt_sda",
+          "host_boot_selection"
+        ],
+        "acceptance": [
+          "Source identity, exact LBA range and expected length are bound to the capture set; device node alone is insufficient.",
+          "Archive and raw-stream hashes, source drift checks and consistency class are recorded; a historical LUN hash is not this partition hash.",
+          "Unknown or excluded objects remain gaps; no automatic restore or write is authorized."
+        ]
+      },
+      {
+        "id": "partition_keystore",
+        "name": "keystore",
+        "lun": "sda",
+        "partition_number": 4,
+        "device_at_observation": "/dev/sda4",
+        "first_lba": 8456,
+        "last_lba": 8583,
+        "bytes": 524288,
+        "attributes_hex_at_observation": "0x0000000000000000",
+        "mapping_evidence": [
+          "recovery"
+        ],
+        "mounted_at_observation": null,
+        "historical_backup": {
+          "path": "/Users/shuang/Code/openpilot/migration-audit/recovery-backup-20261017/keystore.img.gz",
+          "scope": "whole_partition",
+          "captured_at": "2026-10-17T20:02:57+0800",
+          "archive_compressed_sha256": "eaf4b3421fe979deff247b325eac7fce75493ab09e5971e0975616bba38d5316",
+          "compressed_integrity_verified_on": "2026-10-19",
+          "contained_partition_sha256": "07854d2fef297a06ba81685e660c332de36d5d18d546927d30daad6d7fda1541",
+          "metadata_source_id": "backup_metadata_keystore"
+        },
+        "current_content_sha256": null,
+        "current_capture": null,
+        "current_consistency": null,
+        "contains_potentially_private_or_unique_state": true,
+        "preserve_or_rebuild_decision": null,
+        "current_capture_policy": "SCOPE_AND_PRIVATE_HANDLING_REQUIRED",
+        "dependencies": [
+          "gpt_sda",
+          "host_boot_selection"
+        ],
+        "acceptance": [
+          "Source identity, exact LBA range and expected length are bound to the capture set; device node alone is insufficient.",
+          "Archive and raw-stream hashes, source drift checks and consistency class are recorded; a historical LUN hash is not this partition hash.",
+          "Unknown or excluded objects remain gaps; no automatic restore or write is authorized."
+        ]
+      },
+      {
+        "id": "partition_frp",
+        "name": "frp",
+        "lun": "sda",
+        "partition_number": 5,
+        "device_at_observation": "/dev/sda5",
+        "first_lba": 8584,
+        "last_lba": 8711,
+        "bytes": 524288,
+        "attributes_hex_at_observation": "0x0000000000000000",
+        "mapping_evidence": [
+          "recovery"
+        ],
+        "mounted_at_observation": null,
+        "historical_backup": {
+          "path": "/Users/shuang/Code/openpilot/migration-audit/recovery-backup-20261017/frp.img.gz",
+          "scope": "whole_partition",
+          "captured_at": "2026-10-17T20:02:58+0800",
+          "archive_compressed_sha256": "eaf4b3421fe979deff247b325eac7fce75493ab09e5971e0975616bba38d5316",
+          "compressed_integrity_verified_on": "2026-10-19",
+          "contained_partition_sha256": "07854d2fef297a06ba81685e660c332de36d5d18d546927d30daad6d7fda1541",
+          "metadata_source_id": "backup_metadata_frp"
+        },
+        "current_content_sha256": null,
+        "current_capture": null,
+        "current_consistency": null,
+        "contains_potentially_private_or_unique_state": true,
+        "preserve_or_rebuild_decision": null,
+        "current_capture_policy": "SCOPE_AND_PRIVATE_HANDLING_REQUIRED",
+        "dependencies": [
+          "gpt_sda",
+          "host_boot_selection"
+        ],
+        "acceptance": [
+          "Source identity, exact LBA range and expected length are bound to the capture set; device node alone is insufficient.",
+          "Archive and raw-stream hashes, source drift checks and consistency class are recorded; a historical LUN hash is not this partition hash.",
+          "Unknown or excluded objects remain gaps; no automatic restore or write is authorized."
+        ]
+      },
+      {
+        "id": "partition_system_a",
+        "name": "system_a",
+        "lun": "sda",
+        "partition_number": 6,
+        "device_at_observation": "/dev/sda6",
+        "first_lba": 8712,
+        "last_lba": 3045143,
+        "bytes": 12437225472,
+        "attributes_hex_at_observation": "0x0004000000000000",
+        "mapping_evidence": [
+          "recovery"
+        ],
+        "mounted_at_observation": {
+          "mount": "/",
+          "mode": "ro",
+          "device": "/dev/sda6"
+        },
+        "historical_backup": {
+          "path": "/Users/shuang/Code/openpilot/migration-audit/recovery-backup-20261017/system_a.img.gz",
+          "scope": "whole_partition",
+          "captured_at": "2026-10-17T20:02:52+0800",
+          "archive_compressed_sha256": "390584dad330c72637022b925d47fe1ec5501ec4f1d92eea7cdc9c2ab5a7576b",
+          "compressed_integrity_verified_on": "2026-10-19",
+          "contained_partition_sha256": "324069f658c1d8012fadf21cd2d933f94dbc07fe21e4cb5b100884c5b8e6b7b9",
+          "metadata_source_id": "backup_metadata_system_a"
+        },
+        "current_content_sha256": null,
+        "current_capture": null,
+        "current_consistency": null,
+        "contains_potentially_private_or_unique_state": false,
+        "preserve_or_rebuild_decision": null,
+        "current_capture_policy": "EXPLICIT_RANGE_AND_BUDGET_REQUIRED",
+        "dependencies": [
+          "gpt_sda",
+          "host_boot_selection",
+          "host_boot_chain",
+          "shared_data",
+          "application_tree",
+          "panda_application_pairing"
+        ],
+        "acceptance": [
+          "Source identity, exact LBA range and expected length are bound to the capture set; device node alone is insufficient.",
+          "Archive and raw-stream hashes, source drift checks and consistency class are recorded; a historical LUN hash is not this partition hash.",
+          "Unknown or excluded objects remain gaps; no automatic restore or write is authorized."
+        ]
+      },
+      {
+        "id": "partition_system_b",
+        "name": "system_b",
+        "lun": "sda",
+        "partition_number": 7,
+        "device_at_observation": "/dev/sda7",
+        "first_lba": 3045144,
+        "last_lba": 6081575,
+        "bytes": 12437225472,
+        "attributes_hex_at_observation": "0x0000000000000000",
+        "mapping_evidence": [
+          "recovery"
+        ],
+        "mounted_at_observation": null,
+        "historical_backup": {
+          "path": "/Users/shuang/Code/openpilot/migration-audit/recovery-backup-20261017/system_b.img.gz",
+          "scope": "whole_partition",
+          "captured_at": "2026-10-17T19:53:21+0800",
+          "archive_compressed_sha256": "b8c779aecf55726e1c55d685d39be0226b78ffa4a05392b89c67d67ce82a0408",
+          "compressed_integrity_verified_on": "2026-10-19",
+          "contained_partition_sha256": "2f8ac5651352e08b8d79d7840564d93f89f8e01a65a3c309894f1b35898fbbba",
+          "metadata_source_id": "backup_metadata_system_b"
+        },
+        "current_content_sha256": null,
+        "current_capture": null,
+        "current_consistency": null,
+        "contains_potentially_private_or_unique_state": false,
+        "preserve_or_rebuild_decision": null,
+        "current_capture_policy": "EXPLICIT_RANGE_AND_BUDGET_REQUIRED",
+        "dependencies": [
+          "gpt_sda",
+          "host_boot_selection",
+          "host_boot_chain",
+          "shared_data",
+          "application_tree",
+          "panda_application_pairing"
+        ],
+        "acceptance": [
+          "Source identity, exact LBA range and expected length are bound to the capture set; device node alone is insufficient.",
+          "Archive and raw-stream hashes, source drift checks and consistency class are recorded; a historical LUN hash is not this partition hash.",
+          "Unknown or excluded objects remain gaps; no automatic restore or write is authorized."
+        ]
+      },
+      {
+        "id": "partition_systemrw",
+        "name": "systemrw",
+        "lun": "sda",
+        "partition_number": 8,
+        "device_at_observation": "/dev/sda8",
+        "first_lba": 6081576,
+        "last_lba": 6085671,
+        "bytes": 16777216,
+        "attributes_hex_at_observation": "0x0000000000000000",
+        "mapping_evidence": [
+          "recovery"
+        ],
+        "mounted_at_observation": {
+          "mount": "/systemrw",
+          "mode": "rw",
+          "device": "/dev/sda8"
+        },
+        "historical_backup": {
+          "path": "/Users/shuang/Code/openpilot/migration-audit/recovery-backup-20261017/systemrw.img.gz",
+          "scope": "whole_partition",
+          "captured_at": "2026-10-17T20:03:00+0800",
+          "archive_compressed_sha256": "69d33adc9228bbdb390128a7408534d921464eb6e0c10358088fec6442325f17",
+          "compressed_integrity_verified_on": "2026-10-19",
+          "contained_partition_sha256": "6ed872964859d56f2a0671d94297f01126902a4623d8b957456f44deea6e0566",
+          "metadata_source_id": "backup_metadata_systemrw"
+        },
+        "current_content_sha256": null,
+        "current_capture": null,
+        "current_consistency": null,
+        "contains_potentially_private_or_unique_state": true,
+        "preserve_or_rebuild_decision": null,
+        "current_capture_policy": "SCOPE_AND_PRIVATE_HANDLING_REQUIRED",
+        "dependencies": [
+          "gpt_sda",
+          "host_boot_selection",
+          "application_tree",
+          "host_system",
+          "panda_application_pairing"
+        ],
+        "acceptance": [
+          "Source identity, exact LBA range and expected length are bound to the capture set; device node alone is insufficient.",
+          "Archive and raw-stream hashes, source drift checks and consistency class are recorded; a historical LUN hash is not this partition hash.",
+          "Unknown or excluded objects remain gaps; no automatic restore or write is authorized."
+        ]
+      },
+      {
+        "id": "partition_cache",
+        "name": "cache",
+        "lun": "sda",
+        "partition_number": 9,
+        "device_at_observation": "/dev/sda9",
+        "first_lba": 6085672,
+        "last_lba": 6118439,
+        "bytes": 134217728,
+        "attributes_hex_at_observation": "0x0000000000000000",
+        "mapping_evidence": [
+          "recovery"
+        ],
+        "mounted_at_observation": null,
+        "historical_backup": null,
+        "current_content_sha256": null,
+        "current_capture": null,
+        "current_consistency": null,
+        "contains_potentially_private_or_unique_state": true,
+        "preserve_or_rebuild_decision": null,
+        "current_capture_policy": "SCOPE_AND_PRIVATE_HANDLING_REQUIRED",
+        "dependencies": [
+          "gpt_sda",
+          "host_boot_selection"
+        ],
+        "acceptance": [
+          "Source identity, exact LBA range and expected length are bound to the capture set; device node alone is insufficient.",
+          "Archive and raw-stream hashes, source drift checks and consistency class are recorded; a historical LUN hash is not this partition hash.",
+          "Unknown or excluded objects remain gaps; no automatic restore or write is authorized."
+        ]
+      },
+      {
+        "id": "partition_userdata",
+        "name": "userdata",
+        "lun": "sda",
+        "partition_number": 10,
+        "device_at_observation": "/dev/sda10",
+        "first_lba": 6118440,
+        "last_lba": 14147578,
+        "bytes": 32887353344,
+        "attributes_hex_at_observation": "0x0000000000000000",
+        "mapping_evidence": [
+          "recovery"
+        ],
+        "mounted_at_observation": {
+          "mount": "/data",
+          "mode": "rw",
+          "device": "/dev/sda10"
+        },
+        "historical_backup": null,
+        "current_content_sha256": null,
+        "current_capture": null,
+        "current_consistency": null,
+        "contains_potentially_private_or_unique_state": true,
+        "preserve_or_rebuild_decision": null,
+        "current_capture_policy": "SCOPE_AND_PRIVATE_HANDLING_REQUIRED",
+        "dependencies": [
+          "gpt_sda",
+          "host_boot_selection",
+          "application_tree",
+          "host_system",
+          "panda_application_pairing"
+        ],
+        "acceptance": [
+          "Source identity, exact LBA range and expected length are bound to the capture set; device node alone is insufficient.",
+          "Archive and raw-stream hashes, source drift checks and consistency class are recorded; a historical LUN hash is not this partition hash.",
+          "Unknown or excluded objects remain gaps; no automatic restore or write is authorized."
+        ]
+      },
+      {
+        "id": "partition_xbl_a",
+        "name": "xbl_a",
+        "lun": "sdb",
+        "partition_number": 1,
+        "device_at_observation": "/dev/sdb1",
+        "first_lba": 6,
+        "last_lba": 901,
+        "bytes": 3670016,
+        "attributes_hex_at_observation": "0x103f000000000000",
+        "mapping_evidence": [
+          "recovery"
+        ],
+        "mounted_at_observation": null,
+        "historical_backup": {
+          "path": "/Users/shuang/Code/openpilot/migration-audit/recovery-backup-20261017/sdb.img.gz",
+          "scope": "contained_in_whole_lun",
+          "captured_at": "2026-10-17T20:03:02+0800",
+          "archive_compressed_sha256": "d909c12429156694fd7cef05e26af8d8cee93f17f1e833dabe639fb77d7a84fa",
+          "compressed_integrity_verified_on": "2026-10-19",
+          "contained_partition_sha256": null,
+          "metadata_source_id": "backup_metadata_sdb"
+        },
+        "current_content_sha256": null,
+        "current_capture": null,
+        "current_consistency": null,
+        "contains_potentially_private_or_unique_state": false,
+        "preserve_or_rebuild_decision": null,
+        "current_capture_policy": "EXPLICIT_RANGE_AND_BUDGET_REQUIRED",
+        "dependencies": [
+          "gpt_sdb",
+          "host_boot_selection"
+        ],
+        "acceptance": [
+          "Source identity, exact LBA range and expected length are bound to the capture set; device node alone is insufficient.",
+          "Archive and raw-stream hashes, source drift checks and consistency class are recorded; a historical LUN hash is not this partition hash.",
+          "Unknown or excluded objects remain gaps; no automatic restore or write is authorized."
+        ]
+      },
+      {
+        "id": "partition_xbl_config_a",
+        "name": "xbl_config_a",
+        "lun": "sdb",
+        "partition_number": 2,
+        "device_at_observation": "/dev/sdb2",
+        "first_lba": 902,
+        "last_lba": 990,
+        "bytes": 364544,
+        "attributes_hex_at_observation": "0x003f000000000000",
+        "mapping_evidence": [
+          "recovery"
+        ],
+        "mounted_at_observation": null,
+        "historical_backup": {
+          "path": "/Users/shuang/Code/openpilot/migration-audit/recovery-backup-20261017/sdb.img.gz",
+          "scope": "contained_in_whole_lun",
+          "captured_at": "2026-10-17T20:03:02+0800",
+          "archive_compressed_sha256": "d909c12429156694fd7cef05e26af8d8cee93f17f1e833dabe639fb77d7a84fa",
+          "compressed_integrity_verified_on": "2026-10-19",
+          "contained_partition_sha256": null,
+          "metadata_source_id": "backup_metadata_sdb"
+        },
+        "current_content_sha256": null,
+        "current_capture": null,
+        "current_consistency": null,
+        "contains_potentially_private_or_unique_state": false,
+        "preserve_or_rebuild_decision": null,
+        "current_capture_policy": "EXPLICIT_RANGE_AND_BUDGET_REQUIRED",
+        "dependencies": [
+          "gpt_sdb",
+          "host_boot_selection"
+        ],
+        "acceptance": [
+          "Source identity, exact LBA range and expected length are bound to the capture set; device node alone is insufficient.",
+          "Archive and raw-stream hashes, source drift checks and consistency class are recorded; a historical LUN hash is not this partition hash.",
+          "Unknown or excluded objects remain gaps; no automatic restore or write is authorized."
+        ]
+      },
+      {
+        "id": "partition_xbl_b",
+        "name": "xbl_b",
+        "lun": "sdc",
+        "partition_number": 1,
+        "device_at_observation": "/dev/sdc1",
+        "first_lba": 6,
+        "last_lba": 901,
+        "bytes": 3670016,
+        "attributes_hex_at_observation": "0x1039000000000000",
+        "mapping_evidence": [
+          "recovery"
+        ],
+        "mounted_at_observation": null,
+        "historical_backup": {
+          "path": "/Users/shuang/Code/openpilot/migration-audit/recovery-backup-20261017/sdc.img.gz",
+          "scope": "contained_in_whole_lun",
+          "captured_at": "2026-10-17T20:03:04+0800",
+          "archive_compressed_sha256": "c45c05576aba4dfbb7477216f3c4833324560ffcb1071215a3f2c9b308af8bdc",
+          "compressed_integrity_verified_on": "2026-10-19",
+          "contained_partition_sha256": null,
+          "metadata_source_id": "backup_metadata_sdc"
+        },
+        "current_content_sha256": null,
+        "current_capture": null,
+        "current_consistency": null,
+        "contains_potentially_private_or_unique_state": false,
+        "preserve_or_rebuild_decision": null,
+        "current_capture_policy": "EXPLICIT_RANGE_AND_BUDGET_REQUIRED",
+        "dependencies": [
+          "gpt_sdc",
+          "host_boot_selection"
+        ],
+        "acceptance": [
+          "Source identity, exact LBA range and expected length are bound to the capture set; device node alone is insufficient.",
+          "Archive and raw-stream hashes, source drift checks and consistency class are recorded; a historical LUN hash is not this partition hash.",
+          "Unknown or excluded objects remain gaps; no automatic restore or write is authorized."
+        ]
+      },
+      {
+        "id": "partition_xbl_config_b",
+        "name": "xbl_config_b",
+        "lun": "sdc",
+        "partition_number": 2,
+        "device_at_observation": "/dev/sdc2",
+        "first_lba": 902,
+        "last_lba": 990,
+        "bytes": 364544,
+        "attributes_hex_at_observation": "0x0039000000000000",
+        "mapping_evidence": [
+          "recovery"
+        ],
+        "mounted_at_observation": null,
+        "historical_backup": {
+          "path": "/Users/shuang/Code/openpilot/migration-audit/recovery-backup-20261017/sdc.img.gz",
+          "scope": "contained_in_whole_lun",
+          "captured_at": "2026-10-17T20:03:04+0800",
+          "archive_compressed_sha256": "c45c05576aba4dfbb7477216f3c4833324560ffcb1071215a3f2c9b308af8bdc",
+          "compressed_integrity_verified_on": "2026-10-19",
+          "contained_partition_sha256": null,
+          "metadata_source_id": "backup_metadata_sdc"
+        },
+        "current_content_sha256": null,
+        "current_capture": null,
+        "current_consistency": null,
+        "contains_potentially_private_or_unique_state": false,
+        "preserve_or_rebuild_decision": null,
+        "current_capture_policy": "EXPLICIT_RANGE_AND_BUDGET_REQUIRED",
+        "dependencies": [
+          "gpt_sdc",
+          "host_boot_selection"
+        ],
+        "acceptance": [
+          "Source identity, exact LBA range and expected length are bound to the capture set; device node alone is insufficient.",
+          "Archive and raw-stream hashes, source drift checks and consistency class are recorded; a historical LUN hash is not this partition hash.",
+          "Unknown or excluded objects remain gaps; no automatic restore or write is authorized."
+        ]
+      },
+      {
+        "id": "partition_ALIGN_TO_128K_1",
+        "name": "ALIGN_TO_128K_1",
+        "lun": "sdd",
+        "partition_number": 1,
+        "device_at_observation": "/dev/sdd1",
+        "first_lba": 6,
+        "last_lba": 31,
+        "bytes": 106496,
+        "attributes_hex_at_observation": "0x1000000000000000",
+        "mapping_evidence": [
+          "recovery"
+        ],
+        "mounted_at_observation": null,
+        "historical_backup": {
+          "path": "/Users/shuang/Code/openpilot/migration-audit/recovery-backup-20261017/sdd.img.gz",
+          "scope": "contained_in_whole_lun",
+          "captured_at": "2026-10-17T20:03:07+0800",
+          "archive_compressed_sha256": "0878957880ad5d90bd6266d56b06e596f82b87e54571ab44422e15a6c3a9eae0",
+          "compressed_integrity_verified_on": "2026-10-19",
+          "contained_partition_sha256": null,
+          "metadata_source_id": "backup_metadata_sdd"
+        },
+        "current_content_sha256": null,
+        "current_capture": null,
+        "current_consistency": null,
+        "contains_potentially_private_or_unique_state": false,
+        "preserve_or_rebuild_decision": null,
+        "current_capture_policy": "EXPLICIT_RANGE_AND_BUDGET_REQUIRED",
+        "dependencies": [
+          "gpt_sdd",
+          "host_boot_selection"
+        ],
+        "acceptance": [
+          "Source identity, exact LBA range and expected length are bound to the capture set; device node alone is insufficient.",
+          "Archive and raw-stream hashes, source drift checks and consistency class are recorded; a historical LUN hash is not this partition hash.",
+          "Unknown or excluded objects remain gaps; no automatic restore or write is authorized."
+        ]
+      },
+      {
+        "id": "partition_cdt",
+        "name": "cdt",
+        "lun": "sdd",
+        "partition_number": 2,
+        "device_at_observation": "/dev/sdd2",
+        "first_lba": 32,
+        "last_lba": 63,
+        "bytes": 131072,
+        "attributes_hex_at_observation": "0x1000000000000000",
+        "mapping_evidence": [
+          "recovery"
+        ],
+        "mounted_at_observation": null,
+        "historical_backup": {
+          "path": "/Users/shuang/Code/openpilot/migration-audit/recovery-backup-20261017/sdd.img.gz",
+          "scope": "contained_in_whole_lun",
+          "captured_at": "2026-10-17T20:03:07+0800",
+          "archive_compressed_sha256": "0878957880ad5d90bd6266d56b06e596f82b87e54571ab44422e15a6c3a9eae0",
+          "compressed_integrity_verified_on": "2026-10-19",
+          "contained_partition_sha256": null,
+          "metadata_source_id": "backup_metadata_sdd"
+        },
+        "current_content_sha256": null,
+        "current_capture": null,
+        "current_consistency": null,
+        "contains_potentially_private_or_unique_state": true,
+        "preserve_or_rebuild_decision": null,
+        "current_capture_policy": "SCOPE_AND_PRIVATE_HANDLING_REQUIRED",
+        "dependencies": [
+          "gpt_sdd",
+          "host_boot_selection"
+        ],
+        "acceptance": [
+          "Source identity, exact LBA range and expected length are bound to the capture set; device node alone is insufficient.",
+          "Archive and raw-stream hashes, source drift checks and consistency class are recorded; a historical LUN hash is not this partition hash.",
+          "Unknown or excluded objects remain gaps; no automatic restore or write is authorized."
+        ]
+      },
+      {
+        "id": "partition_ddr",
+        "name": "ddr",
+        "lun": "sdd",
+        "partition_number": 3,
+        "device_at_observation": "/dev/sdd3",
+        "first_lba": 64,
+        "last_lba": 319,
+        "bytes": 1048576,
+        "attributes_hex_at_observation": "0x1000000000000000",
+        "mapping_evidence": [
+          "recovery"
+        ],
+        "mounted_at_observation": null,
+        "historical_backup": {
+          "path": "/Users/shuang/Code/openpilot/migration-audit/recovery-backup-20261017/sdd.img.gz",
+          "scope": "contained_in_whole_lun",
+          "captured_at": "2026-10-17T20:03:07+0800",
+          "archive_compressed_sha256": "0878957880ad5d90bd6266d56b06e596f82b87e54571ab44422e15a6c3a9eae0",
+          "compressed_integrity_verified_on": "2026-10-19",
+          "contained_partition_sha256": null,
+          "metadata_source_id": "backup_metadata_sdd"
+        },
+        "current_content_sha256": null,
+        "current_capture": null,
+        "current_consistency": null,
+        "contains_potentially_private_or_unique_state": true,
+        "preserve_or_rebuild_decision": null,
+        "current_capture_policy": "SCOPE_AND_PRIVATE_HANDLING_REQUIRED",
+        "dependencies": [
+          "gpt_sdd",
+          "host_boot_selection"
+        ],
+        "acceptance": [
+          "Source identity, exact LBA range and expected length are bound to the capture set; device node alone is insufficient.",
+          "Archive and raw-stream hashes, source drift checks and consistency class are recorded; a historical LUN hash is not this partition hash.",
+          "Unknown or excluded objects remain gaps; no automatic restore or write is authorized."
+        ]
+      },
+      {
+        "id": "partition_aop_a",
+        "name": "aop_a",
+        "lun": "sde",
+        "partition_number": 1,
+        "device_at_observation": "/dev/sde1",
+        "first_lba": 6,
+        "last_lba": 133,
+        "bytes": 524288,
+        "attributes_hex_at_observation": "0x103f000000000000",
+        "mapping_evidence": [
+          "recovery"
+        ],
+        "mounted_at_observation": null,
+        "historical_backup": {
+          "path": "/Users/shuang/Code/openpilot/migration-audit/recovery-backup-20261017/sde.img.gz",
+          "scope": "contained_in_whole_lun",
+          "captured_at": "2026-10-17T20:04:40+0800",
+          "archive_compressed_sha256": "b691a7ad4b7f82b6ebcb18dc010500590ba797a93c6b968fa56d8a03c90866d2",
+          "compressed_integrity_verified_on": "2026-10-19",
+          "contained_partition_sha256": null,
+          "metadata_source_id": "backup_metadata_sde"
+        },
+        "current_content_sha256": null,
+        "current_capture": null,
+        "current_consistency": null,
+        "contains_potentially_private_or_unique_state": false,
+        "preserve_or_rebuild_decision": null,
+        "current_capture_policy": "EXPLICIT_RANGE_AND_BUDGET_REQUIRED",
+        "dependencies": [
+          "gpt_sde",
+          "host_boot_selection"
+        ],
+        "acceptance": [
+          "Source identity, exact LBA range and expected length are bound to the capture set; device node alone is insufficient.",
+          "Archive and raw-stream hashes, source drift checks and consistency class are recorded; a historical LUN hash is not this partition hash.",
+          "Unknown or excluded objects remain gaps; no automatic restore or write is authorized."
+        ]
+      },
+      {
+        "id": "partition_tz_a",
+        "name": "tz_a",
+        "lun": "sde",
+        "partition_number": 2,
+        "device_at_observation": "/dev/sde2",
+        "first_lba": 134,
+        "last_lba": 645,
+        "bytes": 2097152,
+        "attributes_hex_at_observation": "0x103f000000000000",
+        "mapping_evidence": [
+          "recovery"
+        ],
+        "mounted_at_observation": null,
+        "historical_backup": {
+          "path": "/Users/shuang/Code/openpilot/migration-audit/recovery-backup-20261017/sde.img.gz",
+          "scope": "contained_in_whole_lun",
+          "captured_at": "2026-10-17T20:04:40+0800",
+          "archive_compressed_sha256": "b691a7ad4b7f82b6ebcb18dc010500590ba797a93c6b968fa56d8a03c90866d2",
+          "compressed_integrity_verified_on": "2026-10-19",
+          "contained_partition_sha256": null,
+          "metadata_source_id": "backup_metadata_sde"
+        },
+        "current_content_sha256": null,
+        "current_capture": null,
+        "current_consistency": null,
+        "contains_potentially_private_or_unique_state": false,
+        "preserve_or_rebuild_decision": null,
+        "current_capture_policy": "EXPLICIT_RANGE_AND_BUDGET_REQUIRED",
+        "dependencies": [
+          "gpt_sde",
+          "host_boot_selection"
+        ],
+        "acceptance": [
+          "Source identity, exact LBA range and expected length are bound to the capture set; device node alone is insufficient.",
+          "Archive and raw-stream hashes, source drift checks and consistency class are recorded; a historical LUN hash is not this partition hash.",
+          "Unknown or excluded objects remain gaps; no automatic restore or write is authorized."
+        ]
+      },
+      {
+        "id": "partition_hyp_a",
+        "name": "hyp_a",
+        "lun": "sde",
+        "partition_number": 3,
+        "device_at_observation": "/dev/sde3",
+        "first_lba": 646,
+        "last_lba": 773,
+        "bytes": 524288,
+        "attributes_hex_at_observation": "0x003f000000000000",
+        "mapping_evidence": [
+          "recovery"
+        ],
+        "mounted_at_observation": null,
+        "historical_backup": {
+          "path": "/Users/shuang/Code/openpilot/migration-audit/recovery-backup-20261017/sde.img.gz",
+          "scope": "contained_in_whole_lun",
+          "captured_at": "2026-10-17T20:04:40+0800",
+          "archive_compressed_sha256": "b691a7ad4b7f82b6ebcb18dc010500590ba797a93c6b968fa56d8a03c90866d2",
+          "compressed_integrity_verified_on": "2026-10-19",
+          "contained_partition_sha256": null,
+          "metadata_source_id": "backup_metadata_sde"
+        },
+        "current_content_sha256": null,
+        "current_capture": null,
+        "current_consistency": null,
+        "contains_potentially_private_or_unique_state": false,
+        "preserve_or_rebuild_decision": null,
+        "current_capture_policy": "EXPLICIT_RANGE_AND_BUDGET_REQUIRED",
+        "dependencies": [
+          "gpt_sde",
+          "host_boot_selection"
+        ],
+        "acceptance": [
+          "Source identity, exact LBA range and expected length are bound to the capture set; device node alone is insufficient.",
+          "Archive and raw-stream hashes, source drift checks and consistency class are recorded; a historical LUN hash is not this partition hash.",
+          "Unknown or excluded objects remain gaps; no automatic restore or write is authorized."
+        ]
+      },
+      {
+        "id": "partition_modem_a",
+        "name": "modem_a",
+        "lun": "sde",
+        "partition_number": 4,
+        "device_at_observation": "/dev/sde4",
+        "first_lba": 774,
+        "last_lba": 31493,
+        "bytes": 125829120,
+        "attributes_hex_at_observation": "0x103f000000000000",
+        "mapping_evidence": [
+          "recovery"
+        ],
+        "mounted_at_observation": {
+          "mount": "/firmware",
+          "mode": "ro",
+          "device": "/dev/sde4"
+        },
+        "historical_backup": {
+          "path": "/Users/shuang/Code/openpilot/migration-audit/recovery-backup-20261017/sde.img.gz",
+          "scope": "contained_in_whole_lun",
+          "captured_at": "2026-10-17T20:04:40+0800",
+          "archive_compressed_sha256": "b691a7ad4b7f82b6ebcb18dc010500590ba797a93c6b968fa56d8a03c90866d2",
+          "compressed_integrity_verified_on": "2026-10-19",
+          "contained_partition_sha256": null,
+          "metadata_source_id": "backup_metadata_sde"
+        },
+        "current_content_sha256": null,
+        "current_capture": null,
+        "current_consistency": null,
+        "contains_potentially_private_or_unique_state": false,
+        "preserve_or_rebuild_decision": null,
+        "current_capture_policy": "EXPLICIT_RANGE_AND_BUDGET_REQUIRED",
+        "dependencies": [
+          "gpt_sde",
+          "host_boot_selection",
+          "host_system",
+          "dsp_mount_selection"
+        ],
+        "acceptance": [
+          "Source identity, exact LBA range and expected length are bound to the capture set; device node alone is insufficient.",
+          "Archive and raw-stream hashes, source drift checks and consistency class are recorded; a historical LUN hash is not this partition hash.",
+          "Unknown or excluded objects remain gaps; no automatic restore or write is authorized."
+        ]
+      },
+      {
+        "id": "partition_bluetooth_a",
+        "name": "bluetooth_a",
+        "lun": "sde",
+        "partition_number": 5,
+        "device_at_observation": "/dev/sde5",
+        "first_lba": 31494,
+        "last_lba": 31749,
+        "bytes": 1048576,
+        "attributes_hex_at_observation": "0x103f000000000000",
+        "mapping_evidence": [
+          "recovery"
+        ],
+        "mounted_at_observation": null,
+        "historical_backup": {
+          "path": "/Users/shuang/Code/openpilot/migration-audit/recovery-backup-20261017/sde.img.gz",
+          "scope": "contained_in_whole_lun",
+          "captured_at": "2026-10-17T20:04:40+0800",
+          "archive_compressed_sha256": "b691a7ad4b7f82b6ebcb18dc010500590ba797a93c6b968fa56d8a03c90866d2",
+          "compressed_integrity_verified_on": "2026-10-19",
+          "contained_partition_sha256": null,
+          "metadata_source_id": "backup_metadata_sde"
+        },
+        "current_content_sha256": null,
+        "current_capture": null,
+        "current_consistency": null,
+        "contains_potentially_private_or_unique_state": false,
+        "preserve_or_rebuild_decision": null,
+        "current_capture_policy": "EXPLICIT_RANGE_AND_BUDGET_REQUIRED",
+        "dependencies": [
+          "gpt_sde",
+          "host_boot_selection"
+        ],
+        "acceptance": [
+          "Source identity, exact LBA range and expected length are bound to the capture set; device node alone is insufficient.",
+          "Archive and raw-stream hashes, source drift checks and consistency class are recorded; a historical LUN hash is not this partition hash.",
+          "Unknown or excluded objects remain gaps; no automatic restore or write is authorized."
+        ]
+      },
+      {
+        "id": "partition_mdtpsecapp_a",
+        "name": "mdtpsecapp_a",
+        "lun": "sde",
+        "partition_number": 6,
+        "device_at_observation": "/dev/sde6",
+        "first_lba": 31750,
+        "last_lba": 32773,
+        "bytes": 4194304,
+        "attributes_hex_at_observation": "0x103f000000000000",
+        "mapping_evidence": [
+          "recovery"
+        ],
+        "mounted_at_observation": null,
+        "historical_backup": {
+          "path": "/Users/shuang/Code/openpilot/migration-audit/recovery-backup-20261017/sde.img.gz",
+          "scope": "contained_in_whole_lun",
+          "captured_at": "2026-10-17T20:04:40+0800",
+          "archive_compressed_sha256": "b691a7ad4b7f82b6ebcb18dc010500590ba797a93c6b968fa56d8a03c90866d2",
+          "compressed_integrity_verified_on": "2026-10-19",
+          "contained_partition_sha256": null,
+          "metadata_source_id": "backup_metadata_sde"
+        },
+        "current_content_sha256": null,
+        "current_capture": null,
+        "current_consistency": null,
+        "contains_potentially_private_or_unique_state": false,
+        "preserve_or_rebuild_decision": null,
+        "current_capture_policy": "EXPLICIT_RANGE_AND_BUDGET_REQUIRED",
+        "dependencies": [
+          "gpt_sde",
+          "host_boot_selection"
+        ],
+        "acceptance": [
+          "Source identity, exact LBA range and expected length are bound to the capture set; device node alone is insufficient.",
+          "Archive and raw-stream hashes, source drift checks and consistency class are recorded; a historical LUN hash is not this partition hash.",
+          "Unknown or excluded objects remain gaps; no automatic restore or write is authorized."
+        ]
+      },
+      {
+        "id": "partition_mdtp_a",
+        "name": "mdtp_a",
+        "lun": "sde",
+        "partition_number": 7,
+        "device_at_observation": "/dev/sde7",
+        "first_lba": 32774,
+        "last_lba": 40965,
+        "bytes": 33554432,
+        "attributes_hex_at_observation": "0x103f000000000000",
+        "mapping_evidence": [
+          "recovery"
+        ],
+        "mounted_at_observation": null,
+        "historical_backup": {
+          "path": "/Users/shuang/Code/openpilot/migration-audit/recovery-backup-20261017/sde.img.gz",
+          "scope": "contained_in_whole_lun",
+          "captured_at": "2026-10-17T20:04:40+0800",
+          "archive_compressed_sha256": "b691a7ad4b7f82b6ebcb18dc010500590ba797a93c6b968fa56d8a03c90866d2",
+          "compressed_integrity_verified_on": "2026-10-19",
+          "contained_partition_sha256": null,
+          "metadata_source_id": "backup_metadata_sde"
+        },
+        "current_content_sha256": null,
+        "current_capture": null,
+        "current_consistency": null,
+        "contains_potentially_private_or_unique_state": false,
+        "preserve_or_rebuild_decision": null,
+        "current_capture_policy": "EXPLICIT_RANGE_AND_BUDGET_REQUIRED",
+        "dependencies": [
+          "gpt_sde",
+          "host_boot_selection"
+        ],
+        "acceptance": [
+          "Source identity, exact LBA range and expected length are bound to the capture set; device node alone is insufficient.",
+          "Archive and raw-stream hashes, source drift checks and consistency class are recorded; a historical LUN hash is not this partition hash.",
+          "Unknown or excluded objects remain gaps; no automatic restore or write is authorized."
+        ]
+      },
+      {
+        "id": "partition_abl_a",
+        "name": "abl_a",
+        "lun": "sde",
+        "partition_number": 8,
+        "device_at_observation": "/dev/sde8",
+        "first_lba": 40966,
+        "last_lba": 41221,
+        "bytes": 1048576,
+        "attributes_hex_at_observation": "0x103f000000000000",
+        "mapping_evidence": [
+          "recovery"
+        ],
+        "mounted_at_observation": null,
+        "historical_backup": {
+          "path": "/Users/shuang/Code/openpilot/migration-audit/recovery-backup-20261017/sde.img.gz",
+          "scope": "contained_in_whole_lun",
+          "captured_at": "2026-10-17T20:04:40+0800",
+          "archive_compressed_sha256": "b691a7ad4b7f82b6ebcb18dc010500590ba797a93c6b968fa56d8a03c90866d2",
+          "compressed_integrity_verified_on": "2026-10-19",
+          "contained_partition_sha256": null,
+          "metadata_source_id": "backup_metadata_sde"
+        },
+        "current_content_sha256": null,
+        "current_capture": null,
+        "current_consistency": null,
+        "contains_potentially_private_or_unique_state": false,
+        "preserve_or_rebuild_decision": null,
+        "current_capture_policy": "EXPLICIT_RANGE_AND_BUDGET_REQUIRED",
+        "dependencies": [
+          "gpt_sde",
+          "host_boot_selection"
+        ],
+        "acceptance": [
+          "Source identity, exact LBA range and expected length are bound to the capture set; device node alone is insufficient.",
+          "Archive and raw-stream hashes, source drift checks and consistency class are recorded; a historical LUN hash is not this partition hash.",
+          "Unknown or excluded objects remain gaps; no automatic restore or write is authorized."
+        ]
+      },
+      {
+        "id": "partition_dsp_a",
+        "name": "dsp_a",
+        "lun": "sde",
+        "partition_number": 9,
+        "device_at_observation": "/dev/sde9",
+        "first_lba": 41222,
+        "last_lba": 49413,
+        "bytes": 33554432,
+        "attributes_hex_at_observation": "0x103f000000000000",
+        "mapping_evidence": [
+          "recovery"
+        ],
+        "mounted_at_observation": null,
+        "historical_backup": {
+          "path": "/Users/shuang/Code/openpilot/migration-audit/recovery-backup-20261017/sde.img.gz",
+          "scope": "contained_in_whole_lun",
+          "captured_at": "2026-10-17T20:04:40+0800",
+          "archive_compressed_sha256": "b691a7ad4b7f82b6ebcb18dc010500590ba797a93c6b968fa56d8a03c90866d2",
+          "compressed_integrity_verified_on": "2026-10-19",
+          "contained_partition_sha256": null,
+          "metadata_source_id": "backup_metadata_sde"
+        },
+        "current_content_sha256": null,
+        "current_capture": null,
+        "current_consistency": null,
+        "contains_potentially_private_or_unique_state": false,
+        "preserve_or_rebuild_decision": null,
+        "current_capture_policy": "EXPLICIT_RANGE_AND_BUDGET_REQUIRED",
+        "dependencies": [
+          "gpt_sde",
+          "host_boot_selection",
+          "host_system",
+          "dsp_mount_selection"
+        ],
+        "acceptance": [
+          "Source identity, exact LBA range and expected length are bound to the capture set; device node alone is insufficient.",
+          "Archive and raw-stream hashes, source drift checks and consistency class are recorded; a historical LUN hash is not this partition hash.",
+          "Unknown or excluded objects remain gaps; no automatic restore or write is authorized."
+        ]
+      },
+      {
+        "id": "partition_keymaster_a",
+        "name": "keymaster_a",
+        "lun": "sde",
+        "partition_number": 10,
+        "device_at_observation": "/dev/sde10",
+        "first_lba": 49414,
+        "last_lba": 49541,
+        "bytes": 524288,
+        "attributes_hex_at_observation": "0x103f000000000000",
+        "mapping_evidence": [
+          "recovery"
+        ],
+        "mounted_at_observation": null,
+        "historical_backup": {
+          "path": "/Users/shuang/Code/openpilot/migration-audit/recovery-backup-20261017/sde.img.gz",
+          "scope": "contained_in_whole_lun",
+          "captured_at": "2026-10-17T20:04:40+0800",
+          "archive_compressed_sha256": "b691a7ad4b7f82b6ebcb18dc010500590ba797a93c6b968fa56d8a03c90866d2",
+          "compressed_integrity_verified_on": "2026-10-19",
+          "contained_partition_sha256": null,
+          "metadata_source_id": "backup_metadata_sde"
+        },
+        "current_content_sha256": null,
+        "current_capture": null,
+        "current_consistency": null,
+        "contains_potentially_private_or_unique_state": true,
+        "preserve_or_rebuild_decision": null,
+        "current_capture_policy": "SCOPE_AND_PRIVATE_HANDLING_REQUIRED",
+        "dependencies": [
+          "gpt_sde",
+          "host_boot_selection"
+        ],
+        "acceptance": [
+          "Source identity, exact LBA range and expected length are bound to the capture set; device node alone is insufficient.",
+          "Archive and raw-stream hashes, source drift checks and consistency class are recorded; a historical LUN hash is not this partition hash.",
+          "Unknown or excluded objects remain gaps; no automatic restore or write is authorized."
+        ]
+      },
+      {
+        "id": "partition_boot_a",
+        "name": "boot_a",
+        "lun": "sde",
+        "partition_number": 11,
+        "device_at_observation": "/dev/sde11",
+        "first_lba": 49542,
+        "last_lba": 65925,
+        "bytes": 67108864,
+        "attributes_hex_at_observation": "0x0077000000000000",
+        "mapping_evidence": [
+          "recovery"
+        ],
+        "mounted_at_observation": null,
+        "historical_backup": {
+          "path": "/Users/shuang/Code/openpilot/migration-audit/recovery-backup-20261017/sde.img.gz",
+          "scope": "contained_in_whole_lun",
+          "captured_at": "2026-10-17T20:04:40+0800",
+          "archive_compressed_sha256": "b691a7ad4b7f82b6ebcb18dc010500590ba797a93c6b968fa56d8a03c90866d2",
+          "compressed_integrity_verified_on": "2026-10-19",
+          "contained_partition_sha256": null,
+          "metadata_source_id": "backup_metadata_sde"
+        },
+        "current_content_sha256": null,
+        "current_capture": null,
+        "current_consistency": null,
+        "contains_potentially_private_or_unique_state": false,
+        "preserve_or_rebuild_decision": null,
+        "current_capture_policy": "EXPLICIT_RANGE_AND_BUDGET_REQUIRED",
+        "dependencies": [
+          "gpt_sde",
+          "host_boot_selection"
+        ],
+        "acceptance": [
+          "Source identity, exact LBA range and expected length are bound to the capture set; device node alone is insufficient.",
+          "Archive and raw-stream hashes, source drift checks and consistency class are recorded; a historical LUN hash is not this partition hash.",
+          "Unknown or excluded objects remain gaps; no automatic restore or write is authorized."
+        ]
+      },
+      {
+        "id": "partition_cmnlib_a",
+        "name": "cmnlib_a",
+        "lun": "sde",
+        "partition_number": 12,
+        "device_at_observation": "/dev/sde12",
+        "first_lba": 65926,
+        "last_lba": 66053,
+        "bytes": 524288,
+        "attributes_hex_at_observation": "0x103f000000000000",
+        "mapping_evidence": [
+          "recovery"
+        ],
+        "mounted_at_observation": null,
+        "historical_backup": {
+          "path": "/Users/shuang/Code/openpilot/migration-audit/recovery-backup-20261017/sde.img.gz",
+          "scope": "contained_in_whole_lun",
+          "captured_at": "2026-10-17T20:04:40+0800",
+          "archive_compressed_sha256": "b691a7ad4b7f82b6ebcb18dc010500590ba797a93c6b968fa56d8a03c90866d2",
+          "compressed_integrity_verified_on": "2026-10-19",
+          "contained_partition_sha256": null,
+          "metadata_source_id": "backup_metadata_sde"
+        },
+        "current_content_sha256": null,
+        "current_capture": null,
+        "current_consistency": null,
+        "contains_potentially_private_or_unique_state": false,
+        "preserve_or_rebuild_decision": null,
+        "current_capture_policy": "EXPLICIT_RANGE_AND_BUDGET_REQUIRED",
+        "dependencies": [
+          "gpt_sde",
+          "host_boot_selection"
+        ],
+        "acceptance": [
+          "Source identity, exact LBA range and expected length are bound to the capture set; device node alone is insufficient.",
+          "Archive and raw-stream hashes, source drift checks and consistency class are recorded; a historical LUN hash is not this partition hash.",
+          "Unknown or excluded objects remain gaps; no automatic restore or write is authorized."
+        ]
+      },
+      {
+        "id": "partition_cmnlib64_a",
+        "name": "cmnlib64_a",
+        "lun": "sde",
+        "partition_number": 13,
+        "device_at_observation": "/dev/sde13",
+        "first_lba": 66054,
+        "last_lba": 66181,
+        "bytes": 524288,
+        "attributes_hex_at_observation": "0x103f000000000000",
+        "mapping_evidence": [
+          "recovery"
+        ],
+        "mounted_at_observation": null,
+        "historical_backup": {
+          "path": "/Users/shuang/Code/openpilot/migration-audit/recovery-backup-20261017/sde.img.gz",
+          "scope": "contained_in_whole_lun",
+          "captured_at": "2026-10-17T20:04:40+0800",
+          "archive_compressed_sha256": "b691a7ad4b7f82b6ebcb18dc010500590ba797a93c6b968fa56d8a03c90866d2",
+          "compressed_integrity_verified_on": "2026-10-19",
+          "contained_partition_sha256": null,
+          "metadata_source_id": "backup_metadata_sde"
+        },
+        "current_content_sha256": null,
+        "current_capture": null,
+        "current_consistency": null,
+        "contains_potentially_private_or_unique_state": false,
+        "preserve_or_rebuild_decision": null,
+        "current_capture_policy": "EXPLICIT_RANGE_AND_BUDGET_REQUIRED",
+        "dependencies": [
+          "gpt_sde",
+          "host_boot_selection"
+        ],
+        "acceptance": [
+          "Source identity, exact LBA range and expected length are bound to the capture set; device node alone is insufficient.",
+          "Archive and raw-stream hashes, source drift checks and consistency class are recorded; a historical LUN hash is not this partition hash.",
+          "Unknown or excluded objects remain gaps; no automatic restore or write is authorized."
+        ]
+      },
+      {
+        "id": "partition_devcfg_a",
+        "name": "devcfg_a",
+        "lun": "sde",
+        "partition_number": 14,
+        "device_at_observation": "/dev/sde14",
+        "first_lba": 66182,
+        "last_lba": 66213,
+        "bytes": 131072,
+        "attributes_hex_at_observation": "0x003f000000000000",
+        "mapping_evidence": [
+          "recovery"
+        ],
+        "mounted_at_observation": null,
+        "historical_backup": {
+          "path": "/Users/shuang/Code/openpilot/migration-audit/recovery-backup-20261017/sde.img.gz",
+          "scope": "contained_in_whole_lun",
+          "captured_at": "2026-10-17T20:04:40+0800",
+          "archive_compressed_sha256": "b691a7ad4b7f82b6ebcb18dc010500590ba797a93c6b968fa56d8a03c90866d2",
+          "compressed_integrity_verified_on": "2026-10-19",
+          "contained_partition_sha256": null,
+          "metadata_source_id": "backup_metadata_sde"
+        },
+        "current_content_sha256": null,
+        "current_capture": null,
+        "current_consistency": null,
+        "contains_potentially_private_or_unique_state": false,
+        "preserve_or_rebuild_decision": null,
+        "current_capture_policy": "EXPLICIT_RANGE_AND_BUDGET_REQUIRED",
+        "dependencies": [
+          "gpt_sde",
+          "host_boot_selection"
+        ],
+        "acceptance": [
+          "Source identity, exact LBA range and expected length are bound to the capture set; device node alone is insufficient.",
+          "Archive and raw-stream hashes, source drift checks and consistency class are recorded; a historical LUN hash is not this partition hash.",
+          "Unknown or excluded objects remain gaps; no automatic restore or write is authorized."
+        ]
+      },
+      {
+        "id": "partition_qupfw_a",
+        "name": "qupfw_a",
+        "lun": "sde",
+        "partition_number": 15,
+        "device_at_observation": "/dev/sde15",
+        "first_lba": 66214,
+        "last_lba": 66229,
+        "bytes": 65536,
+        "attributes_hex_at_observation": "0x003f000000000000",
+        "mapping_evidence": [
+          "recovery"
+        ],
+        "mounted_at_observation": null,
+        "historical_backup": {
+          "path": "/Users/shuang/Code/openpilot/migration-audit/recovery-backup-20261017/sde.img.gz",
+          "scope": "contained_in_whole_lun",
+          "captured_at": "2026-10-17T20:04:40+0800",
+          "archive_compressed_sha256": "b691a7ad4b7f82b6ebcb18dc010500590ba797a93c6b968fa56d8a03c90866d2",
+          "compressed_integrity_verified_on": "2026-10-19",
+          "contained_partition_sha256": null,
+          "metadata_source_id": "backup_metadata_sde"
+        },
+        "current_content_sha256": null,
+        "current_capture": null,
+        "current_consistency": null,
+        "contains_potentially_private_or_unique_state": false,
+        "preserve_or_rebuild_decision": null,
+        "current_capture_policy": "EXPLICIT_RANGE_AND_BUDGET_REQUIRED",
+        "dependencies": [
+          "gpt_sde",
+          "host_boot_selection"
+        ],
+        "acceptance": [
+          "Source identity, exact LBA range and expected length are bound to the capture set; device node alone is insufficient.",
+          "Archive and raw-stream hashes, source drift checks and consistency class are recorded; a historical LUN hash is not this partition hash.",
+          "Unknown or excluded objects remain gaps; no automatic restore or write is authorized."
+        ]
+      },
+      {
+        "id": "partition_storsec_a",
+        "name": "storsec_a",
+        "lun": "sde",
+        "partition_number": 16,
+        "device_at_observation": "/dev/sde16",
+        "first_lba": 66230,
+        "last_lba": 66261,
+        "bytes": 131072,
+        "attributes_hex_at_observation": "0x003f000000000000",
+        "mapping_evidence": [
+          "recovery"
+        ],
+        "mounted_at_observation": null,
+        "historical_backup": {
+          "path": "/Users/shuang/Code/openpilot/migration-audit/recovery-backup-20261017/sde.img.gz",
+          "scope": "contained_in_whole_lun",
+          "captured_at": "2026-10-17T20:04:40+0800",
+          "archive_compressed_sha256": "b691a7ad4b7f82b6ebcb18dc010500590ba797a93c6b968fa56d8a03c90866d2",
+          "compressed_integrity_verified_on": "2026-10-19",
+          "contained_partition_sha256": null,
+          "metadata_source_id": "backup_metadata_sde"
+        },
+        "current_content_sha256": null,
+        "current_capture": null,
+        "current_consistency": null,
+        "contains_potentially_private_or_unique_state": false,
+        "preserve_or_rebuild_decision": null,
+        "current_capture_policy": "EXPLICIT_RANGE_AND_BUDGET_REQUIRED",
+        "dependencies": [
+          "gpt_sde",
+          "host_boot_selection"
+        ],
+        "acceptance": [
+          "Source identity, exact LBA range and expected length are bound to the capture set; device node alone is insufficient.",
+          "Archive and raw-stream hashes, source drift checks and consistency class are recorded; a historical LUN hash is not this partition hash.",
+          "Unknown or excluded objects remain gaps; no automatic restore or write is authorized."
+        ]
+      },
+      {
+        "id": "partition_ImageFv_a",
+        "name": "ImageFv_a",
+        "lun": "sde",
+        "partition_number": 17,
+        "device_at_observation": "/dev/sde17",
+        "first_lba": 66262,
+        "last_lba": 66517,
+        "bytes": 1048576,
+        "attributes_hex_at_observation": "0x003f000000000000",
+        "mapping_evidence": [
+          "recovery"
+        ],
+        "mounted_at_observation": null,
+        "historical_backup": {
+          "path": "/Users/shuang/Code/openpilot/migration-audit/recovery-backup-20261017/sde.img.gz",
+          "scope": "contained_in_whole_lun",
+          "captured_at": "2026-10-17T20:04:40+0800",
+          "archive_compressed_sha256": "b691a7ad4b7f82b6ebcb18dc010500590ba797a93c6b968fa56d8a03c90866d2",
+          "compressed_integrity_verified_on": "2026-10-19",
+          "contained_partition_sha256": null,
+          "metadata_source_id": "backup_metadata_sde"
+        },
+        "current_content_sha256": null,
+        "current_capture": null,
+        "current_consistency": null,
+        "contains_potentially_private_or_unique_state": false,
+        "preserve_or_rebuild_decision": null,
+        "current_capture_policy": "EXPLICIT_RANGE_AND_BUDGET_REQUIRED",
+        "dependencies": [
+          "gpt_sde",
+          "host_boot_selection"
+        ],
+        "acceptance": [
+          "Source identity, exact LBA range and expected length are bound to the capture set; device node alone is insufficient.",
+          "Archive and raw-stream hashes, source drift checks and consistency class are recorded; a historical LUN hash is not this partition hash.",
+          "Unknown or excluded objects remain gaps; no automatic restore or write is authorized."
+        ]
+      },
+      {
+        "id": "partition_aop_b",
+        "name": "aop_b",
+        "lun": "sde",
+        "partition_number": 18,
+        "device_at_observation": "/dev/sde18",
+        "first_lba": 66518,
+        "last_lba": 66645,
+        "bytes": 524288,
+        "attributes_hex_at_observation": "0x0039000000000000",
+        "mapping_evidence": [
+          "recovery"
+        ],
+        "mounted_at_observation": null,
+        "historical_backup": {
+          "path": "/Users/shuang/Code/openpilot/migration-audit/recovery-backup-20261017/sde.img.gz",
+          "scope": "contained_in_whole_lun",
+          "captured_at": "2026-10-17T20:04:40+0800",
+          "archive_compressed_sha256": "b691a7ad4b7f82b6ebcb18dc010500590ba797a93c6b968fa56d8a03c90866d2",
+          "compressed_integrity_verified_on": "2026-10-19",
+          "contained_partition_sha256": null,
+          "metadata_source_id": "backup_metadata_sde"
+        },
+        "current_content_sha256": null,
+        "current_capture": null,
+        "current_consistency": null,
+        "contains_potentially_private_or_unique_state": false,
+        "preserve_or_rebuild_decision": null,
+        "current_capture_policy": "EXPLICIT_RANGE_AND_BUDGET_REQUIRED",
+        "dependencies": [
+          "gpt_sde",
+          "host_boot_selection"
+        ],
+        "acceptance": [
+          "Source identity, exact LBA range and expected length are bound to the capture set; device node alone is insufficient.",
+          "Archive and raw-stream hashes, source drift checks and consistency class are recorded; a historical LUN hash is not this partition hash.",
+          "Unknown or excluded objects remain gaps; no automatic restore or write is authorized."
+        ]
+      },
+      {
+        "id": "partition_tz_b",
+        "name": "tz_b",
+        "lun": "sde",
+        "partition_number": 19,
+        "device_at_observation": "/dev/sde19",
+        "first_lba": 66646,
+        "last_lba": 67157,
+        "bytes": 2097152,
+        "attributes_hex_at_observation": "0x0039000000000000",
+        "mapping_evidence": [
+          "recovery"
+        ],
+        "mounted_at_observation": null,
+        "historical_backup": {
+          "path": "/Users/shuang/Code/openpilot/migration-audit/recovery-backup-20261017/sde.img.gz",
+          "scope": "contained_in_whole_lun",
+          "captured_at": "2026-10-17T20:04:40+0800",
+          "archive_compressed_sha256": "b691a7ad4b7f82b6ebcb18dc010500590ba797a93c6b968fa56d8a03c90866d2",
+          "compressed_integrity_verified_on": "2026-10-19",
+          "contained_partition_sha256": null,
+          "metadata_source_id": "backup_metadata_sde"
+        },
+        "current_content_sha256": null,
+        "current_capture": null,
+        "current_consistency": null,
+        "contains_potentially_private_or_unique_state": false,
+        "preserve_or_rebuild_decision": null,
+        "current_capture_policy": "EXPLICIT_RANGE_AND_BUDGET_REQUIRED",
+        "dependencies": [
+          "gpt_sde",
+          "host_boot_selection"
+        ],
+        "acceptance": [
+          "Source identity, exact LBA range and expected length are bound to the capture set; device node alone is insufficient.",
+          "Archive and raw-stream hashes, source drift checks and consistency class are recorded; a historical LUN hash is not this partition hash.",
+          "Unknown or excluded objects remain gaps; no automatic restore or write is authorized."
+        ]
+      },
+      {
+        "id": "partition_hyp_b",
+        "name": "hyp_b",
+        "lun": "sde",
+        "partition_number": 20,
+        "device_at_observation": "/dev/sde20",
+        "first_lba": 67158,
+        "last_lba": 67285,
+        "bytes": 524288,
+        "attributes_hex_at_observation": "0x0039000000000000",
+        "mapping_evidence": [
+          "recovery"
+        ],
+        "mounted_at_observation": null,
+        "historical_backup": {
+          "path": "/Users/shuang/Code/openpilot/migration-audit/recovery-backup-20261017/sde.img.gz",
+          "scope": "contained_in_whole_lun",
+          "captured_at": "2026-10-17T20:04:40+0800",
+          "archive_compressed_sha256": "b691a7ad4b7f82b6ebcb18dc010500590ba797a93c6b968fa56d8a03c90866d2",
+          "compressed_integrity_verified_on": "2026-10-19",
+          "contained_partition_sha256": null,
+          "metadata_source_id": "backup_metadata_sde"
+        },
+        "current_content_sha256": null,
+        "current_capture": null,
+        "current_consistency": null,
+        "contains_potentially_private_or_unique_state": false,
+        "preserve_or_rebuild_decision": null,
+        "current_capture_policy": "EXPLICIT_RANGE_AND_BUDGET_REQUIRED",
+        "dependencies": [
+          "gpt_sde",
+          "host_boot_selection"
+        ],
+        "acceptance": [
+          "Source identity, exact LBA range and expected length are bound to the capture set; device node alone is insufficient.",
+          "Archive and raw-stream hashes, source drift checks and consistency class are recorded; a historical LUN hash is not this partition hash.",
+          "Unknown or excluded objects remain gaps; no automatic restore or write is authorized."
+        ]
+      },
+      {
+        "id": "partition_modem_b",
+        "name": "modem_b",
+        "lun": "sde",
+        "partition_number": 21,
+        "device_at_observation": "/dev/sde21",
+        "first_lba": 67286,
+        "last_lba": 98005,
+        "bytes": 125829120,
+        "attributes_hex_at_observation": "0x1039000000000000",
+        "mapping_evidence": [
+          "recovery"
+        ],
+        "mounted_at_observation": null,
+        "historical_backup": {
+          "path": "/Users/shuang/Code/openpilot/migration-audit/recovery-backup-20261017/sde.img.gz",
+          "scope": "contained_in_whole_lun",
+          "captured_at": "2026-10-17T20:04:40+0800",
+          "archive_compressed_sha256": "b691a7ad4b7f82b6ebcb18dc010500590ba797a93c6b968fa56d8a03c90866d2",
+          "compressed_integrity_verified_on": "2026-10-19",
+          "contained_partition_sha256": null,
+          "metadata_source_id": "backup_metadata_sde"
+        },
+        "current_content_sha256": null,
+        "current_capture": null,
+        "current_consistency": null,
+        "contains_potentially_private_or_unique_state": false,
+        "preserve_or_rebuild_decision": null,
+        "current_capture_policy": "EXPLICIT_RANGE_AND_BUDGET_REQUIRED",
+        "dependencies": [
+          "gpt_sde",
+          "host_boot_selection",
+          "host_system",
+          "dsp_mount_selection"
+        ],
+        "acceptance": [
+          "Source identity, exact LBA range and expected length are bound to the capture set; device node alone is insufficient.",
+          "Archive and raw-stream hashes, source drift checks and consistency class are recorded; a historical LUN hash is not this partition hash.",
+          "Unknown or excluded objects remain gaps; no automatic restore or write is authorized."
+        ]
+      },
+      {
+        "id": "partition_bluetooth_b",
+        "name": "bluetooth_b",
+        "lun": "sde",
+        "partition_number": 22,
+        "device_at_observation": "/dev/sde22",
+        "first_lba": 98006,
+        "last_lba": 98261,
+        "bytes": 1048576,
+        "attributes_hex_at_observation": "0x1039000000000000",
+        "mapping_evidence": [
+          "recovery"
+        ],
+        "mounted_at_observation": null,
+        "historical_backup": {
+          "path": "/Users/shuang/Code/openpilot/migration-audit/recovery-backup-20261017/sde.img.gz",
+          "scope": "contained_in_whole_lun",
+          "captured_at": "2026-10-17T20:04:40+0800",
+          "archive_compressed_sha256": "b691a7ad4b7f82b6ebcb18dc010500590ba797a93c6b968fa56d8a03c90866d2",
+          "compressed_integrity_verified_on": "2026-10-19",
+          "contained_partition_sha256": null,
+          "metadata_source_id": "backup_metadata_sde"
+        },
+        "current_content_sha256": null,
+        "current_capture": null,
+        "current_consistency": null,
+        "contains_potentially_private_or_unique_state": false,
+        "preserve_or_rebuild_decision": null,
+        "current_capture_policy": "EXPLICIT_RANGE_AND_BUDGET_REQUIRED",
+        "dependencies": [
+          "gpt_sde",
+          "host_boot_selection"
+        ],
+        "acceptance": [
+          "Source identity, exact LBA range and expected length are bound to the capture set; device node alone is insufficient.",
+          "Archive and raw-stream hashes, source drift checks and consistency class are recorded; a historical LUN hash is not this partition hash.",
+          "Unknown or excluded objects remain gaps; no automatic restore or write is authorized."
+        ]
+      },
+      {
+        "id": "partition_mdtpsecapp_b",
+        "name": "mdtpsecapp_b",
+        "lun": "sde",
+        "partition_number": 23,
+        "device_at_observation": "/dev/sde23",
+        "first_lba": 98262,
+        "last_lba": 99285,
+        "bytes": 4194304,
+        "attributes_hex_at_observation": "0x1039000000000000",
+        "mapping_evidence": [
+          "recovery"
+        ],
+        "mounted_at_observation": null,
+        "historical_backup": {
+          "path": "/Users/shuang/Code/openpilot/migration-audit/recovery-backup-20261017/sde.img.gz",
+          "scope": "contained_in_whole_lun",
+          "captured_at": "2026-10-17T20:04:40+0800",
+          "archive_compressed_sha256": "b691a7ad4b7f82b6ebcb18dc010500590ba797a93c6b968fa56d8a03c90866d2",
+          "compressed_integrity_verified_on": "2026-10-19",
+          "contained_partition_sha256": null,
+          "metadata_source_id": "backup_metadata_sde"
+        },
+        "current_content_sha256": null,
+        "current_capture": null,
+        "current_consistency": null,
+        "contains_potentially_private_or_unique_state": false,
+        "preserve_or_rebuild_decision": null,
+        "current_capture_policy": "EXPLICIT_RANGE_AND_BUDGET_REQUIRED",
+        "dependencies": [
+          "gpt_sde",
+          "host_boot_selection"
+        ],
+        "acceptance": [
+          "Source identity, exact LBA range and expected length are bound to the capture set; device node alone is insufficient.",
+          "Archive and raw-stream hashes, source drift checks and consistency class are recorded; a historical LUN hash is not this partition hash.",
+          "Unknown or excluded objects remain gaps; no automatic restore or write is authorized."
+        ]
+      },
+      {
+        "id": "partition_mdtp_b",
+        "name": "mdtp_b",
+        "lun": "sde",
+        "partition_number": 24,
+        "device_at_observation": "/dev/sde24",
+        "first_lba": 99286,
+        "last_lba": 107477,
+        "bytes": 33554432,
+        "attributes_hex_at_observation": "0x1039000000000000",
+        "mapping_evidence": [
+          "recovery"
+        ],
+        "mounted_at_observation": null,
+        "historical_backup": {
+          "path": "/Users/shuang/Code/openpilot/migration-audit/recovery-backup-20261017/sde.img.gz",
+          "scope": "contained_in_whole_lun",
+          "captured_at": "2026-10-17T20:04:40+0800",
+          "archive_compressed_sha256": "b691a7ad4b7f82b6ebcb18dc010500590ba797a93c6b968fa56d8a03c90866d2",
+          "compressed_integrity_verified_on": "2026-10-19",
+          "contained_partition_sha256": null,
+          "metadata_source_id": "backup_metadata_sde"
+        },
+        "current_content_sha256": null,
+        "current_capture": null,
+        "current_consistency": null,
+        "contains_potentially_private_or_unique_state": false,
+        "preserve_or_rebuild_decision": null,
+        "current_capture_policy": "EXPLICIT_RANGE_AND_BUDGET_REQUIRED",
+        "dependencies": [
+          "gpt_sde",
+          "host_boot_selection"
+        ],
+        "acceptance": [
+          "Source identity, exact LBA range and expected length are bound to the capture set; device node alone is insufficient.",
+          "Archive and raw-stream hashes, source drift checks and consistency class are recorded; a historical LUN hash is not this partition hash.",
+          "Unknown or excluded objects remain gaps; no automatic restore or write is authorized."
+        ]
+      },
+      {
+        "id": "partition_abl_b",
+        "name": "abl_b",
+        "lun": "sde",
+        "partition_number": 25,
+        "device_at_observation": "/dev/sde25",
+        "first_lba": 107478,
+        "last_lba": 107733,
+        "bytes": 1048576,
+        "attributes_hex_at_observation": "0x1039000000000000",
+        "mapping_evidence": [
+          "recovery"
+        ],
+        "mounted_at_observation": null,
+        "historical_backup": {
+          "path": "/Users/shuang/Code/openpilot/migration-audit/recovery-backup-20261017/sde.img.gz",
+          "scope": "contained_in_whole_lun",
+          "captured_at": "2026-10-17T20:04:40+0800",
+          "archive_compressed_sha256": "b691a7ad4b7f82b6ebcb18dc010500590ba797a93c6b968fa56d8a03c90866d2",
+          "compressed_integrity_verified_on": "2026-10-19",
+          "contained_partition_sha256": null,
+          "metadata_source_id": "backup_metadata_sde"
+        },
+        "current_content_sha256": null,
+        "current_capture": null,
+        "current_consistency": null,
+        "contains_potentially_private_or_unique_state": false,
+        "preserve_or_rebuild_decision": null,
+        "current_capture_policy": "EXPLICIT_RANGE_AND_BUDGET_REQUIRED",
+        "dependencies": [
+          "gpt_sde",
+          "host_boot_selection"
+        ],
+        "acceptance": [
+          "Source identity, exact LBA range and expected length are bound to the capture set; device node alone is insufficient.",
+          "Archive and raw-stream hashes, source drift checks and consistency class are recorded; a historical LUN hash is not this partition hash.",
+          "Unknown or excluded objects remain gaps; no automatic restore or write is authorized."
+        ]
+      },
+      {
+        "id": "partition_dsp_b",
+        "name": "dsp_b",
+        "lun": "sde",
+        "partition_number": 26,
+        "device_at_observation": "/dev/sde26",
+        "first_lba": 107734,
+        "last_lba": 115925,
+        "bytes": 33554432,
+        "attributes_hex_at_observation": "0x1039000000000000",
+        "mapping_evidence": [
+          "recovery"
+        ],
+        "mounted_at_observation": {
+          "mount": "/dsp",
+          "mode": "ro",
+          "device": "/dev/sde26"
+        },
+        "historical_backup": {
+          "path": "/Users/shuang/Code/openpilot/migration-audit/recovery-backup-20261017/sde.img.gz",
+          "scope": "contained_in_whole_lun",
+          "captured_at": "2026-10-17T20:04:40+0800",
+          "archive_compressed_sha256": "b691a7ad4b7f82b6ebcb18dc010500590ba797a93c6b968fa56d8a03c90866d2",
+          "compressed_integrity_verified_on": "2026-10-19",
+          "contained_partition_sha256": null,
+          "metadata_source_id": "backup_metadata_sde"
+        },
+        "current_content_sha256": null,
+        "current_capture": null,
+        "current_consistency": null,
+        "contains_potentially_private_or_unique_state": false,
+        "preserve_or_rebuild_decision": null,
+        "current_capture_policy": "EXPLICIT_RANGE_AND_BUDGET_REQUIRED",
+        "dependencies": [
+          "gpt_sde",
+          "host_boot_selection",
+          "host_system",
+          "dsp_mount_selection"
+        ],
+        "acceptance": [
+          "Source identity, exact LBA range and expected length are bound to the capture set; device node alone is insufficient.",
+          "Archive and raw-stream hashes, source drift checks and consistency class are recorded; a historical LUN hash is not this partition hash.",
+          "Unknown or excluded objects remain gaps; no automatic restore or write is authorized."
+        ]
+      },
+      {
+        "id": "partition_keymaster_b",
+        "name": "keymaster_b",
+        "lun": "sde",
+        "partition_number": 27,
+        "device_at_observation": "/dev/sde27",
+        "first_lba": 115926,
+        "last_lba": 116053,
+        "bytes": 524288,
+        "attributes_hex_at_observation": "0x1039000000000000",
+        "mapping_evidence": [
+          "recovery"
+        ],
+        "mounted_at_observation": null,
+        "historical_backup": {
+          "path": "/Users/shuang/Code/openpilot/migration-audit/recovery-backup-20261017/sde.img.gz",
+          "scope": "contained_in_whole_lun",
+          "captured_at": "2026-10-17T20:04:40+0800",
+          "archive_compressed_sha256": "b691a7ad4b7f82b6ebcb18dc010500590ba797a93c6b968fa56d8a03c90866d2",
+          "compressed_integrity_verified_on": "2026-10-19",
+          "contained_partition_sha256": null,
+          "metadata_source_id": "backup_metadata_sde"
+        },
+        "current_content_sha256": null,
+        "current_capture": null,
+        "current_consistency": null,
+        "contains_potentially_private_or_unique_state": true,
+        "preserve_or_rebuild_decision": null,
+        "current_capture_policy": "SCOPE_AND_PRIVATE_HANDLING_REQUIRED",
+        "dependencies": [
+          "gpt_sde",
+          "host_boot_selection"
+        ],
+        "acceptance": [
+          "Source identity, exact LBA range and expected length are bound to the capture set; device node alone is insufficient.",
+          "Archive and raw-stream hashes, source drift checks and consistency class are recorded; a historical LUN hash is not this partition hash.",
+          "Unknown or excluded objects remain gaps; no automatic restore or write is authorized."
+        ]
+      },
+      {
+        "id": "partition_boot_b",
+        "name": "boot_b",
+        "lun": "sde",
+        "partition_number": 28,
+        "device_at_observation": "/dev/sde28",
+        "first_lba": 116054,
+        "last_lba": 132437,
+        "bytes": 67108864,
+        "attributes_hex_at_observation": "0x0071000000000000",
+        "mapping_evidence": [
+          "recovery"
+        ],
+        "mounted_at_observation": null,
+        "historical_backup": {
+          "path": "/Users/shuang/Code/openpilot/migration-audit/recovery-backup-20261017/sde.img.gz",
+          "scope": "contained_in_whole_lun",
+          "captured_at": "2026-10-17T20:04:40+0800",
+          "archive_compressed_sha256": "b691a7ad4b7f82b6ebcb18dc010500590ba797a93c6b968fa56d8a03c90866d2",
+          "compressed_integrity_verified_on": "2026-10-19",
+          "contained_partition_sha256": null,
+          "metadata_source_id": "backup_metadata_sde"
+        },
+        "current_content_sha256": null,
+        "current_capture": null,
+        "current_consistency": null,
+        "contains_potentially_private_or_unique_state": false,
+        "preserve_or_rebuild_decision": null,
+        "current_capture_policy": "EXPLICIT_RANGE_AND_BUDGET_REQUIRED",
+        "dependencies": [
+          "gpt_sde",
+          "host_boot_selection"
+        ],
+        "acceptance": [
+          "Source identity, exact LBA range and expected length are bound to the capture set; device node alone is insufficient.",
+          "Archive and raw-stream hashes, source drift checks and consistency class are recorded; a historical LUN hash is not this partition hash.",
+          "Unknown or excluded objects remain gaps; no automatic restore or write is authorized."
+        ]
+      },
+      {
+        "id": "partition_cmnlib_b",
+        "name": "cmnlib_b",
+        "lun": "sde",
+        "partition_number": 29,
+        "device_at_observation": "/dev/sde29",
+        "first_lba": 132438,
+        "last_lba": 132565,
+        "bytes": 524288,
+        "attributes_hex_at_observation": "0x1039000000000000",
+        "mapping_evidence": [
+          "recovery"
+        ],
+        "mounted_at_observation": null,
+        "historical_backup": {
+          "path": "/Users/shuang/Code/openpilot/migration-audit/recovery-backup-20261017/sde.img.gz",
+          "scope": "contained_in_whole_lun",
+          "captured_at": "2026-10-17T20:04:40+0800",
+          "archive_compressed_sha256": "b691a7ad4b7f82b6ebcb18dc010500590ba797a93c6b968fa56d8a03c90866d2",
+          "compressed_integrity_verified_on": "2026-10-19",
+          "contained_partition_sha256": null,
+          "metadata_source_id": "backup_metadata_sde"
+        },
+        "current_content_sha256": null,
+        "current_capture": null,
+        "current_consistency": null,
+        "contains_potentially_private_or_unique_state": false,
+        "preserve_or_rebuild_decision": null,
+        "current_capture_policy": "EXPLICIT_RANGE_AND_BUDGET_REQUIRED",
+        "dependencies": [
+          "gpt_sde",
+          "host_boot_selection"
+        ],
+        "acceptance": [
+          "Source identity, exact LBA range and expected length are bound to the capture set; device node alone is insufficient.",
+          "Archive and raw-stream hashes, source drift checks and consistency class are recorded; a historical LUN hash is not this partition hash.",
+          "Unknown or excluded objects remain gaps; no automatic restore or write is authorized."
+        ]
+      },
+      {
+        "id": "partition_cmnlib64_b",
+        "name": "cmnlib64_b",
+        "lun": "sde",
+        "partition_number": 30,
+        "device_at_observation": "/dev/sde30",
+        "first_lba": 132566,
+        "last_lba": 132693,
+        "bytes": 524288,
+        "attributes_hex_at_observation": "0x1039000000000000",
+        "mapping_evidence": [
+          "recovery"
+        ],
+        "mounted_at_observation": null,
+        "historical_backup": {
+          "path": "/Users/shuang/Code/openpilot/migration-audit/recovery-backup-20261017/sde.img.gz",
+          "scope": "contained_in_whole_lun",
+          "captured_at": "2026-10-17T20:04:40+0800",
+          "archive_compressed_sha256": "b691a7ad4b7f82b6ebcb18dc010500590ba797a93c6b968fa56d8a03c90866d2",
+          "compressed_integrity_verified_on": "2026-10-19",
+          "contained_partition_sha256": null,
+          "metadata_source_id": "backup_metadata_sde"
+        },
+        "current_content_sha256": null,
+        "current_capture": null,
+        "current_consistency": null,
+        "contains_potentially_private_or_unique_state": false,
+        "preserve_or_rebuild_decision": null,
+        "current_capture_policy": "EXPLICIT_RANGE_AND_BUDGET_REQUIRED",
+        "dependencies": [
+          "gpt_sde",
+          "host_boot_selection"
+        ],
+        "acceptance": [
+          "Source identity, exact LBA range and expected length are bound to the capture set; device node alone is insufficient.",
+          "Archive and raw-stream hashes, source drift checks and consistency class are recorded; a historical LUN hash is not this partition hash.",
+          "Unknown or excluded objects remain gaps; no automatic restore or write is authorized."
+        ]
+      },
+      {
+        "id": "partition_devcfg_b",
+        "name": "devcfg_b",
+        "lun": "sde",
+        "partition_number": 31,
+        "device_at_observation": "/dev/sde31",
+        "first_lba": 132694,
+        "last_lba": 132725,
+        "bytes": 131072,
+        "attributes_hex_at_observation": "0x0039000000000000",
+        "mapping_evidence": [
+          "recovery"
+        ],
+        "mounted_at_observation": null,
+        "historical_backup": {
+          "path": "/Users/shuang/Code/openpilot/migration-audit/recovery-backup-20261017/sde.img.gz",
+          "scope": "contained_in_whole_lun",
+          "captured_at": "2026-10-17T20:04:40+0800",
+          "archive_compressed_sha256": "b691a7ad4b7f82b6ebcb18dc010500590ba797a93c6b968fa56d8a03c90866d2",
+          "compressed_integrity_verified_on": "2026-10-19",
+          "contained_partition_sha256": null,
+          "metadata_source_id": "backup_metadata_sde"
+        },
+        "current_content_sha256": null,
+        "current_capture": null,
+        "current_consistency": null,
+        "contains_potentially_private_or_unique_state": false,
+        "preserve_or_rebuild_decision": null,
+        "current_capture_policy": "EXPLICIT_RANGE_AND_BUDGET_REQUIRED",
+        "dependencies": [
+          "gpt_sde",
+          "host_boot_selection"
+        ],
+        "acceptance": [
+          "Source identity, exact LBA range and expected length are bound to the capture set; device node alone is insufficient.",
+          "Archive and raw-stream hashes, source drift checks and consistency class are recorded; a historical LUN hash is not this partition hash.",
+          "Unknown or excluded objects remain gaps; no automatic restore or write is authorized."
+        ]
+      },
+      {
+        "id": "partition_qupfw_b",
+        "name": "qupfw_b",
+        "lun": "sde",
+        "partition_number": 32,
+        "device_at_observation": "/dev/sde32",
+        "first_lba": 132726,
+        "last_lba": 132741,
+        "bytes": 65536,
+        "attributes_hex_at_observation": "0x0039000000000000",
+        "mapping_evidence": [
+          "recovery"
+        ],
+        "mounted_at_observation": null,
+        "historical_backup": {
+          "path": "/Users/shuang/Code/openpilot/migration-audit/recovery-backup-20261017/sde.img.gz",
+          "scope": "contained_in_whole_lun",
+          "captured_at": "2026-10-17T20:04:40+0800",
+          "archive_compressed_sha256": "b691a7ad4b7f82b6ebcb18dc010500590ba797a93c6b968fa56d8a03c90866d2",
+          "compressed_integrity_verified_on": "2026-10-19",
+          "contained_partition_sha256": null,
+          "metadata_source_id": "backup_metadata_sde"
+        },
+        "current_content_sha256": null,
+        "current_capture": null,
+        "current_consistency": null,
+        "contains_potentially_private_or_unique_state": false,
+        "preserve_or_rebuild_decision": null,
+        "current_capture_policy": "EXPLICIT_RANGE_AND_BUDGET_REQUIRED",
+        "dependencies": [
+          "gpt_sde",
+          "host_boot_selection"
+        ],
+        "acceptance": [
+          "Source identity, exact LBA range and expected length are bound to the capture set; device node alone is insufficient.",
+          "Archive and raw-stream hashes, source drift checks and consistency class are recorded; a historical LUN hash is not this partition hash.",
+          "Unknown or excluded objects remain gaps; no automatic restore or write is authorized."
+        ]
+      },
+      {
+        "id": "partition_storsec_b",
+        "name": "storsec_b",
+        "lun": "sde",
+        "partition_number": 33,
+        "device_at_observation": "/dev/sde33",
+        "first_lba": 132742,
+        "last_lba": 132773,
+        "bytes": 131072,
+        "attributes_hex_at_observation": "0x0039000000000000",
+        "mapping_evidence": [
+          "recovery"
+        ],
+        "mounted_at_observation": null,
+        "historical_backup": {
+          "path": "/Users/shuang/Code/openpilot/migration-audit/recovery-backup-20261017/sde.img.gz",
+          "scope": "contained_in_whole_lun",
+          "captured_at": "2026-10-17T20:04:40+0800",
+          "archive_compressed_sha256": "b691a7ad4b7f82b6ebcb18dc010500590ba797a93c6b968fa56d8a03c90866d2",
+          "compressed_integrity_verified_on": "2026-10-19",
+          "contained_partition_sha256": null,
+          "metadata_source_id": "backup_metadata_sde"
+        },
+        "current_content_sha256": null,
+        "current_capture": null,
+        "current_consistency": null,
+        "contains_potentially_private_or_unique_state": false,
+        "preserve_or_rebuild_decision": null,
+        "current_capture_policy": "EXPLICIT_RANGE_AND_BUDGET_REQUIRED",
+        "dependencies": [
+          "gpt_sde",
+          "host_boot_selection"
+        ],
+        "acceptance": [
+          "Source identity, exact LBA range and expected length are bound to the capture set; device node alone is insufficient.",
+          "Archive and raw-stream hashes, source drift checks and consistency class are recorded; a historical LUN hash is not this partition hash.",
+          "Unknown or excluded objects remain gaps; no automatic restore or write is authorized."
+        ]
+      },
+      {
+        "id": "partition_ImageFv_b",
+        "name": "ImageFv_b",
+        "lun": "sde",
+        "partition_number": 34,
+        "device_at_observation": "/dev/sde34",
+        "first_lba": 132774,
+        "last_lba": 133029,
+        "bytes": 1048576,
+        "attributes_hex_at_observation": "0x0039000000000000",
+        "mapping_evidence": [
+          "recovery"
+        ],
+        "mounted_at_observation": null,
+        "historical_backup": {
+          "path": "/Users/shuang/Code/openpilot/migration-audit/recovery-backup-20261017/sde.img.gz",
+          "scope": "contained_in_whole_lun",
+          "captured_at": "2026-10-17T20:04:40+0800",
+          "archive_compressed_sha256": "b691a7ad4b7f82b6ebcb18dc010500590ba797a93c6b968fa56d8a03c90866d2",
+          "compressed_integrity_verified_on": "2026-10-19",
+          "contained_partition_sha256": null,
+          "metadata_source_id": "backup_metadata_sde"
+        },
+        "current_content_sha256": null,
+        "current_capture": null,
+        "current_consistency": null,
+        "contains_potentially_private_or_unique_state": false,
+        "preserve_or_rebuild_decision": null,
+        "current_capture_policy": "EXPLICIT_RANGE_AND_BUDGET_REQUIRED",
+        "dependencies": [
+          "gpt_sde",
+          "host_boot_selection"
+        ],
+        "acceptance": [
+          "Source identity, exact LBA range and expected length are bound to the capture set; device node alone is insufficient.",
+          "Archive and raw-stream hashes, source drift checks and consistency class are recorded; a historical LUN hash is not this partition hash.",
+          "Unknown or excluded objects remain gaps; no automatic restore or write is authorized."
+        ]
+      },
+      {
+        "id": "partition_sec",
+        "name": "sec",
+        "lun": "sde",
+        "partition_number": 35,
+        "device_at_observation": "/dev/sde35",
+        "first_lba": 133030,
+        "last_lba": 133033,
+        "bytes": 16384,
+        "attributes_hex_at_observation": "0x1000000000000000",
+        "mapping_evidence": [
+          "recovery"
+        ],
+        "mounted_at_observation": null,
+        "historical_backup": {
+          "path": "/Users/shuang/Code/openpilot/migration-audit/recovery-backup-20261017/sde.img.gz",
+          "scope": "contained_in_whole_lun",
+          "captured_at": "2026-10-17T20:04:40+0800",
+          "archive_compressed_sha256": "b691a7ad4b7f82b6ebcb18dc010500590ba797a93c6b968fa56d8a03c90866d2",
+          "compressed_integrity_verified_on": "2026-10-19",
+          "contained_partition_sha256": null,
+          "metadata_source_id": "backup_metadata_sde"
+        },
+        "current_content_sha256": null,
+        "current_capture": null,
+        "current_consistency": null,
+        "contains_potentially_private_or_unique_state": true,
+        "preserve_or_rebuild_decision": null,
+        "current_capture_policy": "SCOPE_AND_PRIVATE_HANDLING_REQUIRED",
+        "dependencies": [
+          "gpt_sde",
+          "host_boot_selection"
+        ],
+        "acceptance": [
+          "Source identity, exact LBA range and expected length are bound to the capture set; device node alone is insufficient.",
+          "Archive and raw-stream hashes, source drift checks and consistency class are recorded; a historical LUN hash is not this partition hash.",
+          "Unknown or excluded objects remain gaps; no automatic restore or write is authorized."
+        ]
+      },
+      {
+        "id": "partition_devinfo",
+        "name": "devinfo",
+        "lun": "sde",
+        "partition_number": 36,
+        "device_at_observation": "/dev/sde36",
+        "first_lba": 133034,
+        "last_lba": 133034,
+        "bytes": 4096,
+        "attributes_hex_at_observation": "0x1000000000000000",
+        "mapping_evidence": [
+          "recovery"
+        ],
+        "mounted_at_observation": null,
+        "historical_backup": {
+          "path": "/Users/shuang/Code/openpilot/migration-audit/recovery-backup-20261017/sde.img.gz",
+          "scope": "contained_in_whole_lun",
+          "captured_at": "2026-10-17T20:04:40+0800",
+          "archive_compressed_sha256": "b691a7ad4b7f82b6ebcb18dc010500590ba797a93c6b968fa56d8a03c90866d2",
+          "compressed_integrity_verified_on": "2026-10-19",
+          "contained_partition_sha256": null,
+          "metadata_source_id": "backup_metadata_sde"
+        },
+        "current_content_sha256": null,
+        "current_capture": null,
+        "current_consistency": null,
+        "contains_potentially_private_or_unique_state": true,
+        "preserve_or_rebuild_decision": null,
+        "current_capture_policy": "SCOPE_AND_PRIVATE_HANDLING_REQUIRED",
+        "dependencies": [
+          "gpt_sde",
+          "host_boot_selection"
+        ],
+        "acceptance": [
+          "Source identity, exact LBA range and expected length are bound to the capture set; device node alone is insufficient.",
+          "Archive and raw-stream hashes, source drift checks and consistency class are recorded; a historical LUN hash is not this partition hash.",
+          "Unknown or excluded objects remain gaps; no automatic restore or write is authorized."
+        ]
+      },
+      {
+        "id": "partition_dip",
+        "name": "dip",
+        "lun": "sde",
+        "partition_number": 37,
+        "device_at_observation": "/dev/sde37",
+        "first_lba": 133035,
+        "last_lba": 133290,
+        "bytes": 1048576,
+        "attributes_hex_at_observation": "0x1000000000000000",
+        "mapping_evidence": [
+          "recovery"
+        ],
+        "mounted_at_observation": null,
+        "historical_backup": {
+          "path": "/Users/shuang/Code/openpilot/migration-audit/recovery-backup-20261017/sde.img.gz",
+          "scope": "contained_in_whole_lun",
+          "captured_at": "2026-10-17T20:04:40+0800",
+          "archive_compressed_sha256": "b691a7ad4b7f82b6ebcb18dc010500590ba797a93c6b968fa56d8a03c90866d2",
+          "compressed_integrity_verified_on": "2026-10-19",
+          "contained_partition_sha256": null,
+          "metadata_source_id": "backup_metadata_sde"
+        },
+        "current_content_sha256": null,
+        "current_capture": null,
+        "current_consistency": null,
+        "contains_potentially_private_or_unique_state": true,
+        "preserve_or_rebuild_decision": null,
+        "current_capture_policy": "SCOPE_AND_PRIVATE_HANDLING_REQUIRED",
+        "dependencies": [
+          "gpt_sde",
+          "host_boot_selection"
+        ],
+        "acceptance": [
+          "Source identity, exact LBA range and expected length are bound to the capture set; device node alone is insufficient.",
+          "Archive and raw-stream hashes, source drift checks and consistency class are recorded; a historical LUN hash is not this partition hash.",
+          "Unknown or excluded objects remain gaps; no automatic restore or write is authorized."
+        ]
+      },
+      {
+        "id": "partition_fdemeta",
+        "name": "fdemeta",
+        "lun": "sde",
+        "partition_number": 38,
+        "device_at_observation": "/dev/sde38",
+        "first_lba": 133291,
+        "last_lba": 133418,
+        "bytes": 524288,
+        "attributes_hex_at_observation": "0x0000000000000000",
+        "mapping_evidence": [
+          "recovery"
+        ],
+        "mounted_at_observation": null,
+        "historical_backup": {
+          "path": "/Users/shuang/Code/openpilot/migration-audit/recovery-backup-20261017/sde.img.gz",
+          "scope": "contained_in_whole_lun",
+          "captured_at": "2026-10-17T20:04:40+0800",
+          "archive_compressed_sha256": "b691a7ad4b7f82b6ebcb18dc010500590ba797a93c6b968fa56d8a03c90866d2",
+          "compressed_integrity_verified_on": "2026-10-19",
+          "contained_partition_sha256": null,
+          "metadata_source_id": "backup_metadata_sde"
+        },
+        "current_content_sha256": null,
+        "current_capture": null,
+        "current_consistency": null,
+        "contains_potentially_private_or_unique_state": true,
+        "preserve_or_rebuild_decision": null,
+        "current_capture_policy": "SCOPE_AND_PRIVATE_HANDLING_REQUIRED",
+        "dependencies": [
+          "gpt_sde",
+          "host_boot_selection"
+        ],
+        "acceptance": [
+          "Source identity, exact LBA range and expected length are bound to the capture set; device node alone is insufficient.",
+          "Archive and raw-stream hashes, source drift checks and consistency class are recorded; a historical LUN hash is not this partition hash.",
+          "Unknown or excluded objects remain gaps; no automatic restore or write is authorized."
+        ]
+      },
+      {
+        "id": "partition_apdp",
+        "name": "apdp",
+        "lun": "sde",
+        "partition_number": 39,
+        "device_at_observation": "/dev/sde39",
+        "first_lba": 133419,
+        "last_lba": 133482,
+        "bytes": 262144,
+        "attributes_hex_at_observation": "0x0000000000000000",
+        "mapping_evidence": [
+          "recovery"
+        ],
+        "mounted_at_observation": null,
+        "historical_backup": {
+          "path": "/Users/shuang/Code/openpilot/migration-audit/recovery-backup-20261017/sde.img.gz",
+          "scope": "contained_in_whole_lun",
+          "captured_at": "2026-10-17T20:04:40+0800",
+          "archive_compressed_sha256": "b691a7ad4b7f82b6ebcb18dc010500590ba797a93c6b968fa56d8a03c90866d2",
+          "compressed_integrity_verified_on": "2026-10-19",
+          "contained_partition_sha256": null,
+          "metadata_source_id": "backup_metadata_sde"
+        },
+        "current_content_sha256": null,
+        "current_capture": null,
+        "current_consistency": null,
+        "contains_potentially_private_or_unique_state": true,
+        "preserve_or_rebuild_decision": null,
+        "current_capture_policy": "SCOPE_AND_PRIVATE_HANDLING_REQUIRED",
+        "dependencies": [
+          "gpt_sde",
+          "host_boot_selection"
+        ],
+        "acceptance": [
+          "Source identity, exact LBA range and expected length are bound to the capture set; device node alone is insufficient.",
+          "Archive and raw-stream hashes, source drift checks and consistency class are recorded; a historical LUN hash is not this partition hash.",
+          "Unknown or excluded objects remain gaps; no automatic restore or write is authorized."
+        ]
+      },
+      {
+        "id": "partition_msadp",
+        "name": "msadp",
+        "lun": "sde",
+        "partition_number": 40,
+        "device_at_observation": "/dev/sde40",
+        "first_lba": 133483,
+        "last_lba": 133546,
+        "bytes": 262144,
+        "attributes_hex_at_observation": "0x0000000000000000",
+        "mapping_evidence": [
+          "recovery"
+        ],
+        "mounted_at_observation": null,
+        "historical_backup": {
+          "path": "/Users/shuang/Code/openpilot/migration-audit/recovery-backup-20261017/sde.img.gz",
+          "scope": "contained_in_whole_lun",
+          "captured_at": "2026-10-17T20:04:40+0800",
+          "archive_compressed_sha256": "b691a7ad4b7f82b6ebcb18dc010500590ba797a93c6b968fa56d8a03c90866d2",
+          "compressed_integrity_verified_on": "2026-10-19",
+          "contained_partition_sha256": null,
+          "metadata_source_id": "backup_metadata_sde"
+        },
+        "current_content_sha256": null,
+        "current_capture": null,
+        "current_consistency": null,
+        "contains_potentially_private_or_unique_state": true,
+        "preserve_or_rebuild_decision": null,
+        "current_capture_policy": "SCOPE_AND_PRIVATE_HANDLING_REQUIRED",
+        "dependencies": [
+          "gpt_sde",
+          "host_boot_selection"
+        ],
+        "acceptance": [
+          "Source identity, exact LBA range and expected length are bound to the capture set; device node alone is insufficient.",
+          "Archive and raw-stream hashes, source drift checks and consistency class are recorded; a historical LUN hash is not this partition hash.",
+          "Unknown or excluded objects remain gaps; no automatic restore or write is authorized."
+        ]
+      },
+      {
+        "id": "partition_spunvm",
+        "name": "spunvm",
+        "lun": "sde",
+        "partition_number": 41,
+        "device_at_observation": "/dev/sde41",
+        "first_lba": 133547,
+        "last_lba": 135594,
+        "bytes": 8388608,
+        "attributes_hex_at_observation": "0x0000000000000000",
+        "mapping_evidence": [
+          "recovery"
+        ],
+        "mounted_at_observation": null,
+        "historical_backup": {
+          "path": "/Users/shuang/Code/openpilot/migration-audit/recovery-backup-20261017/sde.img.gz",
+          "scope": "contained_in_whole_lun",
+          "captured_at": "2026-10-17T20:04:40+0800",
+          "archive_compressed_sha256": "b691a7ad4b7f82b6ebcb18dc010500590ba797a93c6b968fa56d8a03c90866d2",
+          "compressed_integrity_verified_on": "2026-10-19",
+          "contained_partition_sha256": null,
+          "metadata_source_id": "backup_metadata_sde"
+        },
+        "current_content_sha256": null,
+        "current_capture": null,
+        "current_consistency": null,
+        "contains_potentially_private_or_unique_state": true,
+        "preserve_or_rebuild_decision": null,
+        "current_capture_policy": "SCOPE_AND_PRIVATE_HANDLING_REQUIRED",
+        "dependencies": [
+          "gpt_sde",
+          "host_boot_selection"
+        ],
+        "acceptance": [
+          "Source identity, exact LBA range and expected length are bound to the capture set; device node alone is insufficient.",
+          "Archive and raw-stream hashes, source drift checks and consistency class are recorded; a historical LUN hash is not this partition hash.",
+          "Unknown or excluded objects remain gaps; no automatic restore or write is authorized."
+        ]
+      },
+      {
+        "id": "partition_splash",
+        "name": "splash",
+        "lun": "sde",
+        "partition_number": 42,
+        "device_at_observation": "/dev/sde42",
+        "first_lba": 135595,
+        "last_lba": 143950,
+        "bytes": 34226176,
+        "attributes_hex_at_observation": "0x0000000000000000",
+        "mapping_evidence": [
+          "recovery"
+        ],
+        "mounted_at_observation": null,
+        "historical_backup": {
+          "path": "/Users/shuang/Code/openpilot/migration-audit/recovery-backup-20261017/sde.img.gz",
+          "scope": "contained_in_whole_lun",
+          "captured_at": "2026-10-17T20:04:40+0800",
+          "archive_compressed_sha256": "b691a7ad4b7f82b6ebcb18dc010500590ba797a93c6b968fa56d8a03c90866d2",
+          "compressed_integrity_verified_on": "2026-10-19",
+          "contained_partition_sha256": null,
+          "metadata_source_id": "backup_metadata_sde"
+        },
+        "current_content_sha256": null,
+        "current_capture": null,
+        "current_consistency": null,
+        "contains_potentially_private_or_unique_state": false,
+        "preserve_or_rebuild_decision": null,
+        "current_capture_policy": "EXPLICIT_RANGE_AND_BUDGET_REQUIRED",
+        "dependencies": [
+          "gpt_sde",
+          "host_boot_selection"
+        ],
+        "acceptance": [
+          "Source identity, exact LBA range and expected length are bound to the capture set; device node alone is insufficient.",
+          "Archive and raw-stream hashes, source drift checks and consistency class are recorded; a historical LUN hash is not this partition hash.",
+          "Unknown or excluded objects remain gaps; no automatic restore or write is authorized."
+        ]
+      },
+      {
+        "id": "partition_limits",
+        "name": "limits",
+        "lun": "sde",
+        "partition_number": 43,
+        "device_at_observation": "/dev/sde43",
+        "first_lba": 143951,
+        "last_lba": 143951,
+        "bytes": 4096,
+        "attributes_hex_at_observation": "0x1000000000000000",
+        "mapping_evidence": [
+          "recovery"
+        ],
+        "mounted_at_observation": null,
+        "historical_backup": {
+          "path": "/Users/shuang/Code/openpilot/migration-audit/recovery-backup-20261017/sde.img.gz",
+          "scope": "contained_in_whole_lun",
+          "captured_at": "2026-10-17T20:04:40+0800",
+          "archive_compressed_sha256": "b691a7ad4b7f82b6ebcb18dc010500590ba797a93c6b968fa56d8a03c90866d2",
+          "compressed_integrity_verified_on": "2026-10-19",
+          "contained_partition_sha256": null,
+          "metadata_source_id": "backup_metadata_sde"
+        },
+        "current_content_sha256": null,
+        "current_capture": null,
+        "current_consistency": null,
+        "contains_potentially_private_or_unique_state": false,
+        "preserve_or_rebuild_decision": null,
+        "current_capture_policy": "EXPLICIT_RANGE_AND_BUDGET_REQUIRED",
+        "dependencies": [
+          "gpt_sde",
+          "host_boot_selection"
+        ],
+        "acceptance": [
+          "Source identity, exact LBA range and expected length are bound to the capture set; device node alone is insufficient.",
+          "Archive and raw-stream hashes, source drift checks and consistency class are recorded; a historical LUN hash is not this partition hash.",
+          "Unknown or excluded objects remain gaps; no automatic restore or write is authorized."
+        ]
+      },
+      {
+        "id": "partition_toolsfv",
+        "name": "toolsfv",
+        "lun": "sde",
+        "partition_number": 44,
+        "device_at_observation": "/dev/sde44",
+        "first_lba": 143952,
+        "last_lba": 144207,
+        "bytes": 1048576,
+        "attributes_hex_at_observation": "0x1000000000000000",
+        "mapping_evidence": [
+          "recovery"
+        ],
+        "mounted_at_observation": null,
+        "historical_backup": {
+          "path": "/Users/shuang/Code/openpilot/migration-audit/recovery-backup-20261017/sde.img.gz",
+          "scope": "contained_in_whole_lun",
+          "captured_at": "2026-10-17T20:04:40+0800",
+          "archive_compressed_sha256": "b691a7ad4b7f82b6ebcb18dc010500590ba797a93c6b968fa56d8a03c90866d2",
+          "compressed_integrity_verified_on": "2026-10-19",
+          "contained_partition_sha256": null,
+          "metadata_source_id": "backup_metadata_sde"
+        },
+        "current_content_sha256": null,
+        "current_capture": null,
+        "current_consistency": null,
+        "contains_potentially_private_or_unique_state": false,
+        "preserve_or_rebuild_decision": null,
+        "current_capture_policy": "EXPLICIT_RANGE_AND_BUDGET_REQUIRED",
+        "dependencies": [
+          "gpt_sde",
+          "host_boot_selection"
+        ],
+        "acceptance": [
+          "Source identity, exact LBA range and expected length are bound to the capture set; device node alone is insufficient.",
+          "Archive and raw-stream hashes, source drift checks and consistency class are recorded; a historical LUN hash is not this partition hash.",
+          "Unknown or excluded objects remain gaps; no automatic restore or write is authorized."
+        ]
+      },
+      {
+        "id": "partition_logfs",
+        "name": "logfs",
+        "lun": "sde",
+        "partition_number": 45,
+        "device_at_observation": "/dev/sde45",
+        "first_lba": 144208,
+        "last_lba": 146255,
+        "bytes": 8388608,
+        "attributes_hex_at_observation": "0x0000000000000000",
+        "mapping_evidence": [
+          "recovery"
+        ],
+        "mounted_at_observation": null,
+        "historical_backup": {
+          "path": "/Users/shuang/Code/openpilot/migration-audit/recovery-backup-20261017/sde.img.gz",
+          "scope": "contained_in_whole_lun",
+          "captured_at": "2026-10-17T20:04:40+0800",
+          "archive_compressed_sha256": "b691a7ad4b7f82b6ebcb18dc010500590ba797a93c6b968fa56d8a03c90866d2",
+          "compressed_integrity_verified_on": "2026-10-19",
+          "contained_partition_sha256": null,
+          "metadata_source_id": "backup_metadata_sde"
+        },
+        "current_content_sha256": null,
+        "current_capture": null,
+        "current_consistency": null,
+        "contains_potentially_private_or_unique_state": true,
+        "preserve_or_rebuild_decision": null,
+        "current_capture_policy": "SCOPE_AND_PRIVATE_HANDLING_REQUIRED",
+        "dependencies": [
+          "gpt_sde",
+          "host_boot_selection"
+        ],
+        "acceptance": [
+          "Source identity, exact LBA range and expected length are bound to the capture set; device node alone is insufficient.",
+          "Archive and raw-stream hashes, source drift checks and consistency class are recorded; a historical LUN hash is not this partition hash.",
+          "Unknown or excluded objects remain gaps; no automatic restore or write is authorized."
+        ]
+      },
+      {
+        "id": "partition_sti",
+        "name": "sti",
+        "lun": "sde",
+        "partition_number": 46,
+        "device_at_observation": "/dev/sde46",
+        "first_lba": 146256,
+        "last_lba": 146767,
+        "bytes": 2097152,
+        "attributes_hex_at_observation": "0x0000000000000000",
+        "mapping_evidence": [
+          "recovery"
+        ],
+        "mounted_at_observation": null,
+        "historical_backup": {
+          "path": "/Users/shuang/Code/openpilot/migration-audit/recovery-backup-20261017/sde.img.gz",
+          "scope": "contained_in_whole_lun",
+          "captured_at": "2026-10-17T20:04:40+0800",
+          "archive_compressed_sha256": "b691a7ad4b7f82b6ebcb18dc010500590ba797a93c6b968fa56d8a03c90866d2",
+          "compressed_integrity_verified_on": "2026-10-19",
+          "contained_partition_sha256": null,
+          "metadata_source_id": "backup_metadata_sde"
+        },
+        "current_content_sha256": null,
+        "current_capture": null,
+        "current_consistency": null,
+        "contains_potentially_private_or_unique_state": false,
+        "preserve_or_rebuild_decision": null,
+        "current_capture_policy": "EXPLICIT_RANGE_AND_BUDGET_REQUIRED",
+        "dependencies": [
+          "gpt_sde",
+          "host_boot_selection"
+        ],
+        "acceptance": [
+          "Source identity, exact LBA range and expected length are bound to the capture set; device node alone is insufficient.",
+          "Archive and raw-stream hashes, source drift checks and consistency class are recorded; a historical LUN hash is not this partition hash.",
+          "Unknown or excluded objects remain gaps; no automatic restore or write is authorized."
+        ]
+      },
+      {
+        "id": "partition_rawdump",
+        "name": "rawdump",
+        "lun": "sde",
+        "partition_number": 47,
+        "device_at_observation": "/dev/sde47",
+        "first_lba": 146768,
+        "last_lba": 179535,
+        "bytes": 134217728,
+        "attributes_hex_at_observation": "0x0000000000000000",
+        "mapping_evidence": [
+          "recovery"
+        ],
+        "mounted_at_observation": null,
+        "historical_backup": {
+          "path": "/Users/shuang/Code/openpilot/migration-audit/recovery-backup-20261017/sde.img.gz",
+          "scope": "contained_in_whole_lun",
+          "captured_at": "2026-10-17T20:04:40+0800",
+          "archive_compressed_sha256": "b691a7ad4b7f82b6ebcb18dc010500590ba797a93c6b968fa56d8a03c90866d2",
+          "compressed_integrity_verified_on": "2026-10-19",
+          "contained_partition_sha256": null,
+          "metadata_source_id": "backup_metadata_sde"
+        },
+        "current_content_sha256": null,
+        "current_capture": null,
+        "current_consistency": null,
+        "contains_potentially_private_or_unique_state": true,
+        "preserve_or_rebuild_decision": null,
+        "current_capture_policy": "SCOPE_AND_PRIVATE_HANDLING_REQUIRED",
+        "dependencies": [
+          "gpt_sde",
+          "host_boot_selection"
+        ],
+        "acceptance": [
+          "Source identity, exact LBA range and expected length are bound to the capture set; device node alone is insufficient.",
+          "Archive and raw-stream hashes, source drift checks and consistency class are recorded; a historical LUN hash is not this partition hash.",
+          "Unknown or excluded objects remain gaps; no automatic restore or write is authorized."
+        ]
+      },
+      {
+        "id": "partition_logdump",
+        "name": "logdump",
+        "lun": "sde",
+        "partition_number": 48,
+        "device_at_observation": "/dev/sde48",
+        "first_lba": 179536,
+        "last_lba": 195919,
+        "bytes": 67108864,
+        "attributes_hex_at_observation": "0x0000000000000000",
+        "mapping_evidence": [
+          "recovery"
+        ],
+        "mounted_at_observation": null,
+        "historical_backup": {
+          "path": "/Users/shuang/Code/openpilot/migration-audit/recovery-backup-20261017/sde.img.gz",
+          "scope": "contained_in_whole_lun",
+          "captured_at": "2026-10-17T20:04:40+0800",
+          "archive_compressed_sha256": "b691a7ad4b7f82b6ebcb18dc010500590ba797a93c6b968fa56d8a03c90866d2",
+          "compressed_integrity_verified_on": "2026-10-19",
+          "contained_partition_sha256": null,
+          "metadata_source_id": "backup_metadata_sde"
+        },
+        "current_content_sha256": null,
+        "current_capture": null,
+        "current_consistency": null,
+        "contains_potentially_private_or_unique_state": true,
+        "preserve_or_rebuild_decision": null,
+        "current_capture_policy": "SCOPE_AND_PRIVATE_HANDLING_REQUIRED",
+        "dependencies": [
+          "gpt_sde",
+          "host_boot_selection"
+        ],
+        "acceptance": [
+          "Source identity, exact LBA range and expected length are bound to the capture set; device node alone is insufficient.",
+          "Archive and raw-stream hashes, source drift checks and consistency class are recorded; a historical LUN hash is not this partition hash.",
+          "Unknown or excluded objects remain gaps; no automatic restore or write is authorized."
+        ]
+      },
+      {
+        "id": "partition_ALIGN_TO_128K_2",
+        "name": "ALIGN_TO_128K_2",
+        "lun": "sdf",
+        "partition_number": 1,
+        "device_at_observation": "/dev/sdf1",
+        "first_lba": 6,
+        "last_lba": 31,
+        "bytes": 106496,
+        "attributes_hex_at_observation": "0x1000000000000000",
+        "mapping_evidence": [
+          "recovery"
+        ],
+        "mounted_at_observation": null,
+        "historical_backup": {
+          "path": "/Users/shuang/Code/openpilot/migration-audit/recovery-backup-20261017/sdf.img.gz",
+          "scope": "contained_in_whole_lun",
+          "captured_at": "2026-10-17T20:05:03+0800",
+          "archive_compressed_sha256": "bcb0576c0d9a950a3947677c80b7ab3f12097820f3a633901f3ceef0108bdad1",
+          "compressed_integrity_verified_on": "2026-10-19",
+          "contained_partition_sha256": null,
+          "metadata_source_id": "backup_metadata_sdf"
+        },
+        "current_content_sha256": null,
+        "current_capture": null,
+        "current_consistency": null,
+        "contains_potentially_private_or_unique_state": false,
+        "preserve_or_rebuild_decision": null,
+        "current_capture_policy": "EXPLICIT_RANGE_AND_BUDGET_REQUIRED",
+        "dependencies": [
+          "gpt_sdf",
+          "host_boot_selection"
+        ],
+        "acceptance": [
+          "Source identity, exact LBA range and expected length are bound to the capture set; device node alone is insufficient.",
+          "Archive and raw-stream hashes, source drift checks and consistency class are recorded; a historical LUN hash is not this partition hash.",
+          "Unknown or excluded objects remain gaps; no automatic restore or write is authorized."
+        ]
+      },
+      {
+        "id": "partition_modemst1",
+        "name": "modemst1",
+        "lun": "sdf",
+        "partition_number": 2,
+        "device_at_observation": "/dev/sdf2",
+        "first_lba": 32,
+        "last_lba": 543,
+        "bytes": 2097152,
+        "attributes_hex_at_observation": "0x0000000000000000",
+        "mapping_evidence": [
+          "recovery"
+        ],
+        "mounted_at_observation": null,
+        "historical_backup": {
+          "path": "/Users/shuang/Code/openpilot/migration-audit/recovery-backup-20261017/sdf.img.gz",
+          "scope": "contained_in_whole_lun",
+          "captured_at": "2026-10-17T20:05:03+0800",
+          "archive_compressed_sha256": "bcb0576c0d9a950a3947677c80b7ab3f12097820f3a633901f3ceef0108bdad1",
+          "compressed_integrity_verified_on": "2026-10-19",
+          "contained_partition_sha256": null,
+          "metadata_source_id": "backup_metadata_sdf"
+        },
+        "current_content_sha256": null,
+        "current_capture": null,
+        "current_consistency": null,
+        "contains_potentially_private_or_unique_state": true,
+        "preserve_or_rebuild_decision": null,
+        "current_capture_policy": "SCOPE_AND_PRIVATE_HANDLING_REQUIRED",
+        "dependencies": [
+          "gpt_sdf",
+          "host_boot_selection"
+        ],
+        "acceptance": [
+          "Source identity, exact LBA range and expected length are bound to the capture set; device node alone is insufficient.",
+          "Archive and raw-stream hashes, source drift checks and consistency class are recorded; a historical LUN hash is not this partition hash.",
+          "Unknown or excluded objects remain gaps; no automatic restore or write is authorized."
+        ]
+      },
+      {
+        "id": "partition_modemst2",
+        "name": "modemst2",
+        "lun": "sdf",
+        "partition_number": 3,
+        "device_at_observation": "/dev/sdf3",
+        "first_lba": 544,
+        "last_lba": 1055,
+        "bytes": 2097152,
+        "attributes_hex_at_observation": "0x0000000000000000",
+        "mapping_evidence": [
+          "recovery"
+        ],
+        "mounted_at_observation": null,
+        "historical_backup": {
+          "path": "/Users/shuang/Code/openpilot/migration-audit/recovery-backup-20261017/sdf.img.gz",
+          "scope": "contained_in_whole_lun",
+          "captured_at": "2026-10-17T20:05:03+0800",
+          "archive_compressed_sha256": "bcb0576c0d9a950a3947677c80b7ab3f12097820f3a633901f3ceef0108bdad1",
+          "compressed_integrity_verified_on": "2026-10-19",
+          "contained_partition_sha256": null,
+          "metadata_source_id": "backup_metadata_sdf"
+        },
+        "current_content_sha256": null,
+        "current_capture": null,
+        "current_consistency": null,
+        "contains_potentially_private_or_unique_state": true,
+        "preserve_or_rebuild_decision": null,
+        "current_capture_policy": "SCOPE_AND_PRIVATE_HANDLING_REQUIRED",
+        "dependencies": [
+          "gpt_sdf",
+          "host_boot_selection"
+        ],
+        "acceptance": [
+          "Source identity, exact LBA range and expected length are bound to the capture set; device node alone is insufficient.",
+          "Archive and raw-stream hashes, source drift checks and consistency class are recorded; a historical LUN hash is not this partition hash.",
+          "Unknown or excluded objects remain gaps; no automatic restore or write is authorized."
+        ]
+      },
+      {
+        "id": "partition_fsg",
+        "name": "fsg",
+        "lun": "sdf",
+        "partition_number": 4,
+        "device_at_observation": "/dev/sdf4",
+        "first_lba": 1056,
+        "last_lba": 1567,
+        "bytes": 2097152,
+        "attributes_hex_at_observation": "0x1000000000000000",
+        "mapping_evidence": [
+          "recovery"
+        ],
+        "mounted_at_observation": null,
+        "historical_backup": {
+          "path": "/Users/shuang/Code/openpilot/migration-audit/recovery-backup-20261017/sdf.img.gz",
+          "scope": "contained_in_whole_lun",
+          "captured_at": "2026-10-17T20:05:03+0800",
+          "archive_compressed_sha256": "bcb0576c0d9a950a3947677c80b7ab3f12097820f3a633901f3ceef0108bdad1",
+          "compressed_integrity_verified_on": "2026-10-19",
+          "contained_partition_sha256": null,
+          "metadata_source_id": "backup_metadata_sdf"
+        },
+        "current_content_sha256": null,
+        "current_capture": null,
+        "current_consistency": null,
+        "contains_potentially_private_or_unique_state": true,
+        "preserve_or_rebuild_decision": null,
+        "current_capture_policy": "SCOPE_AND_PRIVATE_HANDLING_REQUIRED",
+        "dependencies": [
+          "gpt_sdf",
+          "host_boot_selection"
+        ],
+        "acceptance": [
+          "Source identity, exact LBA range and expected length are bound to the capture set; device node alone is insufficient.",
+          "Archive and raw-stream hashes, source drift checks and consistency class are recorded; a historical LUN hash is not this partition hash.",
+          "Unknown or excluded objects remain gaps; no automatic restore or write is authorized."
+        ]
+      },
+      {
+        "id": "partition_fsc",
+        "name": "fsc",
+        "lun": "sdf",
+        "partition_number": 5,
+        "device_at_observation": "/dev/sdf5",
+        "first_lba": 1568,
+        "last_lba": 1599,
+        "bytes": 131072,
+        "attributes_hex_at_observation": "0x0000000000000000",
+        "mapping_evidence": [
+          "recovery"
+        ],
+        "mounted_at_observation": null,
+        "historical_backup": {
+          "path": "/Users/shuang/Code/openpilot/migration-audit/recovery-backup-20261017/sdf.img.gz",
+          "scope": "contained_in_whole_lun",
+          "captured_at": "2026-10-17T20:05:03+0800",
+          "archive_compressed_sha256": "bcb0576c0d9a950a3947677c80b7ab3f12097820f3a633901f3ceef0108bdad1",
+          "compressed_integrity_verified_on": "2026-10-19",
+          "contained_partition_sha256": null,
+          "metadata_source_id": "backup_metadata_sdf"
+        },
+        "current_content_sha256": null,
+        "current_capture": null,
+        "current_consistency": null,
+        "contains_potentially_private_or_unique_state": true,
+        "preserve_or_rebuild_decision": null,
+        "current_capture_policy": "SCOPE_AND_PRIVATE_HANDLING_REQUIRED",
+        "dependencies": [
+          "gpt_sdf",
+          "host_boot_selection"
+        ],
+        "acceptance": [
+          "Source identity, exact LBA range and expected length are bound to the capture set; device node alone is insufficient.",
+          "Archive and raw-stream hashes, source drift checks and consistency class are recorded; a historical LUN hash is not this partition hash.",
+          "Unknown or excluded objects remain gaps; no automatic restore or write is authorized."
+        ]
+      }
+    ],
+    "file_and_mcu_objects": [
+      {
+        "id": "application_tree",
+        "source_object": "/data/openpilot and the exact launcher-selected program tree",
+        "known_coverage": "17 selected path hashes in software; historical SP2027 full-file manifest; neither is a new full current archive",
+        "current_capture": null,
+        "sources": [
+          "software",
+          "software_provenance",
+          "sp2027_manifest"
+        ],
+        "consistency_required": "file_set_consistent_or_declared_best_effort",
+        "sensitivity": "May contain user data; review inventory and exclusions before content copying.",
+        "acceptance": [
+          "Resolve active path/symlinks without importing code; record dependencies and executable hashes.",
+          "Retain mode/owner/symlinks/xattrs needed for restore, and verify extraction on a private local copy.",
+          "Changed files stay in a failed/partial capture set; encrypted code remains opaque."
+        ]
+      },
+      {
+        "id": "host_dependencies_and_launch",
+        "source_object": "OS package/dependency inventory, selected launch/supervisor configuration and overlays",
+        "known_coverage": "Current fstab/ab_mount/libabctl hashes and selected app files; migration reports note post-boot expansion/dependency changes",
+        "current_capture": null,
+        "sources": [
+          "recovery",
+          "cp_migration"
+        ],
+        "consistency_required": "versioned_file_set_with_drift_detection",
+        "sensitivity": "Do not collect environment/credentials or broad configuration by default.",
+        "acceptance": [
+          "Record selected package/library/build versions and owner/launch graph without running target app code.",
+          "Store only approved nonprivate contents or summaries; exact restored versions and restart impact remain explicit."
+        ]
+      },
+      {
+        "id": "shared_data",
+        "source_object": "Application parameters/calibration and other mutable /data or /systemrw state",
+        "known_coverage": "Historical 7503-member software archive and 182 selected configurations; not full userdata, not atomic",
+        "current_capture": null,
+        "sources": [
+          "backup_preparation",
+          "step1_recovery"
+        ],
+        "consistency_required": "application_consistent_or_offline_consistent_for_restore_claim",
+        "sensitivity": "Raw values, keys and identity stay in approved private storage; this plan does not read them.",
+        "acceptance": [
+          "Define object allowlist and confidentiality/retention before capture.",
+          "Separate necessary state from reconstructible cache and optional recordings; list each exclusion and recovery impact.",
+          "Two equal manifests are insufficient proof of an atomic cross-file snapshot."
+        ]
+      },
+      {
+        "id": "device_unique_state",
+        "source_object": "Host keys/provisioning and hardware-unique data in shared partitions",
+        "known_coverage": "Some host partitions preserved historically; current equivalence and MCU coverage unknown",
+        "current_capture": null,
+        "sources": [
+          "backup_preparation",
+          "step1_followup"
+        ],
+        "consistency_required": null,
+        "sensitivity": "Explicit private preservation plan; no key contents, serial plaintext or provisioning copied to the repository.",
+        "acceptance": [
+          "Determine supported preservation/restore semantics before any erase/write; never assume OTP writable or readable.",
+          "Keep per-unit state separate from redistributable software and prevent replacement by factory defaults."
+        ]
+      },
+      {
+        "id": "panda_local_board",
+        "source_object": "Local board MCU/application/bootstub/device-unique state",
+        "known_coverage": "USB DOS descriptor and selected disk firmware artifacts only",
+        "physical_identity": null,
+        "firmware_uid": null,
+        "application_signature": null,
+        "bootstub_identity": null,
+        "recovery_transport": null,
+        "current_capture": null,
+        "sources": [
+          "io",
+          "software"
+        ],
+        "consistency_required": null,
+        "acceptance": [
+          "Do not equate disk bin/version, DOS/F4 classification or a USB serial hash with live MCU identity.",
+          "Collect only audited requests after separately defined active-session conditions; unknowns do not block host-only backup.",
+          "Per-board recovery support and device-specific state preservation are independent of host UFS backup."
+        ]
+      },
+      {
+        "id": "panda_external_board",
+        "source_object": "External Panda MCU/application/bootstub/device-unique state",
+        "known_coverage": "No external-board inventory in the retained session",
+        "physical_identity": null,
+        "firmware_uid": null,
+        "application_signature": null,
+        "bootstub_identity": null,
+        "recovery_transport": null,
+        "current_capture": null,
+        "sources": [
+          "io"
+        ],
+        "consistency_required": null,
+        "acceptance": [
+          "Do not connect to a running unknown supervisor as an enumeration shortcut.",
+          "Each board has its own identity/recovery record; incomplete group stays UNBOUND."
+        ]
+      }
+    ],
+    "limitations": [
+      "Partition numbers/names and historical archive containment are lookup evidence, not executable restore targets.",
+      "Whole-LUN archives include GPT, gaps and device-unique areas; do not automatically write them back.",
+      "Current capture hashes are null; no current block, application or private-state capture is produced by this document.",
+      "Raw GUIDs and private contents are not copied into this matrix."
+    ]
+  },
+  "consistency_classes": [
+    {
+      "id": "METADATA_ONLY",
+      "meaning": "Bounded state observations and source references; no recoverable content snapshot."
+    },
+    {
+      "id": "BEST_EFFORT",
+      "meaning": "Running file/block reads with per-object drift checks; not atomic or application-consistent across objects."
+    },
+    {
+      "id": "RANGE_STABLE_OBSERVED",
+      "meaning": "Specified range repeatedly matches and pre/post mapping/mounts are consistent; evidence of observed stability only, not proof that all writes were excluded."
+    },
+    {
+      "id": "APPLICATION_CONSISTENT",
+      "meaning": "A documented, verified application-consistency method covers the relevant file set; service stop alone is insufficient."
+    },
+    {
+      "id": "OFFLINE_CONSISTENT",
+      "meaning": "A separately scoped environment prevents source writers for the documented object set; mount/boot/MCU dependencies still need mapping."
+    }
+  ],
+  "capture_manifest_contract": {
+    "required_fields": [
+      "capture_set_id",
+      "object_id",
+      "source_time_basis",
+      "start_end_time",
+      "identity_mapping_and_range",
+      "expected_bytes",
+      "actual_bytes",
+      "raw_stream_sha256",
+      "archive_sha256_if_archived",
+      "decompressed_stream_sha256_if_archived",
+      "owner_mode_symlink_xattr_if_applicable",
+      "consistency_class_and_evidence",
+      "pre_post_state_and_drift",
+      "tool_and_source_hashes",
+      "private_storage_reference",
+      "cross_object_dependencies",
+      "exclusions_and_restore_impact",
+      "failure_and_resume_boundary"
+    ],
+    "atomic_claim_allowed_by_two_equal_manifests": false,
+    "block_read_of_live_rw_is_consistent_by_default": false,
+    "unknown_digest_value": null,
+    "partial_capture_policy": "Keep failed/partial objects and their reason; never merge across capture_set IDs without an explicit compatibility comparison.",
+    "copy_policy": "Raw images/configuration stay in existing private storage outside the repository; record only sanitized metadata and hashes.",
+    "resumption_policy": "Revalidate identity, range and source generation before resuming; an offset checkpoint alone is insufficient."
+  },
+  "gpt_dsp_policy": {
+    "current_action": "PRESERVE_AND_ANALYZE_ONLY",
+    "source_evidence": [
+      "recovery",
+      "recovery_detail",
+      "filesystem",
+      "step1_followup"
+    ],
+    "restore_original_anomaly_automatically": false,
+    "repair_gpt_automatically": false,
+    "rewrite_labels_or_uuid_automatically": false,
+    "select_target_by_label_or_device_node_alone": false,
+    "future_mapping_fields": [
+      "confirmed_device_entity",
+      "LUN_size_and_sector_size",
+      "partition_name_and_number",
+      "first_last_lba",
+      "type_guid_digest",
+      "unique_guid_digest",
+      "attributes",
+      "content_digest_or_source_generation"
+    ],
+    "offline_allowed": [
+      "Model restore operations on synthetic GPT tables or copied small metadata; do not modify original archives.",
+      "Check bounds, primary/backup CRC consistency, A/B type and attribute handling, and unchanged non-target bytes for each candidate.",
+      "Resolve duplicate DSP labels through documented boot/mount evidence; same UUID does not imply same full contents."
+    ],
+    "future_unknowns": {
+      "chosen_gpt_restore_strategy": null,
+      "approved_gpt_candidate_sha256": null,
+      "chosen_dsp_identity": null,
+      "startup_selection_explanation": null,
+      "repair_or_restore_tool": null
+    }
+  },
+  "stages": [
+    {
+      "id": "R0",
+      "name": "Freeze sources and validate bounded evidence",
+      "kind": "LOCAL_OFFLINE",
+      "prerequisites": [],
+      "status": "LOCAL_SOURCE_HASHES_RECHECKED",
+      "actions": [
+        "Verify source files and retain original timestamps; calculate coverage from existing GPT metadata."
+      ],
+      "acceptance": [
+        "Every factual reference has a path/hash; historical reports are not new device observations."
+      ],
+      "stop_conditions": [
+        "Source missing or hash mismatch: mark only dependent conclusions unavailable; preserve all originals."
+      ]
+    },
+    {
+      "id": "R1",
+      "name": "Plan current capture set and gather passive metadata",
+      "kind": "BOUNDED_PASSIVE_READ_ONLY",
+      "prerequisites": [
+        "R0"
+      ],
+      "status": "PLAN_READY_NOT_EXECUTED_BY_THIS_DOCUMENT",
+      "actions": [
+        "Assign capture_set_id; inspect current layout/mounts/free capacity/software digests/service relationships with reviewed passive collectors.",
+        "Choose explicit object ranges, byte/time budgets, private destinations and preservation/exclusion policy."
+      ],
+      "acceptance": [
+        "Object matrix and privacy boundary are concrete; unknown content hashes remain null.",
+        "No Panda ownership, recovery-mode entry or restore rehearsal prerequisite for ordinary host file/metadata backup."
+      ],
+      "stop_conditions": [
+        "Mapping/identity drift, unsupported safe-read primitive, collection cap, permission gap, unexpected device node or secret path: stop that object without fallback."
+      ]
+    },
+    {
+      "id": "R2",
+      "name": "Capture and verify host materials incrementally",
+      "kind": "SCOPED_READ_ONLY_CAPTURE_AFTER_RANGES_FIXED",
+      "prerequisites": [
+        "R1"
+      ],
+      "status": "NOT_CAPTURED_CURRENT_SET",
+      "actions": [
+        "Capture approved ordinary files and block ranges to private host storage in bounded resumable objects.",
+        "Hash actual read stream and archive, record start/end stat/mount/layout and source stability; use offline decompression verification when an archive exists.",
+        "Label running mutable-state copies BEST_EFFORT; retain exclusions instead of claiming whole-device consistency."
+      ],
+      "acceptance": [
+        "Each object passes length/hash/metadata checks independently; present objects can pass while others remain unknown.",
+        "Host material completeness does not depend on Panda identity, exclusive native I/O, a recovery port or a completed restore test.",
+        "Any stronger consistency claim names the verified mechanism and its cross-object scope."
+      ],
+      "stop_conditions": [
+        "Insufficient destination capacity, read failure, unstable source, mismatched range/hash or sensitive content beyond allowlist.",
+        "Do not freeze/unmount/stop services/reboot to improve consistency without a separately defined operation scope."
+      ]
+    },
+    {
+      "id": "R3",
+      "name": "Design restore recipe and isolation exit plan",
+      "kind": "LOCAL_OFFLINE_PARALLEL",
+      "prerequisites": [
+        "R1"
+      ],
+      "status": "PARTIAL_RECIPE_WITH_UNRESOLVED_FIELDS",
+      "actions": [
+        "Compare original GPT and offline candidate behavior; plan unambiguous DSP selection.",
+        "Prepare per-operation impact, backup dependency, timeout, exit and recovery escalation tables for the actual service/supervisor graph.",
+        "Document physical port/power/line isolation and tool/loader evidence gaps; use local archive copies or synthetic fixtures for restore logic."
+      ],
+      "acceptance": [
+        "Recipes name exact objects and targets; no original anomaly overwritten, no live commands executed.",
+        "Identify which future actions need merely an app exit path versus an independent boot/MCU recovery path."
+      ],
+      "stop_conditions": [
+        "Unknown automatic writes/reset/flash behavior, ambiguous DSP/GPT mapping, unbounded cleanup or unavailable safe exit leaves that action unexecutable."
+      ]
+    },
+    {
+      "id": "R4",
+      "name": "Perform separately scoped stateful preparation if needed",
+      "kind": "SEPARATELY_DEFINED_STATEFUL_OPERATION",
+      "prerequisites": [
+        "R2",
+        "R3"
+      ],
+      "status": "NOT_AUTHORIZED_BY_THIS_PLAN",
+      "actions": [
+        "Only if explicitly scoped later: stop/return identified services, use a verified consistency environment, identify recovery mode or obtain exclusive board sessions.",
+        "Validate return to the baseline after each step; never combine entry recognition with writing a recovery image."
+      ],
+      "acceptance": [
+        "Required backup subset for the specific action is verified; exact operator/sequence/limits/return actions recorded.",
+        "Do not require a successful whole-device destructive restore before a reversible service-isolation step; require proportionate, credible exit safeguards.",
+        "Any unexpected firmware/bootloader write behavior stops the operation before native probing."
+      ],
+      "stop_conditions": [
+        "Unidentified supervisor/accessor, lost agreed exit path, changed board identity, unplanned USB role/reset/flash or operation outside the concrete scope."
+      ]
+    },
+    {
+      "id": "R5",
+      "name": "Qualify restore ability and hand off to noOutput bench",
+      "kind": "SEPARATELY_SCOPED_VALIDATION",
+      "prerequisites": [
+        "R2",
+        "R3"
+      ],
+      "status": "NOT_REHEARSED",
+      "actions": [
+        "First validate restore range selection and extraction on private copies/replaceable media.",
+        "Any real writeback/slot/boot/DFU action has its own reviewed input set and separately explicit operation scope; none is implied here.",
+        "Hand off verified subsets and known limitations to bench planning; active identity/noOutput tests retain their own prerequisites."
+      ],
+      "acceptance": [
+        "Report ARCHIVE_VERIFIED, ENTRY_IDENTIFIED and RESTORE_REHEARSED separately.",
+        "A current whole-device recoverable claim requires cross-object consistency, live host/MCU mapping and observed recovery results; unknowns remain blockers to that claim.",
+        "Native identity sessions require audited request semantics, sufficient exclusive ownership and an exit plan; a completed whole-host restore is not an automatic prerequisite for every nonwriting request."
+      ],
+      "stop_conditions": [
+        "Only irreplaceable original available with no failure containment, mismatch of target/range, missing unique-state preservation, or inability to meet the operation-specific exit plan."
+      ]
+    }
+  ],
+  "dependency_rules": [
+    "R2 host capture has no dependency on R3 recovery transport, R4 board exclusivity or R5 restore rehearsal.",
+    "R3 can proceed in parallel with R2; incomplete current contents keep the final recipe partial.",
+    "Panda identity/provisioning gaps block whole-system recovery and production claims, not unrelated host backup.",
+    "State-changing actions require action-specific backups and credible exits, not an impossible prior proof of the exact same destructive restore."
+  ],
+  "operation_boundaries": {
+    "ready_local": [
+      "Source/hash/coverage audit",
+      "Capture schema and local capacity planning",
+      "Private-copy/synthetic restore-range validation",
+      "Supervisor and exit-plan static analysis"
+    ],
+    "planned_capture_not_executed": [
+      "Explicitly bounded current host images/application files after object list, budget and private destination are concrete"
+    ],
+    "requires_separately_explicit_scope": [
+      "Reading/copying private configuration or unique-state contents",
+      "Stopping/restarting services or altering supervisor behavior",
+      "Freeze/unmount/reboot/recovery-mode entry/slot changes",
+      "Connecting extra Panda or changing physical power/USB roles",
+      "Opening/claiming USB/SPI or sending audited native requests",
+      "Reset/flash/DFU write/GPT or label changes",
+      "CAN transmit or vehicle operation"
+    ],
+    "bounded_passive_under_current_authorized_scope": [
+      "Current layout/mount/source digest inventory",
+      "Whitelisted file metadata and package versions without app import",
+      "Nonprivate service/supervisor topology and FD snapshots"
+    ]
+  },
+  "acceptance_status": {
+    "source_reference_hashes_recomputed": 30,
+    "partition_objects": 70,
+    "lun_objects": 6,
+    "new_current_content_backups": 0,
+    "new_recovery_rehearsals": 0,
+    "plan_authorizes_live_native_io": false,
+    "plan_authorizes_deployment": false,
+    "unknowns_remain_null": true
+  },
+  "local_validation": {
+    "source_files_rehashed": 30,
+    "source_hash_matches": 30,
+    "partition_ranges_checked": 70,
+    "duplicate_object_ids": false,
+    "stage_dependency_cycle": false,
+    "host_capture_ancestors": [
+      "R0",
+      "R1"
+    ],
+    "host_capture_requires_panda_exclusivity": false,
+    "host_capture_requires_restore_rehearsal": false,
+    "target_actions_executed": 0,
+    "new_backups_created": 0,
+    "validation_scope": "Local JSON/source-hash/range/dependency checks only; no target code imported or executed."
+  }
+}

@@ -1,0 +1,32 @@
+{
+  "schema": "songplus-recovery-readiness-offline-check/v1",
+  "status": "PASS_LOCAL_PREPARATION_ONLY",
+  "evidence_index_sha256": "ad8526f4c1d67469e607dcbf1499ca854bb8c31133d3ea14589e2245f333b346",
+  "indexed_files_verified": 29,
+  "historical_small_sources_verified": 30,
+  "passive_capture_receipts_verified": 4,
+  "current_lun_capacities_compared": 6,
+  "current_partition_capacities_compared": 70,
+  "stage_dependencies_acyclic": true,
+  "profile": "UNBOUND",
+  "current_content_backups": 0,
+  "recovery_exercises": 0,
+  "target_services_controlled": false,
+  "live_board_io": false,
+  "deployment_authorized": false,
+  "unit_tests": {
+    "status": "PASS",
+    "tests": 66,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "gpt": 34,
+    "supervisor": 23,
+    "ssh_entry_mock": 9,
+    "command": "upstream-openpilot/.venv/bin/python -B -m unittest discover -s hardware/recovery-readiness -p 'test_*.py'",
+    "run_scope": "Fresh offline run this session after fixed GPT scope gates; no real device access in tests"
+  },
+  "gpt_replay_exact_json_match": true,
+  "historical_large_archives_rehashed_this_session": false,
+  "full_p10_linux_mac_acceptance_rerun_this_session": false
+}

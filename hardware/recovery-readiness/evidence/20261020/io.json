@@ -1,0 +1,986 @@
+{
+  "schema": "songplus-p10-passive-io/v1",
+  "collected_utc": "2026-10-19T16:43:48.738229+00:00",
+  "profile_binding": "UNBOUND",
+  "method": "cached sysfs/proc ordinary-file reads plus stat/readlink; no character-device opens or control transactions",
+  "identity_unknown": [
+    "physical_board_revision",
+    "MCU_identity",
+    "firmware_UID",
+    "firmware_signature",
+    "protocol_version",
+    "F4_capabilities",
+    "physical_slot_role_mapping"
+  ],
+  "limits": {
+    "overall_seconds": 24,
+    "scan_seconds_each": 5,
+    "read_bytes_total": 4194304,
+    "directory_entries_total": 100000,
+    "pids_each_scan": 4096,
+    "fds_each_scan": 65536,
+    "dev_entries": 8192,
+    "dev_depth": 5,
+    "usb_entries": 512,
+    "spi_entries": 256,
+    "sample_interval_seconds": 0.2
+  },
+  "limit_semantics": "Cooperative per-operation checks and bounded enumeration/read sizes; no kernel hard deadline claim",
+  "namespace_links": {
+    "pid": {
+      "error": "FileNotFoundError",
+      "value": "unknown"
+    },
+    "mount": "mnt:[4026531840]"
+  },
+  "system": {
+    "VERSION": "12.4",
+    "kernel": "Linux version 4.9.103 (batman@docker) (gcc version 8.2.1 20180802 (GNU Toolchain for the A-profile Architecture 8.2-2018-08 (arm-rel-8.23)) ) #17 SMP PREEMPT Fri Jun 13 21:46:58 UTC 2025",
+    "boot_parameters_selected": [
+      "root=/dev/sda6",
+      "androidboot.slot_suffix=_a"
+    ]
+  },
+  "usb": {
+    "source": "kernel-cached sysfs attributes; no USB transaction initiated",
+    "devices": [
+      {
+        "topology_name": "1-1",
+        "sysfs_link": "../../../devices/platform/soc/a800000.ssusb/a800000.dwc3/xhci-hcd.0.auto/usb1/1-1",
+        "idVendor": "0000",
+        "idProduct": "0000",
+        "bcdDevice": "0000",
+        "product": {
+          "error": "FileNotFoundError",
+          "value": "unknown"
+        },
+        "busnum": "1",
+        "devnum": "2",
+        "bConfigurationValue": "1",
+        "bDeviceClass": "09",
+        "bNumInterfaces": " 1",
+        "speed": "480",
+        "panda_descriptor_candidate": false,
+        "candidate_limitation": "Descriptor candidate only, not authenticated identity or binding authority",
+        "serial": {
+          "read": false,
+          "reason": "not a Panda descriptor candidate"
+        },
+        "interfaces": [
+          {
+            "name": "1-1:1.0",
+            "bInterfaceNumber": "00",
+            "bAlternateSetting": " 0",
+            "bInterfaceClass": "09",
+            "bInterfaceSubClass": "00",
+            "bInterfaceProtocol": "00",
+            "bNumEndpoints": "01",
+            "driver_link": "../../../../../../../../../bus/usb/drivers/hub",
+            "endpoints": [
+              {
+                "name": "ep_81",
+                "bEndpointAddress": "81",
+                "bmAttributes": "03",
+                "wMaxPacketSize": "0001",
+                "bInterval": "0c",
+                "type": "Interrupt",
+                "direction": "in"
+              }
+            ]
+          }
+        ],
+        "character_node": {
+          "node": "/dev/bus/usb/001/002",
+          "mode_octal": "0o664",
+          "uid": 0,
+          "gid": 0,
+          "is_character_device": true,
+          "filesystem_dev": [
+            0,
+            6
+          ],
+          "inode": 42357,
+          "rdev": [
+            189,
+            1
+          ]
+        }
+      },
+      {
+        "topology_name": "1-1.1",
+        "sysfs_link": "../../../devices/platform/soc/a800000.ssusb/a800000.dwc3/xhci-hcd.0.auto/usb1/1-1/1-1.1",
+        "idVendor": "2c7c",
+        "idProduct": "0125",
+        "bcdDevice": "0318",
+        "product": "Android",
+        "busnum": "1",
+        "devnum": "4",
+        "bConfigurationValue": "1",
+        "bDeviceClass": "ef",
+        "bNumInterfaces": " 5",
+        "speed": "480",
+        "panda_descriptor_candidate": false,
+        "candidate_limitation": "Descriptor candidate only, not authenticated identity or binding authority",
+        "serial": {
+          "read": false,
+          "reason": "not a Panda descriptor candidate"
+        },
+        "interfaces": [
+          {
+            "name": "1-1.1:1.0",
+            "bInterfaceNumber": "00",
+            "bAlternateSetting": " 0",
+            "bInterfaceClass": "ff",
+            "bInterfaceSubClass": "ff",
+            "bInterfaceProtocol": "ff",
+            "bNumEndpoints": "02",
+            "driver_link": "../../../../../../../../../../bus/usb/drivers/option",
+            "endpoints": [
+              {
+                "name": "ep_01",
+                "bEndpointAddress": "01",
+                "bmAttributes": "02",
+                "wMaxPacketSize": "0200",
+                "bInterval": "00",
+                "type": "Bulk",
+                "direction": "out"
+              },
+              {
+                "name": "ep_81",
+                "bEndpointAddress": "81",
+                "bmAttributes": "02",
+                "wMaxPacketSize": "0200",
+                "bInterval": "00",
+                "type": "Bulk",
+                "direction": "in"
+              }
+            ]
+          },
+          {
+            "name": "1-1.1:1.1",
+            "bInterfaceNumber": "01",
+            "bAlternateSetting": " 0",
+            "bInterfaceClass": "ff",
+            "bInterfaceSubClass": "00",
+            "bInterfaceProtocol": "00",
+            "bNumEndpoints": "03",
+            "driver_link": "../../../../../../../../../../bus/usb/drivers/option",
+            "endpoints": [
+              {
+                "name": "ep_02",
+                "bEndpointAddress": "02",
+                "bmAttributes": "02",
+                "wMaxPacketSize": "0200",
+                "bInterval": "00",
+                "type": "Bulk",
+                "direction": "out"
+              },
+              {
+                "name": "ep_82",
+                "bEndpointAddress": "82",
+                "bmAttributes": "02",
+                "wMaxPacketSize": "0200",
+                "bInterval": "00",
+                "type": "Bulk",
+                "direction": "in"
+              },
+              {
+                "name": "ep_83",
+                "bEndpointAddress": "83",
+                "bmAttributes": "03",
+                "wMaxPacketSize": "000a",
+                "bInterval": "09",
+                "type": "Interrupt",
+                "direction": "in"
+              }
+            ]
+          },
+          {
+            "name": "1-1.1:1.2",
+            "bInterfaceNumber": "02",
+            "bAlternateSetting": " 0",
+            "bInterfaceClass": "ff",
+            "bInterfaceSubClass": "00",
+            "bInterfaceProtocol": "00",
+            "bNumEndpoints": "03",
+            "driver_link": "../../../../../../../../../../bus/usb/drivers/option",
+            "endpoints": [
+              {
+                "name": "ep_03",
+                "bEndpointAddress": "03",
+                "bmAttributes": "02",
+                "wMaxPacketSize": "0200",
+                "bInterval": "00",
+                "type": "Bulk",
+                "direction": "out"
+              },
+              {
+                "name": "ep_84",
+                "bEndpointAddress": "84",
+                "bmAttributes": "02",
+                "wMaxPacketSize": "0200",
+                "bInterval": "00",
+                "type": "Bulk",
+                "direction": "in"
+              },
+              {
+                "name": "ep_85",
+                "bEndpointAddress": "85",
+                "bmAttributes": "03",
+                "wMaxPacketSize": "000a",
+                "bInterval": "09",
+                "type": "Interrupt",
+                "direction": "in"
+              }
+            ]
+          },
+          {
+            "name": "1-1.1:1.3",
+            "bInterfaceNumber": "03",
+            "bAlternateSetting": " 0",
+            "bInterfaceClass": "ff",
+            "bInterfaceSubClass": "00",
+            "bInterfaceProtocol": "00",
+            "bNumEndpoints": "03",
+            "driver_link": "../../../../../../../../../../bus/usb/drivers/option",
+            "endpoints": [
+              {
+                "name": "ep_04",
+                "bEndpointAddress": "04",
+                "bmAttributes": "02",
+                "wMaxPacketSize": "0200",
+                "bInterval": "00",
+                "type": "Bulk",
+                "direction": "out"
+              },
+              {
+                "name": "ep_86",
+                "bEndpointAddress": "86",
+                "bmAttributes": "02",
+                "wMaxPacketSize": "0200",
+                "bInterval": "00",
+                "type": "Bulk",
+                "direction": "in"
+              },
+              {
+                "name": "ep_87",
+                "bEndpointAddress": "87",
+                "bmAttributes": "03",
+                "wMaxPacketSize": "000a",
+                "bInterval": "09",
+                "type": "Interrupt",
+                "direction": "in"
+              }
+            ]
+          },
+          {
+            "name": "1-1.1:1.4",
+            "bInterfaceNumber": "04",
+            "bAlternateSetting": " 0",
+            "bInterfaceClass": "ff",
+            "bInterfaceSubClass": "ff",
+            "bInterfaceProtocol": "ff",
+            "bNumEndpoints": "03",
+            "driver_link": "../../../../../../../../../../bus/usb/drivers/qmi_wwan",
+            "endpoints": [
+              {
+                "name": "ep_05",
+                "bEndpointAddress": "05",
+                "bmAttributes": "02",
+                "wMaxPacketSize": "0200",
+                "bInterval": "00",
+                "type": "Bulk",
+                "direction": "out"
+              },
+              {
+                "name": "ep_88",
+                "bEndpointAddress": "88",
+                "bmAttributes": "02",
+                "wMaxPacketSize": "0200",
+                "bInterval": "00",
+                "type": "Bulk",
+                "direction": "in"
+              },
+              {
+                "name": "ep_89",
+                "bEndpointAddress": "89",
+                "bmAttributes": "03",
+                "wMaxPacketSize": "0008",
+                "bInterval": "09",
+                "type": "Interrupt",
+                "direction": "in"
+              }
+            ]
+          }
+        ],
+        "character_node": {
+          "node": "/dev/bus/usb/001/004",
+          "mode_octal": "0o664",
+          "uid": 0,
+          "gid": 0,
+          "is_character_device": true,
+          "filesystem_dev": [
+            0,
+            6
+          ],
+          "inode": 97552,
+          "rdev": [
+            189,
+            3
+          ]
+        }
+      },
+      {
+        "topology_name": "1-1.2",
+        "sysfs_link": "../../../devices/platform/soc/a800000.ssusb/a800000.dwc3/xhci-hcd.0.auto/usb1/1-1/1-1.2",
+        "idVendor": "3801",
+        "idProduct": "ddcc",
+        "bcdDevice": "0600",
+        "product": "panda",
+        "busnum": "1",
+        "devnum": "6",
+        "bConfigurationValue": "1",
+        "bDeviceClass": "ff",
+        "bNumInterfaces": " 1",
+        "speed": "12",
+        "panda_descriptor_candidate": true,
+        "candidate_limitation": "Descriptor candidate only, not authenticated identity or binding authority",
+        "serial": {
+          "sha256": "ba6d80c9a5bfdcf453f338b4ac6cedf51fa417b6d2909a12e09abc3fd1c418f1",
+          "bytes": 24,
+          "normalization": "strip trailing CR/LF only",
+          "plaintext_retained": false
+        },
+        "interfaces": [
+          {
+            "name": "1-1.2:1.0",
+            "bInterfaceNumber": "00",
+            "bAlternateSetting": " 0",
+            "bInterfaceClass": "ff",
+            "bInterfaceSubClass": "ff",
+            "bInterfaceProtocol": "ff",
+            "bNumEndpoints": "03",
+            "driver_link": "../../../../../../../../../../bus/usb/drivers/usbfs",
+            "endpoints": [
+              {
+                "name": "ep_02",
+                "bEndpointAddress": "02",
+                "bmAttributes": "02",
+                "wMaxPacketSize": "0040",
+                "bInterval": "00",
+                "type": "Bulk",
+                "direction": "out"
+              },
+              {
+                "name": "ep_03",
+                "bEndpointAddress": "03",
+                "bmAttributes": "02",
+                "wMaxPacketSize": "0040",
+                "bInterval": "00",
+                "type": "Bulk",
+                "direction": "out"
+              },
+              {
+                "name": "ep_81",
+                "bEndpointAddress": "81",
+                "bmAttributes": "02",
+                "wMaxPacketSize": "0040",
+                "bInterval": "00",
+                "type": "Bulk",
+                "direction": "in"
+              }
+            ]
+          }
+        ],
+        "character_node": {
+          "node": "/dev/bus/usb/001/006",
+          "mode_octal": "0o664",
+          "uid": 0,
+          "gid": 0,
+          "is_character_device": true,
+          "filesystem_dev": [
+            0,
+            6
+          ],
+          "inode": 144628,
+          "rdev": [
+            189,
+            5
+          ]
+        }
+      },
+      {
+        "topology_name": "usb1",
+        "sysfs_link": "../../../devices/platform/soc/a800000.ssusb/a800000.dwc3/xhci-hcd.0.auto/usb1",
+        "idVendor": "1d6b",
+        "idProduct": "0002",
+        "bcdDevice": "0409",
+        "product": "xHCI Host Controller",
+        "busnum": "1",
+        "devnum": "1",
+        "bConfigurationValue": "1",
+        "bDeviceClass": "09",
+        "bNumInterfaces": " 1",
+        "speed": "480",
+        "panda_descriptor_candidate": false,
+        "candidate_limitation": "Descriptor candidate only, not authenticated identity or binding authority",
+        "serial": {
+          "read": false,
+          "reason": "not a Panda descriptor candidate"
+        },
+        "interfaces": [],
+        "character_node": {
+          "node": "/dev/bus/usb/001/001",
+          "mode_octal": "0o664",
+          "uid": 0,
+          "gid": 0,
+          "is_character_device": true,
+          "filesystem_dev": [
+            0,
+            6
+          ],
+          "inode": 7738,
+          "rdev": [
+            189,
+            0
+          ]
+        }
+      },
+      {
+        "topology_name": "usb2",
+        "sysfs_link": "../../../devices/platform/soc/a800000.ssusb/a800000.dwc3/xhci-hcd.0.auto/usb2",
+        "idVendor": "1d6b",
+        "idProduct": "0003",
+        "bcdDevice": "0409",
+        "product": "xHCI Host Controller",
+        "busnum": "2",
+        "devnum": "1",
+        "bConfigurationValue": "1",
+        "bDeviceClass": "09",
+        "bNumInterfaces": " 1",
+        "speed": "5000",
+        "panda_descriptor_candidate": false,
+        "candidate_limitation": "Descriptor candidate only, not authenticated identity or binding authority",
+        "serial": {
+          "read": false,
+          "reason": "not a Panda descriptor candidate"
+        },
+        "interfaces": [],
+        "character_node": {
+          "node": "/dev/bus/usb/002/001",
+          "mode_octal": "0o664",
+          "uid": 0,
+          "gid": 0,
+          "is_character_device": true,
+          "filesystem_dev": [
+            0,
+            6
+          ],
+          "inode": 7740,
+          "rdev": [
+            189,
+            128
+          ]
+        }
+      }
+    ]
+  },
+  "spi": {
+    "devices": [
+      {
+        "name": "spi0.0",
+        "sysfs_link": "../../../devices/platform/soc/880000.spi/spi_master/spi0/spi0.0",
+        "driver_link": "../../../../../../../bus/spi/drivers/spidev",
+        "modalias": "spi:panda",
+        "of_node_link": "../../../../../../../firmware/devicetree/base/soc/spi@880000/spidev@0",
+        "device_tree": {
+          "compatible": [
+            "commaai,panda"
+          ],
+          "reg": [
+            0
+          ],
+          "spi-max-frequency": [
+            50000000
+          ],
+          "spi-cpha": {
+            "present": false,
+            "meaning": "not declared; current setting unknown"
+          },
+          "spi-cpol": {
+            "present": false,
+            "meaning": "not declared; current setting unknown"
+          },
+          "spi-cs-high": {
+            "present": false,
+            "meaning": "not declared; current setting unknown"
+          },
+          "spi-3wire": {
+            "present": false,
+            "meaning": "not declared; current setting unknown"
+          },
+          "spi-lsb-first": {
+            "present": false,
+            "meaning": "not declared; current setting unknown"
+          }
+        },
+        "current_ioctl_settings": {
+          "mode": "unknown",
+          "bits_per_word": "unknown",
+          "speed_hz": "unknown"
+        }
+      }
+    ],
+    "class_spidev": [
+      {
+        "name": "spidev0.0",
+        "sysfs_link": "../../devices/platform/soc/880000.spi/spi_master/spi0/spi0.0/spidev/spidev0.0",
+        "device_link": "../../../spi0.0",
+        "declared_dev": "153:0",
+        "node": {
+          "node": "/dev/spidev0.0",
+          "mode_octal": "0o666",
+          "uid": 0,
+          "gid": 0,
+          "is_character_device": true,
+          "filesystem_dev": [
+            0,
+            6
+          ],
+          "inode": 7586,
+          "rdev": [
+            153,
+            0
+          ]
+        }
+      }
+    ],
+    "device_tree_limitation": "Device-tree values are declarations, not current SPI ioctl mode/bits/speed. No ioctl performed."
+  },
+  "aliases": {
+    "matching_nodes": [
+      {
+        "node": "/dev/spidev0.0",
+        "mode_octal": "0o666",
+        "uid": 0,
+        "gid": 0,
+        "is_character_device": true,
+        "filesystem_dev": [
+          0,
+          6
+        ],
+        "inode": 7586,
+        "rdev": [
+          153,
+          0
+        ]
+      },
+      {
+        "node": "/dev/char/153:0",
+        "mode_octal": "0o666",
+        "uid": 0,
+        "gid": 0,
+        "is_character_device": true,
+        "filesystem_dev": [
+          0,
+          6
+        ],
+        "inode": 7586,
+        "rdev": [
+          153,
+          0
+        ],
+        "link": "../spidev0.0"
+      },
+      {
+        "node": "/dev/char/189:0",
+        "mode_octal": "0o664",
+        "uid": 0,
+        "gid": 0,
+        "is_character_device": true,
+        "filesystem_dev": [
+          0,
+          6
+        ],
+        "inode": 7738,
+        "rdev": [
+          189,
+          0
+        ],
+        "link": "../bus/usb/001/001"
+      },
+      {
+        "node": "/dev/char/189:1",
+        "mode_octal": "0o664",
+        "uid": 0,
+        "gid": 0,
+        "is_character_device": true,
+        "filesystem_dev": [
+          0,
+          6
+        ],
+        "inode": 42357,
+        "rdev": [
+          189,
+          1
+        ],
+        "link": "../bus/usb/001/002"
+      },
+      {
+        "node": "/dev/char/189:128",
+        "mode_octal": "0o664",
+        "uid": 0,
+        "gid": 0,
+        "is_character_device": true,
+        "filesystem_dev": [
+          0,
+          6
+        ],
+        "inode": 7740,
+        "rdev": [
+          189,
+          128
+        ],
+        "link": "../bus/usb/002/001"
+      },
+      {
+        "node": "/dev/char/189:3",
+        "mode_octal": "0o664",
+        "uid": 0,
+        "gid": 0,
+        "is_character_device": true,
+        "filesystem_dev": [
+          0,
+          6
+        ],
+        "inode": 97552,
+        "rdev": [
+          189,
+          3
+        ],
+        "link": "../bus/usb/001/004"
+      },
+      {
+        "node": "/dev/char/189:5",
+        "mode_octal": "0o664",
+        "uid": 0,
+        "gid": 0,
+        "is_character_device": true,
+        "filesystem_dev": [
+          0,
+          6
+        ],
+        "inode": 144628,
+        "rdev": [
+          189,
+          5
+        ],
+        "link": "../bus/usb/001/006"
+      },
+      {
+        "node": "/dev/bus/usb/002/001",
+        "mode_octal": "0o664",
+        "uid": 0,
+        "gid": 0,
+        "is_character_device": true,
+        "filesystem_dev": [
+          0,
+          6
+        ],
+        "inode": 7740,
+        "rdev": [
+          189,
+          128
+        ]
+      },
+      {
+        "node": "/dev/bus/usb/001/001",
+        "mode_octal": "0o664",
+        "uid": 0,
+        "gid": 0,
+        "is_character_device": true,
+        "filesystem_dev": [
+          0,
+          6
+        ],
+        "inode": 7738,
+        "rdev": [
+          189,
+          0
+        ]
+      },
+      {
+        "node": "/dev/bus/usb/001/002",
+        "mode_octal": "0o664",
+        "uid": 0,
+        "gid": 0,
+        "is_character_device": true,
+        "filesystem_dev": [
+          0,
+          6
+        ],
+        "inode": 42357,
+        "rdev": [
+          189,
+          1
+        ]
+      },
+      {
+        "node": "/dev/bus/usb/001/004",
+        "mode_octal": "0o664",
+        "uid": 0,
+        "gid": 0,
+        "is_character_device": true,
+        "filesystem_dev": [
+          0,
+          6
+        ],
+        "inode": 97552,
+        "rdev": [
+          189,
+          3
+        ]
+      },
+      {
+        "node": "/dev/bus/usb/001/006",
+        "mode_octal": "0o664",
+        "uid": 0,
+        "gid": 0,
+        "is_character_device": true,
+        "filesystem_dev": [
+          0,
+          6
+        ],
+        "inode": 144628,
+        "rdev": [
+          189,
+          5
+        ]
+      }
+    ],
+    "entries_seen": 1461,
+    "truncated": false,
+    "scope": "/dev only, bounded depth/entries, symlink directories not traversed; aliases elsewhere unknown"
+  },
+  "process_samples": [
+    {
+      "sample_monotonic": 7283.437440604,
+      "holders": [
+        {
+          "pid": 22855,
+          "comm": "selfdrive.panda",
+          "exe_link": "/usr/bin/python3.12",
+          "starttime_ticks": 2038,
+          "fds": [
+            {
+              "fd": 35,
+              "target_rdev": [
+                153,
+                0
+              ],
+              "target_nodes": [
+                "/dev/spidev0.0"
+              ],
+              "link": "/dev/spidev0.0",
+              "filesystem_dev": [
+                0,
+                6
+              ],
+              "inode": 7586,
+              "fdinfo": {
+                "flags": "0400002",
+                "mnt_id": "18"
+              }
+            },
+            {
+              "fd": 36,
+              "target_rdev": [
+                153,
+                0
+              ],
+              "target_nodes": [
+                "/dev/spidev0.0"
+              ],
+              "link": "/dev/spidev0.0",
+              "filesystem_dev": [
+                0,
+                6
+              ],
+              "inode": 7586,
+              "fdinfo": {
+                "flags": "0400002",
+                "mnt_id": "18"
+              }
+            }
+          ],
+          "not_atomic": true
+        },
+        {
+          "pid": 46699,
+          "comm": "pandad",
+          "exe_link": "/data/openpilot/selfdrive/pandad/pandad",
+          "starttime_ticks": 5265,
+          "fds": [
+            {
+              "fd": 13,
+              "target_rdev": [
+                189,
+                5
+              ],
+              "target_nodes": [
+                "/dev/bus/usb/001/006"
+              ],
+              "link": "/dev/bus/usb/001/006",
+              "filesystem_dev": [
+                0,
+                6
+              ],
+              "inode": 144628,
+              "fdinfo": {
+                "flags": "02400002",
+                "mnt_id": "18"
+              }
+            }
+          ],
+          "not_atomic": true
+        }
+      ],
+      "pids_seen": 557,
+      "fds_seen": 1839,
+      "pids_completed": 23,
+      "truncated": false,
+      "completed_definition": "PID starttime stable and no per-PID read/list/stat errors; still non-atomic",
+      "locks": {
+        "matching_locks": [],
+        "match_semantics": "lock st_dev+inode matched to sampled node/FD; target_rdev identifies character device",
+        "limitation": "No matching lock in a sample does not prove all masters cooperate or absence of access."
+      },
+      "duration_seconds": 0.6228582120002102,
+      "gaps": {
+        "list:PermissionError": 531,
+        "proc_fd:FileNotFoundError": 4,
+        "proc_fd:PermissionError": 29
+      },
+      "visible_snapshot_complete": false
+    },
+    {
+      "sample_monotonic": 7284.26054208,
+      "holders": [
+        {
+          "pid": 22855,
+          "comm": "selfdrive.panda",
+          "exe_link": "/usr/bin/python3.12",
+          "starttime_ticks": 2038,
+          "fds": [
+            {
+              "fd": 35,
+              "target_rdev": [
+                153,
+                0
+              ],
+              "target_nodes": [
+                "/dev/spidev0.0"
+              ],
+              "link": "/dev/spidev0.0",
+              "filesystem_dev": [
+                0,
+                6
+              ],
+              "inode": 7586,
+              "fdinfo": {
+                "flags": "0400002",
+                "mnt_id": "18"
+              }
+            },
+            {
+              "fd": 36,
+              "target_rdev": [
+                153,
+                0
+              ],
+              "target_nodes": [
+                "/dev/spidev0.0"
+              ],
+              "link": "/dev/spidev0.0",
+              "filesystem_dev": [
+                0,
+                6
+              ],
+              "inode": 7586,
+              "fdinfo": {
+                "flags": "0400002",
+                "mnt_id": "18"
+              }
+            }
+          ],
+          "not_atomic": true
+        },
+        {
+          "pid": 46699,
+          "comm": "pandad",
+          "exe_link": "/data/openpilot/selfdrive/pandad/pandad",
+          "starttime_ticks": 5265,
+          "fds": [
+            {
+              "fd": 13,
+              "target_rdev": [
+                189,
+                5
+              ],
+              "target_nodes": [
+                "/dev/bus/usb/001/006"
+              ],
+              "link": "/dev/bus/usb/001/006",
+              "filesystem_dev": [
+                0,
+                6
+              ],
+              "inode": 144628,
+              "fdinfo": {
+                "flags": "02400002",
+                "mnt_id": "18"
+              }
+            }
+          ],
+          "not_atomic": true
+        }
+      ],
+      "pids_seen": 557,
+      "fds_seen": 1858,
+      "pids_completed": 24,
+      "truncated": false,
+      "completed_definition": "PID starttime stable and no per-PID read/list/stat errors; still non-atomic",
+      "locks": {
+        "matching_locks": [],
+        "match_semantics": "lock st_dev+inode matched to sampled node/FD; target_rdev identifies character device",
+        "limitation": "No matching lock in a sample does not prove all masters cooperate or absence of access."
+      },
+      "duration_seconds": 0.6180099189996326,
+      "gaps": {
+        "list:PermissionError": 531,
+        "proc_fd:FileNotFoundError": 1,
+        "proc_fd:PermissionError": 29
+      },
+      "visible_snapshot_complete": false
+    }
+  ],
+  "accounting": {
+    "bytes_read": 374823,
+    "directory_entries_seen": 6525,
+    "gaps": {
+      "readlink:FileNotFoundError": 1,
+      "read:FileNotFoundError": 1,
+      "list:PermissionError": 1062,
+      "proc_fd:FileNotFoundError": 5,
+      "proc_fd:PermissionError": 58
+    }
+  },
+  "limitations": [
+    "Snapshots are non-atomic; visible processes/FDs may exit, reopen, or change between reads.",
+    "Permissions, PID namespace, scan limits and aliases outside /dev prevent an all-accessors proof.",
+    "USB cached descriptors are host observations, not authenticated physical board or firmware identities.",
+    "USB descriptors and SPI device-tree declarations do not prove exclusive ownership, live firmware semantics or kernel deadlines.",
+    "No matching FD/lock is not evidence that a device is idle or all masters obey flock.",
+    "Only serial SHA256 and byte length are emitted; no cmdline except whitelisted boot parameters, process environment, keys or provisioning read."
+  ]
+}

@@ -1,0 +1,980 @@
+{
+  "schema": "songplus-startup-static-provenance/v1",
+  "created_at_utc": "2026-10-19T16:51:53.093316+00:00",
+  "supervisor_sample": {
+    "path": "/Users/shuang/Code/openpilot/songplus-port-lab/hardware/recovery-readiness/evidence/20261020/supervisor.json",
+    "sha256": "576f5df1a6aa3a978794a8eb0883bbc7b3d66e264a67b5d9f508ad0151c8b2f8",
+    "collected_utc": "2026-10-19T16:49:00.019168+00:00"
+  },
+  "scope": "Local filename search, bounded ordinary startup file hashing, and specified application delta members only; static analysis after exact current hash match",
+  "boundary": {
+    "ssh": false,
+    "target_software_executed_or_imported": false,
+    "installer_executed": false,
+    "private_config_or_key_contents_read": false,
+    "system_or_partition_images_read": false,
+    "target_changed": false,
+    "service_controlled": false
+  },
+  "search": {
+    "roots": [
+      "/Users/shuang/Code/openpilot/migration-audit",
+      "/Users/shuang/Code/openpilot/op_rootdir"
+    ],
+    "fixed_basenames": [
+      "comma.service",
+      "comma.sh",
+      "continue.sh",
+      "launch_openpilot.sh",
+      "launch_chffrplus.sh",
+      "launch_env.sh",
+      "rc-local.service"
+    ],
+    "max_regular_file_bytes": 262144,
+    "ordinary_file_candidates": [
+      {
+        "path": "/Users/shuang/Code/openpilot/migration-audit/review-targets/3xl/launch_env.sh",
+        "bytes": 1285,
+        "sha256": "996b197313ce6095f6f4018401b06b9f7430bfb827b60ee98814aa16bd4fb553",
+        "current_paths_matching": []
+      },
+      {
+        "path": "/Users/shuang/Code/openpilot/op_rootdir/data/continue.sh",
+        "bytes": 63,
+        "sha256": "d1e8752fd5b067f765d18d240557d576cb44a0273664f389b622f22571d658b6",
+        "current_paths_matching": [
+          "/data/continue.sh"
+        ]
+      },
+      {
+        "path": "/Users/shuang/Code/openpilot/migration-audit/review-targets/3xl/launch_chffrplus.sh",
+        "bytes": 3189,
+        "sha256": "b1b7618c0d84d9969b39cadd785dbba9591fe2a3b7f4f959965a71833456c262",
+        "current_paths_matching": []
+      },
+      {
+        "path": "/Users/shuang/Code/openpilot/migration-audit/review-targets/3xl/launch_openpilot.sh",
+        "bytes": 634,
+        "sha256": "dab801ca21236bf69919dbd9e39ff88ed5479f4f2c451bea38583d31f8d5deb1",
+        "current_paths_matching": []
+      },
+      {
+        "path": "/Users/shuang/Code/openpilot/migration-audit/review-targets/cp099/launch_chffrplus.sh",
+        "bytes": 4050,
+        "sha256": "94ec735d8ebed9bd1118fdc8934bcc582a5846b0dad426eaea71fc7de660803b",
+        "current_paths_matching": []
+      },
+      {
+        "path": "/Users/shuang/Code/openpilot/migration-audit/review-targets/cp099/launch_openpilot.sh",
+        "bytes": 322,
+        "sha256": "3ff8351e7f5764ead501f53b82534015b97ed0793f5c37797259ed4c733a486f",
+        "current_paths_matching": []
+      },
+      {
+        "path": "/Users/shuang/Code/openpilot/migration-audit/targets/3xl/launch_env.sh",
+        "bytes": 1285,
+        "sha256": "996b197313ce6095f6f4018401b06b9f7430bfb827b60ee98814aa16bd4fb553",
+        "current_paths_matching": []
+      },
+      {
+        "path": "/Users/shuang/Code/openpilot/migration-audit/targets/3xl/launch_chffrplus.sh",
+        "bytes": 3189,
+        "sha256": "b1b7618c0d84d9969b39cadd785dbba9591fe2a3b7f4f959965a71833456c262",
+        "current_paths_matching": []
+      },
+      {
+        "path": "/Users/shuang/Code/openpilot/migration-audit/targets/3xl/launch_openpilot.sh",
+        "bytes": 634,
+        "sha256": "dab801ca21236bf69919dbd9e39ff88ed5479f4f2c451bea38583d31f8d5deb1",
+        "current_paths_matching": []
+      },
+      {
+        "path": "/Users/shuang/Code/openpilot/migration-audit/review-targets/cp099/launch_env.sh",
+        "bytes": 271,
+        "sha256": "0387e4991ade0cf31e2b17c1e12dc90acc8d0c79a7dc8ad93da7526e938acc0e",
+        "current_paths_matching": [
+          "/data/openpilot/launch_env.sh"
+        ]
+      },
+      {
+        "path": "/Users/shuang/Code/openpilot/migration-audit/targets/cp099/launch_env.sh",
+        "bytes": 271,
+        "sha256": "0387e4991ade0cf31e2b17c1e12dc90acc8d0c79a7dc8ad93da7526e938acc0e",
+        "current_paths_matching": [
+          "/data/openpilot/launch_env.sh"
+        ]
+      },
+      {
+        "path": "/Users/shuang/Code/openpilot/migration-audit/targets/cp099/launch_chffrplus.sh",
+        "bytes": 4050,
+        "sha256": "94ec735d8ebed9bd1118fdc8934bcc582a5846b0dad426eaea71fc7de660803b",
+        "current_paths_matching": []
+      },
+      {
+        "path": "/Users/shuang/Code/openpilot/migration-audit/targets/cp099/launch_openpilot.sh",
+        "bytes": 322,
+        "sha256": "3ff8351e7f5764ead501f53b82534015b97ed0793f5c37797259ed4c733a486f",
+        "current_paths_matching": []
+      },
+      {
+        "path": "/Users/shuang/Code/openpilot/migration-audit/sp2027-review-20261017/factory-evidence/op_full/launch_env.sh",
+        "bytes": 271,
+        "sha256": "0387e4991ade0cf31e2b17c1e12dc90acc8d0c79a7dc8ad93da7526e938acc0e",
+        "current_paths_matching": [
+          "/data/openpilot/launch_env.sh"
+        ]
+      },
+      {
+        "path": "/Users/shuang/Code/openpilot/migration-audit/sp2027-review-20261017/factory-evidence/op_full/launch_chffrplus.sh",
+        "bytes": 2748,
+        "sha256": "1d9b6de39bae7a53e702f66b19eeaaca0e76fce10ed82a7b953644272b05ab6a",
+        "current_paths_matching": []
+      },
+      {
+        "path": "/Users/shuang/Code/openpilot/migration-audit/sp2027-review-20261017/factory-evidence/op_full/launch_openpilot.sh",
+        "bytes": 578,
+        "sha256": "3b77285e884f2393b6232adfc1963fe2144e4bdb6ba66fa5d0e94d23adc31d06",
+        "current_paths_matching": [
+          "/data/openpilot/launch_openpilot.sh"
+        ]
+      },
+      {
+        "path": "/Users/shuang/Code/openpilot/op_rootdir/data/op_byd/launch_openpilot.sh",
+        "bytes": 144,
+        "sha256": "f1a0cede19916ebdd73f41dd393c4ffa8ad04dd602f197d4082dcca4a6aad26a",
+        "current_paths_matching": []
+      },
+      {
+        "path": "/Users/shuang/Code/openpilot/migration-audit/ssh-cp-os-review-20261018/cp099/archive-selected/launch_env.sh",
+        "bytes": 271,
+        "sha256": "0387e4991ade0cf31e2b17c1e12dc90acc8d0c79a7dc8ad93da7526e938acc0e",
+        "current_paths_matching": [
+          "/data/openpilot/launch_env.sh"
+        ]
+      },
+      {
+        "path": "/Users/shuang/Code/openpilot/migration-audit/sp2027-review-20261017/factory-evidence/op_full/sunnypilot/system/hardware/c3/launch_env.sh",
+        "bytes": 271,
+        "sha256": "0387e4991ade0cf31e2b17c1e12dc90acc8d0c79a7dc8ad93da7526e938acc0e",
+        "current_paths_matching": [
+          "/data/openpilot/launch_env.sh"
+        ]
+      },
+      {
+        "path": "/Users/shuang/Code/openpilot/migration-audit/sp2027-review-20261017/factory-evidence/op_full/tools/sim/launch_openpilot.sh",
+        "bytes": 582,
+        "sha256": "d02631c1fe921b5906c8fee190ca87d3f9d05c8883c9c8cd5a635dcf78ad5709",
+        "current_paths_matching": []
+      },
+      {
+        "path": "/Users/shuang/Code/openpilot/migration-audit/ssh-cp-os-review-20261018/cp099/archive-selected/launch_chffrplus.sh",
+        "bytes": 4050,
+        "sha256": "94ec735d8ebed9bd1118fdc8934bcc582a5846b0dad426eaea71fc7de660803b",
+        "current_paths_matching": []
+      },
+      {
+        "path": "/Users/shuang/Code/openpilot/migration-audit/ssh-cp-os-review-20261018/cp099/archive-selected/launch_openpilot.sh",
+        "bytes": 322,
+        "sha256": "3ff8351e7f5764ead501f53b82534015b97ed0793f5c37797259ed4c733a486f",
+        "current_paths_matching": []
+      },
+      {
+        "path": "/Users/shuang/Code/openpilot/op_rootdir/data/op_byd/tools/sim/launch_openpilot.sh",
+        "bytes": 573,
+        "sha256": "3b4bcb6939c35fb21398f3f8e426233b354d5846f5647b1698b00de207da3f8c",
+        "current_paths_matching": []
+      },
+      {
+        "path": "/Users/shuang/Code/openpilot/migration-audit/full-3xl/openpilot-8fad06df0c4966d185f6c666ee4cbaaeee931b8f-8fad06df0c4966d185f6c666ee4cbaaeee931b8f/launch_openpilot.sh",
+        "bytes": 634,
+        "sha256": "dab801ca21236bf69919dbd9e39ff88ed5479f4f2c451bea38583d31f8d5deb1",
+        "current_paths_matching": []
+      },
+      {
+        "path": "/Users/shuang/Code/openpilot/op_rootdir/data/op_byd/launch_env.sh",
+        "bytes": 267,
+        "sha256": "3b8fe7ca8235436d889c96d04780c099dd865332a8695d221821aa1b1b83803f",
+        "current_paths_matching": []
+      },
+      {
+        "path": "/Users/shuang/Code/openpilot/op_rootdir/data/openpilot/launch_env.sh",
+        "bytes": 267,
+        "sha256": "3b8fe7ca8235436d889c96d04780c099dd865332a8695d221821aa1b1b83803f",
+        "current_paths_matching": []
+      },
+      {
+        "path": "/Users/shuang/Code/openpilot/op_rootdir/data/openpilot/launch_openpilot.sh",
+        "bytes": 144,
+        "sha256": "f1a0cede19916ebdd73f41dd393c4ffa8ad04dd602f197d4082dcca4a6aad26a",
+        "current_paths_matching": []
+      },
+      {
+        "path": "/Users/shuang/Code/openpilot/op_rootdir/data/openpilot/tools/sim/launch_openpilot.sh",
+        "bytes": 573,
+        "sha256": "3b4bcb6939c35fb21398f3f8e426233b354d5846f5647b1698b00de207da3f8c",
+        "current_paths_matching": []
+      },
+      {
+        "path": "/Users/shuang/Code/openpilot/migration-audit/full-3xl/openpilot-8fad06df0c4966d185f6c666ee4cbaaeee931b8f-8fad06df0c4966d185f6c666ee4cbaaeee931b8f/launch_env.sh",
+        "bytes": 1285,
+        "sha256": "996b197313ce6095f6f4018401b06b9f7430bfb827b60ee98814aa16bd4fb553",
+        "current_paths_matching": []
+      },
+      {
+        "path": "/Users/shuang/Code/openpilot/op_rootdir/data/op_byd/launch_chffrplus.sh",
+        "bytes": 3086,
+        "sha256": "58375052f1a9381835f4d12318667e1d7136f5074c775d1154291a0a0fe7b6eb",
+        "current_paths_matching": []
+      },
+      {
+        "path": "/Users/shuang/Code/openpilot/op_rootdir/data/openpilot/launch_chffrplus.sh",
+        "bytes": 3107,
+        "sha256": "4fe150bd162642d1dd57b0275c093f0be8b63f3a68f9005a676c2d7f1c8fbb59",
+        "current_paths_matching": []
+      },
+      {
+        "path": "/Users/shuang/Code/openpilot/migration-audit/full-3xl/openpilot-8fad06df0c4966d185f6c666ee4cbaaeee931b8f-8fad06df0c4966d185f6c666ee4cbaaeee931b8f/openpilot/tools/sim/launch_openpilot.sh",
+        "bytes": 615,
+        "sha256": "d67664b115f05341e20940b497190f81b101f54247704f5d1817a3b9c2f3d33d",
+        "current_paths_matching": []
+      },
+      {
+        "path": "/Users/shuang/Code/openpilot/migration-audit/full-3xl/openpilot-8fad06df0c4966d185f6c666ee4cbaaeee931b8f-8fad06df0c4966d185f6c666ee4cbaaeee931b8f/launch_chffrplus.sh",
+        "bytes": 3189,
+        "sha256": "b1b7618c0d84d9969b39cadd785dbba9591fe2a3b7f4f959965a71833456c262",
+        "current_paths_matching": []
+      },
+      {
+        "path": "/Users/shuang/Code/openpilot/op_rootdir/usr/comma/comma.sh",
+        "bytes": 2294,
+        "sha256": "7221e4c27fd79c98a90873fbb2a2c1002159247ade20cf5fef833f6481f8e5e2",
+        "current_paths_matching": []
+      },
+      {
+        "path": "/Users/shuang/Code/openpilot/op_rootdir/usr/lib/systemd/system/comma.service",
+        "bytes": 244,
+        "sha256": "55dc3e0de3d0cd1f43a83fdca4aa8faf106ec76f4ffd3abb94f2d1c8766c7566",
+        "current_paths_matching": []
+      },
+      {
+        "path": "/Users/shuang/Code/openpilot/op_rootdir/usr/lib/systemd/system/rc-local.service",
+        "bytes": 716,
+        "sha256": "36eee2cedb9c2c156a0872ac00b56ca71af45cd401a2f29a9d03342b6b8778e8",
+        "current_paths_matching": []
+      }
+    ],
+    "packages": [
+      {
+        "path": "/Users/shuang/Code/openpilot/migration-audit/sp2027-install-20261018/packages/op_byd_c3sp_common_2c908e48c_delta.sh",
+        "wrapper_bytes": 20242818,
+        "wrapper_sha256": "2e5ee81861ae377ef68c32c5d2d8c0b263814a573f295a9d461d512331fd5fbe",
+        "embedded_gzip_bytes": 14984570,
+        "embedded_gzip_sha256": "6158ca9cafc4ad0c964b38bbf71f8f4201fe78f37f3802ad95a4fea31c236f50",
+        "selected_members": [
+          {
+            "member": "op_byd/launch_chffrplus.sh",
+            "bytes": 10476,
+            "sha256": "9ac1b4c94cdedd71465230744af592a0ad32ab59f52b745d92a80cd3810c2366",
+            "current_path": "/data/openpilot/launch_chffrplus.sh",
+            "matches_current": true
+          },
+          {
+            "member": "op_byd/sunnypilot/system/hardware/c3/launch_chffrplus.sh",
+            "bytes": 10716,
+            "sha256": "db09a8ef86bac284f75a34145488a67eb3f01bd321691b4b8ed00a1ce30aa8f0",
+            "current_path": "/data/openpilot/sunnypilot/system/hardware/c3/launch_chffrplus.sh",
+            "matches_current": true
+          }
+        ]
+      },
+      {
+        "path": "/Users/shuang/Code/openpilot/migration-audit/sp2027-install-20261018/packages/op_byd_c3sp_zpzPz83Lz8Oy_b963a3261_delta.sh",
+        "wrapper_bytes": 3409359,
+        "wrapper_sha256": "e5bf3ba874a1fdc72f156eec820209e2d78d319f70cb565ccfd7621bcf120906",
+        "embedded_gzip_bytes": 2523379,
+        "embedded_gzip_sha256": "58f108b12631d26cb9c25d010a82970da0d200f1c5ac93cd9a609ca8f35afb16",
+        "selected_members": [
+          {
+            "member": "op_byd/launch_chffrplus.sh",
+            "bytes": 10476,
+            "sha256": "9ac1b4c94cdedd71465230744af592a0ad32ab59f52b745d92a80cd3810c2366",
+            "current_path": "/data/openpilot/launch_chffrplus.sh",
+            "matches_current": true
+          },
+          {
+            "member": "op_byd/sunnypilot/system/hardware/c3/launch_chffrplus.sh",
+            "bytes": 10716,
+            "sha256": "db09a8ef86bac284f75a34145488a67eb3f01bd321691b4b8ed00a1ce30aa8f0",
+            "current_path": "/data/openpilot/sunnypilot/system/hardware/c3/launch_chffrplus.sh",
+            "matches_current": true
+          }
+        ]
+      }
+    ],
+    "not_exhaustive_global_content_search": true
+  },
+  "historical_install_manifest": {
+    "path": "/Users/shuang/Code/openpilot/migration-audit/sp2027-base-execution-20261018/installed-file-manifest.json",
+    "sha256": "364a4927b33ef4bccc421f918b348adc2534b58911183783f01922da7f947733"
+  },
+  "current_startup_files": {
+    "/data/continue.sh": {
+      "current_bytes": 63,
+      "current_sha256": "d1e8752fd5b067f765d18d240557d576cb44a0273664f389b622f22571d658b6",
+      "matching_local_sources": [
+        {
+          "kind": "regular_local_file",
+          "path": "/Users/shuang/Code/openpilot/op_rootdir/data/continue.sh",
+          "bytes": 63,
+          "sha256": "d1e8752fd5b067f765d18d240557d576cb44a0273664f389b622f22571d658b6"
+        }
+      ],
+      "content_status": "HASH_MATCHED_STATIC_SOURCE",
+      "running_image_or_loaded_unit_proven": false,
+      "line_count": 4,
+      "selected_static_excerpts": [
+        {
+          "line": 1,
+          "text": "#!/usr/bin/bash"
+        },
+        {
+          "line": 2,
+          "text": ""
+        },
+        {
+          "line": 3,
+          "text": "cd /data/openpilot"
+        },
+        {
+          "line": 4,
+          "text": "exec ./launch_openpilot.sh"
+        }
+      ]
+    },
+    "/data/openpilot/launch_chffrplus.sh": {
+      "current_bytes": 10476,
+      "current_sha256": "9ac1b4c94cdedd71465230744af592a0ad32ab59f52b745d92a80cd3810c2366",
+      "matching_local_sources": [
+        {
+          "kind": "embedded_gzip_tar_member",
+          "package_path": "/Users/shuang/Code/openpilot/migration-audit/sp2027-install-20261018/packages/op_byd_c3sp_common_2c908e48c_delta.sh",
+          "package_sha256": "2e5ee81861ae377ef68c32c5d2d8c0b263814a573f295a9d461d512331fd5fbe",
+          "embedded_gzip_sha256": "6158ca9cafc4ad0c964b38bbf71f8f4201fe78f37f3802ad95a4fea31c236f50",
+          "member": "op_byd/launch_chffrplus.sh",
+          "bytes": 10476,
+          "sha256": "9ac1b4c94cdedd71465230744af592a0ad32ab59f52b745d92a80cd3810c2366"
+        },
+        {
+          "kind": "embedded_gzip_tar_member",
+          "package_path": "/Users/shuang/Code/openpilot/migration-audit/sp2027-install-20261018/packages/op_byd_c3sp_zpzPz83Lz8Oy_b963a3261_delta.sh",
+          "package_sha256": "e5bf3ba874a1fdc72f156eec820209e2d78d319f70cb565ccfd7621bcf120906",
+          "embedded_gzip_sha256": "58f108b12631d26cb9c25d010a82970da0d200f1c5ac93cd9a609ca8f35afb16",
+          "member": "op_byd/launch_chffrplus.sh",
+          "bytes": 10476,
+          "sha256": "9ac1b4c94cdedd71465230744af592a0ad32ab59f52b745d92a80cd3810c2366"
+        }
+      ],
+      "content_status": "HASH_MATCHED_STATIC_SOURCE",
+      "running_image_or_loaded_unit_proven": false,
+      "historical_install_manifest_entry": {
+        "type": "file",
+        "mode": 509,
+        "bytes": 10476,
+        "sha256": "9ac1b4c94cdedd71465230744af592a0ad32ab59f52b745d92a80cd3810c2366"
+      },
+      "manifest_hash_matches_current": true,
+      "line_count": 236,
+      "selected_static_excerpts": [
+        {
+          "line": 5,
+          "text": "source \"$DIR/launch_env.sh\""
+        },
+        {
+          "line": 9,
+          "text": "  sudo rm -f /data/etc/NetworkManager/system-connections/*.nmmeta"
+        },
+        {
+          "line": 12,
+          "text": "  sudo abctl --set_success"
+        },
+        {
+          "line": 16,
+          "text": "  sudo chgrp gpu /dev/adsprpc-smd /dev/ion /dev/kgsl-3d0"
+        },
+        {
+          "line": 17,
+          "text": "  sudo chmod 660 /dev/adsprpc-smd /dev/ion /dev/kgsl-3d0"
+        },
+        {
+          "line": 20,
+          "text": "  if [ $(< /VERSION) != \"$AGNOS_VERSION\" ]; then"
+        },
+        {
+          "line": 23,
+          "text": "    if $AGNOS_PY --verify $MANIFEST; then"
+        },
+        {
+          "line": 24,
+          "text": "      sudo reboot"
+        },
+        {
+          "line": 26,
+          "text": "    $DIR/system/hardware/tici/updater $AGNOS_PY $MANIFEST"
+        },
+        {
+          "line": 45,
+          "text": "    for cand in ${PY_PKG_BIN:-} python3 python /usr/local/pyenv/shims/python3 /usr/local/pyenv/versions/*/bin/python \"$DIR/.venv/bin/python\"; do"
+        },
+        {
+          "line": 47,
+          "text": "      \"$cand\" -c \"import sys\" >/dev/null 2>&1 || continue"
+        },
+        {
+          "line": 49,
+          "text": "        \"$cand\" -m pip --version >/dev/null 2>&1 &&"
+        },
+        {
+          "line": 50,
+          "text": "          PYTHONPATH=\"$DIR\" \"$cand\" -c \"import openpilot.common.params_pyx\" >/dev/null 2>&1 &&"
+        },
+        {
+          "line": 82,
+          "text": "  abi=$(\"$PY_BIN\" -c 'import sys, platform; print(f\"cp{sys.version_info.major}{sys.version_info.minor}-{platform.machine()}\")' 2>/dev/null)"
+        },
+        {
+          "line": 83,
+          "text": "  dir=\"${PY_PKG_SITE_DIR:-/data/py_offline_site}/${abi:-unknown}\""
+        },
+        {
+          "line": 84,
+          "text": "  mkdir -p \"$dir\" 2>/dev/null && echo \"$dir\""
+        },
+        {
+          "line": 117,
+          "text": "  [ -d \"$PY_PKGS_DIR\" ] || return"
+        },
+        {
+          "line": 126,
+          "text": "  PY_SITE=$(py_install_dir)"
+        },
+        {
+          "line": 128,
+          "text": "  if [ -n \"$PY_SITE\" ]; then"
+        },
+        {
+          "line": 129,
+          "text": "    export PYTHONPATH=\"$PY_SITE${PYTHONPATH:+:$PYTHONPATH}\""
+        },
+        {
+          "line": 130,
+          "text": "    target=\"--target $PY_SITE --upgrade\""
+        },
+        {
+          "line": 139,
+          "text": "    if [ -n \"$have\" ] && ! py_ver_lt \"$have\" \"$want\"; then"
+        },
+        {
+          "line": 152,
+          "text": "    if out1=$(\"$PY_BIN\" -m pip install ${flags:+$flags} ${target:+$target} --no-index --find-links=\"$PY_PKGS_DIR\" \"$pipname==$want\" 2>&1) ||"
+        },
+        {
+          "line": 153,
+          "text": "       { [ -z \"$PY_SITE\" ] && out2=$(sudo -n \"$PY_BIN\" -m pip install ${flags:+$flags} --no-index --find-links=\"$PY_PKGS_DIR\" \"$pipname==$want\" 2>&1); }; then"
+        },
+        {
+          "line": 175,
+          "text": "  [ -f \"$DIR/.git/index.lock\" ] && rm -f $DIR/.git/index.lock"
+        },
+        {
+          "line": 186,
+          "text": "  if [ -f \"${DIR}/.overlay_init\" ]; then"
+        },
+        {
+          "line": 191,
+          "text": "      if [ -f \"${STAGING_ROOT}/finalized/.overlay_consistent\" ]; then"
+        },
+        {
+          "line": 192,
+          "text": "        if [ ! -d /data/safe_staging/old_openpilot ]; then"
+        },
+        {
+          "line": 196,
+          "text": "          mv $DIR /data/safe_staging/old_openpilot"
+        },
+        {
+          "line": 197,
+          "text": "          mv \"${STAGING_ROOT}/finalized\" $DIR"
+        },
+        {
+          "line": 202,
+          "text": "          exec \"${LAUNCHER_LOCATION}\""
+        },
+        {
+          "line": 212,
+          "text": "  ln -sfn $(pwd) /data/pythonpath"
+        },
+        {
+          "line": 216,
+          "text": "  if [ -f /AGNOS ]; then"
+        },
+        {
+          "line": 217,
+          "text": "    agnos_init"
+        },
+        {
+          "line": 221,
+          "text": "  tmux capture-pane -pq -S-1000 > /tmp/launch_log"
+        },
+        {
+          "line": 223,
+          "text": "  ensure_py_pkgs"
+        },
+        {
+          "line": 226,
+          "text": "  cd system/manager"
+        },
+        {
+          "line": 227,
+          "text": "  if [ ! -f $DIR/prebuilt ]; then"
+        },
+        {
+          "line": 228,
+          "text": "    ./build.py"
+        },
+        {
+          "line": 230,
+          "text": "  ./manager.py"
+        },
+        {
+          "line": 233,
+          "text": "  while true; do sleep 1; done"
+        },
+        {
+          "line": 236,
+          "text": "launch"
+        }
+      ]
+    },
+    "/data/openpilot/launch_env.sh": {
+      "current_bytes": 271,
+      "current_sha256": "0387e4991ade0cf31e2b17c1e12dc90acc8d0c79a7dc8ad93da7526e938acc0e",
+      "matching_local_sources": [
+        {
+          "kind": "regular_local_file",
+          "path": "/Users/shuang/Code/openpilot/migration-audit/review-targets/cp099/launch_env.sh",
+          "bytes": 271,
+          "sha256": "0387e4991ade0cf31e2b17c1e12dc90acc8d0c79a7dc8ad93da7526e938acc0e"
+        },
+        {
+          "kind": "regular_local_file",
+          "path": "/Users/shuang/Code/openpilot/migration-audit/targets/cp099/launch_env.sh",
+          "bytes": 271,
+          "sha256": "0387e4991ade0cf31e2b17c1e12dc90acc8d0c79a7dc8ad93da7526e938acc0e"
+        },
+        {
+          "kind": "regular_local_file",
+          "path": "/Users/shuang/Code/openpilot/migration-audit/sp2027-review-20261017/factory-evidence/op_full/launch_env.sh",
+          "bytes": 271,
+          "sha256": "0387e4991ade0cf31e2b17c1e12dc90acc8d0c79a7dc8ad93da7526e938acc0e"
+        },
+        {
+          "kind": "regular_local_file",
+          "path": "/Users/shuang/Code/openpilot/migration-audit/ssh-cp-os-review-20261018/cp099/archive-selected/launch_env.sh",
+          "bytes": 271,
+          "sha256": "0387e4991ade0cf31e2b17c1e12dc90acc8d0c79a7dc8ad93da7526e938acc0e"
+        },
+        {
+          "kind": "regular_local_file",
+          "path": "/Users/shuang/Code/openpilot/migration-audit/sp2027-review-20261017/factory-evidence/op_full/sunnypilot/system/hardware/c3/launch_env.sh",
+          "bytes": 271,
+          "sha256": "0387e4991ade0cf31e2b17c1e12dc90acc8d0c79a7dc8ad93da7526e938acc0e"
+        }
+      ],
+      "content_status": "HASH_MATCHED_STATIC_SOURCE",
+      "running_image_or_loaded_unit_proven": false,
+      "historical_install_manifest_entry": {
+        "type": "file",
+        "mode": 509,
+        "bytes": 271,
+        "sha256": "0387e4991ade0cf31e2b17c1e12dc90acc8d0c79a7dc8ad93da7526e938acc0e"
+      },
+      "manifest_hash_matches_current": true,
+      "line_count": 13,
+      "selected_static_excerpts": [
+        {
+          "line": 3,
+          "text": "export OMP_NUM_THREADS=1"
+        },
+        {
+          "line": 4,
+          "text": "export MKL_NUM_THREADS=1"
+        },
+        {
+          "line": 5,
+          "text": "export NUMEXPR_NUM_THREADS=1"
+        },
+        {
+          "line": 6,
+          "text": "export OPENBLAS_NUM_THREADS=1"
+        },
+        {
+          "line": 7,
+          "text": "export VECLIB_MAXIMUM_THREADS=1"
+        },
+        {
+          "line": 9,
+          "text": "if [ -z \"$AGNOS_VERSION\" ]; then"
+        },
+        {
+          "line": 10,
+          "text": "  export AGNOS_VERSION=\"12.4\""
+        },
+        {
+          "line": 13,
+          "text": "export STAGING_ROOT=\"/data/safe_staging\""
+        }
+      ]
+    },
+    "/data/openpilot/launch_openpilot.sh": {
+      "current_bytes": 578,
+      "current_sha256": "3b77285e884f2393b6232adfc1963fe2144e4bdb6ba66fa5d0e94d23adc31d06",
+      "matching_local_sources": [
+        {
+          "kind": "regular_local_file",
+          "path": "/Users/shuang/Code/openpilot/migration-audit/sp2027-review-20261017/factory-evidence/op_full/launch_openpilot.sh",
+          "bytes": 578,
+          "sha256": "3b77285e884f2393b6232adfc1963fe2144e4bdb6ba66fa5d0e94d23adc31d06"
+        }
+      ],
+      "content_status": "HASH_MATCHED_STATIC_SOURCE",
+      "running_image_or_loaded_unit_proven": false,
+      "historical_install_manifest_entry": {
+        "type": "file",
+        "mode": 509,
+        "bytes": 578,
+        "sha256": "3b77285e884f2393b6232adfc1963fe2144e4bdb6ba66fa5d0e94d23adc31d06"
+      },
+      "manifest_hash_matches_current": true,
+      "line_count": 25,
+      "selected_static_excerpts": [
+        {
+          "line": 2,
+          "text": "set -euo pipefail"
+        },
+        {
+          "line": 6,
+          "text": "trap 'exec ./launch_chffrplus.sh' ERR"
+        },
+        {
+          "line": 7,
+          "text": "C3_LAUNCH_SH=\"./sunnypilot/system/hardware/c3/launch_chffrplus.sh\""
+        },
+        {
+          "line": 9,
+          "text": "MODEL=\"$(tr -d '\\0' < \"/sys/firmware/devicetree/base/model\")\""
+        },
+        {
+          "line": 13,
+          "text": "if [ -f /data/custom_op_script.sh ]; then"
+        },
+        {
+          "line": 14,
+          "text": "  source /data/custom_op_script.sh"
+        },
+        {
+          "line": 17,
+          "text": "if [ \"$MODEL\" = \"comma tici\" ]; then"
+        },
+        {
+          "line": 19,
+          "text": "  [ -x \"$C3_LAUNCH_SH\" ] || false"
+        },
+        {
+          "line": 22,
+          "text": "  exec \"$C3_LAUNCH_SH\""
+        },
+        {
+          "line": 25,
+          "text": "exec ./launch_chffrplus.sh"
+        }
+      ]
+    },
+    "/data/openpilot/sunnypilot/system/hardware/c3/launch_chffrplus.sh": {
+      "current_bytes": 10716,
+      "current_sha256": "db09a8ef86bac284f75a34145488a67eb3f01bd321691b4b8ed00a1ce30aa8f0",
+      "matching_local_sources": [
+        {
+          "kind": "embedded_gzip_tar_member",
+          "package_path": "/Users/shuang/Code/openpilot/migration-audit/sp2027-install-20261018/packages/op_byd_c3sp_common_2c908e48c_delta.sh",
+          "package_sha256": "2e5ee81861ae377ef68c32c5d2d8c0b263814a573f295a9d461d512331fd5fbe",
+          "embedded_gzip_sha256": "6158ca9cafc4ad0c964b38bbf71f8f4201fe78f37f3802ad95a4fea31c236f50",
+          "member": "op_byd/sunnypilot/system/hardware/c3/launch_chffrplus.sh",
+          "bytes": 10716,
+          "sha256": "db09a8ef86bac284f75a34145488a67eb3f01bd321691b4b8ed00a1ce30aa8f0"
+        },
+        {
+          "kind": "embedded_gzip_tar_member",
+          "package_path": "/Users/shuang/Code/openpilot/migration-audit/sp2027-install-20261018/packages/op_byd_c3sp_zpzPz83Lz8Oy_b963a3261_delta.sh",
+          "package_sha256": "e5bf3ba874a1fdc72f156eec820209e2d78d319f70cb565ccfd7621bcf120906",
+          "embedded_gzip_sha256": "58f108b12631d26cb9c25d010a82970da0d200f1c5ac93cd9a609ca8f35afb16",
+          "member": "op_byd/sunnypilot/system/hardware/c3/launch_chffrplus.sh",
+          "bytes": 10716,
+          "sha256": "db09a8ef86bac284f75a34145488a67eb3f01bd321691b4b8ed00a1ce30aa8f0"
+        }
+      ],
+      "content_status": "HASH_MATCHED_STATIC_SOURCE",
+      "running_image_or_loaded_unit_proven": false,
+      "historical_install_manifest_entry": {
+        "type": "file",
+        "mode": 509,
+        "bytes": 10716,
+        "sha256": "db09a8ef86bac284f75a34145488a67eb3f01bd321691b4b8ed00a1ce30aa8f0"
+      },
+      "manifest_hash_matches_current": true,
+      "line_count": 247,
+      "selected_static_excerpts": [
+        {
+          "line": 4,
+          "text": "ln -s /data/media/0/realdata ~/realdata"
+        },
+        {
+          "line": 5,
+          "text": "ln -s /data/ ~/data"
+        },
+        {
+          "line": 7,
+          "text": "if [ -f \"/data/.ssh/id_rsa\" ]; then"
+        },
+        {
+          "line": 8,
+          "text": "  SSH_EVAL=\"$(ssh-agent -s)\""
+        },
+        {
+          "line": 9,
+          "text": "  eval $SSH_EVAL"
+        },
+        {
+          "line": 10,
+          "text": "  echo \"$SSH_EVAL\" >> ~/.bash_profile"
+        },
+        {
+          "line": 11,
+          "text": "  ssh-add /data/.ssh/id_rsa"
+        },
+        {
+          "line": 17,
+          "text": "source \"$SP_C3_DIR/launch_env.sh\""
+        },
+        {
+          "line": 21,
+          "text": "  sudo rm -f /data/etc/NetworkManager/system-connections/*.nmmeta"
+        },
+        {
+          "line": 24,
+          "text": "  sudo abctl --set_success"
+        },
+        {
+          "line": 28,
+          "text": "  sudo chgrp gpu /dev/adsprpc-smd /dev/ion /dev/kgsl-3d0"
+        },
+        {
+          "line": 29,
+          "text": "  sudo chmod 660 /dev/adsprpc-smd /dev/ion /dev/kgsl-3d0"
+        },
+        {
+          "line": 32,
+          "text": "  if [ $(echo \"$(< /VERSION) < $AGNOS_VERSION\" | bc -l) -eq 1 ]; then"
+        },
+        {
+          "line": 35,
+          "text": "    if $AGNOS_PY --verify $MANIFEST; then"
+        },
+        {
+          "line": 36,
+          "text": "      sudo reboot"
+        },
+        {
+          "line": 38,
+          "text": "    $DIR/system/hardware/tici/updater $AGNOS_PY $MANIFEST"
+        },
+        {
+          "line": 56,
+          "text": "    for cand in ${PY_PKG_BIN:-} python3 python /usr/local/pyenv/shims/python3 /usr/local/pyenv/versions/*/bin/python \"$DIR/.venv/bin/python\"; do"
+        },
+        {
+          "line": 58,
+          "text": "      \"$cand\" -c \"import sys\" >/dev/null 2>&1 || continue"
+        },
+        {
+          "line": 60,
+          "text": "        \"$cand\" -m pip --version >/dev/null 2>&1 &&"
+        },
+        {
+          "line": 61,
+          "text": "          PYTHONPATH=\"$DIR\" \"$cand\" -c \"import openpilot.common.params_pyx\" >/dev/null 2>&1 &&"
+        },
+        {
+          "line": 93,
+          "text": "  abi=$(\"$PY_BIN\" -c 'import sys, platform; print(f\"cp{sys.version_info.major}{sys.version_info.minor}-{platform.machine()}\")' 2>/dev/null)"
+        },
+        {
+          "line": 94,
+          "text": "  dir=\"${PY_PKG_SITE_DIR:-/data/py_offline_site}/${abi:-unknown}\""
+        },
+        {
+          "line": 95,
+          "text": "  mkdir -p \"$dir\" 2>/dev/null && echo \"$dir\""
+        },
+        {
+          "line": 128,
+          "text": "  [ -d \"$PY_PKGS_DIR\" ] || return"
+        },
+        {
+          "line": 137,
+          "text": "  PY_SITE=$(py_install_dir)"
+        },
+        {
+          "line": 139,
+          "text": "  if [ -n \"$PY_SITE\" ]; then"
+        },
+        {
+          "line": 140,
+          "text": "    export PYTHONPATH=\"$PY_SITE${PYTHONPATH:+:$PYTHONPATH}\""
+        },
+        {
+          "line": 141,
+          "text": "    target=\"--target $PY_SITE --upgrade\""
+        },
+        {
+          "line": 150,
+          "text": "    if [ -n \"$have\" ] && ! py_ver_lt \"$have\" \"$want\"; then"
+        },
+        {
+          "line": 163,
+          "text": "    if out1=$(\"$PY_BIN\" -m pip install ${flags:+$flags} ${target:+$target} --no-index --find-links=\"$PY_PKGS_DIR\" \"$pipname==$want\" 2>&1) ||"
+        },
+        {
+          "line": 164,
+          "text": "       { [ -z \"$PY_SITE\" ] && out2=$(sudo -n \"$PY_BIN\" -m pip install ${flags:+$flags} --no-index --find-links=\"$PY_PKGS_DIR\" \"$pipname==$want\" 2>&1); }; then"
+        },
+        {
+          "line": 186,
+          "text": "  [ -f \"$DIR/.git/index.lock\" ] && rm -f $DIR/.git/index.lock"
+        },
+        {
+          "line": 197,
+          "text": "  if [ -f \"${DIR}/.overlay_init\" ]; then"
+        },
+        {
+          "line": 202,
+          "text": "      if [ -f \"${STAGING_ROOT}/finalized/.overlay_consistent\" ]; then"
+        },
+        {
+          "line": 203,
+          "text": "        if [ ! -d /data/safe_staging/old_openpilot ]; then"
+        },
+        {
+          "line": 207,
+          "text": "          mv $DIR /data/safe_staging/old_openpilot"
+        },
+        {
+          "line": 208,
+          "text": "          mv \"${STAGING_ROOT}/finalized\" $DIR"
+        },
+        {
+          "line": 213,
+          "text": "          exec \"${LAUNCHER_LOCATION}\""
+        },
+        {
+          "line": 223,
+          "text": "  ln -sfn $(pwd) /data/pythonpath"
+        },
+        {
+          "line": 227,
+          "text": "  if [ -f /AGNOS ]; then"
+        },
+        {
+          "line": 228,
+          "text": "    agnos_init"
+        },
+        {
+          "line": 232,
+          "text": "  tmux capture-pane -pq -S-1000 > /tmp/launch_log"
+        },
+        {
+          "line": 234,
+          "text": "  ensure_py_pkgs"
+        },
+        {
+          "line": 237,
+          "text": "  cd $DIR/system/manager"
+        },
+        {
+          "line": 238,
+          "text": "  if [ ! -f $DIR/prebuilt ]; then"
+        },
+        {
+          "line": 239,
+          "text": "    ./build.py"
+        },
+        {
+          "line": 241,
+          "text": "  ./manager.py"
+        },
+        {
+          "line": 244,
+          "text": "  while true; do sleep 1; done"
+        },
+        {
+          "line": 247,
+          "text": "launch"
+        }
+      ]
+    },
+    "/usr/comma/comma.sh": {
+      "current_bytes": 2585,
+      "current_sha256": "932f6700e78900baf9930e0c130e1ea928c4d5cad4f8258628871c6699c72a02",
+      "matching_local_sources": [],
+      "content_status": "CURRENT_CONTENT_UNKNOWN",
+      "running_image_or_loaded_unit_proven": false
+    },
+    "/usr/lib/systemd/system/comma.service": {
+      "current_bytes": 367,
+      "current_sha256": "eb5b82d979b5e94cdf2f089736a9d72e1b72cd08a465393405fb1c24057248bb",
+      "matching_local_sources": [],
+      "content_status": "CURRENT_CONTENT_UNKNOWN",
+      "running_image_or_loaded_unit_proven": false
+    },
+    "/usr/lib/systemd/system/rc-local.service": {
+      "current_bytes": 731,
+      "current_sha256": "76b9c90a0a7b25cd7c09793a62a811c3876358bd1c4b4330d661332fadeb0144",
+      "matching_local_sources": [],
+      "content_status": "CURRENT_CONTENT_UNKNOWN",
+      "running_image_or_loaded_unit_proven": false
+    }
+  },
+  "process_findings": {
+    "observed_common_cgroup": "/system.slice/comma.service",
+    "spi_holder_pid": 22855,
+    "usb_holder_pid": 46699,
+    "observed_parent_chain_usb_to_root": [
+      46699,
+      22855,
+      15747,
+      12799,
+      3207,
+      3197,
+      1
+    ],
+    "manager_pid_confirmed": false,
+    "all_accessors_proven": false,
+    "same_time_parent_relationship_proven": false
+  },
+  "open_gates": [
+    "Current full comma.service and comma.sh contents have no matching local source in the bounded search",
+    "Current loaded systemd unit/drop-ins/ExecStop semantics and kill/restart behavior unverified",
+    "Custom script existence/content not queried; current c3-specific launch_env content was not in the sample",
+    "Static launchers call manager.py but do not identify the sampled python3 PIDs or prove loaded process images",
+    "No stop/start/recovery/USB/SPI/Panda/CAN operation authorized or validated by this analysis"
+  ]
+}

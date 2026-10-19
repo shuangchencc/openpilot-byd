@@ -1,0 +1,879 @@
+{
+  "current_header_validation": {
+    "backup_crc_only_validation": {
+      "all_other_bytes_preserved": true,
+      "changed_byte_offsets_within_header_sector": [
+        16,
+        17,
+        18,
+        19,
+        88,
+        89,
+        90,
+        91
+      ],
+      "changed_fields": [
+        "header_crc32",
+        "entries_crc32"
+      ],
+      "deployable": false,
+      "derived_entries_crc32": 1866522620,
+      "derived_entries_crc_valid": true,
+      "derived_header_crc32": 2643249459,
+      "derived_header_crc_valid": true,
+      "derived_header_sector_sha256": "ee5855e6557424f2f557f86858adb45b3ee3180dd986398a5c1143337e17d1a1",
+      "device_write_authorized": false,
+      "entries_sha256": "799842357d5111d451fe234f30dbbf4636bf6fb6b8dc263aa6a499adef20fcc5",
+      "original_entries_crc32_stored": 3218498189,
+      "original_header_crc32_stored": 574725313,
+      "original_header_sector_sha256": "e79c29003568e334c5b9fe9dea03e76c26e3b00b84cc4d5bbd433e620b2306d6",
+      "payload_saved": false,
+      "status": "IN_MEMORY_CRC_CHECK_ONLY"
+    },
+    "both_headers_stable_across_individual_table_reads": true,
+    "collected_utc": "2026-10-19T16:52:46.705706+00:00",
+    "current_crc_only_validation_performed": true,
+    "current_header_bytes_reconstructed": true,
+    "entry_hash_same_as_20261019": true,
+    "header_pair_geometry": {
+      "disk_bytes": 4294967296,
+      "first_usable_lba": 6,
+      "last_usable_lba": 1048570,
+      "matching_geometry_guid_digest_and_shape": true,
+      "metadata_outside_usable_range": true,
+      "reciprocal_header_lbas": true,
+      "sector_bytes": 4096
+    },
+    "payload_saved": false,
+    "primary_header_sector_sha256": "77327e5fe6c84a455166e8bacab871c23abf6f724a39a73fc151ff26bde1b7c3",
+    "repair_candidate_deployable": false,
+    "secondary_header_sector_sha256": "e79c29003568e334c5b9fe9dea03e76c26e3b00b84cc4d5bbd433e620b2306d6",
+    "status": "EXACT_FULL_SECTOR_HASH_MATCH"
+  },
+  "deployable": false,
+  "device_writes_authorized": false,
+  "entries_reconstruction": {
+    "archive_entries_sha256": "4f43d094ebcbcebdced44488a8b96070727f3c77e4ebf1c8ff434714b55d173b",
+    "attribute_changed_entries": 34,
+    "attribute_changes": [
+      {
+        "name": "aop_a",
+        "observed": "0x103f000000000000",
+        "old": "0x1039000000000000",
+        "partition": 1
+      },
+      {
+        "name": "tz_a",
+        "observed": "0x103f000000000000",
+        "old": "0x1039000000000000",
+        "partition": 2
+      },
+      {
+        "name": "hyp_a",
+        "observed": "0x003f000000000000",
+        "old": "0x0039000000000000",
+        "partition": 3
+      },
+      {
+        "name": "modem_a",
+        "observed": "0x103f000000000000",
+        "old": "0x1039000000000000",
+        "partition": 4
+      },
+      {
+        "name": "bluetooth_a",
+        "observed": "0x103f000000000000",
+        "old": "0x1039000000000000",
+        "partition": 5
+      },
+      {
+        "name": "mdtpsecapp_a",
+        "observed": "0x103f000000000000",
+        "old": "0x1039000000000000",
+        "partition": 6
+      },
+      {
+        "name": "mdtp_a",
+        "observed": "0x103f000000000000",
+        "old": "0x1039000000000000",
+        "partition": 7
+      },
+      {
+        "name": "abl_a",
+        "observed": "0x103f000000000000",
+        "old": "0x1039000000000000",
+        "partition": 8
+      },
+      {
+        "name": "dsp_a",
+        "observed": "0x103f000000000000",
+        "old": "0x1039000000000000",
+        "partition": 9
+      },
+      {
+        "name": "keymaster_a",
+        "observed": "0x103f000000000000",
+        "old": "0x1039000000000000",
+        "partition": 10
+      },
+      {
+        "name": "boot_a",
+        "observed": "0x0077000000000000",
+        "old": "0x0071000000000000",
+        "partition": 11
+      },
+      {
+        "name": "cmnlib_a",
+        "observed": "0x103f000000000000",
+        "old": "0x1039000000000000",
+        "partition": 12
+      },
+      {
+        "name": "cmnlib64_a",
+        "observed": "0x103f000000000000",
+        "old": "0x1039000000000000",
+        "partition": 13
+      },
+      {
+        "name": "devcfg_a",
+        "observed": "0x003f000000000000",
+        "old": "0x0039000000000000",
+        "partition": 14
+      },
+      {
+        "name": "qupfw_a",
+        "observed": "0x003f000000000000",
+        "old": "0x0039000000000000",
+        "partition": 15
+      },
+      {
+        "name": "storsec_a",
+        "observed": "0x003f000000000000",
+        "old": "0x0039000000000000",
+        "partition": 16
+      },
+      {
+        "name": "ImageFv_a",
+        "observed": "0x003f000000000000",
+        "old": "0x0039000000000000",
+        "partition": 17
+      },
+      {
+        "name": "aop_b",
+        "observed": "0x0039000000000000",
+        "old": "0x003f000000000000",
+        "partition": 18
+      },
+      {
+        "name": "tz_b",
+        "observed": "0x0039000000000000",
+        "old": "0x003f000000000000",
+        "partition": 19
+      },
+      {
+        "name": "hyp_b",
+        "observed": "0x0039000000000000",
+        "old": "0x003f000000000000",
+        "partition": 20
+      },
+      {
+        "name": "modem_b",
+        "observed": "0x1039000000000000",
+        "old": "0x103f000000000000",
+        "partition": 21
+      },
+      {
+        "name": "bluetooth_b",
+        "observed": "0x1039000000000000",
+        "old": "0x103f000000000000",
+        "partition": 22
+      },
+      {
+        "name": "mdtpsecapp_b",
+        "observed": "0x1039000000000000",
+        "old": "0x103f000000000000",
+        "partition": 23
+      },
+      {
+        "name": "mdtp_b",
+        "observed": "0x1039000000000000",
+        "old": "0x103f000000000000",
+        "partition": 24
+      },
+      {
+        "name": "abl_b",
+        "observed": "0x1039000000000000",
+        "old": "0x103f000000000000",
+        "partition": 25
+      },
+      {
+        "name": "dsp_b",
+        "observed": "0x1039000000000000",
+        "old": "0x103f000000000000",
+        "partition": 26
+      },
+      {
+        "name": "keymaster_b",
+        "observed": "0x1039000000000000",
+        "old": "0x103f000000000000",
+        "partition": 27
+      },
+      {
+        "name": "boot_b",
+        "observed": "0x0071000000000000",
+        "old": "0x0077000000000000",
+        "partition": 28
+      },
+      {
+        "name": "cmnlib_b",
+        "observed": "0x1039000000000000",
+        "old": "0x103f000000000000",
+        "partition": 29
+      },
+      {
+        "name": "cmnlib64_b",
+        "observed": "0x1039000000000000",
+        "old": "0x103f000000000000",
+        "partition": 30
+      },
+      {
+        "name": "devcfg_b",
+        "observed": "0x0039000000000000",
+        "old": "0x003f000000000000",
+        "partition": 31
+      },
+      {
+        "name": "qupfw_b",
+        "observed": "0x0039000000000000",
+        "old": "0x003f000000000000",
+        "partition": 32
+      },
+      {
+        "name": "storsec_b",
+        "observed": "0x0039000000000000",
+        "old": "0x003f000000000000",
+        "partition": 33
+      },
+      {
+        "name": "ImageFv_b",
+        "observed": "0x0039000000000000",
+        "old": "0x003f000000000000",
+        "partition": 34
+      }
+    ],
+    "changed_byte_count": 574,
+    "entries_bytes": 8192,
+    "entries_count": 64,
+    "entry_size": 128,
+    "observed_entries_crc32": 1866522620,
+    "observed_entries_sha256": "799842357d5111d451fe234f30dbbf4636bf6fb6b8dc263aa6a499adef20fcc5",
+    "payload_saved": false,
+    "status": "EXACT_HASH_MATCH",
+    "type_guid_swap_pairs": [
+      [
+        1,
+        18
+      ],
+      [
+        2,
+        19
+      ],
+      [
+        3,
+        20
+      ],
+      [
+        4,
+        21
+      ],
+      [
+        5,
+        22
+      ],
+      [
+        6,
+        23
+      ],
+      [
+        7,
+        24
+      ],
+      [
+        8,
+        25
+      ],
+      [
+        9,
+        26
+      ],
+      [
+        10,
+        27
+      ],
+      [
+        11,
+        28
+      ],
+      [
+        12,
+        29
+      ],
+      [
+        13,
+        30
+      ],
+      [
+        14,
+        31
+      ],
+      [
+        15,
+        32
+      ],
+      [
+        16,
+        33
+      ],
+      [
+        17,
+        34
+      ]
+    ],
+    "unchanged_unique_guid_lba_name_extension": true,
+    "unused_entries": 16,
+    "unused_indexed_entries_sha256": "2a67de7b64202fb4e67ea52afbb3cf0243c7c2ba1f5c9f335a8763f35bfb3ca2",
+    "used_entries": 48
+  },
+  "entry_evidence_collected_utc": "2026-10-19T14:50:07.706204+00:00",
+  "historical_backup_crc_only_validation": {
+    "all_other_bytes_preserved": true,
+    "changed_byte_offsets_within_header_sector": [
+      16,
+      17,
+      18,
+      19,
+      88,
+      89,
+      90,
+      91
+    ],
+    "changed_fields": [
+      "header_crc32",
+      "entries_crc32"
+    ],
+    "deployable": false,
+    "derived_entries_crc32": 1798094222,
+    "derived_entries_crc_valid": true,
+    "derived_header_crc32": 3654049496,
+    "derived_header_crc_valid": true,
+    "derived_header_sector_sha256": "5ebde9ee87394dd477ffbba7165b99f89e7116644d39be6eac50c6c597fcc32c",
+    "device_write_authorized": false,
+    "entries_sha256": "4f43d094ebcbcebdced44488a8b96070727f3c77e4ebf1c8ff434714b55d173b",
+    "original_entries_crc32_stored": 2389306033,
+    "original_header_crc32_stored": 1159275437,
+    "original_header_sector_sha256": "96f40f7d7addd094dd968777c6cdaed8119d1c3c165f504bd1ad1c157e7d9fb1",
+    "payload_saved": false,
+    "status": "IN_MEMORY_CRC_CHECK_ONLY"
+  },
+  "historical_entries_crc_status": {
+    "primary_valid": true,
+    "secondary_valid": false
+  },
+  "historical_header_pair_geometry": {
+    "disk_bytes": 4294967296,
+    "first_usable_lba": 6,
+    "last_usable_lba": 1048570,
+    "matching_geometry_guid_digest_and_shape": true,
+    "metadata_outside_usable_range": true,
+    "reciprocal_header_lbas": true,
+    "sector_bytes": 4096
+  },
+  "limits": [
+    "Hash equality ties reconstructed bytes to the sampled evidence, not to a future device state.",
+    "Historical A/B metadata differences do not prove who changed them or why.",
+    "CRC consistency does not prove bootability, partition contents, recovery entry, or a tested rollback path.",
+    "No raw binary output or device write procedure is produced."
+  ],
+  "non_atomic_snapshots": true,
+  "prior_header_capture_review": {
+    "all_observed_sde_fields_equal_fixed_scope_recapture": true,
+    "collected_utc": "2026-10-19T16:49:12.186868+00:00",
+    "defect": "First collector bounded table reads to the whole disk, not the approved metadata regions.",
+    "final_analysis_uses_fixed_scope_recapture": true,
+    "observed_reads_within_approved_metadata_regions": true,
+    "original_evidence_and_collector_preserved": true
+  },
+  "raw_guids_emitted": false,
+  "raw_payloads_saved": false,
+  "reconstructed_entries_layout": {
+    "first_partition_lba": 6,
+    "last_partition_lba": 195919,
+    "partition_count": 48,
+    "partitions": [
+      {
+        "attributes_hex": "0x103f000000000000",
+        "first_lba": 6,
+        "last_lba": 133,
+        "name": "aop_a",
+        "partition": 1
+      },
+      {
+        "attributes_hex": "0x103f000000000000",
+        "first_lba": 134,
+        "last_lba": 645,
+        "name": "tz_a",
+        "partition": 2
+      },
+      {
+        "attributes_hex": "0x003f000000000000",
+        "first_lba": 646,
+        "last_lba": 773,
+        "name": "hyp_a",
+        "partition": 3
+      },
+      {
+        "attributes_hex": "0x103f000000000000",
+        "first_lba": 774,
+        "last_lba": 31493,
+        "name": "modem_a",
+        "partition": 4
+      },
+      {
+        "attributes_hex": "0x103f000000000000",
+        "first_lba": 31494,
+        "last_lba": 31749,
+        "name": "bluetooth_a",
+        "partition": 5
+      },
+      {
+        "attributes_hex": "0x103f000000000000",
+        "first_lba": 31750,
+        "last_lba": 32773,
+        "name": "mdtpsecapp_a",
+        "partition": 6
+      },
+      {
+        "attributes_hex": "0x103f000000000000",
+        "first_lba": 32774,
+        "last_lba": 40965,
+        "name": "mdtp_a",
+        "partition": 7
+      },
+      {
+        "attributes_hex": "0x103f000000000000",
+        "first_lba": 40966,
+        "last_lba": 41221,
+        "name": "abl_a",
+        "partition": 8
+      },
+      {
+        "attributes_hex": "0x103f000000000000",
+        "first_lba": 41222,
+        "last_lba": 49413,
+        "name": "dsp_a",
+        "partition": 9
+      },
+      {
+        "attributes_hex": "0x103f000000000000",
+        "first_lba": 49414,
+        "last_lba": 49541,
+        "name": "keymaster_a",
+        "partition": 10
+      },
+      {
+        "attributes_hex": "0x0077000000000000",
+        "first_lba": 49542,
+        "last_lba": 65925,
+        "name": "boot_a",
+        "partition": 11
+      },
+      {
+        "attributes_hex": "0x103f000000000000",
+        "first_lba": 65926,
+        "last_lba": 66053,
+        "name": "cmnlib_a",
+        "partition": 12
+      },
+      {
+        "attributes_hex": "0x103f000000000000",
+        "first_lba": 66054,
+        "last_lba": 66181,
+        "name": "cmnlib64_a",
+        "partition": 13
+      },
+      {
+        "attributes_hex": "0x003f000000000000",
+        "first_lba": 66182,
+        "last_lba": 66213,
+        "name": "devcfg_a",
+        "partition": 14
+      },
+      {
+        "attributes_hex": "0x003f000000000000",
+        "first_lba": 66214,
+        "last_lba": 66229,
+        "name": "qupfw_a",
+        "partition": 15
+      },
+      {
+        "attributes_hex": "0x003f000000000000",
+        "first_lba": 66230,
+        "last_lba": 66261,
+        "name": "storsec_a",
+        "partition": 16
+      },
+      {
+        "attributes_hex": "0x003f000000000000",
+        "first_lba": 66262,
+        "last_lba": 66517,
+        "name": "ImageFv_a",
+        "partition": 17
+      },
+      {
+        "attributes_hex": "0x0039000000000000",
+        "first_lba": 66518,
+        "last_lba": 66645,
+        "name": "aop_b",
+        "partition": 18
+      },
+      {
+        "attributes_hex": "0x0039000000000000",
+        "first_lba": 66646,
+        "last_lba": 67157,
+        "name": "tz_b",
+        "partition": 19
+      },
+      {
+        "attributes_hex": "0x0039000000000000",
+        "first_lba": 67158,
+        "last_lba": 67285,
+        "name": "hyp_b",
+        "partition": 20
+      },
+      {
+        "attributes_hex": "0x1039000000000000",
+        "first_lba": 67286,
+        "last_lba": 98005,
+        "name": "modem_b",
+        "partition": 21
+      },
+      {
+        "attributes_hex": "0x1039000000000000",
+        "first_lba": 98006,
+        "last_lba": 98261,
+        "name": "bluetooth_b",
+        "partition": 22
+      },
+      {
+        "attributes_hex": "0x1039000000000000",
+        "first_lba": 98262,
+        "last_lba": 99285,
+        "name": "mdtpsecapp_b",
+        "partition": 23
+      },
+      {
+        "attributes_hex": "0x1039000000000000",
+        "first_lba": 99286,
+        "last_lba": 107477,
+        "name": "mdtp_b",
+        "partition": 24
+      },
+      {
+        "attributes_hex": "0x1039000000000000",
+        "first_lba": 107478,
+        "last_lba": 107733,
+        "name": "abl_b",
+        "partition": 25
+      },
+      {
+        "attributes_hex": "0x1039000000000000",
+        "first_lba": 107734,
+        "last_lba": 115925,
+        "name": "dsp_b",
+        "partition": 26
+      },
+      {
+        "attributes_hex": "0x1039000000000000",
+        "first_lba": 115926,
+        "last_lba": 116053,
+        "name": "keymaster_b",
+        "partition": 27
+      },
+      {
+        "attributes_hex": "0x0071000000000000",
+        "first_lba": 116054,
+        "last_lba": 132437,
+        "name": "boot_b",
+        "partition": 28
+      },
+      {
+        "attributes_hex": "0x1039000000000000",
+        "first_lba": 132438,
+        "last_lba": 132565,
+        "name": "cmnlib_b",
+        "partition": 29
+      },
+      {
+        "attributes_hex": "0x1039000000000000",
+        "first_lba": 132566,
+        "last_lba": 132693,
+        "name": "cmnlib64_b",
+        "partition": 30
+      },
+      {
+        "attributes_hex": "0x0039000000000000",
+        "first_lba": 132694,
+        "last_lba": 132725,
+        "name": "devcfg_b",
+        "partition": 31
+      },
+      {
+        "attributes_hex": "0x0039000000000000",
+        "first_lba": 132726,
+        "last_lba": 132741,
+        "name": "qupfw_b",
+        "partition": 32
+      },
+      {
+        "attributes_hex": "0x0039000000000000",
+        "first_lba": 132742,
+        "last_lba": 132773,
+        "name": "storsec_b",
+        "partition": 33
+      },
+      {
+        "attributes_hex": "0x0039000000000000",
+        "first_lba": 132774,
+        "last_lba": 133029,
+        "name": "ImageFv_b",
+        "partition": 34
+      },
+      {
+        "attributes_hex": "0x1000000000000000",
+        "first_lba": 133030,
+        "last_lba": 133033,
+        "name": "sec",
+        "partition": 35
+      },
+      {
+        "attributes_hex": "0x1000000000000000",
+        "first_lba": 133034,
+        "last_lba": 133034,
+        "name": "devinfo",
+        "partition": 36
+      },
+      {
+        "attributes_hex": "0x1000000000000000",
+        "first_lba": 133035,
+        "last_lba": 133290,
+        "name": "dip",
+        "partition": 37
+      },
+      {
+        "attributes_hex": "0x0000000000000000",
+        "first_lba": 133291,
+        "last_lba": 133418,
+        "name": "fdemeta",
+        "partition": 38
+      },
+      {
+        "attributes_hex": "0x0000000000000000",
+        "first_lba": 133419,
+        "last_lba": 133482,
+        "name": "apdp",
+        "partition": 39
+      },
+      {
+        "attributes_hex": "0x0000000000000000",
+        "first_lba": 133483,
+        "last_lba": 133546,
+        "name": "msadp",
+        "partition": 40
+      },
+      {
+        "attributes_hex": "0x0000000000000000",
+        "first_lba": 133547,
+        "last_lba": 135594,
+        "name": "spunvm",
+        "partition": 41
+      },
+      {
+        "attributes_hex": "0x0000000000000000",
+        "first_lba": 135595,
+        "last_lba": 143950,
+        "name": "splash",
+        "partition": 42
+      },
+      {
+        "attributes_hex": "0x1000000000000000",
+        "first_lba": 143951,
+        "last_lba": 143951,
+        "name": "limits",
+        "partition": 43
+      },
+      {
+        "attributes_hex": "0x1000000000000000",
+        "first_lba": 143952,
+        "last_lba": 144207,
+        "name": "toolsfv",
+        "partition": 44
+      },
+      {
+        "attributes_hex": "0x0000000000000000",
+        "first_lba": 144208,
+        "last_lba": 146255,
+        "name": "logfs",
+        "partition": 45
+      },
+      {
+        "attributes_hex": "0x0000000000000000",
+        "first_lba": 146256,
+        "last_lba": 146767,
+        "name": "sti",
+        "partition": 46
+      },
+      {
+        "attributes_hex": "0x0000000000000000",
+        "first_lba": 146768,
+        "last_lba": 179535,
+        "name": "rawdump",
+        "partition": 47
+      },
+      {
+        "attributes_hex": "0x0000000000000000",
+        "first_lba": 179536,
+        "last_lba": 195919,
+        "name": "logdump",
+        "partition": 48
+      }
+    ],
+    "ranges_nonoverlapping": true,
+    "unique_nonzero_partition_guids": true,
+    "within_header_usable_bounds": true
+  },
+  "recovery_ready": false,
+  "schema": "songplus-gpt-offline-analysis/v1",
+  "sources": [
+    {
+      "bytes": 4096,
+      "kind": "historical_small_raw_GPT",
+      "path": "../migration-audit/recovery-backup-20261017/gpt/sde-primary.bin",
+      "sha256": "d39aaa4edff5023eaf7ac6d00e1f1ff18e5cc6fb1130962ccffd122dda3e2d7c"
+    },
+    {
+      "bytes": 4096,
+      "kind": "historical_small_raw_GPT",
+      "path": "../migration-audit/recovery-backup-20261017/gpt/sde-declared_backup.bin",
+      "sha256": "96f40f7d7addd094dd968777c6cdaed8119d1c3c165f504bd1ad1c157e7d9fb1"
+    },
+    {
+      "bytes": 4096,
+      "kind": "historical_small_raw_GPT",
+      "path": "../migration-audit/recovery-backup-20261017/gpt/sde-physical_end.bin",
+      "sha256": "96f40f7d7addd094dd968777c6cdaed8119d1c3c165f504bd1ad1c157e7d9fb1"
+    },
+    {
+      "bytes": 8192,
+      "kind": "historical_small_raw_GPT",
+      "path": "../migration-audit/recovery-backup-20261017/gpt/sde-primary_entries.bin",
+      "sha256": "4f43d094ebcbcebdced44488a8b96070727f3c77e4ebf1c8ff434714b55d173b"
+    },
+    {
+      "bytes": 8192,
+      "kind": "historical_small_raw_GPT",
+      "path": "../migration-audit/recovery-backup-20261017/gpt/sde-declared_backup_entries.bin",
+      "sha256": "4f43d094ebcbcebdced44488a8b96070727f3c77e4ebf1c8ff434714b55d173b"
+    },
+    {
+      "bytes": 8192,
+      "kind": "historical_small_raw_GPT",
+      "path": "../migration-audit/recovery-backup-20261017/gpt/sde-physical_end_entries.bin",
+      "sha256": "4f43d094ebcbcebdced44488a8b96070727f3c77e4ebf1c8ff434714b55d173b"
+    },
+    {
+      "bytes": 48176,
+      "kind": "historical_readonly_evidence",
+      "path": "hardware/p10-readonly/evidence/20261019/recovery.json",
+      "sha256": "c4f492750310bf2ef8aa81769dea9ad243f6dd696befe68ebda957055fc343eb"
+    },
+    {
+      "bytes": 988,
+      "kind": "receipt",
+      "path": "hardware/p10-readonly/evidence/20261019/recovery.receipt.json",
+      "sha256": "4c0dea81a51d55c1a70e498bf51dc6dd1ac7fc8c178818beda95f776294a2fff"
+    },
+    {
+      "bytes": 9228,
+      "kind": "collector_source",
+      "path": "hardware/step1/followup/collector.py",
+      "sha256": "2c82f8718195e20be38eed1b9ff0f10f29d1b2aa45222c3e0b16bad6456be29c"
+    },
+    {
+      "bytes": 70968,
+      "kind": "historical_readonly_evidence",
+      "path": "hardware/p10-readonly/evidence/20261019/recovery-detail.json",
+      "sha256": "d095816e305e4c901ebd8a4a6a996a88d9445ad98268251cbcf82e4cb74876ea"
+    },
+    {
+      "bytes": 1009,
+      "kind": "receipt",
+      "path": "hardware/p10-readonly/evidence/20261019/recovery-detail.receipt.json",
+      "sha256": "ed9a13796af21cdc9442000181914e18797b8e759db9d46c4c5342ce2a79fe78"
+    },
+    {
+      "bytes": 5250,
+      "kind": "collector_source",
+      "path": "hardware/p10-readonly/recovery_detail_collector.py",
+      "sha256": "49ffbabb6390d1e1707860ec227b33818f72b95f8426e4253e451c8948cc9074"
+    },
+    {
+      "bytes": 3137,
+      "kind": "new_readonly_header_evidence",
+      "path": "hardware/recovery-readiness/evidence/20261020/gpt-headers-bounded.json",
+      "sha256": "39a519b532591ae3eb498fe3e76cb7034f97b834a469a532d48dde1ddbcd6b65"
+    },
+    {
+      "bytes": 1102,
+      "kind": "new_readonly_header_receipt",
+      "path": "hardware/recovery-readiness/evidence/20261020/gpt-headers-bounded-receipt.json",
+      "sha256": "eaa8c205dbe3cac26ef6e3fc63378683e3687992fcc9bee0be197b2dfd45285d"
+    },
+    {
+      "bytes": 7026,
+      "kind": "new_readonly_header_collector",
+      "path": "hardware/recovery-readiness/gpt_header_collector.py",
+      "sha256": "65e38d73872a507a37c1240548a40efbbfbf18811fe524b837d8987c35af95a0"
+    },
+    {
+      "bytes": 3137,
+      "kind": "prior_header_sample",
+      "path": "hardware/recovery-readiness/evidence/20261020/gpt-headers.json",
+      "sha256": "4c36cbc3d86b5aea46bb7cf863d423f8da7aaa3c7ac4cc0ea15aea8dddbaeb92"
+    },
+    {
+      "bytes": 1102,
+      "kind": "prior_header_receipt",
+      "path": "hardware/recovery-readiness/evidence/20261020/gpt-headers-receipt.json",
+      "sha256": "0cbe2bcf15d06c7ac74826155a479dc799bb17e59fc9939f9a3019b4eeca76b1"
+    },
+    {
+      "bytes": 5142,
+      "kind": "prior_collector_snapshot",
+      "path": "hardware/recovery-readiness/evidence/20261020/gpt-header-collector-original.txt",
+      "sha256": "6ad42c4a01cc60254f9e0b2fe4618e2dbaa6579f1997414b42fd786d247e6d1e"
+    },
+    {
+      "bytes": 23796,
+      "kind": "offline_analysis_source",
+      "path": "hardware/recovery-readiness/gpt_offline_analysis.py",
+      "sha256": "1b81863e211db5d9f1838050d9273f42698437a256810a9dac8e444cb11221e5"
+    },
+    {
+      "bytes": 16436,
+      "kind": "offline_analysis_source",
+      "path": "hardware/recovery-readiness/test_gpt_offline_analysis.py",
+      "sha256": "e5d79d76c544029512849951a0d1e0ed39cb0ea80018b42476a983acb79f9552"
+    }
+  ],
+  "status": "EVIDENCE_ANALYSIS_ONLY"
+}

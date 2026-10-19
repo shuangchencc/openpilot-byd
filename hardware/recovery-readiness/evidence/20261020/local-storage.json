@@ -1,0 +1,10 @@
+{
+  "schema": "songplus-local-archive-capacity/v1",
+  "collected_utc": "2026-10-19T16:52:29.116845+00:00",
+  "method": "statvfs of existing private archive parent only",
+  "filesystem_available_bytes": 641789394944,
+  "reserved_bytes": 0,
+  "backup_created": false,
+  "free_capacity_is_not_reserved": true,
+  "full_six_lun_raw_bytes_from_object_matrix": 63996690432
+}

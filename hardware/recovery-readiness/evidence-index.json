@@ -1,0 +1,152 @@
+{
+  "schema": "songplus-recovery-readiness-index/v1",
+  "scope": "Local preparation and sanitized passive evidence only; not deployment authority",
+  "date_asia_shanghai": "2026-10-20",
+  "files": [
+    {
+      "path": "hardware/recovery-readiness/GPT-ANALYSIS.md",
+      "bytes": 11191,
+      "sha256": "82f47d352242f1e10e322b0ac9ea36a596d2fd68a3065862fb0fe80034a4c813"
+    },
+    {
+      "path": "hardware/recovery-readiness/ISOLATION-PLAN.md",
+      "bytes": 8711,
+      "sha256": "7e4ae6a267a5751ae153e2a9e63cd4c7a94c1a6d1cc975e88c29e9ae783d471a"
+    },
+    {
+      "path": "hardware/recovery-readiness/RECOVERY-PLAN.md",
+      "bytes": 15121,
+      "sha256": "4493c99b177b1c25086f3353a7ef8d0a5156221b5d62f2b9930299374d4fe422"
+    },
+    {
+      "path": "hardware/recovery-readiness/RESULT-20261020.md",
+      "bytes": 7599,
+      "sha256": "1e3f2c4b02a01d0b973a15267593a8029f57ac9d5f295ccf41331092fda045ef"
+    },
+    {
+      "path": "hardware/recovery-readiness/STARTUP-ANALYSIS.md",
+      "bytes": 7992,
+      "sha256": "71c244b484c142c79c27a1089169c6c2a781ac54687bdb748569c25b85c3bb50"
+    },
+    {
+      "path": "hardware/recovery-readiness/evidence/20261020/gpt-header-collector-original.txt",
+      "bytes": 5142,
+      "sha256": "6ad42c4a01cc60254f9e0b2fe4618e2dbaa6579f1997414b42fd786d247e6d1e"
+    },
+    {
+      "path": "hardware/recovery-readiness/evidence/20261020/gpt-headers-bounded-receipt.json",
+      "bytes": 1102,
+      "sha256": "eaa8c205dbe3cac26ef6e3fc63378683e3687992fcc9bee0be197b2dfd45285d"
+    },
+    {
+      "path": "hardware/recovery-readiness/evidence/20261020/gpt-headers-bounded.json",
+      "bytes": 3137,
+      "sha256": "39a519b532591ae3eb498fe3e76cb7034f97b834a469a532d48dde1ddbcd6b65"
+    },
+    {
+      "path": "hardware/recovery-readiness/evidence/20261020/gpt-headers-receipt.json",
+      "bytes": 1102,
+      "sha256": "0cbe2bcf15d06c7ac74826155a479dc799bb17e59fc9939f9a3019b4eeca76b1"
+    },
+    {
+      "path": "hardware/recovery-readiness/evidence/20261020/gpt-headers.json",
+      "bytes": 3137,
+      "sha256": "4c36cbc3d86b5aea46bb7cf863d423f8da7aaa3c7ac4cc0ea15aea8dddbaeb92"
+    },
+    {
+      "path": "hardware/recovery-readiness/evidence/20261020/io-receipt.json",
+      "bytes": 983,
+      "sha256": "4aca663c7a734a4c1137c44ec11f390ab361e02a3ea0a7f662414b62f93cfd5d"
+    },
+    {
+      "path": "hardware/recovery-readiness/evidence/20261020/io.json",
+      "bytes": 27947,
+      "sha256": "1de03e41de10190c79198b2c1fec0a1e20b45d9b904c47b2aa1039797033e229"
+    },
+    {
+      "path": "hardware/recovery-readiness/evidence/20261020/local-storage.json",
+      "bytes": 368,
+      "sha256": "4d3776bb4f36c8bfebe6417198d0bcdd16e5ca91fc724d57ca68f48617bba31d"
+    },
+    {
+      "path": "hardware/recovery-readiness/evidence/20261020/startup-provenance.json",
+      "bytes": 36001,
+      "sha256": "782090a7c44f7742d20c9eac41fe7be034fbdb3c7d2add0c07a86521a09d58d9"
+    },
+    {
+      "path": "hardware/recovery-readiness/evidence/20261020/supervisor-receipt.json",
+      "bytes": 1102,
+      "sha256": "2f64717ea66fb81cd61a62fa136f9eba8600eedeebf90ef17d3d45d117c4598b"
+    },
+    {
+      "path": "hardware/recovery-readiness/evidence/20261020/supervisor.json",
+      "bytes": 18602,
+      "sha256": "576f5df1a6aa3a978794a8eb0883bbc7b3d66e264a67b5d9f508ad0151c8b2f8"
+    },
+    {
+      "path": "hardware/recovery-readiness/gpt-analysis.json",
+      "bytes": 24222,
+      "sha256": "6a86bca02bad8676f060a7caec9f27455d79947d59b551b03e1d5baf3f8f2a18"
+    },
+    {
+      "path": "hardware/recovery-readiness/gpt_header_collector.py",
+      "bytes": 7026,
+      "sha256": "65e38d73872a507a37c1240548a40efbbfbf18811fe524b837d8987c35af95a0"
+    },
+    {
+      "path": "hardware/recovery-readiness/gpt_offline_analysis.py",
+      "bytes": 23796,
+      "sha256": "1b81863e211db5d9f1838050d9273f42698437a256810a9dac8e444cb11221e5"
+    },
+    {
+      "path": "hardware/recovery-readiness/recovery-requirements.json",
+      "bytes": 157081,
+      "sha256": "ca18d31c40828c7f58d3314e5887cb43060764004a5429f00242bdcd09b891aa"
+    },
+    {
+      "path": "hardware/recovery-readiness/supervisor_collector.py",
+      "bytes": 23165,
+      "sha256": "45f959a5cd181e1918e1314045e122bfee7b665018a038b79923ce53fdbaaa61"
+    },
+    {
+      "path": "hardware/recovery-readiness/test_gpt_offline_analysis.py",
+      "bytes": 16436,
+      "sha256": "e5d79d76c544029512849951a0d1e0ed39cb0ea80018b42476a983acb79f9552"
+    },
+    {
+      "path": "hardware/recovery-readiness/test_inspection_entry.py",
+      "bytes": 6633,
+      "sha256": "f4da871b3d148c5a4d4ac4f3159ecf7b8d156dbbda2f55c532e955036be5e433"
+    },
+    {
+      "path": "hardware/recovery-readiness/test_supervisor_collector.py",
+      "bytes": 13705,
+      "sha256": "ceea55324aca20fadb536ad77a21630b7464b846d031f293161482fdc9787633"
+    },
+    {
+      "path": "hardware/recovery-readiness/verify_readiness.py",
+      "bytes": 6975,
+      "sha256": "cef7f283c136e3c6028db1cadbd9bfe2782f9eb822a24120379d6a8f0a9ff154"
+    },
+    {
+      "path": "lifecycle_maintenance/lock.json",
+      "bytes": 7553,
+      "sha256": "64fe409526045fd23ef5b80fb6b80666af42ce32cc28bb915358d3f793af8611"
+    },
+    {
+      "path": "lifecycle_maintenance/profiles/unbound.json",
+      "bytes": 643,
+      "sha256": "3db97c59f88622ef9dc6170265f89af5197003e42269a9bd499c8b6818b5aacb"
+    },
+    {
+      "path": "tools/inspect_c3xl_recovery_readiness.py",
+      "bytes": 5983,
+      "sha256": "1518f57e5707edeec347a01199f6cef84b019a037d68769bdb94d5f7a0ca2db9"
+    },
+    {
+      "path": "upstream-lock.json",
+      "bytes": 133337,
+      "sha256": "8ddb483e54d83a80490671cbcf4cd92a6af93a36e8c7f4b27d053e32eb012947"
+    }
+  ]
+}
