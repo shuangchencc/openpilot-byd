@@ -106,18 +106,22 @@ class CAR(Platforms):
   )
 
 
-# Panda's byd.h hardcodes the vehicle model used for its own angle check
-# (slip_factor/steer_ratio/wheelbase from BYD_ATTO_3, "to match openpilot"), so the
-# controller must limit with the SAME geometry or panda rejects its commands. Until
-# byd.h takes the geometry from a safety param, every BYD platform is limited by
-# Atto 3 geometry.
+# Panda's byd.h uses the BYD_ATTO_3 vehicle model for its own angle check on every
+# BYD platform, so the controller must limit with the SAME geometry or panda rejects
+# its commands.
 #
-# Measured consequence for BYD_SONG_PLUS_DMI_23 (steerRatio 19.5 vs 14.8): its own
-# geometry would allow 1.333x more steering angle, e.g. at 90 km/h 24.46 deg and
-# 0.489 deg/frame versus the 18.35 deg and 0.367 deg/frame panda enforces. That is
-# the conservative direction - the intended lateral acceleration is never exceeded -
-# so this is a capability limit, not a safety hazard. Changing only the controller
-# side would instead desynchronise the two and get commands rejected.
+# For BYD_SONG_PLUS_DMI_23 this is a settled choice, not a stopgap. Its CarSpecs
+# steerRatio is 20.6, paramsd's in-model estimate on this car (median 20.59 over
+# 139,788 samples, converged up from 19.5 and never back). A model-free kinematic fit
+# against raw GPS yaw instead brackets the *geometric* ratio at 13.2-17.6 on strong
+# low-speed turns. Those are different quantities - paramsd reports what makes
+# openpilot's own vehicle model reproduce the observed yaw, including whatever its
+# slip term under-models on a heavier car - so neither measurement confirms the other,
+# and a safety backstop should not move on an unresolved number.
+#
+# Staying on Atto 3 geometry allows ~1.39x less steering angle than 20.6 would. That
+# is the conservative direction, so it is a capability limit, not a safety hazard.
+# Changing only this side would desynchronise the two and get commands rejected.
 SAFETY_VM_PLATFORM = "BYD_ATTO_3"
 
 

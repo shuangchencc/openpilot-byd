@@ -3,7 +3,8 @@
 #include "opendbc/safety/declarations.h"
 
 // Set via the safety param (BYD_PARAM_SONG_PLUS) for the BYD Song Plus DM-i 2023.
-// Selects that car's steering geometry, wheel-speed scale and brake source.
+// Selects that car's wheel-speed scale and brake source. Steering geometry is
+// deliberately NOT selected by it - see byd_tx_hook.
 // Unset (default) keeps the BYD Atto 3 behaviour.
 static bool byd_song_plus = false;
 
@@ -77,22 +78,22 @@ static bool byd_tx_hook(const CANPacket_t *msg) {
     .frequency = 50U,
   };
 
-  // Vehicle geometry for the angle check, selected by safety param. openpilot's
-  // controller has to limit with the matching numbers or its commands are
-  // rejected here, so both sides read this choice from the same flag.
-  const AngleSteeringParams BYD_ATTO_3_STEERING_PARAMS = {
+  // Vehicle geometry for the angle check: the Atto 3 numbers, for every BYD.
+  // The allowed angle scales with steer_ratio, so this is the tighter side, and
+  // openpilot's controller limits with the same geometry (SAFETY_VM_PLATFORM in
+  // values.py), which is what keeps the two in step.
+  //
+  // The Song PLUS is a different car, but there is no confirmed steer_ratio to put
+  // here. paramsd's in-model estimate on it converged to 20.6, while a model-free
+  // kinematic fit against raw GPS yaw brackets the geometric ratio at 13.2-17.6
+  // on strong low-speed turns. Those are not the same quantity, so the second does
+  // not confirm the first; the cost of staying on Atto 3 geometry is capability,
+  // not safety, which is the right way to be wrong about an unresolved number.
+  const AngleSteeringParams BYD_STEERING_PARAMS = {
     .slip_factor = -0.0006166479109059387,  // calc_slip_factor(VM), unchanged literal
     .steer_ratio = 14.8,
     .wheelbase = 2.72,
   };
-  const AngleSteeringParams BYD_SONG_PLUS_STEERING_PARAMS = {
-    .slip_factor = -0.0006066120071502817,  // calc_slip_factor(VM)
-    .steer_ratio = 20.6,
-    .wheelbase = 2.765,
-  };
-  const AngleSteeringParams BYD_STEERING_PARAMS = byd_song_plus ?
-                                                 BYD_SONG_PLUS_STEERING_PARAMS :
-                                                 BYD_ATTO_3_STEERING_PARAMS;
 
   bool tx = true;
 
