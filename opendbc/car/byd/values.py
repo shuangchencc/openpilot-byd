@@ -61,6 +61,12 @@ class BydFlags(IntFlag):
   # Driver torque is STEERING_TORQUE.DRIVER_TORQUE in Nm and the EPS motor torque
   # is MAIN_TORQUE, instead of the Atto 3's single unsigned DRIVER_EPS_TORQUE.
   DRIVER_TORQUE_NM = 4
+  # ACC_HUD_ADAS.ACC_STATE (bits 19-21) is constant 0 on this car. The engage
+  # state is a 2-bit field at bits 10-11 and availability is ACC_CMD bit 47.
+  ACC_STATE_ALT = 8
+  # Pedals: gas comes from PEDAL.GAS_PEDAL and brake from IPB (0x123, absent from
+  # the Atto 3 DBC), not from DRIVE_STATE.
+  PEDALS_ALT = 16
 
 
 @dataclass
@@ -82,7 +88,7 @@ class CAR(Platforms):
     [BydCarDocs("BYD Song PLUS DM-i 2023")],
     CarSpecs(wheelbase=2.765, steerRatio=19.5),
     {Bus.pt: 'byd_song_plus'},
-    flags=BydFlags.FOUR_WHEEL_SPEEDS | BydFlags.NO_BSM | BydFlags.DRIVER_TORQUE_NM,
+    flags=BydFlags.FOUR_WHEEL_SPEEDS | BydFlags.NO_BSM | BydFlags.DRIVER_TORQUE_NM | BydFlags.ACC_STATE_ALT | BydFlags.PEDALS_ALT,
   )
 
 

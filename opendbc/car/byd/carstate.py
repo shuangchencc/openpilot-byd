@@ -77,8 +77,16 @@ class CarState(CarStateBase):
     ret.steerFaultTemporary = int(cp_cam.vl["LKAS_HUD_ADAS"]["LKAS_STATE"]) == 4
 
     # gas / brake
-    ret.gasPressed = cp.vl["DRIVE_STATE"]["RAW_THROTTLE"] > 0
-    ret.brakePressed = bool(cp.vl["DRIVE_STATE"]["BRAKE_PRESSED"])
+    if self.CP.flags & BydFlags.PEDALS_ALT:
+      # Measured against this car's logged original over 698,791 samples:
+      # DRIVE_STATE.RAW_THROTTLE > 0 reproduces gasPressed at only 90.4% and
+      # DRIVE_STATE.BRAKE_PRESSED at 96.8%. The pedals live elsewhere here:
+      # PEDAL.GAS_PEDAL > 0.03 gives 99.895% and IPB.BRAKE_PRESSED 99.974%.
+      ret.gasPressed = cp.vl["PEDAL"]["GAS_PEDAL"] > 0.03
+      ret.brakePressed = bool(cp.vl["IPB"]["BRAKE_PRESSED"])
+    else:
+      ret.gasPressed = cp.vl["DRIVE_STATE"]["RAW_THROTTLE"] > 0
+      ret.brakePressed = bool(cp.vl["DRIVE_STATE"]["BRAKE_PRESSED"])
 
     # gear
     ret.gearShifter = GEAR_MAP.get(int(cp.vl["DRIVE_STATE"]["GEAR"]), GearShifter.unknown)
@@ -105,10 +113,24 @@ class CarState(CarStateBase):
 
     # cruise state: ACC messages come from camera bus on Atto 3
     # ACC_STATE: 0=OFF, 2=ACC_ON (available), 3=ACC_ACTIVE (enabled), 5=FORCE_ACCEL, 7=ERROR
-    ret.cruiseState.speed = cp_cam.vl["ACC_HUD_ADAS"]["SET_SPEED"] * CV.KPH_TO_MS
-    acc_state = int(cp_cam.vl["ACC_HUD_ADAS"]["ACC_STATE"])
-    ret.cruiseState.available = acc_state in (2, 3, 5)
-    ret.cruiseState.enabled = acc_state in (3, 5)
+    if self.CP.flags & BydFlags.ACC_STATE_ALT:
+      # Derived from this car's recording (698,791 samples): ACC_STATE at bits
+      # 19-21 is constant 0 here. The engage state is the 2-bit field at bits
+      # 10-11 (0 = not engaged, 1 and 2 = engaged, 99.997% agreement) and
+      # availability is ACC_CMD bit 47 (99.816% with engaged OR'd in).
+      # SET_SPEED only means anything while ACC is available: gating it that way
+      # raises agreement from 84.9% to 99.8%.
+      ret.cruiseState.enabled = int(cp_cam.vl["ACC_HUD_ADAS"]["ACC_ENGAGED_STATE"]) != 0
+      ret.cruiseState.available = bool(cp_cam.vl["ACC_CMD"]["ACC_AVAILABLE"]) or ret.cruiseState.enabled
+      ret.cruiseState.speed = (cp_cam.vl["ACC_HUD_ADAS"]["SET_SPEED"] * CV.KPH_TO_MS
+                               if ret.cruiseState.available else 0.0)
+      # The logged original's speedCluster equals speed exactly, 100.000% of samples.
+      ret.cruiseState.speedCluster = ret.cruiseState.speed
+    else:
+      ret.cruiseState.speed = cp_cam.vl["ACC_HUD_ADAS"]["SET_SPEED"] * CV.KPH_TO_MS
+      acc_state = int(cp_cam.vl["ACC_HUD_ADAS"]["ACC_STATE"])
+      ret.cruiseState.available = acc_state in (2, 3, 5)
+      ret.cruiseState.enabled = acc_state in (3, 5)
     ret.cruiseState.standstill = bool(cp_cam.vl["ACC_CMD"]["STANDSTILL_STATE"])
 
     # forward stock LKAS HUD
