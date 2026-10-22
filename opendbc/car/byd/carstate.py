@@ -54,6 +54,13 @@ class CarState(CarStateBase):
       # The Atto 3's unsigned 8-bit DRIVER_EPS_TORQUE cannot: the logged value
       # spans +-377. Driver torque is a separate signal in Nm.
       ret.steeringTorqueEps = cp.vl["STEERING_TORQUE"]["MAIN_TORQUE"]
+      # DRIVER_TORQUE despite the recording disagreeing, because the recording's
+      # steeringTorque is not a decode of anything: it is exactly zero in 98.17% of
+      # samples, where real driver torque almost never is, and no window of any
+      # bus-0 address correlates with it above |r| 0.42. Where it is non-zero it
+      # tracks DRIVER_TORQUE at r 0.77, so it looks like a control-layer term the
+      # original logged here. What proves DRIVER_TORQUE is the driver torque is the
+      # 24 Nm threshold reproducing logged steeringPressed at 100.000%.
       ret.steeringTorque = cp.vl["STEERING_TORQUE"]["DRIVER_TORQUE"]
       driver_torque = abs(ret.steeringTorque)
       ret.steeringPressed = self.update_steering_pressed(
@@ -138,12 +145,27 @@ class CarState(CarStateBase):
                                if ret.cruiseState.available else 0.0)
       # The logged original's speedCluster equals speed exactly, 100.000% of samples.
       ret.cruiseState.speedCluster = ret.cruiseState.speed
+      # cruiseState.standstill is deliberately left False here. ACC_CMD's
+      # STANDSTILL_STATE and STANDSTILL_RESUME are BOTH constant 0 across all
+      # 698,956 samples of the recording, so the Atto 3 read below would be inert
+      # on this car - its 95.5% agreement with the log is only both sides being
+      # false. No other ACC_CMD signal tracks it either.
+      #
+      # What does track it is bit 8 of 0x220, an address neither DBC declares, at
+      # 99.998%. Do not adopt it: that is vehicle standstill, which is what the
+      # original logged into this field, not "ACC is holding the car at standstill"
+      # which is what the field means. The recording never has the car stopped with
+      # ACC engaged (0 of 698,956 samples), so the two cannot be separated from it.
+      # Publishing vehicle standstill would make openpilot believe ACC is holding at
+      # every red light with cruise off, and cruise.py / car_events.py drive the
+      # resume logic off this. False is both safe and correct for a lateral-only
+      # port where the factory ACC does the stopping and the resuming.
     else:
       ret.cruiseState.speed = cp_cam.vl["ACC_HUD_ADAS"]["SET_SPEED"] * CV.KPH_TO_MS
       acc_state = int(cp_cam.vl["ACC_HUD_ADAS"]["ACC_STATE"])
       ret.cruiseState.available = acc_state in (2, 3, 5)
       ret.cruiseState.enabled = acc_state in (3, 5)
-    ret.cruiseState.standstill = bool(cp_cam.vl["ACC_CMD"]["STANDSTILL_STATE"])
+      ret.cruiseState.standstill = bool(cp_cam.vl["ACC_CMD"]["STANDSTILL_STATE"])
 
     # forward stock LKAS HUD
     self.lkas_hud = copy.copy(cp_cam.vl["LKAS_HUD_ADAS"])
