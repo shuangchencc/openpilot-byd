@@ -2,7 +2,7 @@ from opendbc.car import get_safety_config, structs
 from opendbc.car.interfaces import CarInterfaceBase
 from opendbc.car.byd.carcontroller import CarController
 from opendbc.car.byd.carstate import CarState
-from opendbc.car.byd.values import CAR
+from opendbc.car.byd.values import CAR, BydSafetyFlags
 
 
 class CarInterface(CarInterfaceBase):
@@ -31,5 +31,7 @@ class CarInterface(CarInterfaceBase):
     # std 0.0755 m/s. wheelSpeeds stay as the car reports them; this corrects vEgo.
     if candidate == CAR.BYD_SONG_PLUS_DMI_23:
       ret.wheelSpeedFactor = 0.9453
+      # Tell panda this is a Song Plus: road-scaled speed + IPB brake (byd.h).
+      ret.safetyConfigs[0].safetyParam |= BydSafetyFlags.SONG_PLUS.value
 
     return ret

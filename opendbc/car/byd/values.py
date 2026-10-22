@@ -78,6 +78,13 @@ class BydFlags(IntFlag):
   PEDALS_ALT = 16
 
 
+class BydSafetyFlags(IntFlag):
+  # Panda safety param; MUST match BYD_PARAM_SONG_PLUS in opendbc/safety/modes/byd.h.
+  # Selects the Song Plus wheel-speed scale (road) and brake source (IPB) in panda.
+  # Steering geometry is deliberately NOT gated on it (see byd.h / SAFETY_VM_PLATFORM).
+  SONG_PLUS = 1
+
+
 @dataclass
 class BydPlatformConfig(PlatformConfig):
   dbc_dict: DbcDict = field(default_factory=lambda: {
