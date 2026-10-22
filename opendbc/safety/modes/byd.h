@@ -52,6 +52,9 @@ static void byd_rx_hook(const CANPacket_t *msg) {
   }
 }
 
+const uint16_t BYD_FLAG_SONG_PLUS_GEOMETRY = 1;
+static bool byd_song_plus_geometry = false;
+
 static bool byd_tx_hook(const CANPacket_t *msg) {
   const AngleSteeringLimits BYD_STEERING_LIMITS = {
     .max_angle = 3900,  // 390 deg
@@ -59,12 +62,22 @@ static bool byd_tx_hook(const CANPacket_t *msg) {
     .frequency = 50U,
   };
 
-  // NOTE: based off BYD_ATTO_3 to match openpilot
-  const AngleSteeringParams BYD_STEERING_PARAMS = {
-    .slip_factor = -0.0006166479109059387,  // calc_slip_factor(VM)
+  // Vehicle geometry for the angle check, selected by safety param. openpilot's
+  // controller has to limit with the matching numbers or its commands are
+  // rejected here, so both sides read this choice from the same flag.
+  const AngleSteeringParams BYD_ATTO_3_STEERING_PARAMS = {
+    .slip_factor = -0.0006166479109059387,  // calc_slip_factor(VM), unchanged literal
     .steer_ratio = 14.8,
     .wheelbase = 2.72,
   };
+  const AngleSteeringParams BYD_SONG_PLUS_STEERING_PARAMS = {
+    .slip_factor = -0.0006066120071502817,  // calc_slip_factor(VM)
+    .steer_ratio = 20.6,
+    .wheelbase = 2.765,
+  };
+  const AngleSteeringParams BYD_STEERING_PARAMS = byd_song_plus_geometry ?
+                                                 BYD_SONG_PLUS_STEERING_PARAMS :
+                                                 BYD_ATTO_3_STEERING_PARAMS;
 
   bool tx = true;
 
@@ -91,7 +104,7 @@ static bool byd_tx_hook(const CANPacket_t *msg) {
 }
 
 static safety_config byd_init(uint16_t param) {
-  SAFETY_UNUSED(param);
+  byd_song_plus_geometry = GET_FLAG(param, BYD_FLAG_SONG_PLUS_GEOMETRY);
 
   static const CanMsg BYD_TX_MSGS[] = {
     {0x1E2, 0, 8, .check_relay = true},   // STEERING_MODULE_ADAS (lateral steering command)

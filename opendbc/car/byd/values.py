@@ -81,12 +81,17 @@ class CAR(Platforms):
     [BydCarDocs("BYD Atto 3 2022-25")],
     CarSpecs(wheelbase=2.72, steerRatio=14.8),
   )
-  # Wheelbase is the manufacturer's published figure. steerRatio is NOT yet
-  # measured on this car and only matters once lateral control is enabled;
-  # it must be validated before any actuation work.
+  # Wheelbase is the manufacturer's published figure. steerRatio is openpilot's own
+  # online estimate from a recorded drive on this car: paramsd reported median 20.59
+  # (mean 20.83, std 0.50, range 20.07-21.70) over 139,788 valid samples, converging
+  # up from the 19.5 it was initialised with and never returning to it, with
+  # stiffnessFactor ~1.013. paramsd uses the camera's visual yaw, independent of the
+  # CAN yaw sensor. The CAN yaw signal itself (0x222 bits 0-11, r2 0.955 against
+  # v*angle) cannot pin steerRatio down because its scale factor is unknown and
+  # multiplicatively coupled to the ratio.
   BYD_SONG_PLUS_DMI_23 = BydPlatformConfig(
     [BydCarDocs("BYD Song PLUS DM-i 2023")],
-    CarSpecs(wheelbase=2.765, steerRatio=19.5),
+    CarSpecs(wheelbase=2.765, steerRatio=20.6),
     {Bus.pt: 'byd_song_plus'},
     flags=BydFlags.FOUR_WHEEL_SPEEDS | BydFlags.NO_BSM | BydFlags.DRIVER_TORQUE_NM | BydFlags.ACC_STATE_ALT | BydFlags.PEDALS_ALT,
   )
