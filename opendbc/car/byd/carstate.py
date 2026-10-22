@@ -48,9 +48,28 @@ class CarState(CarStateBase):
     # steering wheel
     ret.steeringAngleDeg = cp.vl["STEER_MODULE_2"]["STEER_ANGLE_2"]
     ret.steeringTorque = cp.vl["STEERING_TORQUE"]["MAIN_TORQUE"]
-    ret.steeringTorqueEps = cp.vl["STEER_MODULE_2"]["DRIVER_EPS_TORQUE"]
-    ret.steeringPressed = self.update_steering_pressed(abs(ret.steeringTorqueEps) > CCP.STEER_DRIVER_OVERRIDE, 5)
-    ret.steeringDisengage = abs(ret.steeringTorqueEps) > CCP.STEER_DRIVER_DISENGAGE
+    if self.CP.flags & BydFlags.DRIVER_TORQUE_NM:
+      # Fitted against this car's logged original: MAIN_TORQUE is the EPS motor
+      # torque and reproduces steeringTorqueEps exactly (r2 = 1.000000, scale 1).
+      # The Atto 3's unsigned 8-bit DRIVER_EPS_TORQUE cannot: the logged value
+      # spans +-377. Driver torque is a separate signal in Nm.
+      ret.steeringTorqueEps = cp.vl["STEERING_TORQUE"]["MAIN_TORQUE"]
+      ret.steeringTorque = cp.vl["STEERING_TORQUE"]["DRIVER_TORQUE"]
+      driver_torque = abs(ret.steeringTorque)
+      ret.steeringPressed = self.update_steering_pressed(
+        driver_torque > CCP.STEER_DRIVER_OVERRIDE_NM, 5)
+      ret.steeringDisengage = driver_torque > CCP.STEER_DRIVER_DISENGAGE_NM
+    else:
+      ret.steeringTorqueEps = cp.vl["STEER_MODULE_2"]["DRIVER_EPS_TORQUE"]
+      ret.steeringPressed = self.update_steering_pressed(
+        abs(ret.steeringTorqueEps) > CCP.STEER_DRIVER_OVERRIDE, 5)
+      ret.steeringDisengage = abs(ret.steeringTorqueEps) > CCP.STEER_DRIVER_DISENGAGE
+    # steeringRateDeg is deliberately left unset. It is not a CAN signal on this car
+    # (no window in STEER_MODULE_2 or STEERING_TORQUE explains the logged rate,
+    # best r2 0.05) and plain differentiation of the 0.1 deg angle at 100 Hz carries
+    # 10 deg/s of quantisation noise: that tracks the logged rate at only r=0.48,
+    # std 5.25 vs 2.47. The original filtered it. Needs a proper estimator validated
+    # against the recording before it is published.
 
     # LKAS_STATE follows the BYD TJA_STATE_* enum: 0=Off, 1=Passive, 2/3=Active, 4=Fault.
     # LKS_PREPARED on the EPS is also 1 at route start before any engagement, so it can't be

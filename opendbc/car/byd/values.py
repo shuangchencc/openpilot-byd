@@ -29,6 +29,20 @@ class CarControllerParams:
   )
 
   STEER_DRIVER_OVERRIDE = 10   # EPS torque threshold for soft override
+
+  # Platforms that report driver torque in Nm (BydFlags.DRIVER_TORQUE_NM).
+
+  # |DRIVER_TORQUE| > 24.0 Nm reproduces the logged steeringPressed with
+
+  # 100.000% agreement over 86,468 samples across 12 recorded segments.
+
+  STEER_DRIVER_OVERRIDE_NM = 24.0
+
+  # UNVERIFIED: no oracle for the disengage level, so this keeps the 3x ratio
+
+  # the Atto 3 uses (10 -> 30). Must be validated before any actuation.
+
+  STEER_DRIVER_DISENGAGE_NM = 72.0
   STEER_DRIVER_DISENGAGE = 30  # EPS torque threshold for hard disengage
 
 
@@ -44,6 +58,9 @@ class BydFlags(IntFlag):
   # No blind spot radar on 0x418. Without this the BSD_RADAR read below never
   # goes alive and CANParser keeps can_valid false forever.
   NO_BSM = 2
+  # Driver torque is STEERING_TORQUE.DRIVER_TORQUE in Nm and the EPS motor torque
+  # is MAIN_TORQUE, instead of the Atto 3's single unsigned DRIVER_EPS_TORQUE.
+  DRIVER_TORQUE_NM = 4
 
 
 @dataclass
@@ -65,7 +82,7 @@ class CAR(Platforms):
     [BydCarDocs("BYD Song PLUS DM-i 2023")],
     CarSpecs(wheelbase=2.765, steerRatio=19.5),
     {Bus.pt: 'byd_song_plus'},
-    flags=BydFlags.FOUR_WHEEL_SPEEDS | BydFlags.NO_BSM,
+    flags=BydFlags.FOUR_WHEEL_SPEEDS | BydFlags.NO_BSM | BydFlags.DRIVER_TORQUE_NM,
   )
 
 
