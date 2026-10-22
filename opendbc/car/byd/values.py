@@ -31,17 +31,22 @@ class CarControllerParams:
   STEER_DRIVER_OVERRIDE = 10   # EPS torque threshold for soft override
 
   # Platforms that report driver torque in Nm (BydFlags.DRIVER_TORQUE_NM).
-
   # |DRIVER_TORQUE| > 24.0 Nm reproduces the logged steeringPressed with
-
   # 100.000% agreement over 86,468 samples across 12 recorded segments.
-
   STEER_DRIVER_OVERRIDE_NM = 24.0
 
-  # UNVERIFIED: no oracle for the disengage level, so this keeps the 3x ratio
-
-  # the Atto 3 uses (10 -> 30). Must be validated before any actuation.
-
+  # Deliberately above the reachable range rather than a tuned trip level.
+  # Measured over 349,699 EPS frames of a full route: |DRIVER_TORQUE| peaks at
+  # 41.7 Nm (p99.9 23.2), and the most held for 5 samples while lateral control
+  # was active was 34.8 Nm - so any threshold at or below that would have
+  # disengaged on a drive where the stock system did not.
+  #
+  # It has to stay unreachable until panda implements the matching check. byd.h
+  # never assigns steering_disengage (tesla.h is the only mode that does), while
+  # test_models asserts CarState.steeringDisengage equals panda's
+  # steering_disengage_prev. Both sides are permanently false today and therefore
+  # agree; making this reachable without the byd.h half would break that contract.
+  # Lowering it is a two-sided change and needs a measured hard-grab level.
   STEER_DRIVER_DISENGAGE_NM = 72.0
   STEER_DRIVER_DISENGAGE = 30  # EPS torque threshold for hard disengage
 
