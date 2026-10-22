@@ -3,13 +3,14 @@ from opendbc.car import Bus
 from opendbc.car.lateral import apply_steer_angle_limits_vm
 from opendbc.car.interfaces import CarControllerBase
 from opendbc.car.byd import bydcan
-from opendbc.car.byd.values import CarControllerParams
+from opendbc.car.byd.values import CarControllerParams, SAFETY_VM_PLATFORM
 from opendbc.car.vehicle_model import VehicleModel
 
 
 def get_safety_CP():
+  # Must stay in step with panda's byd.h; see SAFETY_VM_PLATFORM in values.py.
   from opendbc.car.byd.interface import CarInterface
-  return CarInterface.get_non_essential_params("BYD_ATTO_3")
+  return CarInterface.get_non_essential_params(SAFETY_VM_PLATFORM)
 
 
 class CarController(CarControllerBase):

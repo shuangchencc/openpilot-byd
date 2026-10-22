@@ -92,6 +92,21 @@ class CAR(Platforms):
   )
 
 
+# Panda's byd.h hardcodes the vehicle model used for its own angle check
+# (slip_factor/steer_ratio/wheelbase from BYD_ATTO_3, "to match openpilot"), so the
+# controller must limit with the SAME geometry or panda rejects its commands. Until
+# byd.h takes the geometry from a safety param, every BYD platform is limited by
+# Atto 3 geometry.
+#
+# Measured consequence for BYD_SONG_PLUS_DMI_23 (steerRatio 19.5 vs 14.8): its own
+# geometry would allow 1.333x more steering angle, e.g. at 90 km/h 24.46 deg and
+# 0.489 deg/frame versus the 18.35 deg and 0.367 deg/frame panda enforces. That is
+# the conservative direction - the intended lateral acceleration is never exceeded -
+# so this is a capability limit, not a safety hazard. Changing only the controller
+# side would instead desynchronise the two and get commands rejected.
+SAFETY_VM_PLATFORM = "BYD_ATTO_3"
+
+
 FW_QUERY_CONFIG = FwQueryConfig(
   requests=[],
   fw_version_regex=b"",
