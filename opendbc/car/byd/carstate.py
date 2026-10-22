@@ -3,7 +3,7 @@ import copy
 from opendbc.car import Bus, structs
 from opendbc.can.parser import CANParser
 from opendbc.car.common.conversions import Conversions as CV
-from opendbc.car.byd.values import DBC, CarControllerParams as CCP
+from opendbc.car.byd.values import DBC, BydFlags, CarControllerParams as CCP
 from opendbc.car.interfaces import CarStateBase
 
 GearShifter = structs.CarState.GearShifter
@@ -28,9 +28,20 @@ class CarState(CarStateBase):
     ret = structs.CarState()
 
     # speed
-    speed_kph = cp.vl["WHEELSPEED_CLEAN"]["WHEELSPEED_CLEAN"]
-    ret.vEgoRaw = speed_kph * CV.KPH_TO_MS
-    ret.vEgo, ret.aEgo = self.update_speed_kf(ret.vEgoRaw)
+    if self.CP.flags & BydFlags.FOUR_WHEEL_SPEEDS:
+      ws = cp.vl["WHEELSPEED_CLEAN"]
+      fl, fr, rl, rr = (ws["WHEELSPEED_FL"], ws["WHEELSPEED_FR"],
+                        ws["WHEELSPEED_BL"], ws["WHEELSPEED_BR"])
+      ret.wheelSpeeds.fl = fl * CV.KPH_TO_MS
+      ret.wheelSpeeds.fr = fr * CV.KPH_TO_MS
+      ret.wheelSpeeds.rl = rl * CV.KPH_TO_MS
+      ret.wheelSpeeds.rr = rr * CV.KPH_TO_MS
+      self.parse_wheel_speeds(ret, fl, fr, rl, rr)
+      speed_kph = (fl + fr + rl + rr) / 4.0
+    else:
+      speed_kph = cp.vl["WHEELSPEED_CLEAN"]["WHEELSPEED_CLEAN"]
+      ret.vEgoRaw = speed_kph * CV.KPH_TO_MS
+      ret.vEgo, ret.aEgo = self.update_speed_kf(ret.vEgoRaw)
     ret.standstill = speed_kph < 0.1
     ret.vEgoCluster = ret.vEgo
 
@@ -57,9 +68,12 @@ class CarState(CarStateBase):
     ret.leftBlinker = bool(cp.vl["STALKS"]["LEFT_BLINKER"])
     ret.rightBlinker = bool(cp.vl["STALKS"]["RIGHT_BLINKER"])
 
-    # blind spot monitor
-    ret.leftBlindspot = cp.vl["BSD_RADAR"]["LEFT_APPROACH"] != 0
-    ret.rightBlindspot = cp.vl["BSD_RADAR"]["RIGHT_APPROACH"] != 0
+    # blind spot monitor. Reading BSD_RADAR on a car that does not have it leaves
+    # the message permanently un-alive, which holds CANParser's can_valid false and
+    # blocks engagement, so it is gated on the platform.
+    if not self.CP.flags & BydFlags.NO_BSM:
+      ret.leftBlindspot = cp.vl["BSD_RADAR"]["LEFT_APPROACH"] != 0
+      ret.rightBlindspot = cp.vl["BSD_RADAR"]["RIGHT_APPROACH"] != 0
 
     # doors / belt
     ret.doorOpen = any((

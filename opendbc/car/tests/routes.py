@@ -21,6 +21,8 @@ from opendbc.car.mg.values import CAR as MG
 
 # FIXME: add routes for these cars
 non_tested_cars = [
+  # no shareable route yet; validated locally against an owner recording
+  BYD.BYD_SONG_PLUS_DMI_23,
   MOCK.MOCK,
   GM.CADILLAC_ATS,
   GM.HOLDEN_ASTRA,

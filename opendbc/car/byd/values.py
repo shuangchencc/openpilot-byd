@@ -1,4 +1,5 @@
 from dataclasses import dataclass, field
+from enum import IntFlag
 
 from opendbc.car import ACCELERATION_DUE_TO_GRAVITY, Bus, CarSpecs, DbcDict, PlatformConfig, Platforms
 from opendbc.car.lateral import AngleSteeringLimitsVM, ISO_LATERAL_ACCEL
@@ -37,6 +38,14 @@ class BydCarDocs(CarDocs):
   car_parts: CarParts = field(default_factory=CarParts.common([CarHarness.custom]))
 
 
+class BydFlags(IntFlag):
+  # 0x1F0 carries four 12-bit per-wheel speeds instead of one clean speed.
+  FOUR_WHEEL_SPEEDS = 1
+  # No blind spot radar on 0x418. Without this the BSD_RADAR read below never
+  # goes alive and CANParser keeps can_valid false forever.
+  NO_BSM = 2
+
+
 @dataclass
 class BydPlatformConfig(PlatformConfig):
   dbc_dict: DbcDict = field(default_factory=lambda: {
@@ -48,6 +57,15 @@ class CAR(Platforms):
   BYD_ATTO_3 = BydPlatformConfig(
     [BydCarDocs("BYD Atto 3 2022-25")],
     CarSpecs(wheelbase=2.72, steerRatio=14.8),
+  )
+  # Wheelbase is the manufacturer's published figure. steerRatio is NOT yet
+  # measured on this car and only matters once lateral control is enabled;
+  # it must be validated before any actuation work.
+  BYD_SONG_PLUS_DMI_23 = BydPlatformConfig(
+    [BydCarDocs("BYD Song PLUS DM-i 2023")],
+    CarSpecs(wheelbase=2.765, steerRatio=19.5),
+    {Bus.pt: 'byd_song_plus'},
+    flags=BydFlags.FOUR_WHEEL_SPEEDS | BydFlags.NO_BSM,
   )
 
 
