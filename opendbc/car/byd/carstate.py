@@ -64,12 +64,24 @@ class CarState(CarStateBase):
       ret.steeringPressed = self.update_steering_pressed(
         abs(ret.steeringTorqueEps) > CCP.STEER_DRIVER_OVERRIDE, 5)
       ret.steeringDisengage = abs(ret.steeringTorqueEps) > CCP.STEER_DRIVER_DISENGAGE
-    # steeringRateDeg is deliberately left unset. It is not a CAN signal on this car
-    # (no window in STEER_MODULE_2 or STEERING_TORQUE explains the logged rate,
-    # best r2 0.05) and plain differentiation of the 0.1 deg angle at 100 Hz carries
-    # 10 deg/s of quantisation noise: that tracks the logged rate at only r=0.48,
-    # std 5.25 vs 2.47. The original filtered it. Needs a proper estimator validated
-    # against the recording before it is published.
+    # steeringRateDeg is deliberately left unset, the same as the other angle-control
+    # ports with no rate signal (ford, nissan).
+    #
+    # The car does not send one. Swept every (start, width, signedness) window of all
+    # 86 bus-0 addresses against the logged rate over 21,518 samples: the best |r| is
+    # 0.47, and it sits on 0x11F's own angle bits, i.e. angle magnitude correlating
+    # with rate during a manoeuvre, not a rate signal.
+    #
+    # It is cheaply derivable - the recording's own rate is exactly a 25 ms angle
+    # difference, unfiltered: every logged value is an integer multiple of 4 deg/s,
+    # and 0.1 deg / 4 deg/s = 25.0 ms. Reproducing that from 0x11F alone gives
+    # r2 0.980 with 60.1% of samples exact and a median error of 0.
+    #
+    # It stays unset anyway because nothing on this platform reads it: the field is
+    # optional in car.capnp, latcontrol_pid only echoes it into its log and this car
+    # is angle-controlled, and the rate-based EPS fault avoidance that makes subaru
+    # derive it does not apply here. Deriving state no consumer checks just adds
+    # something that can rot unnoticed.
 
     # LKAS_STATE follows the BYD TJA_STATE_* enum: 0=Off, 1=Passive, 2/3=Active, 4=Fault.
     # LKS_PREPARED on the EPS is also 1 at route start before any engagement, so it can't be
