@@ -4,12 +4,14 @@ import unittest
 import numpy as np
 
 from opendbc.car.byd.carcontroller import get_safety_CP
-from opendbc.car.byd.values import CarControllerParams
+from opendbc.car.byd.interface import CarInterface
+from opendbc.car.byd.values import CAR, CarControllerParams
 from opendbc.car.lateral import get_max_angle_delta_vm, get_max_angle_vm
 from opendbc.car.structs import CarParams
 from opendbc.car.vehicle_model import VehicleModel
 import opendbc.safety.tests.common as common
 from opendbc.safety.tests.common import away_round
+from opendbc.safety.tests.libsafety import libsafety_py
 
 STEERING_MODULE_ADAS = 0x1E2
 LKAS_HUD_ADAS = 0x316
@@ -212,6 +214,76 @@ class TestBydSafety(common.CarSafetyTest, common.AngleSteeringSafetyTest):
 
         # Recover
         self.assertTrue(self._tx(self._angle_cmd_msg(0, True)))
+
+
+class TestBydSongPlusSafety(unittest.TestCase):
+  """Focused checks for the Song Plus safety param (BYD_PARAM_SONG_PLUS = 1):
+  road-scaled vehicle speed, brake read from IPB (not DRIVE_STATE), gas still
+  from DRIVE_STATE. The full angle-limit suite under Song Plus geometry is
+  deliberately NOT run here: byd.h keeps Atto 3 geometry for every platform
+  until the controller's SAFETY_VM_PLATFORM is made platform-aware (see
+  values.py), so a Song-Plus-geometry angle suite would test an unwired state.
+  """
+
+  SAFETY_PARAM = 1   # BYD_PARAM_SONG_PLUS
+  MAIN_BUS = 0
+
+  # Must match byd.h's Song Plus speed constant: DBC wheel scale * wheelSpeedFactor.
+  DBC_WHEEL_SCALE = 0.0725  # WHEELSPEED_FL kph/LSB in byd_song_plus.dbc
+  WHEEL_SPEED_FACTOR = CarInterface.get_non_essential_params(CAR.BYD_SONG_PLUS_DMI_23).wheelSpeedFactor
+
+  def setUp(self):
+    self.safety = libsafety_py.libsafety
+    self.packer = common.CANPackerSafety("byd_song_plus")
+    self.safety.set_safety_hooks(CarParams.SafetyModel.byd, self.SAFETY_PARAM)
+    self.safety.init_tests()
+
+  def _rx(self, msg):
+    return self.safety.safety_rx_hook(msg)
+
+  def _wheelspeed_msg(self, fl_counts):
+    # Set WHEELSPEED_FL so the raw CAN value equals fl_counts (physical = counts * scale).
+    return self.packer.make_can_msg_safety("WHEELSPEED_CLEAN", self.MAIN_BUS,
+                                           {"WHEELSPEED_FL": fl_counts * self.DBC_WHEEL_SCALE})
+
+  def test_speed_uses_road_scale(self):
+    # Panda must report road speed = raw * (DBC scale * wheelSpeedFactor), matching
+    # the controller's vEgo, not the raw car (speedometer) speed. Compare against the
+    # Atto 3 path (0.1 kph/LSB) so VEHICLE_SPEED_FACTOR and KPH_TO_MS cancel; the
+    # ratio pins byd.h's constant to DBC scale * wheelSpeedFactor and breaks if either
+    # the DBC factor or interface.py's wheelSpeedFactor is retuned without byd.h.
+    counts = 1000
+    self.safety.set_safety_hooks(CarParams.SafetyModel.byd, 0)  # Atto 3: 0.1 kph/LSB
+    self.safety.init_tests()
+    for _ in range(common.MAX_SAMPLE_VALS):  # flush the rolling speed window
+      self._rx(self._wheelspeed_msg(counts))
+    s_atto3 = self.safety.get_vehicle_speed_min()
+
+    self.safety.set_safety_hooks(CarParams.SafetyModel.byd, self.SAFETY_PARAM)
+    self.safety.init_tests()
+    for _ in range(common.MAX_SAMPLE_VALS):  # flush the rolling speed window
+      self._rx(self._wheelspeed_msg(counts))
+    s_song_plus = self.safety.get_vehicle_speed_min()
+
+    expected_ratio = (self.DBC_WHEEL_SCALE * self.WHEEL_SPEED_FACTOR) / 0.1
+    self.assertAlmostEqual(s_song_plus / s_atto3, expected_ratio, places=4)
+
+  def test_brake_pressed_from_ipb(self):
+    for pressed in (True, False, True):
+      self._rx(self.packer.make_can_msg_safety("IPB", self.MAIN_BUS, {"BRAKE_PRESSED": 1 if pressed else 0}))
+      self.assertEqual(pressed, self.safety.get_brake_pressed_prev())
+
+  def test_brake_ignores_drive_state(self):
+    # On the Song Plus, DRIVE_STATE (0x242) brake is unreliable and must be ignored.
+    self._rx(self.packer.make_can_msg_safety("IPB", self.MAIN_BUS, {"BRAKE_PRESSED": 0}))
+    self.assertFalse(self.safety.get_brake_pressed_prev())
+    self._rx(self.packer.make_can_msg_safety("DRIVE_STATE", self.MAIN_BUS, {"BRAKE_PRESSED": 1}))
+    self.assertFalse(self.safety.get_brake_pressed_prev())
+
+  def test_gas_pressed_from_drive_state(self):
+    for throttle, pressed in ((0, False), (50, True), (0, False)):
+      self._rx(self.packer.make_can_msg_safety("DRIVE_STATE", self.MAIN_BUS, {"RAW_THROTTLE": throttle}))
+      self.assertEqual(pressed, self.safety.get_gas_pressed_prev())
 
 
 if __name__ == "__main__":

@@ -2,6 +2,11 @@
 
 #include "opendbc/safety/declarations.h"
 
+// Set via the safety param (BYD_PARAM_SONG_PLUS) for the BYD Song Plus DM-i 2023.
+// Selects that car's steering geometry, wheel-speed scale and brake source.
+// Unset (default) keeps the BYD Atto 3 behaviour.
+static bool byd_song_plus = false;
+
 static uint8_t byd_get_counter(const CANPacket_t *msg) {
   // Speed uses the high nibble; cruise status uses the low nibble.
   return (msg->addr == 0x1F0U) ? (msg->data[6] >> 4) : (msg->data[6] & 0xFU);
@@ -27,17 +32,30 @@ static void byd_rx_hook(const CANPacket_t *msg) {
       update_sample(&angle_meas, angle_meas_new);
     }
 
-    // Vehicle speed: 0.1 kph/LSB
+    // Vehicle speed. Atto 3: 0.1 kph/LSB. Song Plus: WHEELSPEED_FL is 0.0725
+    // kph/LSB (verified against vEgo, slope 1.0000), and the ~5.8% regulatory
+    // speedometer bias is removed so the panda speed equals the controller's
+    // vEgo (raw * 0.0725 * wheelSpeedFactor 0.9453 = raw * 0.06853425). Keeping
+    // the raw car scale would make the panda stricter than the controller above
+    // ~62 km/h (see lateral.h fudged_speed) and reject legal commands.
     if (msg->addr == 0x1F0U) {
-      int speed = (msg->data[1] << 8) | msg->data[0];  // WHEELSPEED_CLEAN
+      int speed = (msg->data[1] << 8) | msg->data[0];  // WHEELSPEED_FL/CLEAN
       vehicle_moving = speed > 0;
-      UPDATE_VEHICLE_SPEED(speed * 0.1 * KPH_TO_MS);
+      UPDATE_VEHICLE_SPEED(speed * (byd_song_plus ? 0.06853425 : 0.1) * KPH_TO_MS);
     }
 
-    // Gas and brake pressed
+    // Gas pressed: DRIVE_STATE RAW_THROTTLE on both platforms.
     if (msg->addr == 0x242U) {
-      brake_pressed = (msg->data[4] >> 5) & 0x1U;   // BRAKE_PRESSED
-      gas_pressed = (msg->data[3] & 0x7FU) > 0U;    // RAW_THROTTLE
+      gas_pressed = (msg->data[3] & 0x7FU) > 0U;      // RAW_THROTTLE
+      if (!byd_song_plus) {
+        brake_pressed = (msg->data[4] >> 5) & 0x1U;   // Atto 3: DRIVE_STATE BRAKE_PRESSED
+      }
+    }
+
+    // Brake pressed, Song Plus: IPB is the reliable source. DRIVE_STATE agreed
+    // with carState only 97.0% here and missed real presses; IPB 0x123 matches 99.973%.
+    if (byd_song_plus && (msg->addr == 0x123U)) {
+      brake_pressed = (msg->data[5] >> 3) & 0x1U;     // IPB.BRAKE_PRESSED (bit 43)
     }
   }
 
@@ -51,9 +69,6 @@ static void byd_rx_hook(const CANPacket_t *msg) {
     }
   }
 }
-
-const uint16_t BYD_FLAG_SONG_PLUS_GEOMETRY = 1;
-static bool byd_song_plus_geometry = false;
 
 static bool byd_tx_hook(const CANPacket_t *msg) {
   const AngleSteeringLimits BYD_STEERING_LIMITS = {
@@ -75,7 +90,7 @@ static bool byd_tx_hook(const CANPacket_t *msg) {
     .steer_ratio = 20.6,
     .wheelbase = 2.765,
   };
-  const AngleSteeringParams BYD_STEERING_PARAMS = byd_song_plus_geometry ?
+  const AngleSteeringParams BYD_STEERING_PARAMS = byd_song_plus ?
                                                  BYD_SONG_PLUS_STEERING_PARAMS :
                                                  BYD_ATTO_3_STEERING_PARAMS;
 
@@ -104,7 +119,8 @@ static bool byd_tx_hook(const CANPacket_t *msg) {
 }
 
 static safety_config byd_init(uint16_t param) {
-  byd_song_plus_geometry = GET_FLAG(param, BYD_FLAG_SONG_PLUS_GEOMETRY);
+  const uint16_t BYD_PARAM_SONG_PLUS = 1U;  // set for the BYD Song Plus DM-i platform
+  byd_song_plus = GET_FLAG(param, BYD_PARAM_SONG_PLUS);
 
   static const CanMsg BYD_TX_MSGS[] = {
     {0x1E2, 0, 8, .check_relay = true},   // STEERING_MODULE_ADAS (lateral steering command)
@@ -112,14 +128,31 @@ static safety_config byd_init(uint16_t param) {
     {0x3B0, 0, 8, .check_relay = false},  // PCM_BUTTONS (cruise cancel button spoof)
   };
 
-  static RxCheck byd_rx_checks[] = {
+  // Atto 3: brake comes from DRIVE_STATE (0x242); its DBC has no IPB (0x123).
+  static RxCheck byd_atto3_rx_checks[] = {
     {.msg = {{0x11F, 0, 5, 100U, .ignore_checksum = true, .ignore_counter = true, .ignore_quality_flag = true}, { 0 }, { 0 }}},  // STEER_MODULE_2 (steering angle)
     {.msg = {{0x1F0, 0, 8,  50U, .max_counter = 15U, .ignore_quality_flag = true}, { 0 }, { 0 }}},  // WHEELSPEED_CLEAN (vehicle speed)
     {.msg = {{0x242, 0, 8,  50U, .ignore_checksum = true, .ignore_counter = true, .ignore_quality_flag = true}, { 0 }, { 0 }}},  // DRIVE_STATE (gas and brake pressed)
     {.msg = {{0x32D, 2, 8,  50U, .max_counter = 15U, .ignore_quality_flag = true}, { 0 }, { 0 }}},  // ACC_HUD_ADAS (cruise state)
   };
 
-  return BUILD_SAFETY_CFG(byd_rx_checks, BYD_TX_MSGS);
+  // Song Plus: brake comes from IPB (0x123, 100 Hz, checksum + counter valid);
+  // DRIVE_STATE (0x242) is retained for gas.
+  static RxCheck byd_song_plus_rx_checks[] = {
+    {.msg = {{0x11F, 0, 5, 100U, .ignore_checksum = true, .ignore_counter = true, .ignore_quality_flag = true}, { 0 }, { 0 }}},  // STEER_MODULE_2 (steering angle)
+    {.msg = {{0x1F0, 0, 8,  50U, .max_counter = 15U, .ignore_quality_flag = true}, { 0 }, { 0 }}},  // WHEELSPEED_CLEAN (vehicle speed)
+    {.msg = {{0x123, 0, 8, 100U, .max_counter = 15U, .ignore_quality_flag = true}, { 0 }, { 0 }}},  // IPB (brake pressed)
+    {.msg = {{0x242, 0, 8,  50U, .ignore_checksum = true, .ignore_counter = true, .ignore_quality_flag = true}, { 0 }, { 0 }}},  // DRIVE_STATE (gas pressed)
+    {.msg = {{0x32D, 2, 8,  50U, .max_counter = 15U, .ignore_quality_flag = true}, { 0 }, { 0 }}},  // ACC_HUD_ADAS (cruise state)
+  };
+
+  safety_config ret;
+  if (byd_song_plus) {
+    ret = BUILD_SAFETY_CFG(byd_song_plus_rx_checks, BYD_TX_MSGS);
+  } else {
+    ret = BUILD_SAFETY_CFG(byd_atto3_rx_checks, BYD_TX_MSGS);
+  }
+  return ret;
 }
 
 const safety_hooks byd_hooks = {
