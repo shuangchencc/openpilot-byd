@@ -2,9 +2,13 @@ def byd_checksum(address: int, sig, d: bytearray) -> int:
   return (~sum(d[:7])) & 0xFF
 
 
-def create_steering_control(packer, apply_angle: float, lat_active: bool, counter: int):
-  # Stock saturates the rate limits at ±299 when engaged, 0 when disengaged
-  rate_limit = 299 if lat_active else 0
+def create_steering_control(packer, apply_angle: float, lat_active: bool, counter: int,
+                            rate_limit_engaged: int = 299, rate_limit_idle: int = 0,
+                            set_me_f: int = 0xF):
+  # Stock saturates the rate limit field and fills SET_ME_F with a constant the EPS
+  # expects; both differ per platform, so the caller supplies what its car sends.
+  # Atto 3 defaults: ±299 engaged, 0 idle, SET_ME_F 0xF.
+  rate_limit = rate_limit_engaged if lat_active else rate_limit_idle
   values = {
     "STEER_REQ": 1 if lat_active else 0,
     "STEER_REQ_ACTIVE_LOW": 0 if lat_active else 1,
@@ -14,7 +18,7 @@ def create_steering_control(packer, apply_angle: float, lat_active: bool, counte
     "E2E_ALIVE_1": 1,
     "E2E_ALIVE_2": 1,
     "SET_ME_FF": 0xFF,
-    "SET_ME_F": 0xF,
+    "SET_ME_F": set_me_f,
     "COUNTER": counter,
   }
   return packer.make_can_msg("STEERING_MODULE_ADAS", 0, values)

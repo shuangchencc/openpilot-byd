@@ -64,6 +64,10 @@ class BydFlags(IntFlag):
   # ACC_HUD_ADAS.ACC_STATE (bits 19-21) is constant 0 on this car. The engage
   # state is a 2-bit field at bits 10-11 and availability is ACC_CMD bit 47.
   ACC_STATE_ALT = 8
+  # Steering-command constants differ from the Atto 3's. Measured from 71,296
+  # frames this car's EPS demonstrably accepted: SET_ME_F is 0 (not 0xF) on every
+  # frame, and ANGLE_RATE_LIMIT is +-500 engaged / +-300 idle (not +-299 / 0).
+  TX_CONSTANTS_ALT = 32
   # Pedals: gas comes from PEDAL.GAS_PEDAL and brake from IPB (0x123, absent from
   # the Atto 3 DBC), not from DRIVE_STATE.
   PEDALS_ALT = 16
@@ -93,7 +97,7 @@ class CAR(Platforms):
     [BydCarDocs("BYD Song PLUS DM-i 2023")],
     CarSpecs(wheelbase=2.765, steerRatio=20.6),
     {Bus.pt: 'byd_song_plus'},
-    flags=BydFlags.FOUR_WHEEL_SPEEDS | BydFlags.NO_BSM | BydFlags.DRIVER_TORQUE_NM | BydFlags.ACC_STATE_ALT | BydFlags.PEDALS_ALT,
+    flags=BydFlags.FOUR_WHEEL_SPEEDS | BydFlags.NO_BSM | BydFlags.DRIVER_TORQUE_NM | BydFlags.ACC_STATE_ALT | BydFlags.TX_CONSTANTS_ALT | BydFlags.PEDALS_ALT,
   )
 
 

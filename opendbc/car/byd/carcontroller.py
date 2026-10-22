@@ -3,7 +3,7 @@ from opendbc.car import Bus
 from opendbc.car.lateral import apply_steer_angle_limits_vm
 from opendbc.car.interfaces import CarControllerBase
 from opendbc.car.byd import bydcan
-from opendbc.car.byd.values import CarControllerParams, SAFETY_VM_PLATFORM
+from opendbc.car.byd.values import BydFlags, CarControllerParams, SAFETY_VM_PLATFORM
 from opendbc.car.vehicle_model import VehicleModel
 
 
@@ -22,6 +22,12 @@ class CarController(CarControllerBase):
     # Vehicle model used for lateral limiting
     self.VM = VehicleModel(get_safety_CP())
 
+    # Steering-command constants this car's EPS expects, measured from accepted frames
+    if CP.flags & BydFlags.TX_CONSTANTS_ALT:
+      self.tx_constants = {'rate_limit_engaged': 500, 'rate_limit_idle': 300, 'set_me_f': 0}
+    else:
+      self.tx_constants = {'rate_limit_engaged': 299, 'rate_limit_idle': 0, 'set_me_f': 0xF}
+
   def update(self, CC, CS, now_nanos):
     can_sends = []
     actuators = CC.actuators
@@ -32,7 +38,8 @@ class CarController(CarControllerBase):
                                                           CS.out.steeringAngleDeg, CC.latActive, CarControllerParams, self.VM)
 
       cntr = (self.frame // 2) % 16
-      can_sends.append(bydcan.create_steering_control(self.packer, self.apply_angle_last, CC.latActive, cntr))
+      can_sends.append(bydcan.create_steering_control(self.packer, self.apply_angle_last, CC.latActive,
+                                                             cntr, **self.tx_constants))
       can_sends.append(bydcan.create_lkas_hud(self.packer, CC.latActive, cntr, CS.lkas_hud, hud_control))
 
     if CC.cruiseControl.cancel and self.frame % 10 == 0:
