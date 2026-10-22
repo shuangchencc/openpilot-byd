@@ -16,6 +16,11 @@ inline static std::unordered_map<std::string, ParamKeyAttributes> keys = {
     {"AthenadUploadQueue", {PERSISTENT, JSON}},
     {"AthenadRecentlyViewedRoutes", {PERSISTENT, STRING}},
     {"BootCount", {PERSISTENT, INT}},
+    // Set only on hardware physically built without a cabin (driver) camera. It is a
+    // statement about the hardware, never auto-detected: a camera that is present but
+    // failing must keep raising cameraMalfunction. Driver monitoring is NOT disabled by
+    // it - dmonitoringd keeps running and settles on the wheeltouch policy.
+    {"CabinCameraMissing", {PERSISTENT, BOOL}},
     {"CalibrationParams", {PERSISTENT, BYTES}},
     {"CameraDebugExpGain", {CLEAR_ON_MANAGER_START, STRING}},
     {"CameraDebugExpTime", {CLEAR_ON_MANAGER_START, STRING}},

@@ -12,6 +12,12 @@ WEBCAM = os.getenv("USE_WEBCAM") is not None
 def driverview(started: bool, params: Params, CP: car.CarParams) -> bool:
   return started or params.get_bool("IsDriverViewEnabled")
 
+def dmonitoringmodel(started: bool, params: Params, CP: car.CarParams) -> bool:
+  # The driver-monitoring model needs cabin camera frames, so it cannot run on hardware
+  # built without that camera. dmonitoringd itself still runs: with no driverStateV2 its
+  # policy reports no face and settles on wheeltouch monitoring.
+  return driverview(started, params, CP) and not params.get_bool("CabinCameraMissing")
+
 def notcar(started: bool, params: Params, CP: car.CarParams) -> bool:
   return started and CP.notCar
 
@@ -88,7 +94,7 @@ procs = [
   PythonProcess("modeld", "openpilot.selfdrive.modeld.modeld", only_onroad),
   PythonProcess("navd", "openpilot.selfdrive.navigation.navd", navigation),
   PythonProcess("mapsd", "openpilot.selfdrive.navigation.mapsd", navigation),
-  PythonProcess("dmonitoringmodeld", "openpilot.selfdrive.modeld.dmonitoringmodeld", driverview, enabled=(WEBCAM or not PC)),
+  PythonProcess("dmonitoringmodeld", "openpilot.selfdrive.modeld.dmonitoringmodeld", dmonitoringmodel, enabled=(WEBCAM or not PC)),
 
   PythonProcess("sensord", "openpilot.system.sensord.sensord", only_onroad, enabled=not PC),
   PythonProcess("ui", "openpilot.selfdrive.ui.ui", always_run),

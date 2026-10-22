@@ -79,12 +79,23 @@ class SelfdriveD:
     self.sensor_packets = ["accelerometer", "gyroscope"]
     self.camera_packets = ["narrowRoadCameraState", "cabinCameraState", "wideRoadCameraState"]
 
+    # Hardware built without a cabin camera never publishes cabinCameraState, so requiring
+    # it would mean a permanent cameraMalfunction NO_ENTRY. Dropping it from the required
+    # set does not drop driver monitoring: dmonitoringd still runs and lands on the
+    # wheeltouch policy, which is what upstream already does when the camera cannot see a
+    # face. See CabinCameraMissing in params_keys.h.
+    self.cabin_camera_missing = self.params.get_bool("CabinCameraMissing")
+    if self.cabin_camera_missing:
+      self.camera_packets.remove("cabinCameraState")
+
     # TODO: de-couple selfdrived with card/conflate on carState without introducing controls mismatches
     self.car_state_sock = messaging.sub_sock('carState', timeout=20)
 
     ignore = self.sensor_packets + self.gps_packets + ['alertDebug', 'lateralManeuverPlan']
+    if SIMULATION or self.cabin_camera_missing:
+      ignore += ['cabinCameraState']
     if SIMULATION:
-      ignore += ['cabinCameraState', 'managerState']
+      ignore += ['managerState']
     if REPLAY:
       # no vipc in replay will make them ignored anyways
       ignore += ['narrowRoadCameraState', 'wideRoadCameraState']

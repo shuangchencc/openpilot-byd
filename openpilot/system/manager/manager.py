@@ -76,6 +76,12 @@ def manager_init() -> None:
   if not build_metadata.openpilot.is_dirty:
     os.environ['CLEAN'] = '1'
 
+  # Hardware built without a cabin camera: stop camerad opening a sensor that is not
+  # there, using the switch camerad already has for it (CABIN_CAMERA_CONFIG in
+  # cameras/hw.h). The road cameras are unaffected and camerad still runs.
+  if params.get_bool("CabinCameraMissing"):
+    os.environ['DISABLE_DRIVER'] = '1'
+
   # init logging
   cloudlog.bind_global(dongle_id=dongle_id,
                        version=build_metadata.openpilot.version,
