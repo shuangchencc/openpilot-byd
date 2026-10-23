@@ -15,28 +15,33 @@ export VECLIB_MAXIMUM_THREADS=1
 # headroom for this until ui is moved to the CPU.
 export QCOM_PRIORITY=12
 
-# PINNED, deliberately, to the AGNOS already on the target device. Upstream wants 19.9.
+# Follow whatever AGNOS is installed, instead of upstream's fixed 19.9.
 #
 # launch_chffrplus.sh compares this against /VERSION with a plain string !=, and on a
-# mismatch it does not warn - it reboots into the AGNOS updater and loops there until the
-# two agree. So shipping upstream's value would force an AGNOS flash on first launch, and
+# mismatch it does not warn: it reboots into the AGNOS updater and loops there until the two
+# agree. Shipping any fixed value therefore makes the tree flash AGNOS on first launch, and
 # that flash writes the bootloader partitions (xbl/abl) into the inactive slot.
 #
-# On this device that flash currently has no verified fallback: slot B is not a trustworthy
-# rollback (its success bit is set but it has never been validated), the sp098 rollback is
-# already blocked by the redPanda bootstub, there is no verified EDL/QDL recovery path, and
-# the backup GPT entries on the LUN holding abl/boot/devcfg have a CRC error. Pinning keeps
-# the boot chain untouched: the worst case becomes "openpilot does not start", which is one
-# line to undo, instead of "the device does not boot".
+# This device is being set up with two usable slots - the vendor stack on AGNOS 12.4 and our
+# tree on AGNOS 19.9 - so a fixed value is wrong in one direction or the other: upstream's
+# 19.9 would flash over 12.4, and an earlier 12.4 pin here would have flashed 19.9 back down
+# to 12.4 once the second slot existed. Reading /VERSION agrees with either slot and so
+# never starts a flash from software.
 #
-# Consequence to be aware of: with this pin the device will never take an AGNOS update from
-# this tree. Running a 0.11.x userspace on AGNOS 12 is NOT an upstream-supported combination
-# - the Adreno/tinygrad model compilation is the most likely thing to break. Raise the pin
-# only after a verified recovery path and a verified off-device backup exist.
+# This deliberately gives up automatic AGNOS updates. That is the point: on this device
+# flashing AGNOS is a decision a person makes, with a verified recovery path and an
+# off-device backup in hand, not something a launch script does on boot. Note also that a
+# 0.11.x userspace on AGNOS 12.4 is not an upstream-supported combination, so the two slots
+# are not interchangeable - see the stack selector in
+# migration-audit/stagec-prep-20261023/continue-selector.sh.
 #
 # See migration-audit/independent-stack-prereqs-20261022/STAGE0-RESULT.txt
 if [ -z "$AGNOS_VERSION" ]; then
-  export AGNOS_VERSION="12.4"
+  if [ -r /VERSION ]; then
+    export AGNOS_VERSION="$(cat /VERSION)"
+  else
+    export AGNOS_VERSION="19.9"   # upstream's value, for a PC or a missing /VERSION
+  fi
 fi
 
 export STAGING_ROOT="/data/safe_staging"
