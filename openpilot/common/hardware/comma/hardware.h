@@ -22,7 +22,24 @@ public:
   static cereal::InitData::DeviceType get_device_type() {
     static const std::map<std::string, cereal::InitData::DeviceType> device_map = {
       {"tizi", cereal::InitData::DeviceType::TIZI},
-      {"mici", cereal::InitData::DeviceType::MICI}
+      {"mici", cereal::InitData::DeviceType::MICI},
+      // DIAGNOSTIC PROBE, NOT A FIX. Do not read this as comma three support.
+      //
+      // Upstream removed comma three (tici) deliberately: PR #36078 "remove tici-specific
+      // code", merged 2025-08-28, and master still omits tici from this map. That PR also
+      // dropped the tici amplifier/audio config, the USB IRQ core pinning, the NVMe
+      // handling in hardwared/selfdrived/reset, the AR0231 exposure scaling in the UI, the
+      // modem and updated.py tici branches, and the pandad startup wait. README's branch
+      // table lists only comma 3X and comma four.
+      //
+      // Without this entry the assert below core-dumps every native process that calls
+      // get_device_type(), which on a comma three kills encoderd, loggerd, bootlog and ui
+      // immediately. That single assert masks every *other* tici gap, so nothing further
+      // can be measured. This entry exists only to get past it and count what surfaces
+      // next. If the count is small the gaps can be assessed; if it is large, the answer is
+      // to baseline on the last upstream that still supported tici rather than carry a
+      // growing fork of PR #36078.
+      {"tici", cereal::InitData::DeviceType::TICI},
     };
     static const auto it = device_map.find(get_name());
     assert(it != device_map.end());
