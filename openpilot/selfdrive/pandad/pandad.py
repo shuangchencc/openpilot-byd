@@ -158,6 +158,11 @@ def flash_panda(serial: str) -> None:
   cloudlog.warning(f"flashing panda {serial}")
 
   with Panda(serial, cli=False) as p:
+    # Re-check on this same connection before touching anything: the caller's "not ready"
+    # may have been a panda that was merely slow to enumerate.
+    if not p.bootstub and p.up_to_date():
+      cloudlog.warning(f"panda {serial} is up to date after all; not flashing")
+      return
     # Derived from this panda's own UID, so PandaDFU below cannot land on another device
     # that happens to be sitting in DFU.
     dfu_serial = p.get_dfu_serial()
@@ -263,6 +268,17 @@ def main() -> None:
       # No HARDWARE.reset_internal_panda() here: those GPIOs are the internal panda's, which
       # on this device is the F4 dos panda we must not touch. See the note at the top.
       if not panda_ready(serial):
+        # panda_ready() is also False for "not found within 1 s" and for any exception, e.g.
+        # while the panda re-enumerates after a USB drop, and flash_panda() rewrites the
+        # bootstub over DFU. The red panda has no button, so losing power during that
+        # 1-2 s write is unrecoverable without opening the case. On this device automatic
+        # flashing is therefore OFF: retry instead, and flash only when someone sets
+        # PANDAD_ALLOW_FLASH=1 deliberately. (Found by openpilot-1e's review, 2026-11-12.)
+        if os.environ.get("PANDAD_ALLOW_FLASH") != "1":
+          cloudlog.error(f"panda {serial} not ready; automatic flashing is disabled "
+                         "(PANDAD_ALLOW_FLASH=1 to flash). Retrying.")
+          time.sleep(1.0)
+          continue
         flash_panda(serial)
         assert panda_ready(serial), "panda not ready after flashing"
 
