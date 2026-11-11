@@ -161,8 +161,15 @@ def flash_panda(serial: str) -> None:
     # Derived from this panda's own UID, so PandaDFU below cannot land on another device
     # that happens to be sitting in DFU.
     dfu_serial = p.get_dfu_serial()
-    # reset() asserts get_type() in SUPPORTED_DEVICES before entering the bootloader
-    # (__init__.py:355), so this cannot be aimed at an unsupported panda.
+    # Two steps, as upstream's Panda.recover() does (python/__init__.py:464-469). A RELEASE
+    # app ignores a direct "enter bootloader" request - main_comms.h:164-175 compiles it only
+    # under ALLOW_DEBUG - but always honours "enter bootstub", and the bootstub honours
+    # "enter bootloader" unconditionally (flasher.h:67-74). Measured on this car's red panda
+    # 2026-11-12: its vendor DEV-719e0dd0-RELEASE app ignored the one-step request, so DFU was
+    # never reached and pandad looped. reset() asserts get_type() in SUPPORTED_DEVICES before
+    # each request, and the bootstub answers get_type() (flasher.h:45), so neither request can
+    # be aimed at an unsupported panda.
+    p.reset(enter_bootstub=True)
     p.reset(enter_bootloader=True)
 
   assert Panda.wait_for_dfu(dfu_serial, timeout=10), f"panda {serial} didn't enter DFU"
