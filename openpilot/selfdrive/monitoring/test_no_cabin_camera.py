@@ -12,6 +12,7 @@ from openpilot.common.test import OpenpilotTestCase
 from openpilot.cereal import log
 from openpilot.common.realtime import DT_DMON
 from openpilot.selfdrive.monitoring.dmonitoringd import (no_face_driver_state,
+                                                         SubMasterNoCabinCamera,
                                                          NO_CABIN_CAMERA_IGNORE,
                                                          CALIBRATION_VALIDITY_NOT_REQUIRED)
 from openpilot.selfdrive.monitoring.policy import DriverMonitoring
@@ -133,7 +134,18 @@ class TestNoCabinCameraWiring(OpenpilotTestCase):
     """The service we tell SubMaster to ignore must be the one we substitute."""
     assert NO_CABIN_CAMERA_IGNORE == ['driverStateV2']
     synthesized = no_face_driver_state()
-    assert synthesized.which() == 'driverStateV2'
+    # The proxy hands back the synthesized message for exactly the ignored service and
+    # passes everything else through to the real SubMaster.
+    proxy = SubMasterNoCabinCamera({'carState': 'from the real SubMaster'}, synthesized)
+    for service in NO_CABIN_CAMERA_IGNORE:
+      assert proxy[service] is synthesized
+    assert proxy['carState'] == 'from the real SubMaster'
+    # And what it hands back is a valid payload for that Event member: pycapnp refuses to
+    # assign a struct of any other type. (no_face_driver_state() returns the bare struct,
+    # not an Event, so it has no union to call which() on.)
+    evt = log.Event.new_message()
+    evt.driverStateV2 = synthesized
+    assert evt.which() == 'driverStateV2'
 
   def test_calibration_validity_is_relaxed_but_liveness_is_not(self):
     """Only ignore_valid may carry the calibration service - never alive or frequency.
