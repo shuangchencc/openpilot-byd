@@ -1,8 +1,9 @@
 Import('env', 'arch', 'common', 'messaging')
 
 if arch != "Darwin":
-  libs = [common, messaging, 'pthread']
-  panda = env.Library('panda', ['panda.cc', 'spi.cc'])
+  # usb-1.0 / usb.cc: USB transport restored for this device's red panda (see usb.cc)
+  libs = [common, messaging, 'pthread', 'usb-1.0']
+  panda = env.Library('panda', ['panda.cc', 'spi.cc', 'usb.cc'])
 
   env.Program('pandad', ['main.cc', 'pandad.cc', 'panda_safety.cc'], LIBS=[panda] + libs)
 
