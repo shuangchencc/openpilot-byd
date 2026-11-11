@@ -6,6 +6,35 @@ from openpilot.common.realtime import DT_DMON, Ratekeeper, config_realtime_proce
 from openpilot.selfdrive.monitoring.policy import DriverMonitoring
 
 
+# The service a cabin camera would have provided. Named once and used for every ignore
+# list SubMaster takes, so the three can never drift apart - see the note in main().
+NO_CABIN_CAMERA_IGNORE = ['driverStateV2']
+
+# Validity we deliberately do not require, on a vehicle with no cabin camera.
+#
+# extrinsicsCalibration stays `uncalibrated` until the car has been driven, and its valid
+# flag is false until then (measured: 2366/2366 messages false over a 10-minute bench run).
+# Because all_checks() ANDs validity across every subscribed service, leaving it in made
+# "is the device calibrated" decide "does wheel-touch monitoring work at all" - and with no
+# cabin camera, wheel-touch IS the whole of driver monitoring. The wheeltouch policy never
+# consumes the calibration: policy.py passes cal_rpy to face_orientation_from_model(), but
+# every consumer of the resulting pose is gated on self.face_detected, which is false by
+# construction here (faceProb 0). So the calibration is genuinely irrelevant to this
+# configuration, and requiring it only delays monitoring.
+#
+# The argument for the other choice, which is real: selfdrived already raises
+# calibrationIncomplete with ET.NO_ENTRY and ET.SOFT_DISABLE whenever calStatus is not
+# `calibrated` (selfdrived.py:284-287, events.py:822-826), so openpilot cannot engage before
+# calibration anyway - meaning the gap could never have produced "engaged with no
+# monitoring". On that view this relaxes an upstream precondition for no safety gain.
+# The owner chose to have monitoring active from the first drive. Reverting is one line:
+# drop this list from the ignore_valid argument below.
+#
+# Only validity is relaxed. Alive and frequency are NOT: the message does arrive, at 4 Hz,
+# and if calibrationd ever stops publishing we still want all_checks() to notice.
+CALIBRATION_VALIDITY_NOT_REQUIRED = ['extrinsicsCalibration']
+
+
 def no_face_driver_state():
   """A driverStateV2 that explicitly reports "the camera sees nothing".
 
@@ -55,8 +84,37 @@ def dmonitoringd_thread():
   # the 25 s wheeltouch timeout into 5 s.
   cabin_camera_missing = params.get_bool("CabinCameraMissing")
   if cabin_camera_missing:
+    # All THREE ignore lists have to name driverStateV2, which is why they share one
+    # constant instead of being written out three times. all_checks() is
+    #     all_alive() and all_freq_ok() and all_valid()        cereal/messaging:277
+    # so a service that never arrives fails the *frequency* check even when alive and
+    # valid are ignored. Getting only two of the three (the first attempt here) leaves
+    # all_checks() permanently False, so dmonitoringd's `elif valid: DM.run_step(...)`
+    # never fires and activePolicy sits at its initial `vision` (policy.py:162) forever -
+    # while driverMonitoringState still publishes at 20 Hz, so nothing looks wrong from
+    # the outside. Measured on the device 2026-10-24.
     sm = SubMasterNoCabinCamera(
-      messaging.SubMaster(services, ignore_alive=['driverStateV2'], ignore_valid=['driverStateV2']),
+      # frequency= is NOT optional here, and leaving it out was the second bug in this
+      # branch. SubMaster sizes every service's acceptable rate window against how often
+      # the caller calls update():
+      #     self.update_freq = frequency or max(SERVICE_LIST[s].frequency
+      #                                         for s in polled_services)   messaging:216
+      # Upstream passes poll='driverStateV2', so update_freq becomes that service's 20 Hz.
+      # Replacing poll= with a Ratekeeper removed that information, and with neither poll=
+      # nor frequency= the "conservative" fallback takes the MAX over all subscriptions -
+      # 100 Hz, from carState. FrequencyTracker then demands carState at 40..120 Hz
+      # (min_freq 50*0.8, max_freq 100*1.2), while a 20 Hz loop can only ever take 20/s
+      # because update() does recv_one_or_none per socket per call. freq_ok['carState']
+      # stays False, so all_checks() stays False, run_step() never runs, and activePolicy
+      # sits at `vision` - with driverMonitoringState still publishing at 20 Hz, so from
+      # outside it looks like the policy simply chose vision. Measured on the device
+      # 2026-10-24 against replayed real CAN, where every service was alive and valid.
+      # With frequency=20: carState 16..24, modelV2 8..24, extrinsicsCalibration 3.2..4.8.
+      messaging.SubMaster(services,
+                          frequency=1. / DT_DMON,
+                          ignore_alive=NO_CABIN_CAMERA_IGNORE,
+                          ignore_avg_freq=NO_CABIN_CAMERA_IGNORE,
+                          ignore_valid=NO_CABIN_CAMERA_IGNORE + CALIBRATION_VALIDITY_NOT_REQUIRED),
       no_face_driver_state(),
     )
     rk: Ratekeeper | None = Ratekeeper(1. / DT_DMON)
