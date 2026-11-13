@@ -985,6 +985,9 @@ class SafetyTest(SafetyTestBase):
               continue
             if attr.startswith('TestFord') and current_test.startswith('TestFord'):
               continue
+            # same safety mode and TX messages, different param (Atto 3 / Song Plus)
+            if attr.startswith('TestByd') and current_test.startswith('TestByd'):
+              continue
             if attr.startswith('TestHyundaiCanfd') and current_test.startswith('TestHyundaiCanfd'):
               continue
             if {attr, current_test}.issubset({'TestHyundaiLongitudinalSafety', 'TestHyundaiLongitudinalSafetyCameraSCC', 'TestHyundaiSafetyFCEVLong'}):
