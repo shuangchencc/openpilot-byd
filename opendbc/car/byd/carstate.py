@@ -59,13 +59,14 @@ class CarState(CarStateBase):
       # samples, where real driver torque almost never is, and no window of any
       # bus-0 address correlates with it above |r| 0.42. Where it is non-zero it
       # tracks DRIVER_TORQUE at r 0.77, so it looks like a control-layer term the
-      # original logged here. What proves DRIVER_TORQUE is the driver torque is the
-      # 24 Nm threshold reproducing logged steeringPressed at 100.000%.
+      # original logged here. What proves DRIVER_TORQUE is the driver torque is that
+      # |DRIVER_TORQUE| > 24 reproduces the logged steeringPressed at 100.000%.
       ret.steeringTorque = cp.vl["STEERING_TORQUE"]["DRIVER_TORQUE"]
-      driver_torque = abs(ret.steeringTorque)
+      # steeringPressed is "a hand is on the wheel" here, not that takeover level:
+      # measured around the sensor's zero, which is not 0. See values.py.
       ret.steeringPressed = self.update_steering_pressed(
-        driver_torque > CCP.STEER_DRIVER_OVERRIDE_NM, 5)
-      ret.steeringDisengage = driver_torque > CCP.STEER_DRIVER_DISENGAGE_NM
+        abs(ret.steeringTorque - CCP.DRIVER_TORQUE_ZERO_NM) > CCP.STEER_DRIVER_OVERRIDE_NM, 5)
+      ret.steeringDisengage = abs(ret.steeringTorque) > CCP.STEER_DRIVER_DISENGAGE_NM
     else:
       ret.steeringTorqueEps = cp.vl["STEER_MODULE_2"]["DRIVER_EPS_TORQUE"]
       ret.steeringPressed = self.update_steering_pressed(

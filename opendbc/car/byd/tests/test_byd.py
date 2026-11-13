@@ -1,9 +1,11 @@
 import unittest
+from collections import defaultdict
 
+from opendbc.car import Bus
 from opendbc.car.can_definitions import CanData
-from opendbc.car.car_helpers import can_fingerprint
+from opendbc.car.car_helpers import can_fingerprint, interfaces
 from opendbc.car.byd.fingerprints import FINGERPRINTS
-from opendbc.car.byd.values import CAR
+from opendbc.car.byd.values import CAR, CarControllerParams as CCP
 
 SONG_PLUS = CAR.BYD_SONG_PLUS_DMI_23
 
@@ -45,6 +47,85 @@ class TestBydSongPlusFingerprint(unittest.TestCase):
 
   def test_table_has_no_extended_ids(self):
     assert all(a < 0x800 for a in self.table)
+
+
+class FakeParser:
+  """Stands in for CANParser: every signal reads 0 unless set."""
+  def __init__(self):
+    self.vl = defaultdict(lambda: defaultdict(float))
+    self.can_valid = True
+
+
+def car_state(platform):
+  CarInterface = interfaces[platform]
+  CI = CarInterface(CarInterface.get_non_essential_params(platform))
+  parsers = {Bus.pt: FakeParser(), Bus.cam: FakeParser()}
+  return CI.CS, parsers
+
+
+class TestBydSongPlusSteeringPressed(unittest.TestCase):
+  """steeringPressed on the Song Plus is "a hand is on the wheel", around a non-zero sensor zero.
+
+  The torque levels are the ones measured in the labelled capture of 2026-11-13.
+  """
+
+  def pressed_after(self, torque, ticks=100):
+    CS, parsers = car_state(SONG_PLUS)
+    ret = None
+    for _ in range(ticks):
+      parsers[Bus.pt].vl["STEERING_TORQUE"]["DRIVER_TORQUE"] = torque
+      ret = CS.update(parsers)
+    return ret
+
+  def test_hands_off_is_not_pressed(self):
+    for level in (-1.33, -1.5, -1.2, -1.1):
+      assert not self.pressed_after(level).steeringPressed, level
+
+  def test_friction_residual_after_dry_steering_is_not_pressed(self):
+    for level in (-2.0, -3.2, -3.4, -0.8):
+      assert not self.pressed_after(level).steeringPressed, level
+
+  def test_a_resting_hand_is_pressed(self):
+    for level in (2.64, 3.41, 5.8):
+      assert self.pressed_after(level).steeringPressed, level
+
+  def test_the_same_hand_weight_is_seen_in_both_directions(self):
+    weight = 4.0
+    assert self.pressed_after(CCP.DRIVER_TORQUE_ZERO_NM + weight).steeringPressed
+    assert self.pressed_after(CCP.DRIVER_TORQUE_ZERO_NM - weight).steeringPressed
+
+  def test_band_edges(self):
+    zero, thr = CCP.DRIVER_TORQUE_ZERO_NM, CCP.STEER_DRIVER_OVERRIDE_NM
+    assert not self.pressed_after(zero + thr - 0.1).steeringPressed
+    assert self.pressed_after(zero + thr + 0.1).steeringPressed
+    assert not self.pressed_after(zero - thr + 0.1).steeringPressed
+    assert self.pressed_after(zero - thr - 0.1).steeringPressed
+
+  def test_needs_six_consecutive_samples(self):
+    assert not self.pressed_after(5.0, ticks=5).steeringPressed
+    assert self.pressed_after(5.0, ticks=6).steeringPressed
+
+  def test_steering_torque_is_reported_raw(self):
+    assert abs(self.pressed_after(3.41).steeringTorque - 3.41) < 1e-6
+
+  def test_values_are_the_measured_ones(self):
+    assert CCP.DRIVER_TORQUE_ZERO_NM == -1.1
+    assert CCP.STEER_DRIVER_OVERRIDE_NM == 3.0
+
+  def test_disengage_level_stays_out_of_reach(self):
+    # byd.h has no matching check, so this must not become reachable by accident
+    for level in (-41.7, 24.0, 41.7):
+      assert not self.pressed_after(level).steeringDisengage, level
+
+  def test_atto3_is_untouched(self):
+    CS, parsers = car_state(CAR.BYD_ATTO_3)
+    ret = None
+    for torque, expected in ((CCP.STEER_DRIVER_OVERRIDE, False), (CCP.STEER_DRIVER_OVERRIDE + 1, True)):
+      for _ in range(20):
+        parsers[Bus.pt].vl["STEER_MODULE_2"]["DRIVER_EPS_TORQUE"] = torque
+        parsers[Bus.pt].vl["STEERING_TORQUE"]["DRIVER_TORQUE"] = 20.0   # must be ignored on this platform
+        ret = CS.update(parsers)
+      assert ret.steeringPressed == expected, torque
 
 
 if __name__ == "__main__":

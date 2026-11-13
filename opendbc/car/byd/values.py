@@ -30,10 +30,48 @@ class CarControllerParams:
 
   STEER_DRIVER_OVERRIDE = 10   # EPS torque threshold for soft override
 
-  # Platforms that report driver torque in Nm (BydFlags.DRIVER_TORQUE_NM).
-  # |DRIVER_TORQUE| > 24.0 Nm reproduces the logged steeringPressed with
-  # 100.000% agreement over 86,468 samples across 12 recorded segments.
-  STEER_DRIVER_OVERRIDE_NM = 24.0
+  # Platforms that report driver torque on STEERING_TORQUE.DRIVER_TORQUE
+  # (BydFlags.DRIVER_TORQUE_NM).
+  #
+  # Units. The DBC labels the signal "Nm" with factor 0.1, but one unit is about
+  # 0.1 Nm: dry-park steering peaks at 27 units on this car, which is 2.7 Nm and
+  # cannot be 27. Every *_NM constant here is in DBC units; the names are kept.
+  #
+  # steeringPressed on this platform means "a hand is on the wheel". That is what
+  # its consumers need: the wheel-touch driver monitoring policy (the only driver
+  # monitoring this car has, with no cabin camera), the lane-change nudge and
+  # selfdrived. Nothing in the BYD carcontroller or in byd.h reads it.
+  #
+  # It is deliberately NOT the vendor's steeringPressed. |DRIVER_TORQUE| > 24.0
+  # reproduces that one with 100.000% agreement over 86,468 samples across 12
+  # recorded segments, which is what identified DRIVER_TORQUE as the driver's
+  # torque. But 24 (about 2.4 Nm) is a takeover level: replayed over a 116 min
+  # drive it leaves the wheel-touch policy past its 25 s red alert 30-40 times an
+  # hour, hands on or not, and a deliberate firm grab on 2026-11-12 peaked at 16.
+  #
+  # Measured 2026-11-12/13, parked, labelled capture at 100 Hz:
+  #   hands off                  -1.33 +-0.06, the same at -4.1 and -8.0 deg
+  #   two hands resting          +2.64 mean (-3.5 .. +6.4)
+  #   one hand at 6 o'clock      +3.41 mean ( 0.0 .. +5.8)
+  #   light tug left/right       -10.0 .. +11.5
+  # and from a recorded drive, the level the signal sits at when it goes flat
+  # while moving: about -1.1.
+  #
+  # The sensor's zero is not 0, so a threshold on the raw value is lopsided: the
+  # same hand weight reads about -5.4 one way and +2.6 the other. Hence a zero
+  # and a threshold around it. |x - ZERO| > 3.0 is true 60-90% of the time with a
+  # hand resting and never with hands off. The zero is the moving one, not a
+  # parked reading: parked, column friction can hold a residual down to -3.4
+  # after dry steering, which still falls inside the band (raw -4.1 .. +1.9).
+  # The zero is fixed, not adaptive, on purpose: a zero that follows the signal
+  # learns a steady hand and then reads that hand's removal as a touch.
+  #
+  # NOT yet validated: what the sensor reads hands-off while the EPS is steering.
+  # That needs a closed-course run (accept: no detection in 60 s hands-off and
+  # |x - ZERO| <= 2). Until then these two values are provisional.
+  # Evidence: migration-audit/steer-torque-threshold-20261112/RESULT.txt.
+  DRIVER_TORQUE_ZERO_NM = -1.1
+  STEER_DRIVER_OVERRIDE_NM = 3.0
 
   # Deliberately above the reachable range rather than a tuned trip level.
   # Measured over 349,699 EPS frames of a full route: |DRIVER_TORQUE| peaks at
