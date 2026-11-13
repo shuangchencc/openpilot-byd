@@ -248,6 +248,15 @@ class Car:
                    self.sm.seen['onroadEvents'])
     if not self.CP.passive and initialized:
       self.controls_update(CS, self.sm['carControl'])
+    elif self.CP.passive and initialized and not self.initialized_prev:
+      # A passive (dashcam) car never reaches controls_update(), which is the only other place
+      # ControlsReady is set, and pandad waits for it before it applies CP.safetyConfigs
+      # (panda_safety.cc fetchCarParams). Without this the panda stays in ELM327 for the whole
+      # drive instead of the noOutput this file configured above: measured in the car on
+      # 2026-11-12, safetyModel elm327/1 with ControlsReady absent 3.5 minutes after start.
+      # ELM327 still lets 8-byte frames to the diagnostic addresses through; noOutput lets
+      # nothing through. CI.init() is deliberately not called here: it may transmit.
+      self.params.put_bool("ControlsReady", True)
 
     self.initialized_prev = initialized
     self.CS_prev = CS
