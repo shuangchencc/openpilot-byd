@@ -425,13 +425,13 @@ void pandad_run(Panda *panda) {
 
 void pandad_main_thread(std::string serial) {
   if (serial.empty()) {
-    auto serials = Panda::list();
-
-    if (serials.empty()) {
-      LOGW("no pandas found, exiting");
-      return;
-    }
-    serial = serials[0];
+    // Upstream picks Panda::list()[0] here. This device has two pandas on USB and only one of
+    // them may be driven: the internal F4 dos panda must never be written to (see pandad.py),
+    // and connecting already writes (can_reset_communications, set_can_fd_auto). Whichever
+    // panda enumerates first is not a safe default, so there is none. pandad.py always passes
+    // the serial it selected by hardware type.
+    LOGE("no panda serial given; refusing to pick one. Start pandad through pandad.py.");
+    return;
   }
 
   LOGW("connecting to panda: %s", serial.c_str());
