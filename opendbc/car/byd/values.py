@@ -76,6 +76,18 @@ class BydFlags(IntFlag):
   # Pedals: gas comes from PEDAL.GAS_PEDAL and brake from IPB (0x123, absent from
   # the Atto 3 DBC), not from DRIVE_STATE.
   PEDALS_ALT = 16
+  # Do not transmit the cruise-cancel button (PCM_BUTTONS, 0x3B0) on this car.
+  # The port sends it on bus 0, which is where the car's own body controller sends
+  # that message from. The consumer, the ADAS controller that runs the stock ACC,
+  # is on bus 2: in a recorded drive the vendor's stack relayed every one of the
+  # car's 139,878 frames from bus 0 to bus 2 itself, with its panda blocking the
+  # direct forward. So a cancel on bus 0 would not reach the ACC and would sit on
+  # the body bus next to the car's own frames of the same address.
+  # Inferred from that recording, not tested in the car. Until the bus 2 route has
+  # been tried there, the port stays out of it: when openpilot disengages, the
+  # stock ACC keeps going and the driver cancels it.
+  # Evidence: migration-audit/byd-safety-verification-20261114/RESULT.txt, section 8.
+  NO_CANCEL_BUTTON = 64
 
 
 class BydSafetyFlags(IntFlag):
@@ -109,7 +121,8 @@ class CAR(Platforms):
     [BydCarDocs("BYD Song PLUS DM-i 2023")],
     CarSpecs(wheelbase=2.765, steerRatio=20.6),
     {Bus.pt: 'byd_song_plus'},
-    flags=BydFlags.FOUR_WHEEL_SPEEDS | BydFlags.NO_BSM | BydFlags.DRIVER_TORQUE_NM | BydFlags.ACC_STATE_ALT | BydFlags.TX_CONSTANTS_ALT | BydFlags.PEDALS_ALT,
+    flags=BydFlags.FOUR_WHEEL_SPEEDS | BydFlags.NO_BSM | BydFlags.DRIVER_TORQUE_NM | BydFlags.ACC_STATE_ALT | BydFlags.TX_CONSTANTS_ALT | BydFlags.PEDALS_ALT |
+          BydFlags.NO_CANCEL_BUTTON,
   )
 
 

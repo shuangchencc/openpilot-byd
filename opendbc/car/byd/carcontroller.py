@@ -28,6 +28,9 @@ class CarController(CarControllerBase):
     else:
       self.tx_constants = {'rate_limit_engaged': 299, 'rate_limit_idle': 0, 'set_me_f': 0xF}
 
+    # See BydFlags.NO_CANCEL_BUTTON
+    self.send_cancel_button = not (CP.flags & BydFlags.NO_CANCEL_BUTTON)
+
   def update(self, CC, CS, now_nanos):
     can_sends = []
     actuators = CC.actuators
@@ -42,7 +45,7 @@ class CarController(CarControllerBase):
                                                              cntr, **self.tx_constants))
       can_sends.append(bydcan.create_lkas_hud(self.packer, CC.latActive, cntr, CS.lkas_hud, hud_control))
 
-    if CC.cruiseControl.cancel and self.frame % 10 == 0:
+    if self.send_cancel_button and CC.cruiseControl.cancel and self.frame % 10 == 0:
       can_sends.append(bydcan.create_buttons(self.packer, cancel=True))
 
     new_actuators = actuators.as_builder()
