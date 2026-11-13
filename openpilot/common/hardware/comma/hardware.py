@@ -399,7 +399,20 @@ class HardwareComma(HardwareBase):
     ms = self.get_modem_state()
     return ms.get('tx_bytes', -1), ms.get('rx_bytes', -1)
 
+  def _refuse_internal_panda_gpio(self, what: str) -> None:
+    # On this device (a comma three-class C3XL, device type tici) GPIO 124/134 drive the
+    # internal F4 "dos" panda. Our panda firmware is H7-only, and the dos must never be reset,
+    # pushed into its ST bootloader or flashed; pandad.py drives only the red panda, by serial.
+    # On 2026-11-14 the upstream hardware test tests/test_amplifier.py was run through unittest
+    # on the device. OpenpilotTestCase bridges setup_method/teardown_method, so it reset the
+    # dos through this method (the kernel logged a USB re-enumeration). Refuse loudly instead,
+    # so no test or tool can do it again.
+    if self.get_device_type() == "tici":
+      raise RuntimeError(f"{what} refused on tici: GPIO 124/134 drive the internal F4 dos panda, "
+                         "which must never be reset or flashed (see pandad.py)")
+
   def reset_internal_panda(self):
+    self._refuse_internal_panda_gpio("reset_internal_panda")
     gpio_init(GPIO.STM_RST_N, True)
     gpio_init(GPIO.STM_BOOT0, True)
 
@@ -409,6 +422,7 @@ class HardwareComma(HardwareBase):
     gpio_set(GPIO.STM_RST_N, False)
 
   def recover_internal_panda(self):
+    self._refuse_internal_panda_gpio("recover_internal_panda")
     gpio_init(GPIO.STM_RST_N, True)
     gpio_init(GPIO.STM_BOOT0, True)
 

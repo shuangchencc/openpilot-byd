@@ -196,5 +196,8 @@ class Amplifier:
 
 
 if __name__ == "__main__":
+  # pick the tuning the way hardwared does, so running this file by hand on a comma three
+  # does not write the tizi CONFIG back over TICI_CONFIG
+  from openpilot.common.hardware import HARDWARE
   amp = Amplifier()
-  amp.initialize_configuration()
+  amp.initialize_configuration(HARDWARE.get_device_type())
