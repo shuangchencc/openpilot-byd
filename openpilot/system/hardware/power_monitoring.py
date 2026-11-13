@@ -12,7 +12,13 @@ CAR_BATTERY_CAPACITY_uWh = 30e6
 CAR_CHARGING_RATE_W = 45
 
 VBATT_PAUSE_CHARGING = 11.8           # Lower limit on the LPF car battery voltage
-MAX_TIME_OFFROAD_S = 30*3600
+# 9 minutes on this device, not upstream's 30 hours (2026-11-13). This matches what the
+# vendor stack ran with on this car (MaxTimeOffroad=9, applied as param*60 in its
+# power_monitoring.py:115-116). The car evidently cuts the device's power soon after it is
+# switched off anyway (UptimeOffroad totalled ~69 min across every run so far), so this is a
+# second line of defence. It matters because the 12 V battery may be LFP, whose flat curve
+# makes the 11.8 V low-voltage cutoff below a late net.
+MAX_TIME_OFFROAD_S = 9*60
 MIN_ON_TIME_S = 3600
 DELAY_SHUTDOWN_TIME_S = 300 # Wait at least DELAY_SHUTDOWN_TIME_S seconds after offroad_time to shutdown.
 VOLTAGE_SHUTDOWN_MIN_OFFROAD_TIME_S = 60
