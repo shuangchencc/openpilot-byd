@@ -57,6 +57,10 @@ from openpilot.common.swaglog import cloudlog
 # SUPPORTED_DEVICES itself (__init__.py:355), so it cannot be aimed at the dos panda even by
 # mistake, and PandaDFU is given that panda's own DFU serial so it cannot pick up a
 # different device that happens to be in DFU.
+#
+# Flashing is also never automatic here (ensure_panda): it needs PANDAD_ALLOW_FLASH=1, it is
+# never triggered by a panda that is merely absent or unreadable, and once the panda carries
+# our bootstub a firmware update rewrites the app only (flash_panda).
 
 # Set this to pin a specific panda when more than one supported device is present.
 SERIAL_ENV = "PANDA_SERIAL"
@@ -128,44 +132,100 @@ def supported_panda_serials() -> list[str]:
   return supported
 
 
-def panda_ready(serial: str) -> bool:
-  """Is this specific panda up and running the firmware we ship?"""
+# What panda_state() can report about the selected panda.
+READY = "ready"              # in the app, running the firmware we ship
+NEEDS_FLASH = "needs_flash"  # connected and readable, but in the bootstub or on other firmware
+ABSENT = "absent"            # not seen within 1 s, or the check itself failed. Unknown, so never flash.
+
+# Flashing is an attended operation on this device: see ensure_panda().
+ALLOW_FLASH_ENV = "PANDAD_ALLOW_FLASH"
+
+
+def panda_state(serial: str) -> str:
+  """READY, NEEDS_FLASH or ABSENT for this specific panda.
+
+  "Not there right now" and "the check blew up" are ABSENT, not NEEDS_FLASH. A panda that is
+  re-enumerating after a USB drop looks exactly like that for a second or two, and treating it
+  as out of date is what used to send a healthy panda into a full bootstub rewrite.
+  """
   try:
     if not Panda.wait_for_panda(serial, timeout=1):
       cloudlog.warning(f"panda {serial} not found")
-      return False
+      return ABSENT
     with Panda(serial, cli=False) as p:
       if p.bootstub:
         cloudlog.warning(f"panda stuck in bootstub, version {p.get_version()}")
-        return False
+        return NEEDS_FLASH
       if not p.up_to_date():
         cloudlog.warning(f"panda firmware out of date, version {p.get_version()}")
-        return False
-      return True
+        return NEEDS_FLASH
+      return READY
   except Exception:
-    # e.g. SPI protocol mismatch with old firmware
+    # e.g. the device vanished between the listing and the open
     cloudlog.exception("pandad.panda_check_failed")
-    return False
+    return ABSENT
+
+
+def panda_ready(serial: str) -> bool:
+  """Is this specific panda up and running the firmware we ship?"""
+  return panda_state(serial) == READY
+
+
+def _accepts_our_app(version: str) -> bool:
+  """Will the bootstub on this panda start an app signed with the debug key, as ours is?
+
+  `version` is whatever answered get_version(): the app's string, or the bootstub's own when
+  the panda is sitting in the bootstub. Both end in the build type (SConscript get_version):
+  a DEBUG build is compiled with ALLOW_DEBUG and signed with the debug cert, and a bootstub
+  only starts a debug-signed app if it was itself built with ALLOW_DEBUG.
+    - a running DEBUG app proves the bootstub under it accepted a debug signature;
+    - a DEBUG bootstub accepts one by construction.
+  Anything else (the vendor's "DEV-719e0dd0-RELEAS") is treated as "will not", which is what
+  was measured on 2026-11-12: after DFU our bootstub came up alone, refusing the vendor app.
+  """
+  return version.rstrip("\x00 \t\r\n").endswith("DEBUG")
 
 
 def flash_panda(serial: str) -> None:
-  """Reflash bootstub + app on one specific panda, over USB DFU, without touching GPIO.
+  """Bring one specific panda to the firmware we ship, without touching GPIO.
 
-  The bootstub is replaced and not just the app: the bootstub on a panda that has been
-  running someone else's build may be signed with a different key than the app we ship,
-  and a signature mismatch leaves it stuck in the bootstub.
+  Two routes, chosen by what is on the panda now:
+
+  app only   When the bootstub already accepts our signature (_accepts_our_app), only the app
+             is rewritten, through that bootstub, as upstream's flash_panda does first. The
+             bootstub is never erased, so a power loss cannot leave the panda without one.
+             This is every routine update once the panda runs our firmware.
+
+  DFU        When it does not (someone else's build), the bootstub has to be replaced before
+             our app can start, so this goes app -> bootstub -> ST bootloader and rewrites
+             both. The red panda has no button: losing power during the 1-2 s bootstub write
+             cannot be recovered without opening the case. This is the first migration from
+             the vendor's firmware, and the fallback if the app-only route leaves the panda
+             in the bootstub.
   """
   cloudlog.warning(f"flashing panda {serial}")
 
   with Panda(serial, cli=False) as p:
-    # Re-check on this same connection before touching anything: the caller's "not ready"
-    # may have been a panda that was merely slow to enumerate.
+    # Re-check on this same connection before touching anything: the caller's verdict may be
+    # a moment old.
     if not p.bootstub and p.up_to_date():
       cloudlog.warning(f"panda {serial} is up to date after all; not flashing")
       return
     # Derived from this panda's own UID, so PandaDFU below cannot land on another device
     # that happens to be sitting in DFU.
     dfu_serial = p.get_dfu_serial()
+    version = p.get_version()
+
+    if _accepts_our_app(version):
+      cloudlog.warning(f"panda {serial} ({version}): flashing the app only, bootstub untouched")
+      p.flash()
+      if not p.bootstub and p.up_to_date():
+        cloudlog.warning(f"done flashing panda {serial} (app only)")
+        return
+      cloudlog.warning(f"panda {serial} did not start the new app; replacing the bootstub over DFU")
+    else:
+      cloudlog.warning(f"panda {serial} ({version}): bootstub will not take our app, going through DFU")
+
     # Two steps, as upstream's Panda.recover() does (python/__init__.py:464-469). A RELEASE
     # app ignores a direct "enter bootloader" request - main_comms.h:164-175 compiles it only
     # under ALLOW_DEBUG - but always honours "enter bootstub", and the bootstub honours
@@ -174,17 +234,42 @@ def flash_panda(serial: str) -> None:
     # never reached and pandad looped. reset() asserts get_type() in SUPPORTED_DEVICES before
     # each request, and the bootstub answers get_type() (flasher.h:45), so neither request can
     # be aimed at an unsupported panda.
-    p.reset(enter_bootstub=True)
+    if not p.bootstub:
+      p.reset(enter_bootstub=True)
     p.reset(enter_bootloader=True)
 
   assert Panda.wait_for_dfu(dfu_serial, timeout=10), f"panda {serial} didn't enter DFU"
   with PandaDFU(dfu_serial) as dfu:
     dfu.recover()
 
-  assert Panda.wait_for_panda(serial, timeout=10), f"panda {serial} didn't boot into bootstub"
+  assert Panda.wait_for_panda(serial, timeout=10), f"panda {serial} didn't come back after DFU"
   with Panda(serial, cli=False) as p:
     p.flash()
-  cloudlog.warning(f"done flashing panda {serial}")
+  cloudlog.warning(f"done flashing panda {serial} (bootstub + app)")
+
+
+def ensure_panda(serial: str) -> bool:
+  """True once the selected panda is ready for ./pandad. False means "try again shortly".
+
+  Never flashes a panda that is merely absent or unreadable, and never flashes at all unless
+  PANDAD_ALLOW_FLASH=1. The launcher does not set it, so on this device flashing only happens
+  when someone asks for it and is there to watch. (The gate and the ABSENT/NEEDS_FLASH split
+  both come out of openpilot-1e's review on 2026-11-12: panda_ready() used to be False for a
+  panda that was only re-enumerating, and that led straight into a bootstub rewrite.)
+  """
+  state = panda_state(serial)
+  if state == READY:
+    return True
+  if state == ABSENT:
+    cloudlog.error(f"panda {serial} not found or not readable; retrying. Nothing is flashed in this state.")
+    return False
+  if os.environ.get(ALLOW_FLASH_ENV) != "1":
+    cloudlog.error(f"panda {serial} needs flashing, but automatic flashing is disabled "
+                   f"({ALLOW_FLASH_ENV}=1 to flash). Retrying.")
+    return False
+  flash_panda(serial)
+  assert panda_state(serial) == READY, "panda not ready after flashing"
+  return True
 
 
 def select_panda(timeout: float = 30.0) -> str | None:
@@ -267,20 +352,9 @@ def main() -> None:
 
       # No HARDWARE.reset_internal_panda() here: those GPIOs are the internal panda's, which
       # on this device is the F4 dos panda we must not touch. See the note at the top.
-      if not panda_ready(serial):
-        # panda_ready() is also False for "not found within 1 s" and for any exception, e.g.
-        # while the panda re-enumerates after a USB drop, and flash_panda() rewrites the
-        # bootstub over DFU. The red panda has no button, so losing power during that
-        # 1-2 s write is unrecoverable without opening the case. On this device automatic
-        # flashing is therefore OFF: retry instead, and flash only when someone sets
-        # PANDAD_ALLOW_FLASH=1 deliberately. (Found by openpilot-1e's review, 2026-11-12.)
-        if os.environ.get("PANDAD_ALLOW_FLASH") != "1":
-          cloudlog.error(f"panda {serial} not ready; automatic flashing is disabled "
-                         "(PANDAD_ALLOW_FLASH=1 to flash). Retrying.")
-          time.sleep(1.0)
-          continue
-        flash_panda(serial)
-        assert panda_ready(serial), "panda not ready after flashing"
+      if not ensure_panda(serial):
+        time.sleep(1.0)
+        continue
 
       # run real pandad, told which panda to use (main.cc:19 reads argv[1] as the serial)
       os.environ['MANAGER_DAEMON'] = 'pandad'
