@@ -228,14 +228,19 @@ class FakeCarState:
 
 class FakeSubMaster:
   """Stands in for messaging.SubMaster: update() moves to the next carState in a script."""
-  def __init__(self, torques, pressed=False):
+  def __init__(self, torques, pressed=False, stall_after=None):
     self._script = list(torques)
     self._pressed = pressed
+    self._stall_after = stall_after
     self.cs = None
     self.updates = 0
+    self.updated = {'carState': False}
 
   def update(self, timeout=100):
-    self.cs = FakeCarState(self._script[min(self.updates, len(self._script) - 1)], self._pressed)
+    stalled = self._stall_after is not None and self.updates >= self._stall_after
+    if not stalled:
+      self.cs = FakeCarState(self._script[min(self.updates, len(self._script) - 1)], self._pressed)
+    self.updated = {'carState': not stalled}
     self.updates += 1
 
   def __getitem__(self, service):
@@ -289,6 +294,16 @@ class TestHandsOnTorque(OpenpilotTestCase):
     for _ in range(5):
       _ = sm['carState']
     assert det.ticks == 2
+
+  def test_a_stalled_carstate_is_not_counted_as_a_held_touch(self):
+    det = HandsOnTorque.for_car("BYD_SONG_PLUS_DMI_23")
+    real = FakeSubMaster([3.41] * 10, stall_after=2)   # two fresh samples, then carState stops
+    sm = SubMasterNoCabinCamera(real, no_face_driver_state(), det)
+    sm.update(0); sm.update(0)
+    assert sm['carState'].steeringPressed is True
+    sm.update(0)                                        # stale: same carState object, not new
+    assert sm['carState'].steeringPressed is False
+    assert det.ticks == 0
 
   def test_without_a_detector_carstate_is_the_real_one(self):
     real = FakeSubMaster([9.9])

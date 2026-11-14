@@ -122,9 +122,15 @@ class SubMasterNoCabinCamera:
   def update(self, timeout=100):
     self._sm.update(timeout)
     # Once per update() - i.e. once per DM tick - not per access: run_step reads carState
-    # several times per tick and the detector counts ticks.
+    # several times per tick and the detector counts ticks. Only a NEW carState advances it; a
+    # stale one resets it, so a stalled carState can never be counted as a held touch
+    # (openpilot-1e's review, 2026-11-14).
     if self._hands_on is not None:
-      self._hands_on_now = self._hands_on.update(self._sm['carState'].steeringTorque)
+      if self._sm.updated['carState']:
+        self._hands_on_now = self._hands_on.update(self._sm['carState'].steeringTorque)
+      else:
+        self._hands_on.ticks = 0
+        self._hands_on_now = False
 
   def __getitem__(self, service):
     if service == 'driverStateV2':
