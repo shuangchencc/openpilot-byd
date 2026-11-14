@@ -168,6 +168,50 @@ class BydSafetyFlags(IntFlag):
   SONG_PLUS = 1
 
 
+class SongPlusLongitudinal:
+  """Song Plus, when openpilot does the longitudinal control (CarParams.openpilotLongitudinalControl).
+
+  The stock ACC stays what engages and disengages (pcmCruise), and it keeps computing and
+  sending its own acceleration request, ACC_CMD. openpilot can only make the car ask for
+  less: when it wants a lower acceleration than the stock ACC has just asked for, the
+  CarController sends a copy of that stock frame with the request lowered, in the place of
+  the next stock frame. When it does not, or cannot, the stock frames go to the car as they
+  are. panda checks every such frame against the stock one byte by byte; the rule, and why
+  it is "the next frame", is at the top of opendbc/safety/modes/byd.h.
+  Facts and design: migration-audit/longitudinal-l0-20261114/RESULT.txt and
+  migration-audit/longitudinal-l1-20261114/DESIGN.txt.
+  """
+  # ACC_CMD byte 0: request [m/s^2] = (raw - REQUEST_ZERO) * REQUEST_SCALE. On this car the
+  # stock ACC's own requests against the acceleration of the wheel speed gave a slope of
+  # 0.89 at r 0.96 (29 s, -1.05 .. +0.60 m/s^2), 0.30 s behind the request.
+  REQUEST_SCALE = 0.05
+  REQUEST_ZERO = 100
+  # What a stock frame looks like while the stock ACC is controlling: bit 39 clear and
+  # byte 5 exactly this (48,014 of 48,101 recorded frames). Nothing else is copied.
+  CONTROLLING_BYTE_5 = 0xD8
+  CONTROLLING_STATE_CODE = 3   # ACC_HUD_ADAS.ACC_STATE_CODE
+  # No frame while the stock ACC shows one of its warning bits (ACC_HUD_ADAS bits 16, 17,
+  # 23), nor for this long after: panda holds off for 2 s from the last frame that had one,
+  # and we wait a little longer than panda so as not to send what it will refuse.
+  WARNING_HOLD_NANOS = 2_100_000_000
+
+  # The lowest request per level, raw; MUST match BYD_LONG_MIN_REQUEST in byd.h
+  # (-1.0, -2.0 and -3.5 m/s^2).
+  MIN_REQUEST = {1: 80, 2: 60, 3: 30}
+  # The level the CarController keeps to. It is raised one step at a time, each after the
+  # one before has been driven on a closed course.
+  LEVEL = 1
+  # The level panda is given in the safety param (bits 1-2). 0: panda does not know
+  # ACC_CMD as something openpilot may send and refuses every one of these frames, so
+  # nothing reaches the car and the refused frames come back in the log - which is how the
+  # first runs in the car are meant to go. To be set to LEVEL together with flashing a
+  # panda firmware that has the rule; a firmware without it ignores the bits.
+  PANDA_LEVEL = 0
+  PANDA_LEVEL_SHIFT = 1
+
+  ACCEL_MIN = (MIN_REQUEST[LEVEL] - REQUEST_ZERO) * REQUEST_SCALE   # m/s^2
+
+
 @dataclass
 class BydPlatformConfig(PlatformConfig):
   dbc_dict: DbcDict = field(default_factory=lambda: {

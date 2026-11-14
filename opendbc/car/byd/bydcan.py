@@ -29,6 +29,20 @@ def create_steering_control(packer, apply_angle: float, lat_active: bool, counte
   return packer.make_can_msg("STEERING_MODULE_ADAS", 0, values)
 
 
+def create_acc_cmd(packer, request_raw: int, stock_bytes_1_4: int, stock_byte_5: int, counter: int):
+  # The stock ACC_CMD with another request (byte 0) and counter. Bytes 1-5 go back out
+  # exactly as they came in, through the two signals the DBC has for that; none of the
+  # signals they overlap may be given here, or the bytes are no longer the stock ones.
+  values = {
+    "ACCEL_CMD": request_raw - 100,
+    "STOCK_BYTES_1_4": stock_bytes_1_4,
+    "STOCK_BYTE_5": stock_byte_5,
+    "SET_ME_XF": 0xF,
+    "COUNTER": counter,
+  }
+  return packer.make_can_msg("ACC_CMD", 0, values)
+
+
 def create_buttons(packer, cancel: bool):
   values = {
     "SET_ME_1_1": 1,

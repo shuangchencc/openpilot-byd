@@ -37,6 +37,11 @@ class CarState(CarStateBase):
     # and the counters of all steering frames it refused
     self.steer_requests_rejected = 0
     self.steer_counters_rejected: list[int] = []
+    # The stock ACC's latest ACC_CMD and what the CarController needs to tell whether it
+    # may send a copy of it; see SongPlusLongitudinal in values.py.
+    self.acc_cmd = {"REQUEST": 0, "STOCK_BYTES_1_4": 0, "STOCK_BYTE_5": 0, "COUNTER": 0}
+    self.acc_state_code = 0
+    self.acc_warning = False
     # set by the CarController, which is the side that knows whether we are asking
     self.lka_request_unanswered = False
     self.lka_request_given_up = False
@@ -222,6 +227,16 @@ class CarState(CarStateBase):
                                if ret.cruiseState.available else 0.0)
       # The logged original's speedCluster equals speed exactly, 100.000% of samples.
       ret.cruiseState.speedCluster = ret.cruiseState.speed
+
+      # For the CarController, when openpilot does the longitudinal control. The request
+      # is kept raw (0.05 m/s^2 per count, 100 is zero), bytes 1-5 as the two numbers
+      # they go back out as.
+      acc_cmd = cp_cam.vl["ACC_CMD"]
+      self.acc_cmd = {"REQUEST": int(acc_cmd["ACCEL_CMD"]) + 100, "STOCK_BYTES_1_4": int(acc_cmd["STOCK_BYTES_1_4"]),
+                      "STOCK_BYTE_5": int(acc_cmd["STOCK_BYTE_5"]), "COUNTER": int(acc_cmd["COUNTER"])}
+      acc_hud = cp_cam.vl["ACC_HUD_ADAS"]
+      self.acc_state_code = int(acc_hud["ACC_STATE_CODE"])
+      self.acc_warning = bool(acc_hud["WARNING_BIT_16"] or acc_hud["WARNING_BIT_17"] or acc_hud["WARNING_BIT_23"])
       # cruiseState.standstill is deliberately left False here. ACC_CMD's
       # STANDSTILL_STATE and STANDSTILL_RESUME are BOTH constant 0 across all
       # 698,956 samples of the recording, so the Atto 3 read below would be inert

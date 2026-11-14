@@ -1,3 +1,4 @@
+import math
 from collections import deque
 
 from opendbc.can.packer import CANPacker
@@ -6,7 +7,7 @@ from opendbc.car.lateral import apply_steer_angle_limits_vm, get_max_angle_delta
 from opendbc.car.interfaces import CarControllerBase
 from opendbc.car.byd import bydcan
 from opendbc.car.byd.carstate import EPS_LKA_ACTIVE
-from opendbc.car.byd.values import BydFlags, CarControllerParams, SAFETY_VM_PLATFORM
+from opendbc.car.byd.values import BydFlags, CarControllerParams, SAFETY_VM_PLATFORM, SongPlusLongitudinal as Long
 from opendbc.car.vehicle_model import VehicleModel
 
 
@@ -64,6 +65,45 @@ class CarController(CarControllerBase):
     # slot so that both counters stay unbroken and equal.
     self.counter = 15
     self.steer_frame_refused = False
+
+    # See SongPlusLongitudinal
+    self.acc_cmd_counter_last = -1
+    self.acc_warning_until_nanos = 0
+
+  def acc_cmd_replacement(self, CC, CS, now_nanos):
+    """What the car is asked for in this step when openpilot does the longitudinal control.
+
+    Returns (frame to send or None, the request the car gets [m/s^2]). A frame is sent only
+    when there is a stock frame that has not been answered yet, that frame may be copied,
+    and openpilot wants less than it asks for. The conditions are byd.h's, on the same
+    stock frame, so that panda refuses nothing we send except a frame that comes too late
+    or one sent in the moment the driver touched a pedal.
+    """
+    stock = CS.acc_cmd
+    # the stock frames count up by one, 20 ms apart: another counter is another frame
+    new_stock_frame = stock["COUNTER"] != self.acc_cmd_counter_last
+    self.acc_cmd_counter_last = stock["COUNTER"]
+
+    if CS.acc_warning:
+      self.acc_warning_until_nanos = now_nanos + Long.WARNING_HOLD_NANOS
+    warning = CS.acc_warning or now_nanos < self.acc_warning_until_nanos
+
+    # what the car gets whenever no frame of ours stands in for the stock one
+    stock_accel = (stock["REQUEST"] - Long.REQUEST_ZERO) * Long.REQUEST_SCALE
+    copyable = (CS.acc_state_code == Long.CONTROLLING_STATE_CODE and not warning and
+                stock["STOCK_BYTE_5"] == Long.CONTROLLING_BYTE_5 and not stock["STOCK_BYTES_1_4"] >> 31)   # bit 39
+    if not (CC.longActive and copyable and math.isfinite(CC.actuators.accel)):
+      return None, stock_accel
+
+    # the nearest count to what openpilot wants, but never below this level's floor
+    request = max(round(CC.actuators.accel / Long.REQUEST_SCALE) + Long.REQUEST_ZERO, Long.MIN_REQUEST[Long.LEVEL])
+    if request >= stock["REQUEST"]:
+      return None, stock_accel          # the stock ACC wants no more than we do: its frames go to the car
+    accel = (request - Long.REQUEST_ZERO) * Long.REQUEST_SCALE
+    if not new_stock_frame:
+      return None, accel                # already answered; the next stock frame is 20 ms after the last
+    msg = bydcan.create_acc_cmd(self.packer, request, stock["STOCK_BYTES_1_4"], stock["STOCK_BYTE_5"], (stock["COUNTER"] + 1) % 16)
+    return msg, accel
 
   def update(self, CC, CS, now_nanos):
     can_sends = []
@@ -162,6 +202,12 @@ class CarController(CarControllerBase):
 
     new_actuators = actuators.as_builder()
     new_actuators.steeringAngleDeg = float(self.apply_angle_last)
+
+    if self.CP.openpilotLongitudinalControl:
+      acc_cmd, accel = self.acc_cmd_replacement(CC, CS, now_nanos)
+      if acc_cmd is not None:
+        can_sends.append(acc_cmd)
+      new_actuators.accel = float(accel)
 
     self.frame += 1
     return new_actuators, can_sends
