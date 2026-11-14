@@ -94,13 +94,15 @@ def no_face_driver_state():
 #    but that "true" thetaddot still comes from carState's angle series, so its sampling error is
 #    partly in both and cancels;
 #  - openpilot-a0's version takes it from the evenly spaced bus frames (Savitzky-Golay over 11 or
-#    21 frames) and gives no such assurance. Over the vendor's 997 s at 50-99 km/h the share of
-#    15 s windows holding a false touch - one restarts the count, so per window is what matters -
-#    ranges from 0 % (21 frames, torque noise 0.06) through 11 % (11 frames, inertia 0.050) and
-#    43 % (11 frames, 0.057) to 80 % (11 frames, 0.057, noise 0.15), on two unmeasured quantities:
-#    the torque sensor's noise while driving hands off (0.06 standing) and how much fast content
-#    the wheel's true acceleration has (0.1 deg angle steps cannot tell). At 2026-11-14's low
-#    speed, 22 s: true inertia 0.050 -> no 5 s window, 0.057 -> 10 %, 0.065 -> 45 %.
+#    21 frames) and gives no such assurance. With the torque median, over the vendor's 997 s at
+#    50-99 km/h, the share of 15 s windows holding a false touch - one restarts the count, so per
+#    window is what matters - is 0 % with the 21-frame truth; with the 11-frame one it is 0 %
+#    (true inertia 0.050, torque noise 0.06), 6 % (0.057), 18 % (0.065) and 42 % (0.065, noise
+#    0.15). Without the median it reached 98 %, and without the inertia term it is 46 %. It turns
+#    on two unmeasured quantities: the torque sensor's noise while driving hands off (0.06
+#    standing) and how much fast content the wheel's true acceleration has (0.1 deg angle steps
+#    cannot tell). At 2026-11-14's low speed, 22 s, the median changes little and the inertia
+#    decides: true 0.065 -> 40 % of 5 s windows, so it is to be refitted from real hands-off data.
 # NOT validated, and not to be relied on as hands-off protection at speed until measured: real
 # hands-off readings while the EPS steers (sensor noise, column friction, torsion compliance, road
 # input). The closed course must show the alerts arriving with the hands off, window by window,
