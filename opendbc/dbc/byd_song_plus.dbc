@@ -84,12 +84,14 @@ BO_ 496 WHEELSPEED_CLEAN: 8 ESP_ECU
 BO_ 508 STEERING_TORQUE: 8 EPS
  SG_ LKS_PREPARED : 0|1@1+ (1,0) [0|1] "" MCU,ADAS_ECU
  SG_ CRUISE_ACTIVATED : 1|1@1+ (1,0) [0|1] "" MCU,ADAS_ECU
+ SG_ LKA_STATE : 0|2@1+ (1,0) [0|3] "" MCU,ADAS_ECU
  SG_ TORQUE_FAILED : 2|1@1+ (1,0) [0|1] "" MCU,ADAS_ECU
  SG_ DRIVER_TORQUE : 4|12@1- (0.1,0) [-204.8|204.7] "Nm" MCU,ADAS_ECU
  SG_ TARGET_ANGLE : 16|16@1- (0.1,0) [-3276.8|3276.7] "deg" MCU,ADAS_ECU
  SG_ MAIN_TORQUE : 32|12@1- (1,0) [-2048|2047] "" MCU,ADAS_ECU
  SG_ HANDS_ON_WHEEL_WARN : 45|1@1+ (1,0) [0|1] "" MCU,ADAS_ECU
  SG_ TORQUE_TEMP_FAILED : 46|2@1+ (1,0) [0|3] "" MCU,ADAS_ECU
+ SG_ LKA_ABORT_CODE : 48|4@1+ (1,0) [0|15] "" MCU,ADAS_ECU
  SG_ COUNTER : 52|4@1+ (1,0) [0|15] "" MCU
  SG_ CHECKSUM : 56|8@1+ (1,0) [0|255] "" MCU
 
@@ -186,6 +188,9 @@ CM_ BO_ 307 "Turn signal / stalk info. Validated: LEFT_BLINKER and RIGHT_BLINKER
 CM_ BO_ 482 "Lateral steering command sent by MPC camera/ADAS ECU to EPS. Blocked by panda on bus 2; panda injects its own on bus 0.";
 CM_ BO_ 496 "Wheel speed (cleaned average). Validated: 0-127 km/h matching driving speed.";
 CM_ BO_ 508 "Column steering torque from EPS.";
+CM_ SG_ 508 LKA_STATE "Song PLUS: what the EPS is doing with the lane-keeping command (0x1E2). LKS_PREPARED and CRUISE_ACTIVATED are its two bits. 0 = off: what it shows while the stock camera is the sender (its lane keeping is off on this car) and until it has accepted the device as the sender, 0.2 s after the relay closed with the car running and 10 s after it at a cold start. 1 = ready, 2 = steering to the commanded angle, 3 = aborted. It went 1 -> 2 within 46 ms of STEER_REQ in all 20 recorded requests and back to 1 within 0.26 s of the request being dropped. 3 was seen once: the driver held the wheel against the command, the EPS motor torque sat at its limit (499) for 0.68 s, then the state became 3, the motor torque went to 0 and LKA_ABORT_CODE to 10. It stayed that way with or without STEER_REQ, parked, for at least ten minutes, and was back to 1 after the car had been switched off and on.";
+CM_ SG_ 508 LKA_ABORT_CODE "0 in every frame except while LKA_STATE is 3, where it read 10.";
+CM_ SG_ 508 TARGET_ANGLE "Song PLUS: equals the measured steering angle (p99 difference 0.1 deg); it is not an echo of the commanded angle.";
 CM_ BO_ 578 "Drivetrain state: gear, brake pressed, raw throttle.";
 CM_ BO_ 660 "Body/meter cluster: doors + seatbelt.";
 CM_ BO_ 790 "LKAS HUD ADAS message from camera. Blocked by panda on bus 2; panda re-injects.";
@@ -198,6 +203,7 @@ CM_ BO_ 944 "Steering-wheel cruise control buttons.";
 CM_ SG_ 944 ACC_ON_BTN "Song PLUS: the ACC on/off key. A press reads as a 150-250 ms pulse. From standby it turns the ACC on 0.19-0.20 s later (2 presses). With the ACC engaged it turns it off: either 0.19-0.27 s later, straight to standby (10 presses), or only 1.7-1.8 s later and then to EXITING (3 presses; in one of them three more presses in between changed nothing). What decides between the two is not known.";
 CM_ SG_ 944 LKAS_ON_BTN "Song PLUS: also turns the ACC on (40 ms later). Pressing it with the ACC on does nothing.";
 VAL_ 508 TORQUE_TEMP_FAILED 1 "TooLarge" 2 "TooFast" 3 "Both";
+VAL_ 508 LKA_STATE 0 "OFF" 1 "READY" 2 "ACTIVE" 3 "ABORTED";
 VAL_ 578 GEAR 4 "D" 2 "R" 3 "N" 1 "P";
 VAL_ 790 AUTO_LIGHT 1 "OFF" 2 "ON";
 VAL_ 790 LEFT_LANE_STATE 0 "OFF" 1 "GREEN" 2 "ORANGE";

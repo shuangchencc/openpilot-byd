@@ -50,6 +50,16 @@ class CarControllerParams:
   STEER_DRIVER_DISENGAGE_NM = 72.0
   STEER_DRIVER_DISENGAGE = 30  # EPS torque threshold for hard disengage
 
+  # Platforms with BydFlags.EPS_LKA_STATE: how long we may ask the EPS to steer
+  # without it reporting that it is, before that counts as a fault. The EPS answered
+  # all 20 recorded requests (18 of the vendor's stack, 2 of ours) within 46 ms, so
+  # 0.5 s is ten times the worst seen.
+  EPS_UNANSWERED_REQUEST_FRAMES = 50  # at 100 Hz
+  # ... and how long that fault may be reported with openpilot still engaged before it
+  # is made permanent. Longer than selfdrived's 3 s soft disable, so that only the
+  # cases in which there was none get here.
+  EPS_UNANSWERED_GIVE_UP_FRAMES = 350
+
 
 @dataclass
 class BydCarDocs(CarDocs):
@@ -88,6 +98,13 @@ class BydFlags(IntFlag):
   # stock ACC keeps going and the driver cancels it.
   # Evidence: migration-audit/byd-safety-verification-20261114/RESULT.txt, section 8.
   NO_CANCEL_BUTTON = 64
+  # The EPS reports what it is doing with our steering command in
+  # STEERING_TORQUE.LKA_STATE (see the DBC), and that is this car's only steering
+  # fault indication: the camera-side LKAS_STATE the Atto 3 path reads is constant 0
+  # here, and the EPS's TORQUE_FAILED / TORQUE_TEMP_FAILED bits have never been seen
+  # set, not even when it aborted.
+  # Evidence: migration-audit/byd-safety-verification-20261114/out/eps-request-answer-*.txt
+  EPS_LKA_STATE = 128
 
 
 class BydSafetyFlags(IntFlag):
@@ -122,7 +139,7 @@ class CAR(Platforms):
     CarSpecs(wheelbase=2.765, steerRatio=20.6),
     {Bus.pt: 'byd_song_plus'},
     flags=BydFlags.FOUR_WHEEL_SPEEDS | BydFlags.NO_BSM | BydFlags.DRIVER_TORQUE_NM | BydFlags.ACC_STATE_ALT | BydFlags.TX_CONSTANTS_ALT | BydFlags.PEDALS_ALT |
-          BydFlags.NO_CANCEL_BUTTON,
+          BydFlags.NO_CANCEL_BUTTON | BydFlags.EPS_LKA_STATE,
   )
 
 

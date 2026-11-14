@@ -22,8 +22,27 @@ class FakeParser:
 class Car:
   def __init__(self, platform=SONG_PLUS):
     CarInterface = interfaces[platform]
-    self.CS = CarInterface(CarInterface.get_non_essential_params(platform)).CS
+    self.CI = CarInterface(CarInterface.get_non_essential_params(platform))
+    self.CS = self.CI.CS
     self.pt, self.cam = FakeParser(), FakeParser()
+    self.frame = 0
+
+  def eps(self, state):
+    self.pt.vl["STEERING_TORQUE"]["LKA_STATE"] = state
+
+  def drive(self, lat_active, steps=1, enabled=None):
+    """CarState then CarController, as the interface runs them, `steps` times at 100 Hz.
+    `enabled` is openpilot being engaged; unless given, it is engaged exactly while it asks to steer."""
+    ret = None
+    for _ in range(steps):
+      ret = self.step()
+      self.CS.out = ret
+      CC = structs.CarControl()
+      CC.latActive = lat_active
+      CC.enabled = lat_active if enabled is None else enabled
+      self.CI.CC.update(CC.as_reader(), self.CS, self.frame * 10_000_000)
+      self.frame += 1
+    return ret
 
   def acc(self, distance_bars, state):
     self.cam.vl["ACC_HUD_ADAS"]["ACC_ENGAGED_STATE"] = distance_bars
@@ -173,6 +192,160 @@ class TestSongPlusAccKey(unittest.TestCase):
     car.step()
     car.key(True)
     assert self.events(car) == []
+
+
+# STEERING_TORQUE.LKA_STATE
+EPS_OFF, EPS_READY, EPS_ACTIVE, EPS_ABORTED = 0, 1, 2, 3
+
+
+class TestSongPlusSteeringFault(unittest.TestCase):
+  """The EPS's own state is this car's only steering fault indication."""
+
+  def test_aborted_is_a_permanent_fault_at_once(self):
+    car = Car()
+    for state, expected in ((EPS_OFF, False), (EPS_READY, False), (EPS_ACTIVE, False), (EPS_ABORTED, True), (EPS_READY, False)):
+      car.eps(state)
+      assert car.step().steerFaultPermanent == expected, state
+
+  def test_normal_engagement_is_not_a_fault(self):
+    # the EPS answers a request within 46 ms; when the request is dropped it took up to
+    # 258 ms to report ready again
+    car = Car()
+    car.eps(EPS_READY)
+    assert not car.drive(False, 100).steerFaultTemporary
+    faults = [car.drive(True).steerFaultTemporary for _ in range(5)]      # asked, not answered yet
+    car.eps(EPS_ACTIVE)
+    faults += [car.drive(True).steerFaultTemporary for _ in range(500)]
+    faults += [car.drive(False, enabled=True).steerFaultTemporary for _ in range(26)]   # still active after we stopped asking
+    car.eps(EPS_READY)
+    faults += [car.drive(False, enabled=True).steerFaultTemporary for _ in range(100)]
+    assert not any(faults)
+
+  def test_slow_answer_just_inside_the_limit_is_not_a_fault(self):
+    car = Car()
+    car.eps(EPS_READY)
+    faults = [car.drive(True).steerFaultTemporary for _ in range(50)]
+    car.eps(EPS_ACTIVE)
+    faults += [car.drive(True).steerFaultTemporary for _ in range(300)]
+    assert not any(faults)
+
+  def test_dropping_and_repeating_the_request_is_not_a_fault(self):
+    # openpilot stays engaged and stops asking for a while, e.g. while the driver steers
+    for answer_after in (0, 2, 4, 6, 30, 50):
+      car = Car()
+      car.eps(EPS_READY)
+      faults = []
+      for _ in range(12):
+        faults += [car.drive(True).steerFaultTemporary for _ in range(answer_after)]
+        car.eps(EPS_ACTIVE)
+        faults += [car.drive(True).steerFaultTemporary for _ in range(100)]
+        faults += [car.drive(False, enabled=True).steerFaultTemporary for _ in range(26)]
+        car.eps(EPS_READY)
+        faults += [car.drive(False, enabled=True).steerFaultTemporary for _ in range(30)]
+      assert not any(faults), answer_after
+
+  def test_request_ignored_becomes_a_fault_after_half_a_second(self):
+    for state in (EPS_READY, EPS_OFF):
+      car = Car()
+      car.eps(state)
+      faults = [car.drive(True).steerFaultTemporary for _ in range(70)]
+      first = faults.index(True)
+      assert 50 <= first <= 53, (state, first)        # 0.5 s, plus the step it takes to reach CarState
+      assert all(faults[first:])
+
+  def test_fault_stays_until_openpilot_has_disengaged(self):
+    # whatever happens in between: we stop asking (openpilot does, see below), or the EPS
+    # starts steering after all
+    for then in ("stop asking", "keep asking", "eps answers late"):
+      car = Car()
+      car.eps(EPS_READY)
+      assert car.drive(True, 53).steerFaultTemporary
+      if then == "eps answers late":
+        car.eps(EPS_ACTIVE)
+      rets = [car.drive(then != "stop asking", enabled=True) for _ in range(500)]
+      assert all(r.steerFaultTemporary for r in rets), then
+      # still engaged 3.5 s later: no soft disable took place, so it is made permanent
+      permanent = [r.steerFaultPermanent for r in rets]
+      assert 345 <= permanent.index(True) <= 352 and all(permanent[permanent.index(True):]), then
+      car.eps(EPS_READY)
+      rets = [car.drive(False, enabled=False) for _ in range(5)]
+      assert not any(r.steerFaultTemporary or r.steerFaultPermanent for r in rets[1:]), then   # gone one step after openpilot let go
+      # and the next engagement starts from nothing
+      car.eps(EPS_ACTIVE)
+      ret = car.drive(True, 600)
+      assert not ret.steerFaultTemporary and not ret.steerFaultPermanent, then
+
+  def test_with_openpilot_in_the_loop_it_asks_once_and_then_disengages(self):
+    # controlsd: latActive = active and not steerFaultTemporary and not steerFaultPermanent.
+    # selfdrived: a temporary steering fault is a soft disable, which ends the engagement 3 s later.
+    car = Car()
+    car.eps(EPS_READY)
+    fault, soft_disable, trace = False, 300, []
+    for _ in range(600):
+      enabled = soft_disable > 0
+      asking = enabled and not fault
+      ret = car.drive(asking, enabled=enabled)
+      fault = ret.steerFaultTemporary
+      soft_disable -= fault
+      trace.append((asking, fault, enabled, ret.steerFaultPermanent))
+    asked = "".join("A" if a else "-" for a, _, _, _ in trace)
+    reported = "".join("F" if f else "-" for _, f, _, _ in trace)
+    first = reported.index("F")
+    assert 50 <= first <= 53
+    assert asked == "A" * len(asked.rstrip("-")) + "-" * (600 - len(asked.rstrip("-")))    # one stretch of asking, never again
+    assert first <= len(asked.rstrip("-")) <= first + 1
+    assert reported[first:first + 300] == "F" * 300                                         # reported for the whole soft disable
+    assert "F" not in reported[first + 302:]                                                # and gone once disengaged
+    assert not any(p for _, _, _, p in trace)                                               # never permanent on this path
+
+  def test_with_openpilot_in_the_loop_and_no_soft_disable_it_ends_the_engagement_itself(self):
+    # selfdrived: after an override a temporary steering fault is only a quiet warning, so
+    # openpilot stays engaged; a permanent one disengages at once.
+    car = Car()
+    car.eps(EPS_READY)
+    temporary = permanent = False
+    enabled, trace = True, []
+    for _ in range(700):
+      enabled = enabled and not permanent
+      asking = enabled and not temporary
+      ret = car.drive(asking, enabled=enabled)
+      temporary, permanent = ret.steerFaultTemporary, ret.steerFaultPermanent
+      trace.append((asking, temporary, permanent, enabled))
+    first = [t for _, t, _, _ in trace].index(True)
+    gave_up = [p for _, _, p, _ in trace].index(True)
+    assert 50 <= first <= 53
+    assert 350 <= gave_up - first <= 352                                 # 3.5 s of the quiet warning, then permanent
+    assert not trace[gave_up + 1][3]                                     # which ends the engagement in the next step
+    assert not any(t or p for _, t, p, _ in trace[gave_up + 3:])         # and both are gone once it has
+    assert sum(a for a, _, _, _ in trace) <= 53                          # asked once, never again
+
+  def test_the_abort_recorded_in_the_car(self):
+    # 2026-11-14 06:28:24.67: active -> aborted while we kept asking for 6.6 s more
+    car = Car()
+    car.eps(EPS_ACTIVE)
+    assert not car.drive(True, 300).steerFaultPermanent
+    car.eps(EPS_ABORTED)
+    ret = car.drive(True)
+    assert ret.steerFaultPermanent and not ret.steerFaultTemporary
+    # openpilot disengages at once on a permanent fault, so nothing else builds up
+    ret = car.drive(False, 300)
+    assert ret.steerFaultPermanent and not ret.steerFaultTemporary
+
+  def test_not_asking_is_never_a_fault(self):
+    for state in (EPS_OFF, EPS_READY, EPS_ACTIVE):
+      for enabled in (False, True):
+        car = Car()
+        car.eps(state)
+        ret = car.drive(False, 300, enabled=enabled)
+        assert not ret.steerFaultTemporary and not ret.steerFaultPermanent, (state, enabled)
+
+  def test_atto3_is_untouched(self):
+    car = Car(CAR.BYD_ATTO_3)
+    car.eps(EPS_ABORTED)
+    ret = car.drive(True, 200)
+    assert not ret.steerFaultPermanent and not ret.steerFaultTemporary
+    car.cam.vl["LKAS_HUD_ADAS"]["LKAS_STATE"] = 4       # the Atto 3's own fault read still works
+    assert car.drive(True).steerFaultTemporary
 
 
 if __name__ == "__main__":

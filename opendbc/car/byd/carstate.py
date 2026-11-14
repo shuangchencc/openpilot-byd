@@ -9,6 +9,9 @@ from opendbc.car.interfaces import CarStateBase
 GearShifter = structs.CarState.GearShifter
 ButtonType = structs.CarState.ButtonEvent.Type
 
+# STEERING_TORQUE.LKA_STATE
+EPS_LKA_OFF, EPS_LKA_READY, EPS_LKA_ACTIVE, EPS_LKA_ABORTED = 0, 1, 2, 3
+
 # ACC_HUD_ADAS.ACC_STATE_CODE values in which the Song Plus's stock ACC is engaged:
 # 3 controlling, 5 controlling but overridden by the driver's gas pedal, 7 holding the
 # car at standstill. Anything else, including a code not seen yet, reads as not engaged.
@@ -29,6 +32,10 @@ class CarState(CarStateBase):
     self.lkas_hud = {}
     self.acc_key_prev = False
     self.acc_key_cancel = False
+    self.eps_lka_state = EPS_LKA_OFF
+    # set by the CarController, which is the side that knows whether we are asking
+    self.lka_request_unanswered = False
+    self.lka_request_given_up = False
 
   def update(self, can_parsers) -> structs.CarState:
     cp = can_parsers[Bus.pt]
@@ -102,6 +109,25 @@ class CarState(CarStateBase):
     # LKS_PREPARED on the EPS is also 1 at route start before any engagement, so it can't be
     # used directly as a fault flag - the camera-side fault state is the reliable indicator.
     ret.steerFaultTemporary = int(cp_cam.vl["LKAS_HUD_ADAS"]["LKAS_STATE"]) == 4
+    if self.CP.flags & BydFlags.EPS_LKA_STATE:
+      # The line above cannot fire on this car: the stock camera's LKAS_STATE is 0 in
+      # every recorded frame. Without the two checks below openpilot has no way to
+      # know the EPS has stopped steering. That happened on 2026-11-14: after the
+      # driver held the wheel against the command the EPS aborted, and for the next
+      # 6.6 s openpilot stayed engaged, kept sending STEER_REQ with a command up to
+      # 39 deg away from the wheel, and the EPS applied no torque at all.
+      self.eps_lka_state = int(cp.vl["STEERING_TORQUE"]["LKA_STATE"])
+      # Aborted is permanent for the rest of the drive: it was still set 109 s later
+      # at the end of the recording and in a frame read some ten minutes after that,
+      # with the car parked and nothing being requested, and it was gone (ready,
+      # 500 of 500 frames) once the car had been switched off and on again.
+      # steerUnavailable disengages at once and tells the driver to restart the car.
+      ret.steerFaultPermanent = self.eps_lka_state == EPS_LKA_ABORTED
+      # Asked to steer and not doing it (off, or ready but ignoring the request).
+      # Never seen. The CarController keeps the count, keeps it reported until
+      # openpilot has disengaged, and makes it permanent if that takes too long.
+      ret.steerFaultTemporary = ret.steerFaultTemporary or self.lka_request_unanswered
+      ret.steerFaultPermanent = ret.steerFaultPermanent or self.lka_request_given_up
 
     # gas / brake
     if self.CP.flags & BydFlags.PEDALS_ALT:
