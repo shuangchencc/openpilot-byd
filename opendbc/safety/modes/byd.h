@@ -8,6 +8,64 @@
 // Unset (default) keeps the BYD Atto 3 behaviour.
 static bool byd_song_plus = false;
 
+// Song Plus longitudinal: openpilot may lower the stock ACC's acceleration request, and
+// nothing else. Off unless the safety param carries a level (BYD_PARAM_LONG_LEVEL).
+//
+// The ADAS controller keeps sending its three frames on bus 2: ACC_HUD_ADAS (0x32D),
+// ACC_CMD (0x32E, the request) and 0x32F. The panda forwards all of them to the car as
+// it always has, and openpilot cannot transmit 0x32D or 0x32F at all. For ACC_CMD
+// openpilot may send ONE thing: a copy of the stock frame that has just arrived, with the
+// next counter and with a request that is lower than the stock one. When such a frame
+// has been sent, the next stock ACC_CMD is not forwarded (the car already has that
+// frame, numbered as the stock one would have been); if openpilot sends nothing, every
+// stock frame goes through. So openpilot dying, stalling or misbehaving leaves the car
+// with the stock ACC from the very next frame, with no timeout to wait for.
+//
+// Why "the next frame" and not "this frame": the firmware decides whether to forward a
+// frame before it parses it, and the forward hook is told only the bus and the address.
+// A frame can therefore only be withheld on the strength of what arrived before it.
+// What this costs: what the withheld frame holds reaches the car only through openpilot's
+// next frame, which is a copy of it; once openpilot stops, the last frame it stood in
+// for is lost to the car. In the recordings, each of the 9 times a frame that may be
+// copied was followed by a change in the flag bits, the new value lasted three frames
+// or more - and such a frame may not be copied, so the change reaches the car one frame
+// (20 ms) late. The band and jerk-limit values do flicker by one count for a single
+// frame (33 times in 48,014 frames); such a flicker is late by a frame, or skipped when
+// openpilot stops right there. And "sent" means handed to the transmit queue: if that
+// frame then fails to go out, the car misses one frame.
+//
+// The three hooks share the state below without locking. That is sound only because
+// they cannot interrupt each other: the TX hook runs in the USB / SPI interrupt, the
+// forward and RX hooks in the CAN interrupt, and the firmware leaves every interrupt at
+// the same priority (no NVIC_SetPriority anywhere in panda/board). Check this again
+// when the panda firmware is updated.
+//
+// The request is byte 0, (raw - 100) * 0.05 m/s^2: on this car the stock controller's own
+// requests against wheel-speed acceleration gave a slope of 0.89 at r 0.96.
+// Bytes 1-5 hold the comfort band, jerk limits and flag bits; they must be the stock
+// frame's own, so whatever the stock controller signals in them still reaches the car.
+// While the stock ACC is controlling, bit 39 is 0 and byte 5 is 0xD8 in 99.8% of frames
+// (48,014 of 48,101 recorded); the rest are the frames around a change of state. Any
+// other pattern, any state other than "controlling", or one of the warning bits of
+// ACC_HUD_ADAS (16, 17, 23) within the last two seconds, and nothing may be replaced.
+// Details: migration-audit/longitudinal-l0-20261114 and longitudinal-l1-20261114.
+#define BYD_ACC_CMD_MAX_AGE_US 25000U      // a replacement must come from a stock frame no older than this (they arrive every 20 ms)
+#define BYD_ACC_SUPPLIED_MAX_AGE_US 100000U  // a replacement withholds the stock frame that follows it, not one that arrives this much later
+#define BYD_ACC_WARNING_HOLD_US 2000000U   // nothing is replaced for this long after a warning bit was last seen
+#define BYD_ACC_STATE_CONTROLLING 3U
+
+static uint8_t byd_long_level = 0U;            // 0 = openpilot cannot send ACC_CMD; 1-3 select the lowest request it may make
+static uint8_t byd_acc_cmd[6] = {0};           // bytes 0-5 of the latest valid stock ACC_CMD; all zero is no frame that may be copied
+static uint8_t byd_acc_cmd_counter = 0U;       // and its counter
+static uint32_t byd_acc_cmd_ts = 0U;           // and when it arrived
+static uint32_t byd_acc_cmd_arrivals = 0U;     // stock ACC_CMD frames that have reached the forward decision, valid or not
+static uint32_t byd_acc_cmd_saved_arrival = 0U;  // the count when the frame in byd_acc_cmd arrived
+static bool byd_acc_cmd_supplied = false;      // openpilot has sent the frame that stands in for the next stock ACC_CMD
+static uint32_t byd_acc_cmd_supplied_ts = 0U;  // and when
+static uint8_t byd_acc_state_code = 0U;        // the stock ACC's own state, from ACC_HUD_ADAS
+static bool byd_acc_warning = false;           // a warning bit was seen less than BYD_ACC_WARNING_HOLD_US ago
+static uint32_t byd_acc_warning_ts = 0U;
+
 static uint8_t byd_get_counter(const CANPacket_t *msg) {
   // Speed (0x1F0) and the Song Plus pedal message (0x342) use the high nibble;
   // cruise status and IPB use the low nibble. Measured on the Song Plus over
@@ -78,12 +136,29 @@ static void byd_rx_hook(const CANPacket_t *msg) {
     if (msg->addr == 0x32DU) {
       bool acc_on;
       if (byd_song_plus) {
-        // ACC_ENGAGED_STATE, bits 10-11: 0 = not engaged, 1 and 2 = engaged, the
-        // same rule as carstate.py. The Atto 3 field below (bits 19-21) is constant
-        // 0 on this car - 0 in all 21,621 frames of an ACC drive while bits 10-11
-        // read 2 in 13,693 of them - so with it the panda never saw cruise engage
-        // and never allowed controls.
-        acc_on = ((msg->data[1] >> 2) & 0x3U) != 0U;
+        // The same rule as carstate.py: the ACC is on (ACC_ENGAGED_STATE, bits 10-11,
+        // non-zero) and its own state (ACC_STATE_CODE, high nibble of byte 5) is 3
+        // controlling, 5 overridden with the gas pedal or 7 holding at standstill.
+        // Bits 10-11 alone stay set while the ACC is on its way out (state 4), which
+        // is when openpilot has already let go. The Atto 3 field below (bits 19-21) is
+        // constant 0 on this car - 0 in all 21,621 frames of an ACC drive while bits
+        // 10-11 read 2 in 13,693 of them - so with it the panda never saw cruise
+        // engage and never allowed controls.
+        uint8_t state_code = msg->data[5] >> 4;
+        bool acc_shown = ((msg->data[1] >> 2) & 0x3U) != 0U;
+        acc_on = acc_shown && ((state_code == 3U) || (state_code == 5U) || (state_code == 7U));
+
+        // for byd_acc_cmd_replacement_ok
+        uint32_t ts = microsecond_timer_get();
+        byd_acc_state_code = state_code;
+        if ((msg->data[2] & 0x83U) != 0U) {   // bits 16, 17 and 23
+          byd_acc_warning = true;
+          byd_acc_warning_ts = ts;
+        } else if (byd_acc_warning && (safety_get_ts_elapsed(ts, byd_acc_warning_ts) >= BYD_ACC_WARNING_HOLD_US)) {
+          byd_acc_warning = false;
+        } else {
+          // no warning, or one that is still being held
+        }
       } else {
         // ACC_STATE: 0=OFF, 2=ACC_ON, 3=ACC_ACTIVE, 5=FORCE_ACCEL, 7=ERROR
         uint8_t acc_state = (msg->data[2] >> 3) & 0x7U;
@@ -91,7 +166,60 @@ static void byd_rx_hook(const CANPacket_t *msg) {
       }
       pcm_cruise_check(acc_on);
     }
+
+    // The stock request, kept to check openpilot's replacement against. Only reaches
+    // here on a Song Plus with a longitudinal level: ACC_CMD is an RX-checked message
+    // in that configuration alone, and the RX hook sees no others.
+    if (msg->addr == 0x32EU) {
+      for (int i = 0; i < 6; i++) {
+        byd_acc_cmd[i] = msg->data[i];
+      }
+      byd_acc_cmd_counter = msg->data[6] & 0xFU;
+      byd_acc_cmd_ts = microsecond_timer_get();
+      byd_acc_cmd_saved_arrival = byd_acc_cmd_arrivals;
+    }
   }
+}
+
+// May this ACC_CMD from openpilot stand in for the next stock one? See the top of the file.
+static bool byd_acc_cmd_replacement_ok(const CANPacket_t *msg) {
+  // The lowest raw request per level: -1.0, -2.0 and -3.5 m/s^2. Without a level
+  // ACC_CMD is not a TX message and this is never asked; no request could pass it.
+  static const uint8_t BYD_LONG_MIN_REQUEST[4] = {255U, 80U, 60U, 30U};
+
+  uint32_t ts = microsecond_timer_get();
+
+  // A level and no relay malfunction: wherever this is reached both already hold (without
+  // a level ACC_CMD is no TX message, and during a relay malfunction the common code sends
+  // and forwards nothing). They are kept here on purpose, so that this function does not
+  // depend on the TX list or on the common code staying as it is.
+  // And controls allowed with the gas pedal released.
+  bool ok = (byd_long_level != 0U) && !relay_malfunction && get_longitudinal_allowed();
+
+  // the stock frame it must be a copy of is the one that has just arrived: the newest
+  // ACC_CMD to reach the forward decision, not only the newest that passed the RX checks.
+  // After one that did not (a frame of another length never reaches them; one that fails
+  // them also ends the engagement) a copy of the frame before could carry a counter the car
+  // has had already (a0's review). And nothing has been sent in place of the frame after it yet.
+  ok = ok && (byd_acc_cmd_saved_arrival == byd_acc_cmd_arrivals);
+  ok = ok && !byd_acc_cmd_supplied && (safety_get_ts_elapsed(ts, byd_acc_cmd_ts) <= BYD_ACC_CMD_MAX_AGE_US);
+
+  // the stock ACC is controlling, shows no warning and has not shown one lately ...
+  ok = ok && (byd_acc_state_code == BYD_ACC_STATE_CONTROLLING) && !byd_acc_warning;
+  // ... and its frame looks the way it does while controlling
+  ok = ok && ((byd_acc_cmd[4] & 0x80U) == 0U) && (byd_acc_cmd[5] == 0xD8U);
+
+  // the next counter, a valid checksum, and bytes 1-5 exactly as the stock frame has them
+  ok = ok && ((msg->data[6] & 0xFU) == ((byd_acc_cmd_counter + 1U) & 0xFU)) && ((msg->data[6] >> 4) == 0xFU);
+  ok = ok && (byd_compute_checksum(msg) == byd_get_checksum(msg));
+  for (int i = 1; i < 6; i++) {
+    ok = ok && (msg->data[i] == byd_acc_cmd[i]);
+  }
+
+  // a request that is lower than the stock one, and not below this level's floor
+  ok = ok && (msg->data[0] < byd_acc_cmd[0]) && (msg->data[0] >= BYD_LONG_MIN_REQUEST[byd_long_level]);
+
+  return ok;
 }
 
 static bool byd_tx_hook(const CANPacket_t *msg) {
@@ -139,17 +267,72 @@ static bool byd_tx_hook(const CANPacket_t *msg) {
     tx = !other_buttons && (!cancel || cruise_engaged_prev);
   }
 
+  // The stock ACC request with a lower value, one per stock frame
+  if (msg->addr == 0x32EU) {
+    tx = byd_acc_cmd_replacement_ok(msg);
+    if (tx) {
+      byd_acc_cmd_supplied = true;
+      byd_acc_cmd_supplied_ts = microsecond_timer_get();
+    }
+  }
+
   return tx;
+}
+
+static bool byd_fwd_hook(int bus_num, int addr) {
+  bool block = false;
+
+  // A stock ACC_CMD whose place openpilot's frame has already taken. The mark is cleared
+  // here and not in the RX hook, so that it is cleared by every frame that arrives,
+  // including one the RX checks reject: it must never outlive the one frame it is for.
+  // Nor does it wait for ever: if the stock frames stop and start again later, the
+  // first one back is not the frame that was replaced.
+  if ((bus_num == 2) && (addr == 0x32E)) {
+    block = byd_acc_cmd_supplied && (safety_get_ts_elapsed(microsecond_timer_get(), byd_acc_cmd_supplied_ts) <= BYD_ACC_SUPPLIED_MAX_AGE_US);
+    byd_acc_cmd_supplied = false;
+    byd_acc_cmd_arrivals += 1U;
+  }
+
+  return block;
 }
 
 static safety_config byd_init(uint16_t param) {
   const uint16_t BYD_PARAM_SONG_PLUS = 1U;  // set for the BYD Song Plus DM-i platform
+  // Bits 1-2, the longitudinal level. It has a meaning on the Song Plus only (the
+  // configurations are chosen below): 0 = openpilot does not touch the stock ACC's
+  // request; 1, 2, 3 = it may lower it, down to -1.0, -2.0 or -3.5 m/s^2.
+  const uint16_t BYD_PARAM_LONG_LEVEL_SHIFT = 1U;
+  const uint16_t BYD_PARAM_LONG_LEVEL_MASK = 3U;
   byd_song_plus = GET_FLAG(param, BYD_PARAM_SONG_PLUS);
+  byd_long_level = (uint8_t)((param >> BYD_PARAM_LONG_LEVEL_SHIFT) & BYD_PARAM_LONG_LEVEL_MASK);
+
+  for (int i = 0; i < 6; i++) {
+    byd_acc_cmd[i] = 0U;
+  }
+  byd_acc_cmd_counter = 0U;
+  byd_acc_cmd_ts = 0U;
+  byd_acc_cmd_arrivals = 0U;
+  byd_acc_cmd_saved_arrival = 0U;
+  byd_acc_cmd_supplied = false;
+  byd_acc_cmd_supplied_ts = 0U;
+  byd_acc_state_code = 0U;
+  byd_acc_warning = false;
+  byd_acc_warning_ts = 0U;
 
   static const CanMsg BYD_TX_MSGS[] = {
     {0x1E2, 0, 8, .check_relay = true},   // STEERING_MODULE_ADAS (lateral steering command)
     {0x316, 0, 8, .check_relay = true},   // LKAS_HUD_ADAS (dash HUD)
     {0x3B0, 0, 8, .check_relay = false},  // PCM_BUTTONS (cruise cancel button spoof)
+  };
+
+  // With a longitudinal level: ACC_CMD as well. Seeing it on bus 0 from anyone else is a
+  // relay malfunction like the others, but it is not blocked statically: the stock frame
+  // is forwarded unless byd_fwd_hook says its place has been taken.
+  static const CanMsg BYD_LONG_TX_MSGS[] = {
+    {0x1E2, 0, 8, .check_relay = true},   // STEERING_MODULE_ADAS (lateral steering command)
+    {0x316, 0, 8, .check_relay = true},   // LKAS_HUD_ADAS (dash HUD)
+    {0x3B0, 0, 8, .check_relay = false},  // PCM_BUTTONS (cruise cancel button spoof)
+    {0x32E, 0, 8, .check_relay = true, .disable_static_blocking = true},  // ACC_CMD (stock request, lowered)
   };
 
   // Atto 3: brake comes from DRIVE_STATE (0x242); its DBC has no IPB (0x123).
@@ -171,8 +354,21 @@ static safety_config byd_init(uint16_t param) {
     {.msg = {{0x32D, 2, 8,  50U, .max_counter = 15U, .ignore_quality_flag = true}, { 0 }, { 0 }}},  // ACC_HUD_ADAS (cruise state)
   };
 
+  // The same, and the stock ACC_CMD (50 Hz, next to ACC_HUD_ADAS): openpilot's
+  // replacement is checked against it, so it has to be alive and valid as well.
+  static RxCheck byd_song_plus_long_rx_checks[] = {
+    {.msg = {{0x11F, 0, 5, 100U, .ignore_checksum = true, .ignore_counter = true, .ignore_quality_flag = true}, { 0 }, { 0 }}},  // STEER_MODULE_2 (steering angle)
+    {.msg = {{0x1F0, 0, 8,  50U, .max_counter = 15U, .ignore_quality_flag = true}, { 0 }, { 0 }}},  // WHEELSPEED_CLEAN (vehicle speed)
+    {.msg = {{0x123, 0, 8, 100U, .max_counter = 15U, .ignore_quality_flag = true}, { 0 }, { 0 }}},  // IPB (brake pressed)
+    {.msg = {{0x342, 0, 8,  50U, .max_counter = 15U, .ignore_quality_flag = true}, { 0 }, { 0 }}},  // PEDAL (gas pressed)
+    {.msg = {{0x32D, 2, 8,  50U, .max_counter = 15U, .ignore_quality_flag = true}, { 0 }, { 0 }}},  // ACC_HUD_ADAS (cruise state)
+    {.msg = {{0x32E, 2, 8,  50U, .max_counter = 15U, .ignore_quality_flag = true}, { 0 }, { 0 }}},  // ACC_CMD (the stock request)
+  };
+
   safety_config ret;
-  if (byd_song_plus) {
+  if (byd_song_plus && (byd_long_level != 0U)) {
+    ret = BUILD_SAFETY_CFG(byd_song_plus_long_rx_checks, BYD_LONG_TX_MSGS);
+  } else if (byd_song_plus) {
     ret = BUILD_SAFETY_CFG(byd_song_plus_rx_checks, BYD_TX_MSGS);
   } else {
     ret = BUILD_SAFETY_CFG(byd_atto3_rx_checks, BYD_TX_MSGS);
@@ -184,6 +380,7 @@ const safety_hooks byd_hooks = {
   .init = byd_init,
   .rx = byd_rx_hook,
   .tx = byd_tx_hook,
+  .fwd = byd_fwd_hook,
   .get_counter = byd_get_counter,
   .get_checksum = byd_get_checksum,
   .compute_checksum = byd_compute_checksum,
