@@ -109,6 +109,16 @@ class Car:
       self.RI = RI
 
     self.CP.alternativeExperience = 0
+    # Song PLUS closed-course switch (2026-11-14). The port ships dashcamOnly=True
+    # (opendbc byd/interface.py), so this tree never controls the car. For an owner-authorized
+    # closed-course test, stagec-launch.sh consumes the one-shot flag /data/allow-control-once
+    # and sets this variable for that ONE launch; it unsets it otherwise, so any restart or reboot
+    # is passive again. Note what clearing it means on this car: pcmCruise is True, so openpilot
+    # engages, and steers, as soon as the stock ACC engages.
+    if os.environ.get("SONGPLUS_ALLOW_CONTROL") == "1" and self.CP.dashcamOnly:
+      cloudlog.error("SONGPLUS_ALLOW_CONTROL=1: dashcamOnly cleared for this launch only; "
+                     "openpilot will engage with the stock ACC")
+      self.CP.dashcamOnly = False
     openpilot_enabled_toggle = self.params.get_bool("OpenpilotEnabledToggle")
     controller_available = self.CI.CC is not None and openpilot_enabled_toggle and not self.CP.dashcamOnly
     self.CP.passive = not controller_available or self.CP.dashcamOnly

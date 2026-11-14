@@ -138,6 +138,13 @@ class SelfdriveD:
     self.recalibrating_seen = False
     self.dm_lockout_set = False
     self.dm_uncertain_alerted = False
+    # Song PLUS closed-course switch (2026-11-14), owner's decision: this car has no cabin camera
+    # and torque-based hands-on detection was rejected, so for an authorized closed-course launch
+    # driver monitoring is off. stagec-launch.sh sets this only for the one launch that consumes
+    # /data/allow-control-once (with "dm-off" in it); any restart or reboot has DM on again.
+    self.dm_disabled = os.environ.get("SONGPLUS_DM_OFF") == "1"
+    if self.dm_disabled:
+      cloudlog.error("SONGPLUS_DM_OFF=1: driver monitoring alerts and lockout are OFF for this launch only")
     self.state_machine = StateMachine()
     self.rk = Ratekeeper(100, print_delay_threshold=None)
 
@@ -221,8 +228,8 @@ class SelfdriveD:
     if not self.CP.pcmCruise and CS.vCruise > 250 and resume_pressed:
       self.events.add(EventName.resumeBlocked)
 
-    # Handle DM
-    if not self.CP.notCar:
+    # Handle DM (skipped only for a closed-course launch, see self.dm_disabled)
+    if not self.CP.notCar and not self.dm_disabled:
       # Block engaging until lockout times out or ignition reset
       if self.sm['driverMonitoringState'].lockout and not self.dm_lockout_set:
         self.params.put_bool("DriverTooDistracted", True)
