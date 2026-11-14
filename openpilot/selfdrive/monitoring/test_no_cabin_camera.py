@@ -13,6 +13,8 @@ from openpilot.cereal import log
 from openpilot.common.realtime import DT_DMON
 from openpilot.selfdrive.monitoring.dmonitoringd import (no_face_driver_state,
                                                          SubMasterNoCabinCamera,
+                                                         HandsOnTorque,
+                                                         HANDS_ON_TORQUE,
                                                          NO_CABIN_CAMERA_IGNORE,
                                                          CALIBRATION_VALIDITY_NOT_REQUIRED)
 from openpilot.selfdrive.monitoring.policy import DriverMonitoring
@@ -214,3 +216,99 @@ class TestNoCabinCameraWiring(OpenpilotTestCase):
         f"frequency should be derived from DT_DMON so it cannot drift from the Ratekeeper; "
         f"got {kwargs['frequency']}"
       )
+
+
+class FakeCarState:
+  def __init__(self, steering_torque, steering_pressed=False):
+    self.steeringTorque = steering_torque
+    self.steeringPressed = steering_pressed
+    self.gasPressed = False
+    self.vEgo = 8.3
+
+
+class FakeSubMaster:
+  """Stands in for messaging.SubMaster: update() moves to the next carState in a script."""
+  def __init__(self, torques, pressed=False):
+    self._script = list(torques)
+    self._pressed = pressed
+    self.cs = None
+    self.updates = 0
+
+  def update(self, timeout=100):
+    self.cs = FakeCarState(self._script[min(self.updates, len(self._script) - 1)], self._pressed)
+    self.updates += 1
+
+  def __getitem__(self, service):
+    assert service == 'carState'
+    return self.cs
+
+
+class TestHandsOnTorque(OpenpilotTestCase):
+  """Driver monitoring counts a light hold on the wheel as a touch, without lowering steeringPressed.
+
+  Numbers are openpilot-a0's labelled capture of 2026-11-13 (route 00000013): untouched -1.33,
+  natural two-hand hold mean +2.64, one hand mean +3.41, driving zero -1.1.
+  """
+
+  def _ticks(self, torques):
+    det = HandsOnTorque.for_car("BYD_SONG_PLUS_DMI_23")
+    return [det.update(t) for t in torques]
+
+  def test_only_the_song_plus_has_values(self):
+    assert HandsOnTorque.for_car("BYD_SONG_PLUS_DMI_23") is not None
+    assert HandsOnTorque.for_car("BYD_ATTO_3") is None
+    assert HandsOnTorque.for_car("TOYOTA_RAV4") is None
+    assert set(HANDS_ON_TORQUE) == {"BYD_SONG_PLUS_DMI_23"}
+
+  def test_untouched_wheel_never_counts(self):
+    # standstill untouched readings, plus the -3.2 residue after a turn (11/12) is still under
+    assert not any(self._ticks([-1.33, -1.27, -1.39, -1.1, -3.2, -1.33] * 20))
+
+  def test_natural_hold_counts_after_two_ticks(self):
+    assert self._ticks([2.64, 2.64]) == [False, True]
+    assert self._ticks([3.41, 3.41, 3.41]) == [False, True, True]
+    # either direction, measured from the zero, not from 0
+    assert self._ticks([-4.2, -4.2]) == [False, True]     # |-4.2 + 1.1| = 3.1
+    assert self._ticks([-3.9, -3.9]) == [False, False]    # |-3.9 + 1.1| = 2.8
+
+  def test_a_single_bump_does_not_count(self):
+    assert not any(self._ticks([-1.3, 4.0, -1.3, 4.0, -1.3]))
+
+  def test_proxy_widens_steering_pressed_for_monitoring_only(self):
+    det = HandsOnTorque.for_car("BYD_SONG_PLUS_DMI_23")
+    real = FakeSubMaster([2.64, 2.64, 2.64])
+    sm = SubMasterNoCabinCamera(real, no_face_driver_state(), det)
+    sm.update(0)
+    assert sm['carState'].steeringPressed is False         # one tick is not enough
+    sm.update(0)
+    seen = sm['carState']
+    assert seen.steeringPressed is True                    # what driver monitoring sees
+    assert seen.vEgo == 8.3 and seen.gasPressed is False   # everything else passes through
+    assert real['carState'].steeringPressed is False        # the real carState is untouched
+    # several reads in one tick must not advance the detector
+    for _ in range(5):
+      _ = sm['carState']
+    assert det.ticks == 2
+
+  def test_without_a_detector_carstate_is_the_real_one(self):
+    real = FakeSubMaster([9.9])
+    sm = SubMasterNoCabinCamera(real, no_face_driver_state())
+    sm.update(0)
+    assert sm['carState'] is real.cs
+
+  def test_dmonitoringd_passes_the_detector_and_keeps_steering_pressed_at_24(self):
+    import ast
+    import inspect
+    from openpilot.selfdrive.monitoring import dmonitoringd
+    from opendbc.car.byd.values import CarControllerParams
+    tree = ast.parse(inspect.getsource(dmonitoringd.dmonitoringd_thread))
+    proxies = [n for n in ast.walk(tree) if isinstance(n, ast.Call)
+               and getattr(n.func, 'id', None) == 'SubMasterNoCabinCamera']
+    assert proxies and all(len(n.args) == 3 for n in proxies), "the hands-on detector is not passed in"
+    calls = [ast.unparse(n.func) for n in ast.walk(tree) if isinstance(n, ast.Call)]
+    assert 'HandsOnTorque.for_car' in calls
+    # The decoupling: the port's steeringPressed stays a deliberate-override signal, because it
+    # also drives the lateral override state and the lane-change nudge (and, planned, dropping
+    # STEER_REQ while the driver overrides). Lowering it is a separate decision.
+    assert CarControllerParams.STEER_DRIVER_OVERRIDE_NM == 24.0
+

@@ -1,8 +1,10 @@
 #!/usr/bin/env python3
 import openpilot.cereal.messaging as messaging
 from openpilot.cereal import log
+from opendbc.car.structs import car
 from openpilot.common.params import Params
 from openpilot.common.realtime import DT_DMON, Ratekeeper, config_realtime_process
+from openpilot.common.swaglog import cloudlog
 from openpilot.selfdrive.monitoring.policy import DriverMonitoring
 
 
@@ -55,14 +57,81 @@ def no_face_driver_state():
   return ds
 
 
+# Hands-on detection from the driver-torque sensor, for driver monitoring ONLY (2026-11-14).
+#
+# This car has no cabin camera and the owner decided not to fit one, so wheel touch is the whole
+# of driver monitoring. The port's carState.steeringPressed (|DRIVER_TORQUE| > 24 with a
+# 5-sample filter, fitted to the vendor's own steeringPressed) is a deliberate-override signal:
+# natural holding never reaches it (measured peaks 3-6), so the wheeltouch policy would alert at
+# 5/15/25 s with the driver's hands on the wheel. steeringPressed is deliberately NOT lowered to
+# fix that: it also drives the lateral-override state (car_events.py), the lane-change nudge
+# (desire_helper.py) and lagd's sample selection, and a light touch must not start a lane
+# change. Instead monitoring alone counts |steeringTorque - zero| > threshold, held for
+# HANDS_ON_MIN_TICKS consecutive DM ticks (100 ms, against single bumps), as a touch.
+#
+# Values from openpilot-a0's labelled capture of 2026-11-13 (migration-audit/
+# steer-torque-threshold-20261112/RESULT.txt), in carState.steeringTorque units: untouched
+# -1.33 +/- 0.06 at standstill, natural two-hand hold mean +2.64, one hand mean +3.41, driving
+# zero -1.1. With zero -1.1 / threshold 3.0, untouched never triggers; two hands trigger in 60 %
+# of samples and one hand in 90 %.
+# NOT yet validated: the reading with the hands OFF while the EPS is steering. If the EPS's own
+# action reads above the threshold, monitoring would count a touch that never happened, so this
+# must be measured at the closed course before it is relied on.
+HANDS_ON_TORQUE = {
+  "BYD_SONG_PLUS_DMI_23": (-1.1, 3.0),   # (zero, threshold)
+}
+HANDS_ON_MIN_TICKS = 2
+
+
+class HandsOnTorque:
+  def __init__(self, zero: float, threshold: float, min_ticks: int = HANDS_ON_MIN_TICKS):
+    self.zero, self.threshold, self.min_ticks = zero, threshold, min_ticks
+    self.ticks = 0
+
+  @classmethod
+  def for_car(cls, car_fingerprint: str) -> 'HandsOnTorque | None':
+    values = HANDS_ON_TORQUE.get(car_fingerprint)
+    return cls(*values) if values is not None else None
+
+  def update(self, steering_torque: float) -> bool:
+    """Call once per DM tick."""
+    self.ticks = self.ticks + 1 if abs(steering_torque - self.zero) > self.threshold else 0
+    return self.ticks >= self.min_ticks
+
+
+class CarStateHandsOn:
+  """carState as driver monitoring sees it: steeringPressed widened by the hands-on detector.
+  Every other field passes through untouched, and the real carState is not modified."""
+  def __init__(self, car_state, hands_on: bool):
+    self._cs = car_state
+    self.steeringPressed = car_state.steeringPressed or hands_on
+
+  def __getattr__(self, name):
+    return getattr(self._cs, name)
+
+
 class SubMasterNoCabinCamera:
-  """SubMaster proxy that substitutes a synthetic driverStateV2 for the absent camera."""
-  def __init__(self, sm, driver_state):
+  """SubMaster proxy that substitutes a synthetic driverStateV2 for the absent camera and, when
+  a hands-on detector is given, widens carState.steeringPressed for driver monitoring."""
+  def __init__(self, sm, driver_state, hands_on: HandsOnTorque | None = None):
     self._sm = sm
     self._driver_state = driver_state
+    self._hands_on = hands_on
+    self._hands_on_now = False
+
+  def update(self, timeout=100):
+    self._sm.update(timeout)
+    # Once per update() - i.e. once per DM tick - not per access: run_step reads carState
+    # several times per tick and the detector counts ticks.
+    if self._hands_on is not None:
+      self._hands_on_now = self._hands_on.update(self._sm['carState'].steeringTorque)
 
   def __getitem__(self, service):
-    return self._driver_state if service == 'driverStateV2' else self._sm[service]
+    if service == 'driverStateV2':
+      return self._driver_state
+    if service == 'carState' and self._hands_on is not None:
+      return CarStateHandsOn(self._sm['carState'], self._hands_on_now)
+    return self._sm[service]
 
   def __getattr__(self, name):
     return getattr(self._sm, name)
@@ -84,6 +153,15 @@ def dmonitoringd_thread():
   # the 25 s wheeltouch timeout into 5 s.
   cabin_camera_missing = params.get_bool("CabinCameraMissing")
   if cabin_camera_missing:
+    # Which car decides whether driver torque counts as a touch (see HANDS_ON_TORQUE). card
+    # writes CarParams once it has fingerprinted, a few seconds into the drive.
+    CP = messaging.log_from_bytes(params.get("CarParams", block=True), car.CarParams)
+    hands_on = HandsOnTorque.for_car(CP.carFingerprint)
+    if hands_on is not None:
+      cloudlog.warning(f"no cabin camera: torque hands-on detection for {CP.carFingerprint}, "
+                       f"|steeringTorque - ({hands_on.zero})| > {hands_on.threshold} for {hands_on.min_ticks} ticks")
+    else:
+      cloudlog.warning(f"no cabin camera: no hands-on torque values for {CP.carFingerprint}; steeringPressed only")
     # All THREE ignore lists have to name driverStateV2, which is why they share one
     # constant instead of being written out three times. all_checks() is
     #     all_alive() and all_freq_ok() and all_valid()        cereal/messaging:277
@@ -116,6 +194,7 @@ def dmonitoringd_thread():
                           ignore_avg_freq=NO_CABIN_CAMERA_IGNORE,
                           ignore_valid=NO_CABIN_CAMERA_IGNORE + CALIBRATION_VALIDITY_NOT_REQUIRED),
       no_face_driver_state(),
+      hands_on,
     )
     rk: Ratekeeper | None = Ratekeeper(1. / DT_DMON)
   else:
