@@ -29,6 +29,19 @@ EventName = log.OnroadEvent.EventName
 carlog.addHandler(ForwardingHandler(cloudlog))
 
 
+def songplus_alpha_long(environ) -> bool:
+  """Song PLUS: may openpilot do the longitudinal control in this launch?
+
+  Only when the launcher says so for this one launch, and only together with its switch that
+  allows control at all (stagec-launch.sh: the tokens "allow-control" and "alpha-long" in the
+  one-shot flag file). Nothing stored on the device can turn it on: the AlphaLongitudinalEnabled
+  param is not read, because the settings show no toggle for it on this car
+  (alphaLongitudinalAvailable is False) and a value left in it would otherwise do so silently.
+  What it turns on is opendbc's SongPlusLongitudinal: openpilot may lower the stock ACC's request.
+  """
+  return environ.get("SONGPLUS_ALLOW_CONTROL") == "1" and environ.get("SONGPLUS_ALPHA_LONG") == "1"
+
+
 def obd_callback(params: Params) -> ObdCallback:
   def set_obd_multiplexing(obd_multiplexing: bool):
     if params.get_bool("ObdMultiplexingEnabled") != obd_multiplexing:
@@ -90,7 +103,9 @@ class Car:
         if len(can.can) > 0:
           break
 
-      alpha_long_allowed = self.params.get_bool("AlphaLongitudinalEnabled")
+      alpha_long_allowed = songplus_alpha_long(os.environ)
+      if alpha_long_allowed:
+        cloudlog.error("SONGPLUS_ALPHA_LONG=1 with SONGPLUS_ALLOW_CONTROL=1: openpilot longitudinal for this launch only")
 
       cached_params = None
       cached_params_raw = self.params.get("CarParamsCache")
