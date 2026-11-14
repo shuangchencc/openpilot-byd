@@ -82,6 +82,12 @@ class BydFlags(IntFlag):
   # Steering-command constants differ from the Atto 3's. Measured from 71,296
   # frames this car's EPS demonstrably accepted: SET_ME_F is 0 (not 0xF) on every
   # frame, and ANGLE_RATE_LIMIT is +-500 engaged / +-300 idle (not +-299 / 0).
+  # It does not jump between the two: in all 349,404 frames the stack that made the
+  # recording sent, it moves by 16 per frame, up while STEER_REQ is set and down
+  # while it is not. With that ramp the EPS left its steering state within 41 ms of
+  # STEER_REQ being dropped (18 of 18 times); the one time it was sent 300 at once,
+  # by us, it kept steering for another 240 ms.
+  # Evidence: migration-audit/byd-safety-verification-20261114/out/steer-frame-replay-*.txt
   TX_CONSTANTS_ALT = 32
   # Pedals: gas comes from PEDAL.GAS_PEDAL and brake from IPB (0x123, absent from
   # the Atto 3 DBC), not from DRIVE_STATE.

@@ -2,13 +2,18 @@ def byd_checksum(address: int, sig, d: bytearray) -> int:
   return (~sum(d[:7])) & 0xFF
 
 
+def step_rate_limit(current: int, lat_active: bool, engaged: int, idle: int, step: int) -> int:
+  # ANGLE_RATE_LIMIT for the next frame: towards `engaged` while asking the EPS to
+  # steer and towards `idle` while not, by at most `step` per frame.
+  target = engaged if lat_active else idle
+  return current + max(-step, min(step, target - current))
+
+
 def create_steering_control(packer, apply_angle: float, lat_active: bool, counter: int,
-                            rate_limit_engaged: int = 299, rate_limit_idle: int = 0,
-                            set_me_f: int = 0xF):
-  # Stock saturates the rate limit field and fills SET_ME_F with a constant the EPS
-  # expects; both differ per platform, so the caller supplies what its car sends.
-  # Atto 3 defaults: ±299 engaged, 0 idle, SET_ME_F 0xF.
-  rate_limit = rate_limit_engaged if lat_active else rate_limit_idle
+                            rate_limit: int = 299, set_me_f: int = 0xF):
+  # The rate limit field and SET_ME_F hold what the EPS expects; both differ per
+  # platform, so the caller supplies what its car sends (see step_rate_limit).
+  # Atto 3: ±299 while steering, 0 while not, SET_ME_F 0xF.
   values = {
     "STEER_REQ": 1 if lat_active else 0,
     "STEER_REQ_ACTIVE_LOW": 0 if lat_active else 1,

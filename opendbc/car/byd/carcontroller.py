@@ -23,11 +23,16 @@ class CarController(CarControllerBase):
     # Vehicle model used for lateral limiting
     self.VM = VehicleModel(get_safety_CP())
 
-    # Steering-command constants this car's EPS expects, measured from accepted frames
+    # Steering-command constants this car's EPS expects, measured from accepted frames.
+    # ANGLE_RATE_LIMIT is `engaged` while asking the EPS to steer and `idle` while not,
+    # and moves between the two by `step` per frame. See BydFlags.TX_CONSTANTS_ALT.
     if CP.flags & BydFlags.TX_CONSTANTS_ALT:
-      self.tx_constants = {'rate_limit_engaged': 500, 'rate_limit_idle': 300, 'set_me_f': 0}
+      self.rate_limit_values = {'engaged': 500, 'idle': 300, 'step': 16}
+      self.set_me_f = 0
     else:
-      self.tx_constants = {'rate_limit_engaged': 299, 'rate_limit_idle': 0, 'set_me_f': 0xF}
+      self.rate_limit_values = {'engaged': 299, 'idle': 0, 'step': 299}
+      self.set_me_f = 0xF
+    self.rate_limit = self.rate_limit_values['idle']
 
     # See BydFlags.NO_CANCEL_BUTTON
     self.send_cancel_button = not (CP.flags & BydFlags.NO_CANCEL_BUTTON)
@@ -51,8 +56,9 @@ class CarController(CarControllerBase):
                                                           CS.out.steeringAngleDeg, CC.latActive, CarControllerParams, self.VM)
 
       cntr = (self.frame // 2) % 16
+      self.rate_limit = bydcan.step_rate_limit(self.rate_limit, CC.latActive, **self.rate_limit_values)
       can_sends.append(bydcan.create_steering_control(self.packer, self.apply_angle_last, CC.latActive,
-                                                             cntr, **self.tx_constants))
+                                                             cntr, self.rate_limit, self.set_me_f))
       can_sends.append(bydcan.create_lkas_hud(self.packer, CC.latActive, cntr, CS.lkas_hud, hud_control, self.song_plus_hud))
 
     if self.watch_eps_answer:

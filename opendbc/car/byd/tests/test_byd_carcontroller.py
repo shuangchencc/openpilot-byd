@@ -31,6 +31,33 @@ def count(sent, addr):
   return sum(1 for a, _, _ in sent if a == addr)
 
 
+def steer_frames(platform, asking):
+  """Drive the real CarController with latActive following `asking`, one entry per 0x1E2 frame
+  (two controller steps each); return those frames."""
+  CarInterface = interfaces[platform]
+  CI = CarInterface(CarInterface.get_non_essential_params(platform))
+  CI.update([])
+  frames = []
+  for i, lat_active in enumerate(x for x in asking for _ in range(2)):
+    CC = structs.CarControl()
+    CC.enabled = CC.latActive = bool(lat_active)
+    _, can_sends = CI.apply(CC.as_reader(), i * 10_000_000)
+    frames += [bytes(msg[1]) for msg in can_sends if msg[0] == STEERING_MODULE_ADAS]
+  assert len(frames) == len(asking)
+  return frames
+
+
+def rate_limits(dat):
+  """(ANGLE_RATE_LIMIT_UPPER, ANGLE_RATE_LIMIT_LOWER) of a 0x1E2 frame."""
+  v = int.from_bytes(dat[:3], "little")
+  upper, lower = v & 0x3FF, (v >> 10) & 0x3FF
+  return upper - 0x400 if upper & 0x200 else upper, lower - 0x400 if lower & 0x200 else lower
+
+
+def steer_req(dat):
+  return (dat[2] >> 5) & 1
+
+
 class TestBydCancelButton(unittest.TestCase):
   """controlsd asks for cruiseControl.cancel whenever the stock cruise is engaged and openpilot
   is not. What each BYD does with that request."""
@@ -64,6 +91,80 @@ class TestBydCancelButton(unittest.TestCase):
     flags = {p: interfaces[p].get_non_essential_params(p).flags for p in (CAR.BYD_ATTO_3, CAR.BYD_SONG_PLUS_DMI_23)}
     assert flags[CAR.BYD_SONG_PLUS_DMI_23] & BydFlags.NO_CANCEL_BUTTON
     assert not flags[CAR.BYD_ATTO_3] & BydFlags.NO_CANCEL_BUTTON
+
+
+class TestSongPlusRateLimit(unittest.TestCase):
+  """ANGLE_RATE_LIMIT in the steering frame: on the Song Plus it moves 16 per frame between 300
+  (not asking the EPS to steer) and 500 (asking), as in every recorded frame of the stack that
+  steered this car. With that ramp the EPS stopped steering within 41 ms of STEER_REQ being
+  dropped; sent 300 at once it went on for 240 ms."""
+
+  SONG_PLUS = CAR.BYD_SONG_PLUS_DMI_23
+  UP = list(range(316, 500, 16)) + [500]          # 316, 332 ... 492, 500
+  DOWN = list(range(484, 300, -16)) + [300]       # 484, 468 ... 308, 300
+
+  def limits(self, asking):
+    frames = steer_frames(self.SONG_PLUS, asking)
+    assert [steer_req(f) for f in frames] == [int(a) for a in asking]
+    both = [rate_limits(f) for f in frames]
+    assert all(lower == -upper for upper, lower in both)
+    return [upper for upper, _ in both]
+
+  def test_idle_is_300(self):
+    assert self.limits([0] * 20) == [300] * 20
+
+  def test_ramps_up_from_the_first_frame_that_asks(self):
+    assert self.limits([0] * 5 + [1] * 20) == [300] * 5 + self.UP + [500] * 7
+
+  def test_ramps_down_from_the_first_frame_that_does_not(self):
+    assert self.limits([1] * 20 + [0] * 20) == self.UP + [500] * 7 + self.DOWN + [300] * 7
+
+  def test_turns_round_mid_ramp_as_recorded(self):
+    # 21:19:48, the driver turning the wheel: STEER_REQ dropped and set again every few frames
+    asking = [1] * 20 + [0] * 5 + [1] * 3 + [0] * 6 + [1] * 3
+    assert self.limits(asking)[20:] == [484, 468, 452, 436, 420, 436, 452, 468, 452, 436, 420, 404, 388, 372, 388, 404, 420]
+
+  def test_frames_are_the_recorded_ones(self):
+    packer = CANPacker(DBC[self.SONG_PLUS][Bus.pt])
+    for angle, lat_active, counter, rate_limit, recorded in (
+      (-8.3, True, 14, 500, "f431e8adffffe067"),      # steering
+      (-8.3, False, 2, 484, "e471d8adffff2007"),      # the first frame after STEER_REQ was dropped
+      (-8.3, False, 4, 452, "c4f1d8adffff4087"),      # two frames later; the EPS had let go by the next one
+      (-8.8, True, 7, 436, "b431e9a8ffff701b"),       # asking again from mid-ramp
+      (-9.2, False, 15, 300, "2c51dba4fffff015"),     # idle
+    ):
+      msg = bydcan.create_steering_control(packer, angle, lat_active, counter, rate_limit, 0)
+      assert bytes(msg[1]).hex() == recorded, (angle, lat_active, counter, rate_limit)
+
+  def test_step_never_overshoots(self):
+    for start in range(280, 521, 7):
+      for lat_active, target in ((True, 500), (False, 300)):
+        value, seen = start, []
+        for _ in range(30):
+          value = bydcan.step_rate_limit(value, lat_active, engaged=500, idle=300, step=16)
+          seen.append(value)
+        assert seen[-1] == target
+        assert all(abs(b - a) <= 16 for a, b in zip([start] + seen[:-1], seen, strict=True))
+        assert all(min(start, target) <= x <= max(start, target) for x in seen)
+
+  def test_atto3_still_jumps(self):
+    # 299 while steering and 0 while not, from one frame to the next, as before
+    frames = steer_frames(CAR.BYD_ATTO_3, [0] * 3 + [1] * 3 + [0] * 3)
+    assert [rate_limits(f) for f in frames] == [(0, 0)] * 3 + [(299, -299)] * 3 + [(0, 0)] * 3
+
+  def test_the_controller_fills_set_me_f_per_car(self):
+    # low nibble of byte 6: 0xF on the Atto 3, 0 in every frame this car's EPS accepted
+    for platform, expected in ((CAR.BYD_ATTO_3, 0xF), (self.SONG_PLUS, 0)):
+      assert {f[6] & 0x0F for f in steer_frames(platform, [0] * 4 + [1] * 4)} == {expected}
+
+  def test_atto3_frames_are_what_they_were(self):
+    packer = CANPacker(DBC[CAR.BYD_ATTO_3][Bus.pt])
+    for angle, lat_active, counter, before in (
+      (0.0, False, 0, "0000d00000ff0f21"), (0.0, True, 0, "2b55eb0000ff0f86"), (-8.3, True, 14, "2b55ebadffffeffa"),
+      (12.5, False, 7, "0000d07d00ff7f34"), (-123.4, True, 9, "2b55eb2efbff9fcd"),
+    ):
+      rate_limit = bydcan.step_rate_limit(0 if lat_active else 299, lat_active, engaged=299, idle=0, step=299)
+      assert bytes(bydcan.create_steering_control(packer, angle, lat_active, counter, rate_limit)[1]).hex() == before
 
 
 def hud_frame(platform, lat_active, counter=5, stock=None, lanes_visible=False, left_depart=False, right_depart=False):
