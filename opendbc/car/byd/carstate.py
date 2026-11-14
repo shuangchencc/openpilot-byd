@@ -33,8 +33,10 @@ class CarState(CarStateBase):
     self.acc_key_prev = False
     self.acc_key_cancel = False
     self.eps_lka_state = EPS_LKA_OFF
-    # steering frames asking the EPS to steer that panda refused, in this update
+    # steering frames asking the EPS to steer that panda refused, in this update,
+    # and the counters of all steering frames it refused
     self.steer_requests_rejected = 0
+    self.steer_counters_rejected: list[int] = []
     # set by the CarController, which is the side that knows whether we are asking
     self.lka_request_unanswered = False
     self.lka_request_given_up = False
@@ -132,8 +134,9 @@ class CarState(CarStateBase):
       ret.steerFaultPermanent = ret.steerFaultPermanent or self.lka_request_given_up
       # A steering frame panda refuses to send never reaches the EPS, and pandad hands it
       # back to us on its bus + 0xC0. Counted here, judged by the CarController.
-      rejected = can_parsers[Bus.loopback].vl_all["STEERING_MODULE_ADAS"]["STEER_REQ"]
-      self.steer_requests_rejected = sum(1 for steer_req in rejected if steer_req)
+      rejected = can_parsers[Bus.loopback].vl_all["STEERING_MODULE_ADAS"]
+      self.steer_requests_rejected = sum(1 for steer_req in rejected["STEER_REQ"] if steer_req)
+      self.steer_counters_rejected = [int(counter) for counter in rejected["COUNTER"]]
 
     # gas / brake
     if self.CP.flags & BydFlags.PEDALS_ALT:

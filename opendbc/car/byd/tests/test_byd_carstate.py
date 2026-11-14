@@ -80,13 +80,16 @@ class Car:
   def key(self, pressed):
     self.pt.vl["PCM_BUTTONS"]["ACC_ON_BTN"] = int(pressed)
 
-  def reject(self, *steer_reqs):
-    """Steering frames panda refused, as pandad hands them back for the next update: their STEER_REQ bits."""
+  def reject(self, *steer_reqs, counters=None):
+    """Steering frames panda refused, as pandad hands them back for the next update: their STEER_REQ
+    bits, and their counters (by default ones no frame of ours has)."""
     self.rejected.vl_all["STEERING_MODULE_ADAS"]["STEER_REQ"] = list(steer_reqs)
+    self.rejected.vl_all["STEERING_MODULE_ADAS"]["COUNTER"] = list(counters) if counters is not None else [99] * len(steer_reqs)
 
   def step(self):
     ret = self.CS.update({Bus.pt: self.pt, Bus.cam: self.cam, Bus.loopback: self.rejected})
-    self.rejected.vl_all["STEERING_MODULE_ADAS"]["STEER_REQ"] = []    # CANParser starts every update afresh
+    for signal in ("STEER_REQ", "COUNTER"):                          # CANParser starts every update afresh
+      self.rejected.vl_all["STEERING_MODULE_ADAS"][signal] = []
     return ret
 
 
@@ -814,6 +817,112 @@ class TestSongPlusRefusedSteeringFrames(unittest.TestCase):
     assert not any(faults)
 
 
+class TestSongPlusRefusedFrameSentAgain(unittest.TestCase):
+  """A steering frame panda refused is sent again under its own counter; the cluster frame skips
+  that slot. On the bus both counters run on unbroken and equal."""
+
+  def run_bus(self, car, steps, refuse, delay=1, asking=lambda i: True, enabled=lambda i: True):
+    """Drive `steps` steps; refuse(i, addr, steer_req) says whether panda refuses a frame built in
+    step i. A refused 0x1E2 comes back `delay` steps later. Returns what reached the bus:
+    (step, address, counter, STEER_REQ or None)."""
+    bus, pending = [], {}
+    for i in range(steps):
+      back = pending.pop(i, [])
+      if back:
+        car.reject(*[req for req, _ in back], counters=[counter for _, counter in back])
+      mark = len(car.sent)
+      car.drive(asking(i), enabled=enabled(i))
+      for addr, dat in car.sent[mark:]:
+        counter = dat[6] >> 4
+        req = (dat[2] >> 5) & 1 if addr == 0x1E2 else None
+        if refuse(i, addr, req):
+          if addr == 0x1E2:
+            pending.setdefault(i + delay, []).append((req, counter))
+          continue
+        bus.append((i, addr, counter, req))
+    return bus
+
+  @staticmethod
+  def counters(bus, addr):
+    return [counter for _, a, counter, _ in bus if a == addr]
+
+  @staticmethod
+  def unbroken(counters):
+    return all((b - a) % 16 == 1 for a, b in zip(counters, counters[1:], strict=False))
+
+  def engaged(self, platform=SONG_PLUS):
+    car = Car(platform)
+    car.speed(30)
+    car.eps(EPS_ACTIVE)
+    car.drive(True, 100)
+    return car
+
+  def test_without_refusals_the_frames_are_as_before(self):
+    car = Car()
+    car.speed(30)
+    car.eps(EPS_ACTIVE)
+    bus = self.run_bus(car, 400, lambda i, a, r: False)
+    steer, hud = self.counters(bus, 0x1E2), self.counters(bus, 0x316)
+    assert steer == hud == [n % 16 for n in range(200)]         # one per frame from 0, as (frame // 2) % 16 was
+
+  def test_a_refused_frame_is_sent_again_under_its_counter(self):
+    car = self.engaged()
+    refused_step = 41                           # an odd step of this run: a frame is built in it
+    bus = self.run_bus(car, 100, lambda i, a, r: a == 0x1E2 and i == refused_step)
+    steer, hud = self.counters(bus, 0x1E2), self.counters(bus, 0x316)
+    assert self.unbroken(steer) and self.unbroken(hud)
+    slots = sorted({i for i, _, _, _ in bus})
+    resend_slot = refused_step + 2
+    assert [a for i, a, _, _ in bus if i == resend_slot] == [0x1E2]          # no cluster frame in that slot
+    later = [i for i in slots if i > resend_slot]
+    for i in later:                                                           # and from the next slot on, in step again
+      assert len({c for j, _, c, _ in bus if j == i}) == 1
+
+  def test_two_refused_in_a_row_are_both_sent_again(self):
+    # e.g. after a brake press openpilot asks once more before it lets go, and that is refused too
+    car = self.engaged()
+    bus = self.run_bus(car, 100, lambda i, a, r: a == 0x1E2 and i in (41, 43))
+    steer, hud = self.counters(bus, 0x1E2), self.counters(bus, 0x316)
+    assert self.unbroken(steer) and self.unbroken(hud)                        # never back, never a gap
+    assert [a for i, a, _, _ in bus if i in (43, 45)] == [0x1E2]               # the cluster frame skipped two slots
+    assert len(steer) == len([i for i in range(100) if i % 2 == 1]) - 2
+
+  def test_a_refusal_learnt_too_late_changes_nothing(self):
+    # the next frame has already gone out with the next counter: no going back
+    car = self.engaged()
+    bus = self.run_bus(car, 100, lambda i, a, r: a == 0x1E2 and i == 41, delay=3)
+    steer, hud = self.counters(bus, 0x1E2), self.counters(bus, 0x316)
+    steps = [(b - a) % 16 for a, b in zip(steer, steer[1:], strict=False)]
+    assert steps.count(2) == 1 and set(steps) == {1, 2}                       # the one gap, as before this change
+    assert self.unbroken(hud) and len(hud) == 50                              # the cluster frame as before
+
+  def test_a_brake_press(self):
+    # panda withdraws permission in step 41, openpilot lets go in step 45: the frames that ask
+    # in between are refused, the first one that does not ask carries the counter of the first refused
+    car = self.engaged()
+    bus = self.run_bus(car, 100, lambda i, a, r: a == 0x1E2 and i >= 41 and r == 1,
+                       asking=lambda i: i < 45, enabled=lambda i: i < 45)
+    steer = [(c, r) for _, a, c, r in bus if a == 0x1E2]
+    assert self.unbroken([c for c, _ in steer]) and self.unbroken(self.counters(bus, 0x316))
+    last_asking = max(n for n, (_, r) in enumerate(steer) if r == 1)
+    assert steer[last_asking + 1][1] == 0                                     # straight to "not asking", nothing missing
+
+  def test_frames_refused_before_panda_lets_anything_through(self):
+    # start-up: every frame is refused until panda is in the car's safety mode
+    car = Car()
+    car.speed(0)
+    bus = self.run_bus(car, 100, lambda i, a, r: i < 30, asking=lambda i: False, enabled=lambda i: False)
+    steer, hud = self.counters(bus, 0x1E2), self.counters(bus, 0x316)
+    assert steer[0] == 0 and self.unbroken(steer)                             # the first to reach the bus is counter 0
+    assert self.unbroken(hud) and hud[0] in (0, 1)
+
+  def test_atto3_never_sends_again(self):
+    car = self.engaged(CAR.BYD_ATTO_3)
+    bus = self.run_bus(car, 100, lambda i, a, r: a == 0x1E2 and i == 41)
+    steps = [(b - a) % 16 for a, b in zip(self.counters(bus, 0x1E2), self.counters(bus, 0x1E2)[1:], strict=False)]
+    assert steps.count(2) == 1 and len(self.counters(bus, 0x316)) == 50
+
+
 class TestSongPlusRefusedFramesParser(unittest.TestCase):
   """The real CANParser that reads them: it must count them and never make canValid false."""
 
@@ -831,6 +940,12 @@ class TestSongPlusRefusedFramesParser(unittest.TestCase):
     self.t += 10_000_000
     self.CI.update([(self.t, list(frames))])
     return self.CI.CS.steer_requests_rejected
+
+  def test_their_counters_are_read(self):
+    self.update([self.frame(True, 3, 0xC0), self.frame(False, 11, 0xC0)])
+    assert self.CI.CS.steer_counters_rejected == [3, 11]
+    self.update()
+    assert self.CI.CS.steer_counters_rejected == []
 
   def test_only_refused_frames_that_ask_are_counted(self):
     assert self.update([self.frame(True, 3, 0xC0)]) == 1

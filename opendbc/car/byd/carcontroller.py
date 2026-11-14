@@ -54,6 +54,16 @@ class CarController(CarControllerBase):
     self.request_unanswered = False
     self.unanswered_reported_frames = 0
     self.rejected_frames: deque[int] = deque()
+    # The counter of the last steering frame built, and whether panda refused that frame.
+    # The counter only moves on once a frame has made it onto the bus: when the EPS
+    # misses one, it went on steering for another 250 ms after we had stopped asking
+    # (twice, both times a brake press, where panda refuses the frame already built),
+    # against 30 ms whenever no frame was missing. A refused frame is therefore sent
+    # again under its own counter in the next slot, and the cluster frame, which the
+    # stock camera keeps in step with it and which panda did not refuse, skips that
+    # slot so that both counters stay unbroken and equal.
+    self.counter = 15
+    self.steer_frame_refused = False
 
   def update(self, CC, CS, now_nanos):
     can_sends = []
@@ -86,6 +96,9 @@ class CarController(CarControllerBase):
         steer_req = abs(CS.out.steeringAngleDeg) < CarControllerParams.STEER_REQUEST_START_ANGLE_RATIO * max_angle
       self.steer_req_last = steer_req
 
+    if self.watch_eps_answer and self.counter in CS.steer_counters_rejected:
+      self.steer_frame_refused = True
+
     if self.frame % 2:
       apply_angle = apply_steer_angle_limits_vm(actuators.steeringAngleDeg, self.apply_angle_last, CS.out.vEgoRaw,
                                                 CS.out.steeringAngleDeg, steer_req, CarControllerParams, self.VM)
@@ -103,11 +116,15 @@ class CarController(CarControllerBase):
           apply_angle = min(max(apply_angle, self.apply_angle_last - allowed), self.apply_angle_last + allowed)
       self.apply_angle_last = apply_angle
 
-      cntr = (self.frame // 2) % 16
+      resend = self.steer_frame_refused
+      self.steer_frame_refused = False
+      if not resend:
+        self.counter = (self.counter + 1) % 16
       self.rate_limit = bydcan.step_rate_limit(self.rate_limit, steer_req, **self.rate_limit_values)
       can_sends.append(bydcan.create_steering_control(self.packer, self.apply_angle_last, steer_req,
-                                                             cntr, self.rate_limit, self.set_me_f))
-      can_sends.append(bydcan.create_lkas_hud(self.packer, steer_req, cntr, CS.lkas_hud, hud_control, self.song_plus_hud))
+                                                             self.counter, self.rate_limit, self.set_me_f))
+      if not resend:
+        can_sends.append(bydcan.create_lkas_hud(self.packer, steer_req, self.counter, CS.lkas_hud, hud_control, self.song_plus_hud))
 
     if self.watch_eps_answer:
       # The request and the EPS's answer meet here: this side knows whether STEER_REQ
