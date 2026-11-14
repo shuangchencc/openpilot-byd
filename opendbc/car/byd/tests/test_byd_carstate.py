@@ -3,7 +3,7 @@ from collections import defaultdict
 
 from opendbc.car import Bus, structs
 from opendbc.car.car_helpers import interfaces
-from opendbc.car.byd.values import CAR
+from opendbc.car.byd.values import CAR, CarControllerParams
 
 SONG_PLUS = CAR.BYD_SONG_PLUS_DMI_23
 ButtonType = structs.CarState.ButtonEvent.Type
@@ -38,7 +38,7 @@ class Car:
     self.pt.vl["STEER_MODULE_2"]["STEER_ANGLE_2"] = angle_deg
 
   def speed(self, kph):
-    for wheel in ("WHEELSPEED_FL", "WHEELSPEED_FR", "WHEELSPEED_BL", "WHEELSPEED_BR"):
+    for wheel in ("WHEELSPEED_FL", "WHEELSPEED_FR", "WHEELSPEED_BL", "WHEELSPEED_BR", "WHEELSPEED_CLEAN"):   # the last is the Atto 3's
       self.pt.vl["WHEELSPEED_CLEAN"][wheel] = kph
 
   def drive(self, lat_active, steps=1, enabled=None, target_deg=0.0):
@@ -447,10 +447,10 @@ class TestSongPlusYieldsToTheDriver(unittest.TestCase):
     back = [req for req, _, _ in frames].index(1)
     assert all(abs(angle - 20.0) < 0.05 for _, angle, _ in frames[:back])
     first = frames[back][1]
-    assert 17.0 < first < 20.0, first          # one limiter step from the wheel, not a jump to 0
+    assert 19.8 < first <= 20.0, first         # from the wheel, not a jump towards 0
     asked = [angle for _, angle, _ in frames[back:]]
     assert all(b <= a for a, b in zip(asked, asked[1:], strict=False))          # then steadily towards the target
-    assert max(a - b for a, b in zip(asked, asked[1:], strict=False)) <= 20.0 - first + 1e-6
+    assert asked[-1] < 15.0
 
   def test_rate_limit_field_ramps_down_and_up_around_it(self):
     car = self.engaged()
@@ -517,6 +517,81 @@ class TestSongPlusYieldsToTheDriver(unittest.TestCase):
     mark = len(car.sent)
     car.drive(True, 50)
     assert set(self.requests(car, mark)) == {1}
+
+
+class TestSongPlusRequestStartsGently(unittest.TestCase):
+  """For the first second of every request the commanded angle may change less per frame than
+  the limits allow: from nothing, growing evenly to the usual amount."""
+
+  def asked_from(self, platform=SONG_PLUS, kph=30, target_deg=130.0, steps=160):
+    """Angles asked for, frame by frame, from the first frame of a request with the wheel at 0."""
+    car = Car(platform)
+    car.speed(kph)
+    car.eps(EPS_READY)
+    car.drive(False, 50)
+    mark = len(car.sent)
+    car.drive(True, steps, target_deg=target_deg)
+    return [angle for req, angle, _ in car.steering_frames(mark) if req]
+
+  def test_change_per_frame_grows_evenly_to_the_usual_amount(self):
+    asked = self.asked_from()
+    changes = [b - a for a, b in zip([0.0] + asked, asked, strict=False)]
+    usual = sum(changes[52:62]) / 10
+    assert 2.0 < usual < 3.5                                   # what the limits allow at 30 km/h
+    assert all(abs(c - usual) < 0.11 for c in changes[49:65])  # reached after 50 frames (1 s), and kept (0.1 deg steps on the bus)
+    for k in range(1, 50):                                     # before that: k fiftieths of it in frame k
+      assert abs(changes[k - 1] - usual * k / 50) < 0.11, (k, changes[k - 1])
+    assert asked[0] < 0.11                                     # the first angle asked for is the wheel's own
+    assert abs(asked[24] - usual * 6.5) < 0.2                  # 18 deg after half a second, where it used to be 71
+
+  def test_at_walking_pace_it_grows_to_the_ports_own_rate_limit(self):
+    # below about 20 km/h the jerk limit allows more than MAX_ANGLE_RATE (5 deg per frame), which then is "the usual amount"
+    asked = self.asked_from(kph=5, target_deg=300.0)
+    changes = [b - a for a, b in zip([0.0] + asked, asked, strict=False)]
+    assert all(abs(c - 5.0) < 0.11 for c in changes[49:60])
+    for k in (1, 10, 25, 40, 49):
+      assert abs(changes[k - 1] - 5.0 * k / 50) < 0.11, (k, changes[k - 1])
+
+  def test_never_more_per_frame_than_before(self):
+    gentle = self.asked_from()
+    ramp_frames = CarControllerParams.STEER_REQUEST_RAMP_FRAMES
+    try:
+      CarControllerParams.STEER_REQUEST_RAMP_FRAMES = 1        # the same car without the gentle start
+      plain = self.asked_from()
+    finally:
+      CarControllerParams.STEER_REQUEST_RAMP_FRAMES = ramp_frames
+    for angles in (gentle, plain):
+      changes = [b - a for a, b in zip([0.0] + angles, angles, strict=False)]
+      assert max(changes) < 3.5
+    assert all(g <= p + 0.051 for g, p in zip(gentle, plain, strict=True))
+    assert plain[24] > 3 * gentle[24]                          # half a second in: 71 deg against 18
+    assert abs(plain[-1] - 130.0) < 0.051 and abs(gentle[-1] - 130.0) < 0.051
+
+  def test_a_target_close_by_is_reached_at_once_all_the_same(self):
+    asked = self.asked_from(target_deg=0.5)
+    assert abs(asked[5] - 0.5) < 0.051                         # within 6 frames, 120 ms
+
+  def test_it_starts_over_with_every_request(self):
+    car = Car()
+    car.speed(30)
+    car.eps(EPS_ACTIVE)
+    car.drive(True, 200, target_deg=0.0)
+    car.driver_torque(30.0)                                    # the driver takes the wheel to 30 deg
+    car.wheel(30.0)
+    car.drive(True, 100, target_deg=0.0)
+    car.driver_torque(0)
+    mark = len(car.sent)
+    car.drive(True, 120, target_deg=0.0)
+    frames = car.steering_frames(mark)
+    back = [req for req, _, _ in frames].index(1)
+    asked = [angle for _, angle, _ in frames[back:]]
+    changes = [a - b for a, b in zip([30.0] + asked, asked, strict=False)]
+    assert changes[0] < 0.11 and changes[1] < 0.21             # gentle again
+    assert 0.4 < changes[9] < 0.8 and 1.2 < changes[24] < 1.7  # and growing again: a fifth and a half of the usual 2.8
+
+  def test_atto3_starts_at_the_usual_rate(self):
+    asked = self.asked_from(CAR.BYD_ATTO_3)
+    assert asked[0] > 2.0
 
 
 if __name__ == "__main__":

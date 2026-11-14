@@ -1,6 +1,6 @@
 from opendbc.can.packer import CANPacker
 from opendbc.car import Bus
-from opendbc.car.lateral import apply_steer_angle_limits_vm
+from opendbc.car.lateral import apply_steer_angle_limits_vm, get_max_angle_delta_vm
 from opendbc.car.interfaces import CarControllerBase
 from opendbc.car.byd import bydcan
 from opendbc.car.byd.carstate import EPS_LKA_ACTIVE
@@ -40,6 +40,7 @@ class CarController(CarControllerBase):
     # See BydFlags.YIELD_TO_DRIVER
     self.yield_to_driver = bool(CP.flags & BydFlags.YIELD_TO_DRIVER)
     self.yield_frames = 0
+    self.request_frames = 0
 
     # See BydFlags.LKAS_HUD_ALT
     self.song_plus_hud = bool(CP.flags & BydFlags.LKAS_HUD_ALT)
@@ -71,8 +72,21 @@ class CarController(CarControllerBase):
       steer_req = steer_req and self.yield_frames == 0
 
     if self.frame % 2:
-      self.apply_angle_last = apply_steer_angle_limits_vm(actuators.steeringAngleDeg, self.apply_angle_last, CS.out.vEgoRaw,
-                                                          CS.out.steeringAngleDeg, steer_req, CarControllerParams, self.VM)
+      apply_angle = apply_steer_angle_limits_vm(actuators.steeringAngleDeg, self.apply_angle_last, CS.out.vEgoRaw,
+                                                CS.out.steeringAngleDeg, steer_req, CarControllerParams, self.VM)
+      if self.yield_to_driver:
+        # Every request starts gently. The first angle asked for is the wheel's own, and
+        # the limits above then let it move as at any other time: at 30 km/h that is
+        # 2.7 deg per frame, a wheel pulled 37 deg in a quarter of a second if
+        # openpilot's target is that far away, as it can be after the driver has steered
+        # somewhere else. So for the first second of a request the change per frame is
+        # further limited, from nothing up to the usual amount.
+        self.request_frames = self.request_frames + 1 if steer_req else 0
+        if 0 < self.request_frames < CarControllerParams.STEER_REQUEST_RAMP_FRAMES:
+          usual = min(get_max_angle_delta_vm(max(CS.out.vEgoRaw, 1), self.VM, CarControllerParams), CarControllerParams.ANGLE_LIMITS.MAX_ANGLE_RATE)
+          allowed = usual * self.request_frames / CarControllerParams.STEER_REQUEST_RAMP_FRAMES
+          apply_angle = min(max(apply_angle, self.apply_angle_last - allowed), self.apply_angle_last + allowed)
+      self.apply_angle_last = apply_angle
 
       cntr = (self.frame // 2) % 16
       self.rate_limit = bydcan.step_rate_limit(self.rate_limit, steer_req, **self.rate_limit_values)

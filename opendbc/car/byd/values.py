@@ -59,6 +59,11 @@ class CarControllerParams:
   # turning the wheel (steeringPressed) the EPS is asked to steer again. Long enough
   # that a torque hovering at the threshold is one withdrawal and not a string of them.
   STEER_YIELD_HOLD_FRAMES = 50  # at 100 Hz
+  # ... and over how many steering frames, from the first one that asks the EPS to
+  # steer, the allowed change of the commanded angle per frame grows from nothing
+  # to what the limits allow. That goes for every request, the first of an
+  # engagement included.
+  STEER_REQUEST_RAMP_FRAMES = 50  # at 50 Hz
 
   # ... and how long that fault may be reported with openpilot still engaged before it
   # is made permanent. Longer than selfdrived's 3 s soft disable, so that only the
@@ -132,7 +137,8 @@ class BydFlags(IntFlag):
   # We withdraw a little earlier (steeringPressed: above 24 for 60 ms) and come back
   # later (STEER_YIELD_HOLD_FRAMES after it ends), so that the wheel is not taken
   # again while the driver is still turning it, which in that episode happened five
-  # times in 1.5 s.
+  # times in 1.5 s. And we come back gently (STEER_REQUEST_RAMP_FRAMES): the wheel
+  # may by then be far from where openpilot wants it.
   # Evidence: migration-audit/byd-safety-verification-20261114/out/yield-replay-*.txt
   YIELD_TO_DRIVER = 512
   # LKAS_HUD_ADAS carries the values this car's cluster is known to have been sent
