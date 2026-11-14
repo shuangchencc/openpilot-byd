@@ -1,6 +1,6 @@
 from opendbc.can.packer import CANPacker
 from opendbc.car import Bus
-from opendbc.car.lateral import apply_steer_angle_limits_vm, get_max_angle_delta_vm
+from opendbc.car.lateral import apply_steer_angle_limits_vm, get_max_angle_delta_vm, get_max_angle_vm
 from opendbc.car.interfaces import CarControllerBase
 from opendbc.car.byd import bydcan
 from opendbc.car.byd.carstate import EPS_LKA_ACTIVE
@@ -41,6 +41,7 @@ class CarController(CarControllerBase):
     self.yield_to_driver = bool(CP.flags & BydFlags.YIELD_TO_DRIVER)
     self.yield_frames = 0
     self.request_frames = 0
+    self.steer_req_last = False
 
     # See BydFlags.LKAS_HUD_ALT
     self.song_plus_hud = bool(CP.flags & BydFlags.LKAS_HUD_ALT)
@@ -70,6 +71,17 @@ class CarController(CarControllerBase):
       elif self.yield_frames > 0:
         self.yield_frames -= 1
       steer_req = steer_req and self.yield_frames == 0
+
+      # A request only starts with the wheel inside the angle the lateral acceleration
+      # limit allows at this speed (18 deg at 90 km/h). Outside it there is no angle we
+      # could ask for: the limit's own would be a jump from the wheel, the wheel's own is
+      # beyond the limit, and panda rejects either, frame after frame, leaving the EPS
+      # with no steering frame at all. So we go on sending "not steering" until the
+      # wheel is back inside. A request that is already running is not ended by this.
+      if steer_req and not self.steer_req_last:
+        max_angle = get_max_angle_vm(max(CS.out.vEgoRaw, 1), self.VM, CarControllerParams)
+        steer_req = abs(CS.out.steeringAngleDeg) < CarControllerParams.STEER_REQUEST_START_ANGLE_RATIO * max_angle
+      self.steer_req_last = steer_req
 
     if self.frame % 2:
       apply_angle = apply_steer_angle_limits_vm(actuators.steeringAngleDeg, self.apply_angle_last, CS.out.vEgoRaw,

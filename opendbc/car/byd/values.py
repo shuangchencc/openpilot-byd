@@ -64,6 +64,10 @@ class CarControllerParams:
   # to what the limits allow. That goes for every request, the first of an
   # engagement included.
   STEER_REQUEST_RAMP_FRAMES = 50  # at 50 Hz
+  # ... and how far inside the lateral acceleration limit's angle the wheel has to be
+  # for a request to start. The margin is for panda measuring the speed, and with it
+  # the limit, a little differently (it allows for 1 m/s, 8 % of the angle at 90 km/h).
+  STEER_REQUEST_START_ANGLE_RATIO = 0.9
 
   # ... and how long that fault may be reported with openpilot still engaged before it
   # is made permanent. Longer than selfdrived's 3 s soft disable, so that only the

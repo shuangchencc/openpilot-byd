@@ -594,5 +594,91 @@ class TestSongPlusRequestStartsGently(unittest.TestCase):
     assert asked[0] > 2.0
 
 
+class TestSongPlusRequestStartsInsideTheLimit(unittest.TestCase):
+  """A request does not start while the wheel is beyond the angle the lateral acceleration limit
+  allows at that speed: no angle could be asked for there that panda would let through.
+  At the 85 km/h these run at the limit is 19.9 deg, and a request may start below 0.9 of it, 17.9."""
+
+  def car(self, wheel_deg, kph=90):
+    car = Car()
+    car.speed(kph)
+    car.wheel(wheel_deg)
+    car.eps(EPS_READY)
+    car.drive(False, 50)
+    return car
+
+  def frames(self, car, steps, **kw):
+    mark = len(car.sent)
+    car.drive(True, steps, **kw)
+    return car.steering_frames(mark)
+
+  def test_no_request_while_the_wheel_is_outside(self):
+    car = self.car(25.0)
+    frames = self.frames(car, 300)
+    assert {req for req, _, _ in frames} == {0}
+    assert all(abs(angle - 25.0) < 0.051 for _, angle, _ in frames)     # "not steering": the wheel's own angle
+    assert {limit for _, _, limit in frames} == {300}
+
+  def test_it_starts_once_the_wheel_is_back_inside(self):
+    car = self.car(25.0)
+    self.frames(car, 100)
+    mark = len(car.sent)
+    wheel = []
+    for i in range(100):                                                # the wheel comes back at 10 deg/s
+      car.wheel(25.0 - 0.1 * (i + 1))
+      car.drive(True)
+      wheel += [25.0 - 0.1 * (i + 1)] * (len(car.steering_frames(mark)) - len(wheel))
+    frames = car.steering_frames(mark)
+    reqs = [req for req, _, _ in frames]
+    first = reqs.index(1)
+    assert set(reqs[:first]) == {0} and set(reqs[first:]) == {1}
+    assert 17.5 < wheel[first] < 17.95                                  # as soon as it is under 17.9
+    # from the last angle sent, one frame old (panda checks the first request against that one)
+    assert abs(frames[first][1] - wheel[first - 1]) < 0.11
+    assert abs(frames[first][1] - frames[first - 1][1]) < 0.11
+
+  def test_the_margin(self):
+    for wheel, starts in ((17.5, True), (-17.5, True), (18.3, False), (-18.3, False), (19.8, False)):
+      reqs = {req for req, _, _ in self.frames(self.car(wheel), 50)}
+      assert reqs == ({1} if starts else {0}), wheel
+
+  def test_the_limit_is_the_speeds(self):
+    # 28 km/h: 138 deg, so 100 deg is inside; 113 km/h: 13.4 deg, so 12.5 deg is not inside 0.9 of it
+    assert {req for req, _, _ in self.frames(self.car(100.0, kph=30), 50)} == {1}
+    assert {req for req, _, _ in self.frames(self.car(12.5, kph=120), 50)} == {0}
+    assert {req for req, _, _ in self.frames(self.car(11.5, kph=120), 50)} == {1}
+
+  def test_a_running_request_is_not_ended_by_it(self):
+    car = self.car(10.0)
+    assert {req for req, _, _ in self.frames(car, 100, target_deg=10.0)} == {1}
+    car.wheel(19.0)                                                     # past 17.9, still inside the limit itself
+    assert {req for req, _, _ in self.frames(car, 100, target_deg=10.0)} == {1}
+    car.speed(120)                                                      # the limit shrinks to 13.4 under the wheel
+    assert {req for req, _, _ in self.frames(car, 100, target_deg=10.0)} == {1}
+
+  def test_it_holds_after_the_driver_has_turned_the_wheel_too(self):
+    car = self.car(5.0)
+    assert {req for req, _, _ in self.frames(car, 100, target_deg=5.0)} == {1}
+    car.driver_torque(30.0)                                             # he takes it to 25 deg and lets go
+    car.wheel(25.0)
+    self.frames(car, 100, target_deg=5.0)
+    car.driver_torque(0)
+    assert {req for req, _, _ in self.frames(car, 300, target_deg=5.0)} == {0}   # long past the half second
+    car.wheel(16.0)
+    assert {req for req, _, _ in self.frames(car, 20, target_deg=5.0)} == {1}
+
+  def test_waiting_outside_is_not_a_fault(self):
+    car = self.car(25.0)
+    rets = [car.drive(True) for _ in range(400)]
+    assert not any(r.steerFaultTemporary or r.steerFaultPermanent for r in rets)
+
+  def test_atto3_asks_at_once(self):
+    car = Car(CAR.BYD_ATTO_3)
+    car.speed(90)
+    car.wheel(25.0)
+    car.drive(False, 50)
+    assert {req for req, _, _ in self.frames(car, 50)} == {1}
+
+
 if __name__ == "__main__":
   unittest.main()
