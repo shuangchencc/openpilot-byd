@@ -131,6 +131,7 @@ BO_ 813 ACC_HUD_ADAS: 8 ADAS_ECU
  SG_ ACC_ON2 : 20|1@0+ (1,0) [0|1] "" MCU
  SG_ ACC_ON1 : 22|1@0+ (1,0) [0|1] "" MCU
  SG_ SET_ME_XFF : 47|8@0+ (1,0) [0|255] "" MCU
+ SG_ ACC_STATE_CODE : 44|4@1+ (1,0) [0|15] "" MCU
  SG_ COUNTER : 48|4@1+ (1,0) [0|15] "" MCU
  SG_ SET_ME_XF : 55|4@0+ (1,0) [0|15] "" MCU
  SG_ CHECKSUM : 56|8@1+ (1,0) [0|255] "" MCU
@@ -189,9 +190,13 @@ CM_ BO_ 578 "Drivetrain state: gear, brake pressed, raw throttle.";
 CM_ BO_ 660 "Body/meter cluster: doors + seatbelt.";
 CM_ BO_ 790 "LKAS HUD ADAS message from camera. Blocked by panda on bus 2; panda re-injects.";
 CM_ BO_ 813 "ACC HUD ADAS message (cruise set speed, distance, ACC state).";
+CM_ SG_ 813 ACC_STATE_CODE "The stock ACC's own state, high nibble of byte 5 (the low nibble is 0). Measured on the Song PLUS: 2 standby, 3 controlling, 5 driver overriding with the gas pedal (the ACC stays on), 4 exiting (seen after the ACC key was pressed while the ACC was braking: it keeps braking until the driver brakes), 7 holding the car at standstill (seen once: ACC switched on while stopped; a brake press did not end it, the ACC key did), 1 unavailable (brake held, and for a moment after a brake cancel). Overlaps SET_ME_XFF, which is not a constant on this car.";
+CM_ SG_ 813 ACC_ENGAGED_STATE "Same bits as SET_DISTANCE: the follow-distance setting, shown only while the ACC is on (0 when off). It changed 2->1 0.23 s after DEC_DISTANCE_BTN and 1->2 0.21 s after INC_DISTANCE_BTN. Non-zero means the ACC is on, including while it is exiting; use ACC_STATE_CODE to tell.";
 CM_ BO_ 814 "ACC acceleration command from ADAS ECU. Blocked by panda on bus 2 when OP longitudinal active.";
 CM_ BO_ 834 "Gas/brake pedal percentages.";
 CM_ BO_ 944 "Steering-wheel cruise control buttons.";
+CM_ SG_ 944 ACC_ON_BTN "Song PLUS: the ACC on/off key. A press reads as a 150-250 ms pulse. From standby it turns the ACC on 0.19-0.20 s later (2 presses). With the ACC engaged it turns it off: either 0.19-0.27 s later, straight to standby (10 presses), or only 1.7-1.8 s later and then to EXITING (3 presses; in one of them three more presses in between changed nothing). What decides between the two is not known.";
+CM_ SG_ 944 LKAS_ON_BTN "Song PLUS: also turns the ACC on (40 ms later). Pressing it with the ACC on does nothing.";
 VAL_ 508 TORQUE_TEMP_FAILED 1 "TooLarge" 2 "TooFast" 3 "Both";
 VAL_ 578 GEAR 4 "D" 2 "R" 3 "N" 1 "P";
 VAL_ 790 AUTO_LIGHT 1 "OFF" 2 "ON";
@@ -203,4 +208,5 @@ VAL_ 790 RIGHT_LANE_STATE 0 "OFF" 1 "GREEN" 2 "ORANGE";
 VAL_ 790 LKAS_STATE 2 "ACTIVE" 1 "OFF";
 VAL_ 790 LDSW_TYPE 0 "VIBRATE" 1 "SOUND" 2 "ALL";
 VAL_ 813 SET_DISTANCE 4 "4bar" 3 "3bar" 2 "2bar" 1 "1bar";
+VAL_ 813 ACC_STATE_CODE 1 "UNAVAILABLE" 2 "STANDBY" 3 "ACTIVE" 4 "EXITING" 5 "DRIVER_OVERRIDE" 7 "STANDSTILL_HOLD";
 VAL_ 813 ACC_STATE 0 "OFF" 2 "ACC_ON" 3 "ACC_ACTIVE" 5 "FORCE_ACCEL" 7 "ERROR";

@@ -7,6 +7,12 @@ from opendbc.car.byd.values import DBC, BydFlags, CarControllerParams as CCP
 from opendbc.car.interfaces import CarStateBase
 
 GearShifter = structs.CarState.GearShifter
+ButtonType = structs.CarState.ButtonEvent.Type
+
+# ACC_HUD_ADAS.ACC_STATE_CODE values in which the Song Plus's stock ACC is engaged:
+# 3 controlling, 5 controlling but overridden by the driver's gas pedal, 7 holding the
+# car at standstill. Anything else, including a code not seen yet, reads as not engaged.
+SONG_PLUS_ACC_ENGAGED_STATES = (3, 5, 7)
 
 # BYD gear enum from DRIVE_STATE.GEAR
 GEAR_MAP = {
@@ -21,6 +27,8 @@ class CarState(CarStateBase):
   def __init__(self, CP):
     super().__init__(CP)
     self.lkas_hud = {}
+    self.acc_key_prev = False
+    self.acc_key_cancel = False
 
   def update(self, can_parsers) -> structs.CarState:
     cp = can_parsers[Bus.pt]
@@ -139,8 +147,42 @@ class CarState(CarStateBase):
       # availability is ACC_CMD bit 47 (99.816% with engaged OR'd in).
       # SET_SPEED only means anything while ACC is available: gating it that way
       # raises agreement from 84.9% to 99.8%.
-      ret.cruiseState.enabled = int(cp_cam.vl["ACC_HUD_ADAS"]["ACC_ENGAGED_STATE"]) != 0
+      #
+      # Bits 10-11 turned out to be the follow-distance setting, displayed while the
+      # ACC is on (it changes right after the distance buttons). They stay non-zero
+      # while the ACC is on its way out: measured in the car on 2026-11-14, the driver
+      # pressed the ACC key four times within 1.5 s while the ACC was braking; nothing
+      # changed until 1.7 s after the first press (0.2 s after the fourth), then the
+      # ACC entered state 4 (exiting, the dash prompts the driver) and kept braking for
+      # 2.5 s until he braked, with bits 10-11 still set. The ACC's own state is the
+      # high nibble of byte 5. Engaged is "on" AND that state being 3, 5 or 7; over
+      # 997 s of engaged driving in the recording this never drops out mid-ACC (it
+      # differs twice, by 0.02 s and 0.36 s, both real exits seen earlier).
+      # panda's byd.h still uses bits 10-11 alone, so it allows for longer than this.
+      acc_on = int(cp_cam.vl["ACC_HUD_ADAS"]["ACC_ENGAGED_STATE"]) != 0
+      ret.cruiseState.enabled = acc_on and int(cp_cam.vl["ACC_HUD_ADAS"]["ACC_STATE_CODE"]) in SONG_PLUS_ACC_ENGAGED_STATES
       ret.cruiseState.available = bool(cp_cam.vl["ACC_CMD"]["ACC_AVAILABLE"]) or ret.cruiseState.enabled
+
+      # The ACC key (PCM_BUTTONS.ACC_ON_BTN) toggles the stock ACC. Pressed while the
+      # ACC is engaged it means "off", and the driver expects everything to let go at
+      # that moment - but the ACC itself may show no change for 1.7 s (above). So a
+      # press with the ACC engaged is published as a cancel button, which disengages
+      # openpilot in the same cycle.
+      # No other press is published. From standby it is the driver turning the ACC on,
+      # and car_events disables on both edges of a cancel button: the release of such
+      # a press, coming after the ACC has engaged, would switch openpilot off again
+      # while the ACC stays on. The test is "engaged" and not "on" (bits 10-11) so
+      # that this cannot happen even if those bits were ever set in standby; in the
+      # recordings they never are. While the ACC is exiting openpilot has already let
+      # go, so a press there needs no event either.
+      acc_key = bool(cp.vl["PCM_BUTTONS"]["ACC_ON_BTN"])
+      if acc_key and not self.acc_key_prev and ret.cruiseState.enabled:
+        self.acc_key_cancel = True
+        ret.buttonEvents = [structs.CarState.ButtonEvent(pressed=True, type=ButtonType.cancel)]
+      elif not acc_key and self.acc_key_prev and self.acc_key_cancel:
+        self.acc_key_cancel = False
+        ret.buttonEvents = [structs.CarState.ButtonEvent(pressed=False, type=ButtonType.cancel)]
+      self.acc_key_prev = acc_key
       ret.cruiseState.speed = (cp_cam.vl["ACC_HUD_ADAS"]["SET_SPEED"] * CV.KPH_TO_MS
                                if ret.cruiseState.available else 0.0)
       # The logged original's speedCluster equals speed exactly, 100.000% of samples.
