@@ -32,6 +32,9 @@ class CarController(CarControllerBase):
     # See BydFlags.NO_CANCEL_BUTTON
     self.send_cancel_button = not (CP.flags & BydFlags.NO_CANCEL_BUTTON)
 
+    # See BydFlags.LKAS_HUD_ALT
+    self.song_plus_hud = bool(CP.flags & BydFlags.LKAS_HUD_ALT)
+
     # See BydFlags.EPS_LKA_STATE
     self.watch_eps_answer = bool(CP.flags & BydFlags.EPS_LKA_STATE)
     self.unanswered_frames = 0
@@ -50,7 +53,7 @@ class CarController(CarControllerBase):
       cntr = (self.frame // 2) % 16
       can_sends.append(bydcan.create_steering_control(self.packer, self.apply_angle_last, CC.latActive,
                                                              cntr, **self.tx_constants))
-      can_sends.append(bydcan.create_lkas_hud(self.packer, CC.latActive, cntr, CS.lkas_hud, hud_control))
+      can_sends.append(bydcan.create_lkas_hud(self.packer, CC.latActive, cntr, CS.lkas_hud, hud_control, self.song_plus_hud))
 
     if self.watch_eps_answer:
       # The request and the EPS's answer meet here: this side knows whether STEER_REQ

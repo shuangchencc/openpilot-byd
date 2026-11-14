@@ -105,6 +105,10 @@ class BydFlags(IntFlag):
   # set, not even when it aborted.
   # Evidence: migration-audit/byd-safety-verification-20261114/out/eps-request-answer-*.txt
   EPS_LKA_STATE = 128
+  # LKAS_HUD_ADAS carries the values this car's cluster is known to have been sent
+  # while steering, not the Atto 3's. See bydcan.create_lkas_hud.
+  # Evidence: migration-audit/byd-safety-verification-20261114/out/hud-replay-*.txt
+  LKAS_HUD_ALT = 256
 
 
 class BydSafetyFlags(IntFlag):
@@ -139,7 +143,7 @@ class CAR(Platforms):
     CarSpecs(wheelbase=2.765, steerRatio=20.6),
     {Bus.pt: 'byd_song_plus'},
     flags=BydFlags.FOUR_WHEEL_SPEEDS | BydFlags.NO_BSM | BydFlags.DRIVER_TORQUE_NM | BydFlags.ACC_STATE_ALT | BydFlags.TX_CONSTANTS_ALT | BydFlags.PEDALS_ALT |
-          BydFlags.NO_CANCEL_BUTTON | BydFlags.EPS_LKA_STATE,
+          BydFlags.NO_CANCEL_BUTTON | BydFlags.EPS_LKA_STATE | BydFlags.LKAS_HUD_ALT,
   )
 
 

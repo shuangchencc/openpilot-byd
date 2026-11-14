@@ -33,8 +33,21 @@ def create_buttons(packer, cancel: bool):
   return packer.make_can_msg("PCM_BUTTONS", 0, values)
 
 
-def create_lkas_hud(packer, lat_active: bool, counter: int, stock_lkas_hud: dict, hud_control):
+def create_lkas_hud(packer, lat_active: bool, counter: int, stock_lkas_hud: dict, hud_control, song_plus: bool = False):
   values = {**stock_lkas_hud, "COUNTER": counter, "HANDS_ON_WHEEL_REQ": 0}
+  if song_plus:
+    # What this car's instrument cluster was sent by the stack that steered it for the
+    # whole 116 min recording: the stock camera's frame as it is, and while steering both
+    # lane states 2 and LKAS_STATE 3 (every one of 49,810 frames), LKS_MODE left alone.
+    # The values below this branch are the Atto 3's; what either set draws on this
+    # cluster is not known from data, so nothing else is signalled here, lane departure
+    # included: 2 is already the "steering" lane state.
+    if lat_active:
+      values["LEFT_LANE_STATE"] = 2
+      values["RIGHT_LANE_STATE"] = 2
+      values["LKAS_STATE"] = 3
+    return packer.make_can_msg("LKAS_HUD_ADAS", 0, values)
+
   if lat_active:
     values["LKS_MODE"] = 2 # green lane line icon
     values["LKAS_STATE"] = 2 # green steering wheel icon
