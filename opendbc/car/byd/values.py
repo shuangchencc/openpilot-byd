@@ -206,7 +206,7 @@ class SongPlusLongitudinal:
   # nothing reaches the car and the refused frames come back in the log - which is how the
   # first runs in the car are meant to go. To be set to LEVEL together with flashing a
   # panda firmware that has the rule; a firmware without it ignores the bits.
-  PANDA_LEVEL = 0
+  PANDA_LEVEL = 1
   PANDA_LEVEL_SHIFT = 1
 
   ACCEL_MIN = (MIN_REQUEST[LEVEL] - REQUEST_ZERO) * REQUEST_SCALE   # m/s^2
