@@ -26,13 +26,25 @@ class Car:
     self.CS = self.CI.CS
     self.pt, self.cam = FakeParser(), FakeParser()
     self.frame = 0
+    self.sent = []
 
   def eps(self, state):
     self.pt.vl["STEERING_TORQUE"]["LKA_STATE"] = state
 
-  def drive(self, lat_active, steps=1, enabled=None):
+  def driver_torque(self, torque):
+    self.pt.vl["STEERING_TORQUE"]["DRIVER_TORQUE"] = torque
+
+  def wheel(self, angle_deg):
+    self.pt.vl["STEER_MODULE_2"]["STEER_ANGLE_2"] = angle_deg
+
+  def speed(self, kph):
+    for wheel in ("WHEELSPEED_FL", "WHEELSPEED_FR", "WHEELSPEED_BL", "WHEELSPEED_BR"):
+      self.pt.vl["WHEELSPEED_CLEAN"][wheel] = kph
+
+  def drive(self, lat_active, steps=1, enabled=None, target_deg=0.0):
     """CarState then CarController, as the interface runs them, `steps` times at 100 Hz.
-    `enabled` is openpilot being engaged; unless given, it is engaged exactly while it asks to steer."""
+    `enabled` is openpilot being engaged; unless given, it is engaged exactly while it asks to steer.
+    Every frame the controller builds is appended to self.sent as (address, data)."""
     ret = None
     for _ in range(steps):
       ret = self.step()
@@ -40,9 +52,21 @@ class Car:
       CC = structs.CarControl()
       CC.latActive = lat_active
       CC.enabled = lat_active if enabled is None else enabled
-      self.CI.CC.update(CC.as_reader(), self.CS, self.frame * 10_000_000)
+      CC.actuators.steeringAngleDeg = target_deg
+      _, can_sends = self.CI.CC.update(CC.as_reader(), self.CS, self.frame * 10_000_000)
+      self.sent += [(msg[0], bytes(msg[1])) for msg in can_sends]
       self.frame += 1
     return ret
+
+  def steering_frames(self, since=0):
+    """(STEER_REQ, STEER_ANGLE in deg, ANGLE_RATE_LIMIT_UPPER) of every 0x1E2 built since self.sent[since]."""
+    out = []
+    for addr, dat in self.sent[since:]:
+      if addr == 0x1E2:
+        angle = int.from_bytes(dat[3:5], "little", signed=True) * 0.1
+        limit = int.from_bytes(dat[:2], "little") & 0x3FF
+        out.append(((dat[2] >> 5) & 1, angle, limit))
+    return out
 
   def acc(self, distance_bars, state):
     self.cam.vl["ACC_HUD_ADAS"]["ACC_ENGAGED_STATE"] = distance_bars
@@ -346,6 +370,153 @@ class TestSongPlusSteeringFault(unittest.TestCase):
     assert not ret.steerFaultPermanent and not ret.steerFaultTemporary
     car.cam.vl["LKAS_HUD_ADAS"]["LKAS_STATE"] = 4       # the Atto 3's own fault read still works
     assert car.drive(True).steerFaultTemporary
+
+
+class TestSongPlusYieldsToTheDriver(unittest.TestCase):
+  """While the driver is turning the wheel the EPS is not asked to steer, and for half a second after."""
+
+  PRESSING = 30.0      # driver torque above the steeringPressed threshold (24)
+
+  def engaged(self):
+    car = Car()
+    car.speed(30)
+    car.eps(EPS_ACTIVE)
+    car.drive(True, 100)
+    assert [req for req, _, _ in car.steering_frames()][-5:] == [1] * 5
+    return car
+
+  def requests(self, car, since):
+    return [req for req, _, _ in car.steering_frames(since)]
+
+  def test_request_is_withdrawn_within_a_tenth_of_a_second(self):
+    car = self.engaged()
+    mark = len(car.sent)
+    car.driver_torque(self.PRESSING)
+    car.drive(True, 100)
+    reqs = self.requests(car, mark)
+    assert 0 in reqs[:5]                      # 0x1E2 is every other step: within 100 ms
+    assert set(reqs[reqs.index(0):]) == {0}   # and not asked again while he keeps turning it
+
+  def test_request_comes_back_half_a_second_after_he_stops(self):
+    car = self.engaged()
+    car.driver_torque(self.PRESSING)
+    car.drive(True, 100)
+    car.driver_torque(0)
+    mark = len(car.sent)
+    car.drive(True, 100)
+    reqs = self.requests(car, mark)
+    back = reqs.index(1)
+    assert 27 <= back <= 29, back             # 50 ms for steeringPressed to drop, then 500 ms
+    assert set(reqs[back:]) == {1}
+
+  def test_torque_hovering_at_the_threshold_is_one_withdrawal(self):
+    car = self.engaged()
+    car.driver_torque(self.PRESSING)
+    car.drive(True, 20)
+    mark = len(car.sent)
+    for i in range(40):                        # 4 s of 26 / 22 / 26 / 22 ..., 100 ms each
+      car.driver_torque(26 if i % 2 == 0 else 22)
+      car.drive(True, 10)
+    assert set(self.requests(car, mark)) == {0}
+
+  def test_a_touch_too_light_or_too_short_changes_nothing(self):
+    for torque, steps in ((20.0, 300), (self.PRESSING, 4)):
+      car = self.engaged()
+      mark = len(car.sent)
+      car.driver_torque(torque)
+      car.drive(True, steps)
+      car.driver_torque(0)
+      car.drive(True, 100)
+      assert set(self.requests(car, mark)) == {1}, (torque, steps)
+
+  def test_commanded_angle_follows_the_wheel_and_restarts_from_it(self):
+    car = self.engaged()                       # asking for 0 deg, wheel at 0
+    car.driver_torque(self.PRESSING)
+    mark = len(car.sent)
+    for i in range(100):                       # he turns it to 20 deg in 1 s
+      car.wheel(0.2 * (i + 1))
+      car.drive(True)
+    withdrawn = [(angle, i) for i, (req, angle, _) in enumerate(car.steering_frames(mark)) if req == 0]
+    assert len(withdrawn) >= 45
+    for angle, i in withdrawn:                 # frame i is built on step 2 i + 1 (or 2 i + 2) of the turn
+      assert 0.2 * (2 * i) - 0.05 <= angle <= 0.2 * (2 * i + 3) + 0.05, (i, angle)
+    car.driver_torque(0)
+    mark = len(car.sent)
+    car.drive(True, 100)                       # openpilot still wants 0 deg; the wheel stays at 20
+    frames = car.steering_frames(mark)
+    back = [req for req, _, _ in frames].index(1)
+    assert all(abs(angle - 20.0) < 0.05 for _, angle, _ in frames[:back])
+    first = frames[back][1]
+    assert 17.0 < first < 20.0, first          # one limiter step from the wheel, not a jump to 0
+    asked = [angle for _, angle, _ in frames[back:]]
+    assert all(b <= a for a, b in zip(asked, asked[1:], strict=False))          # then steadily towards the target
+    assert max(a - b for a, b in zip(asked, asked[1:], strict=False)) <= 20.0 - first + 1e-6
+
+  def test_rate_limit_field_ramps_down_and_up_around_it(self):
+    car = self.engaged()
+    car.driver_torque(self.PRESSING)
+    mark = len(car.sent)
+    car.drive(True, 100)
+    frames = car.steering_frames(mark)
+    first = [req for req, _, _ in frames].index(0)
+    assert [limit for _, _, limit in frames[first:first + 14]] == list(range(484, 300, -16)) + [300, 300]
+    car.driver_torque(0)
+    mark = len(car.sent)
+    car.drive(True, 100)
+    frames = car.steering_frames(mark)
+    back = [req for req, _, _ in frames].index(1)
+    assert [limit for _, _, limit in frames[back:back + 14]] == list(range(316, 500, 16)) + [500, 500]
+
+  def test_cluster_frame_follows_the_request(self):
+    car = self.engaged()
+    hud = lambda since: [(dat[0], dat[4]) for addr, dat in car.sent[since:] if addr == 0x316]  # noqa: E731
+    assert hud(0)[-1] == (0x20, 0x38)          # steering: lane states 2, LKAS_STATE 3
+    car.driver_torque(self.PRESSING)
+    car.drive(True, 20)
+    mark = len(car.sent)
+    car.drive(True, 50)
+    assert set(hud(mark)) == {(0x00, 0x00)}
+
+  def test_withdrawing_is_not_an_unanswered_request(self):
+    car = self.engaged()
+    car.driver_torque(self.PRESSING)
+    faults = [car.drive(True).steerFaultTemporary for _ in range(10)]
+    car.eps(EPS_READY)                         # the EPS lets go
+    faults += [car.drive(True).steerFaultTemporary for _ in range(400)]
+    car.driver_torque(0)
+    faults += [car.drive(True).steerFaultTemporary for _ in range(60)]   # asked again at the end of this
+    car.eps(EPS_ACTIVE)
+    ret = car.drive(True, 300)
+    assert not any(faults) and not ret.steerFaultTemporary and not ret.steerFaultPermanent
+
+  def test_an_eps_that_does_not_come_back_is_still_a_fault(self):
+    car = self.engaged()
+    car.driver_torque(self.PRESSING)
+    car.drive(True, 100)
+    car.eps(EPS_READY)
+    car.driver_torque(0)
+    faults = [car.drive(True).steerFaultTemporary for _ in range(120)]
+    first = faults.index(True)
+    assert 105 <= first <= 112, first          # 0.05 s + 0.5 s until asked again, then the 0.5 s limit
+
+  def test_pressing_before_engaging_delays_the_first_request(self):
+    car = Car()
+    car.speed(30)
+    car.eps(EPS_READY)
+    car.driver_torque(self.PRESSING)
+    car.drive(False, 50)
+    mark = len(car.sent)
+    car.drive(True, 50)
+    assert set(self.requests(car, mark)) == {0}
+
+  def test_atto3_keeps_asking(self):
+    car = Car(CAR.BYD_ATTO_3)
+    car.pt.vl["STEER_MODULE_2"]["DRIVER_EPS_TORQUE"] = 100
+    car.drive(True, 50)
+    assert car.CS.out.steeringPressed
+    mark = len(car.sent)
+    car.drive(True, 50)
+    assert set(self.requests(car, mark)) == {1}
 
 
 if __name__ == "__main__":

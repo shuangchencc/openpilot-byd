@@ -55,6 +55,11 @@ class CarControllerParams:
   # all 20 recorded requests (18 of the vendor's stack, 2 of ours) within 46 ms, so
   # 0.5 s is ten times the worst seen.
   EPS_UNANSWERED_REQUEST_FRAMES = 50  # at 100 Hz
+  # Platforms with BydFlags.YIELD_TO_DRIVER: how long after the driver has stopped
+  # turning the wheel (steeringPressed) the EPS is asked to steer again. Long enough
+  # that a torque hovering at the threshold is one withdrawal and not a string of them.
+  STEER_YIELD_HOLD_FRAMES = 50  # at 100 Hz
+
   # ... and how long that fault may be reported with openpilot still engaged before it
   # is made permanent. Longer than selfdrived's 3 s soft disable, so that only the
   # cases in which there was none get here.
@@ -111,6 +116,25 @@ class BydFlags(IntFlag):
   # set, not even when it aborted.
   # Evidence: migration-audit/byd-safety-verification-20261114/out/eps-request-answer-*.txt
   EPS_LKA_STATE = 128
+  # Do not ask the EPS to steer while the driver is turning the wheel.
+  # Asked to hold an angle, this EPS opposes the driver with its whole motor torque.
+  # On 2026-11-14 the driver turned the wheel with openpilot engaged (torque 36-41 on
+  # the DBC's scale): the motor torque reached its limit of 499 and stayed there for
+  # 0.68 s, then the EPS aborted (LKA_STATE 3) and would not steer again until the car
+  # had been switched off and on. STEER_REQ had been kept up for 1.05 s after
+  # steeringPressed.
+  # The stack that made the 116 min recording never let it get that far: it sent
+  # STEER_REQ 0 in every frame in which the driver's torque was above 28 and
+  # STEER_REQ 1 in every other, without exception in the 49,834 frames it was engaged
+  # for. That was one episode, torque up to 41.7: the EPS let go within 41 ms each
+  # time, its motor torque never passed 377, and it took the next request within
+  # 41 ms with the driver's torque still at 22-27.
+  # We withdraw a little earlier (steeringPressed: above 24 for 60 ms) and come back
+  # later (STEER_YIELD_HOLD_FRAMES after it ends), so that the wheel is not taken
+  # again while the driver is still turning it, which in that episode happened five
+  # times in 1.5 s.
+  # Evidence: migration-audit/byd-safety-verification-20261114/out/yield-replay-*.txt
+  YIELD_TO_DRIVER = 512
   # LKAS_HUD_ADAS carries the values this car's cluster is known to have been sent
   # while steering, not the Atto 3's. See bydcan.create_lkas_hud.
   # Evidence: migration-audit/byd-safety-verification-20261114/out/hud-replay-*.txt
@@ -149,7 +173,7 @@ class CAR(Platforms):
     CarSpecs(wheelbase=2.765, steerRatio=20.6),
     {Bus.pt: 'byd_song_plus'},
     flags=BydFlags.FOUR_WHEEL_SPEEDS | BydFlags.NO_BSM | BydFlags.DRIVER_TORQUE_NM | BydFlags.ACC_STATE_ALT | BydFlags.TX_CONSTANTS_ALT | BydFlags.PEDALS_ALT |
-          BydFlags.NO_CANCEL_BUTTON | BydFlags.EPS_LKA_STATE | BydFlags.LKAS_HUD_ALT,
+          BydFlags.NO_CANCEL_BUTTON | BydFlags.EPS_LKA_STATE | BydFlags.LKAS_HUD_ALT | BydFlags.YIELD_TO_DRIVER,
   )
 
 

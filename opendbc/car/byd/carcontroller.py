@@ -37,6 +37,10 @@ class CarController(CarControllerBase):
     # See BydFlags.NO_CANCEL_BUTTON
     self.send_cancel_button = not (CP.flags & BydFlags.NO_CANCEL_BUTTON)
 
+    # See BydFlags.YIELD_TO_DRIVER
+    self.yield_to_driver = bool(CP.flags & BydFlags.YIELD_TO_DRIVER)
+    self.yield_frames = 0
+
     # See BydFlags.LKAS_HUD_ALT
     self.song_plus_hud = bool(CP.flags & BydFlags.LKAS_HUD_ALT)
 
@@ -51,20 +55,34 @@ class CarController(CarControllerBase):
     actuators = CC.actuators
     hud_control = CC.hudControl
 
+    # Whether the EPS is asked to steer in this step. openpilot wanting to (latActive)
+    # is not enough while the driver is turning the wheel: this EPS holds the commanded
+    # angle against him with all the torque it has, and gives up for the rest of the
+    # drive when that has lasted 0.7 s (see BydFlags.YIELD_TO_DRIVER). So the request
+    # is withdrawn while steeringPressed and for a moment after, exactly as if openpilot
+    # were not steering: STEER_REQ 0, the commanded angle following the wheel, so that
+    # the next request starts from where the wheel then is.
+    steer_req = CC.latActive
+    if self.yield_to_driver:
+      if CS.out.steeringPressed:
+        self.yield_frames = CarControllerParams.STEER_YIELD_HOLD_FRAMES
+      elif self.yield_frames > 0:
+        self.yield_frames -= 1
+      steer_req = steer_req and self.yield_frames == 0
+
     if self.frame % 2:
       self.apply_angle_last = apply_steer_angle_limits_vm(actuators.steeringAngleDeg, self.apply_angle_last, CS.out.vEgoRaw,
-                                                          CS.out.steeringAngleDeg, CC.latActive, CarControllerParams, self.VM)
+                                                          CS.out.steeringAngleDeg, steer_req, CarControllerParams, self.VM)
 
       cntr = (self.frame // 2) % 16
-      self.rate_limit = bydcan.step_rate_limit(self.rate_limit, CC.latActive, **self.rate_limit_values)
-      can_sends.append(bydcan.create_steering_control(self.packer, self.apply_angle_last, CC.latActive,
+      self.rate_limit = bydcan.step_rate_limit(self.rate_limit, steer_req, **self.rate_limit_values)
+      can_sends.append(bydcan.create_steering_control(self.packer, self.apply_angle_last, steer_req,
                                                              cntr, self.rate_limit, self.set_me_f))
-      can_sends.append(bydcan.create_lkas_hud(self.packer, CC.latActive, cntr, CS.lkas_hud, hud_control, self.song_plus_hud))
+      can_sends.append(bydcan.create_lkas_hud(self.packer, steer_req, cntr, CS.lkas_hud, hud_control, self.song_plus_hud))
 
     if self.watch_eps_answer:
       # The request and the EPS's answer meet here: this side knows whether STEER_REQ
       # is being sent, CarState has just read what the EPS says it is doing.
-      steer_req = CC.latActive
       self.unanswered_frames = self.unanswered_frames + 1 if (steer_req and CS.eps_lka_state != EPS_LKA_ACTIVE) else 0
       # CarState reports this as a temporary steering fault, and openpilot stops asking
       # while one is reported, which by itself would end the fault two steps after it
