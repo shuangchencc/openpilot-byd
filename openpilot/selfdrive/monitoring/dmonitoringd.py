@@ -75,7 +75,8 @@ def no_face_driver_state():
 # The rule ("gated activity", migration-audit/closed-course-20261114/DM-OPTIONS-RESULT.txt):
 #   c = steeringTorque - zero + K * inertia * thetaddot
 #       the steering wheel's own inertia removed: when the EPS accelerates the column, the
-#       torque sensor reads -inertia * thetaddot with no hand on it (fitted 0.050-0.057 kg m^2)
+#       torque sensor reads -inertia * thetaddot with no hand on it (fitted 0.050-0.060 kg m^2);
+#       the torque median-filtered over TORQUE_MEDIAN_N carStates (single-frame jumps, see feed)
 #   while the wheel is quiet (max |thetaddot| over the last 1 s < quiet_accel):
 #       touch if the 1 s peak-to-peak of c >= activity      (a resting hand is never still)
 #   otherwise:
@@ -83,16 +84,27 @@ def no_face_driver_state():
 #   held for HANDS_ON_MIN_TICKS consecutive DM ticks.
 # Recorded carStates replayed through this class (dm_online_replay.py; its c equals the offline
 # chain to 1e-13): over the vendor drive's 997 s of lateral control with hands resting lightly it
-# detects 94 % of ticks, longest gap 5.7 s, 3.6 crossings of the 5 s level per hour and none of
+# detects 90 % of ticks, longest gap 7.6 s, 3.6 crossings of the 5 s level per hour and none of
 # 15 / 25 s, where the plain |tau - zero| > 3.0 detected 45 % with 80 / 17 / 3 crossings per hour.
-# Hands OFF while the EPS steers was modelled (inertia 0.050 / 0.057 plus sensor noise, real
-# thetaddot from the vendor drive and from 2026-11-14's low-speed engagements, the "true" thetaddot
-# a smoother estimate than ours or ours one carState early or late): at most 0.1 % of ticks counted
-# a touch. Two carStates out: 1-3 %. Without the inertia term: 3-9 %, and at low speed a false
-# touch in every 5 s window, which would keep every alert away.
-# NOT yet validated: real hands-off readings while the EPS steers (column friction, torsion
-# compliance, road input are not in the model). The closed course must show the 5 s alert
-# appearing on time with the hands off before this is relied on.
+# At 2026-11-14's low speed, resting lightly, it detects only 31-42 %.
+# Hands OFF while the EPS steers, modelled (wheel inertia plus sensor noise on the real thetaddot):
+#  - with the "true" thetaddot a smoother estimate than ours, or ours one carState early or late,
+#    under 0.1 % of ticks count a touch at the vendor's speeds; without the inertia term, at low
+#    speed, up to every 5 s window holds a false touch, which would keep every alert away -
+#    but that "true" thetaddot still comes from carState's angle series, so its sampling error is
+#    partly in both and cancels;
+#  - openpilot-a0's version takes it from the evenly spaced bus frames (Savitzky-Golay over 11 or
+#    21 frames) and gives no such assurance. Over the vendor's 997 s at 50-99 km/h the share of
+#    15 s windows holding a false touch - one restarts the count, so per window is what matters -
+#    ranges from 0 % (21 frames, torque noise 0.06) through 11 % (11 frames, inertia 0.050) and
+#    43 % (11 frames, 0.057) to 80 % (11 frames, 0.057, noise 0.15), on two unmeasured quantities:
+#    the torque sensor's noise while driving hands off (0.06 standing) and how much fast content
+#    the wheel's true acceleration has (0.1 deg angle steps cannot tell). At 2026-11-14's low
+#    speed, 22 s: true inertia 0.050 -> no 5 s window, 0.057 -> 10 %, 0.065 -> 45 %.
+# NOT validated, and not to be relied on as hands-off protection at speed until measured: real
+# hands-off readings while the EPS steers (sensor noise, column friction, torsion compliance, road
+# input). The closed course must show the alerts arriving with the hands off, window by window,
+# at the speeds it is to be used at.
 HANDS_ON_TORQUE = {
   # zero, threshold, inertia (kg m^2), activity (1 s peak-to-peak), quiet_accel (deg/s^2)
   "BYD_SONG_PLUS_DMI_23": {"zero": -1.1, "threshold": 3.0, "inertia": 0.05, "activity": 1.5, "quiet_accel": 100.0},
@@ -104,6 +116,7 @@ WINDOW_N = 100          # 1 s of carState
 SMOOTH_N = 6
 CHAIN_N = 15            # carStates one centred thetaddot needs
 ACCEL_DELAY = 6         # ... and how far that thetaddot lags the newest of them
+TORQUE_MEDIAN_N = 5     # carStates the torque is median-filtered over, centred on the same one
 GAP_S = 0.1             # a longer pause between carStates restarts the detector
 
 
@@ -115,10 +128,15 @@ def centred_accel(angles, dt: float = SAMPLE_DT) -> float:
   carState n-6 is final once carState n has arrived.
 
   The step is the fixed carState period, NOT the logMonoTime difference. carState is published
-  when pandad hands card a batch of CAN, so consecutive logMonoTimes are 2 to 60 ms apart while
-  the angles inside are one EPS frame apart; dividing by those differences turned the 0.1 deg
-  angle steps into thetaddot spikes of several hundred deg/s^2, and in the hands-off model the
-  compensation term then read as a hand on the wheel in half the ticks (replay, 2026-11-14).
+  when pandad hands card a batch of CAN, so consecutive logMonoTimes are 2 to 60 ms apart;
+  dividing by those differences turned the 0.1 deg angle steps into thetaddot spikes of several
+  hundred deg/s^2, and in the hands-off model the compensation term then read as a hand on the
+  wheel in half the ticks (replay, 2026-11-14). The fixed step is right for most carStates, not
+  all: between two of them 1 new angle frame (0x11F, 100 Hz) arrived in 93.2 %, 0 in 3.4 % and 2
+  in 3.4 % (the beat between the bus and pandad's batches; three routes, openpilot-a0). Against
+  the same chain run on the evenly spaced bus frames, that costs c an error whose own 1 s
+  peak-to-peak is p95 0.73 and at most 1.39 under the vendor's lateral control - half the activity
+  level at speed - and p95 1.9 at 2026-11-14's low speed, where the wheel is mostly not quiet.
   """
   assert len(angles) == CHAIN_N
   sm = [sum(angles[i - 3:i + 3]) / SMOOTH_N for i in range(3, 13)]   # sm[k]: centre k + 3
@@ -157,8 +175,17 @@ class HandsOnTorque:
     self._chain.append((steering_torque, steering_angle_deg))
     if len(self._chain) < CHAIN_N:
       return
-    accel = centred_accel([s[1] for s in self._chain])
-    torque = self._chain[CHAIN_N - 1 - ACCEL_DELAY][0]
+    chain = list(self._chain)
+    accel = centred_accel([s[1] for s in chain])
+    # The torque of the same carState, median-filtered over TORQUE_MEDIAN_N carStates around it
+    # (all already in, so no further delay). The 0x1FC frames carry single-frame jumps of 1.0 or
+    # more: 1894 in the vendor drive, 13 a minute while the EPS steered, half of them away from
+    # the zero and 165 of them at hands-off torque levels, almost none at standstill, cause
+    # unknown. One 0x1FC frame (50 Hz) spans two carStates, which is why 3 is not enough. Cost:
+    # vendor lateral control detected 88.9 % instead of 93.6 %, the same 3.6 five-second crossings
+    # per hour (openpilot-a0).
+    mid, half = CHAIN_N - 1 - ACCEL_DELAY, TORQUE_MEDIAN_N // 2
+    torque = sorted(s[0] for s in chain[mid - half:mid + half + 1])[half]
     c = torque - self.zero + TORQUE_PER_INERTIA_ACCEL * self.inertia * accel
     self._window.append((c, abs(accel)))
 

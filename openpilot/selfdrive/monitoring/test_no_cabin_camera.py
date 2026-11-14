@@ -327,6 +327,18 @@ class TestHandsOnTorque(OpenpilotTestCase):
     assert not any(feed_ticks(song_plus(), [-1.33] * 1000))      # standstill zero
     assert not any(feed_ticks(song_plus(), [-3.2] * 1000))       # residue after a turn (11/12), held
 
+  def test_a_single_torque_frame_jump_is_not_a_hand(self):
+    # 0x1FC carries single-frame jumps of unknown cause; one frame (50 Hz) spans two carStates
+    from unittest import mock
+    from openpilot.selfdrive.monitoring import dmonitoringd
+    rng = random.Random(0)
+    torques = [round(ZERO + rng.choice((-0.1, 0., 0., 0.1)), 1) for _ in range(1000)]
+    for start in range(100, 1000, 200):
+      torques[start] = torques[start + 1] = round(ZERO + 2.0, 1)
+    assert not any(feed_ticks(song_plus(), torques))
+    with mock.patch.object(dmonitoringd, 'TORQUE_MEDIAN_N', 1):
+      assert any(feed_ticks(song_plus(), torques)), "without the median each jump is a touch"
+
   def test_a_resting_hand_counts(self):
     ticks = feed_ticks(song_plus(), resting_hand(2.64, 0.8, 400))
     assert not ticks[0]
