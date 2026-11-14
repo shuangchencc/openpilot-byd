@@ -1,4 +1,7 @@
 #!/usr/bin/env python3
+import math
+from collections import deque
+
 import openpilot.cereal.messaging as messaging
 from openpilot.cereal import log
 from opendbc.car.structs import car
@@ -65,37 +68,118 @@ def no_face_driver_state():
 # natural holding never reaches it (measured peaks 3-6), so the wheeltouch policy would alert at
 # 5/15/25 s with the driver's hands on the wheel. steeringPressed is deliberately NOT lowered to
 # fix that: it also drives the lateral-override state (car_events.py), the lane-change nudge
-# (desire_helper.py) and lagd's sample selection, and a light touch must not start a lane
-# change. Instead monitoring alone counts |steeringTorque - zero| > threshold, held for
-# HANDS_ON_MIN_TICKS consecutive DM ticks (100 ms, against single bumps), as a touch.
+# (desire_helper.py), lagd's sample selection and the port's release of STEER_REQ while the
+# driver overrides, and a light touch must not start a lane change. Monitoring alone gets its
+# own touch signal here.
 #
-# Values from openpilot-a0's labelled capture of 2026-11-13 (migration-audit/
-# steer-torque-threshold-20261112/RESULT.txt), in carState.steeringTorque units: untouched
-# -1.33 +/- 0.06 at standstill, natural two-hand hold mean +2.64, one hand mean +3.41, driving
-# zero -1.1. With zero -1.1 / threshold 3.0, untouched never triggers; two hands trigger in 60 %
-# of samples and one hand in 90 %.
-# NOT yet validated: the reading with the hands OFF while the EPS is steering. If the EPS's own
-# action reads above the threshold, monitoring would count a touch that never happened, so this
-# must be measured at the closed course before it is relied on.
+# The rule ("gated activity", migration-audit/closed-course-20261114/DM-OPTIONS-RESULT.txt):
+#   c = steeringTorque - zero + K * inertia * thetaddot
+#       the steering wheel's own inertia removed: when the EPS accelerates the column, the
+#       torque sensor reads -inertia * thetaddot with no hand on it (fitted 0.050-0.057 kg m^2)
+#   while the wheel is quiet (max |thetaddot| over the last 1 s < quiet_accel):
+#       touch if the 1 s peak-to-peak of c >= activity      (a resting hand is never still)
+#   otherwise:
+#       touch if |c| > threshold                              (conservative fallback)
+#   held for HANDS_ON_MIN_TICKS consecutive DM ticks.
+# Recorded carStates replayed through this class (dm_online_replay.py; its c equals the offline
+# chain to 1e-13): over the vendor drive's 997 s of lateral control with hands resting lightly it
+# detects 94 % of ticks, longest gap 5.7 s, 3.6 crossings of the 5 s level per hour and none of
+# 15 / 25 s, where the plain |tau - zero| > 3.0 detected 45 % with 80 / 17 / 3 crossings per hour.
+# Hands OFF while the EPS steers was modelled (inertia 0.050 / 0.057 plus sensor noise, real
+# thetaddot from the vendor drive and from 2026-11-14's low-speed engagements, the "true" thetaddot
+# a smoother estimate than ours or ours one carState early or late): at most 0.1 % of ticks counted
+# a touch. Two carStates out: 1-3 %. Without the inertia term: 3-9 %, and at low speed a false
+# touch in every 5 s window, which would keep every alert away.
+# NOT yet validated: real hands-off readings while the EPS steers (column friction, torsion
+# compliance, road input are not in the model). The closed course must show the 5 s alert
+# appearing on time with the hands off before this is relied on.
 HANDS_ON_TORQUE = {
-  "BYD_SONG_PLUS_DMI_23": (-1.1, 3.0),   # (zero, threshold)
+  # zero, threshold, inertia (kg m^2), activity (1 s peak-to-peak), quiet_accel (deg/s^2)
+  "BYD_SONG_PLUS_DMI_23": {"zero": -1.1, "threshold": 3.0, "inertia": 0.05, "activity": 1.5, "quiet_accel": 100.0},
 }
 HANDS_ON_MIN_TICKS = 2
+TORQUE_PER_INERTIA_ACCEL = (math.pi / 180) / 0.1   # torque units (0.1 Nm) per kg m^2 * deg/s^2
+SAMPLE_DT = 0.01        # carState period: the derivative chain steps on this, not on logMonoTime
+WINDOW_N = 100          # 1 s of carState
+SMOOTH_N = 6
+CHAIN_N = 15            # carStates one centred thetaddot needs
+ACCEL_DELAY = 6         # ... and how far that thetaddot lags the newest of them
+GAP_S = 0.1             # a longer pause between carStates restarts the detector
+
+
+def centred_accel(angles, dt: float = SAMPLE_DT) -> float:
+  """thetaddot (deg/s^2) of angles[8], from angles[0..14], 15 consecutive carStates.
+
+  6-point moving average, centred difference, 6-point moving average, centred difference: the
+  chain the offline evaluation used (np.convolve mode='same', np.gradient), so the thetaddot of
+  carState n-6 is final once carState n has arrived.
+
+  The step is the fixed carState period, NOT the logMonoTime difference. carState is published
+  when pandad hands card a batch of CAN, so consecutive logMonoTimes are 2 to 60 ms apart while
+  the angles inside are one EPS frame apart; dividing by those differences turned the 0.1 deg
+  angle steps into thetaddot spikes of several hundred deg/s^2, and in the hands-off model the
+  compensation term then read as a hand on the wheel in half the ticks (replay, 2026-11-14).
+  """
+  assert len(angles) == CHAIN_N
+  sm = [sum(angles[i - 3:i + 3]) / SMOOTH_N for i in range(3, 13)]   # sm[k]: centre k + 3
+  vel = [(sm[k + 1] - sm[k - 1]) / (2 * dt) for k in range(1, 9)]    # vel[m]: centre m + 4
+  vs_7 = sum(vel[0:6]) / SMOOTH_N
+  vs_9 = sum(vel[2:8]) / SMOOTH_N
+  return (vs_9 - vs_7) / (2 * dt)
 
 
 class HandsOnTorque:
-  def __init__(self, zero: float, threshold: float, min_ticks: int = HANDS_ON_MIN_TICKS):
-    self.zero, self.threshold, self.min_ticks = zero, threshold, min_ticks
+  """Fed every carState (100 Hz) through feed(); asked once per DM tick through tick().
+
+  The torque is paired with the thetaddot of the same carState, so the detector runs ACCEL_DELAY
+  carStates (60 ms) behind; driver monitoring counts seconds, so that costs nothing.
+  """
+  def __init__(self, zero: float, threshold: float, inertia: float = 0.0, activity: float | None = None,
+               quiet_accel: float | None = None, min_ticks: int = HANDS_ON_MIN_TICKS):
+    self.zero, self.threshold, self.inertia = zero, threshold, inertia
+    self.activity, self.quiet_accel, self.min_ticks = activity, quiet_accel, min_ticks
     self.ticks = 0
+    self._t_prev: float | None = None
+    self._chain: deque = deque(maxlen=CHAIN_N)       # (steeringTorque, steeringAngleDeg)
+    self._window: deque = deque(maxlen=WINDOW_N)     # (c, |thetaddot|), newest last
 
   @classmethod
   def for_car(cls, car_fingerprint: str) -> 'HandsOnTorque | None':
     values = HANDS_ON_TORQUE.get(car_fingerprint)
-    return cls(*values) if values is not None else None
+    return cls(**values) if values is not None else None
 
-  def update(self, steering_torque: float) -> bool:
-    """Call once per DM tick."""
-    self.ticks = self.ticks + 1 if abs(steering_torque - self.zero) > self.threshold else 0
+  def feed(self, t: float, steering_torque: float, steering_angle_deg: float) -> None:
+    if self._t_prev is not None and not (0. <= t - self._t_prev <= GAP_S):
+      # carState paused (or time went backwards): start over rather than difference across it
+      self._chain.clear()
+      self._window.clear()
+    self._t_prev = t
+    self._chain.append((steering_torque, steering_angle_deg))
+    if len(self._chain) < CHAIN_N:
+      return
+    accel = centred_accel([s[1] for s in self._chain])
+    torque = self._chain[CHAIN_N - 1 - ACCEL_DELAY][0]
+    c = torque - self.zero + TORQUE_PER_INERTIA_ACCEL * self.inertia * accel
+    self._window.append((c, abs(accel)))
+
+  def _hit(self) -> bool:
+    if not self._window:
+      return False
+    c_now = self._window[-1][0]
+    if self.activity is None or self.quiet_accel is None:
+      return abs(c_now) > self.threshold
+    if max(w[1] for w in self._window) < self.quiet_accel:
+      cs = [w[0] for w in self._window]
+      return max(cs) - min(cs) >= self.activity
+    return abs(c_now) > self.threshold
+
+  def tick(self, fresh: bool = True) -> bool:
+    """Once per DM tick. fresh=False (no new carState since the last tick) resets, so a stalled
+    carState can never be counted as a held touch."""
+    if not fresh:
+      self.ticks = 0
+      return False
+    self.ticks = self.ticks + 1 if self._hit() else 0
     return self.ticks >= self.min_ticks
 
 
@@ -110,27 +194,35 @@ class CarStateHandsOn:
     return getattr(self._cs, name)
 
 
+def carstate_feed(sock):
+  """Every carState since the last call, as (t, steeringTorque, steeringAngleDeg)."""
+  def drain():
+    return [(m.logMonoTime * 1e-9, m.carState.steeringTorque, m.carState.steeringAngleDeg)
+            for m in messaging.drain_sock(sock)]
+  return drain
+
+
 class SubMasterNoCabinCamera:
   """SubMaster proxy that substitutes a synthetic driverStateV2 for the absent camera and, when
   a hands-on detector is given, widens carState.steeringPressed for driver monitoring."""
-  def __init__(self, sm, driver_state, hands_on: HandsOnTorque | None = None):
+  def __init__(self, sm, driver_state, hands_on: HandsOnTorque | None = None, feed=None):
     self._sm = sm
     self._driver_state = driver_state
     self._hands_on = hands_on
+    self._feed = feed
     self._hands_on_now = False
 
   def update(self, timeout=100):
     self._sm.update(timeout)
-    # Once per update() - i.e. once per DM tick - not per access: run_step reads carState
-    # several times per tick and the detector counts ticks. Only a NEW carState advances it; a
-    # stale one resets it, so a stalled carState can never be counted as a held touch
+    # The SubMaster only keeps the latest carState; the detector needs every one (100 Hz) for
+    # thetaddot and the 1 s window, so it reads them from its own unconflated socket. It is
+    # asked once per update(), i.e. once per DM tick, and only new carStates count
     # (openpilot-1e's review, 2026-11-14).
-    if self._hands_on is not None:
-      if self._sm.updated['carState']:
-        self._hands_on_now = self._hands_on.update(self._sm['carState'].steeringTorque)
-      else:
-        self._hands_on.ticks = 0
-        self._hands_on_now = False
+    if self._hands_on is not None and self._feed is not None:
+      samples = self._feed()
+      for s in samples:
+        self._hands_on.feed(*s)
+      self._hands_on_now = self._hands_on.tick(fresh=bool(samples))
 
   def __getitem__(self, service):
     if service == 'driverStateV2':
@@ -164,8 +256,8 @@ def dmonitoringd_thread():
     CP = messaging.log_from_bytes(params.get("CarParams", block=True), car.CarParams)
     hands_on = HandsOnTorque.for_car(CP.carFingerprint)
     if hands_on is not None:
-      cloudlog.warning(f"no cabin camera: torque hands-on detection for {CP.carFingerprint}, "
-                       f"|steeringTorque - ({hands_on.zero})| > {hands_on.threshold} for {hands_on.min_ticks} ticks")
+      cloudlog.warning(f"no cabin camera: torque hands-on detection for {CP.carFingerprint}: "
+                       f"{HANDS_ON_TORQUE[CP.carFingerprint]}, {hands_on.min_ticks} ticks")
     else:
       cloudlog.warning(f"no cabin camera: no hands-on torque values for {CP.carFingerprint}; steeringPressed only")
     # All THREE ignore lists have to name driverStateV2, which is why they share one
@@ -201,6 +293,7 @@ def dmonitoringd_thread():
                           ignore_valid=NO_CABIN_CAMERA_IGNORE + CALIBRATION_VALIDITY_NOT_REQUIRED),
       no_face_driver_state(),
       hands_on,
+      carstate_feed(messaging.sub_sock('carState', conflate=False)) if hands_on is not None else None,
     )
     rk: Ratekeeper | None = Ratekeeper(1. / DT_DMON)
   else:

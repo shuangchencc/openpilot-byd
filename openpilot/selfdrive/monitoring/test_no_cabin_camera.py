@@ -8,6 +8,9 @@ whose camera cannot make out a face. test_monitoring.py already covers that path
 What is specific here - and the reason dmonitoringd synthesizes a driverStateV2 rather than
 letting the default one through - is the trap in the first test below.
 """
+import math
+import random
+
 from openpilot.common.test import OpenpilotTestCase
 from openpilot.cereal import log
 from openpilot.common.realtime import DT_DMON
@@ -15,6 +18,10 @@ from openpilot.selfdrive.monitoring.dmonitoringd import (no_face_driver_state,
                                                          SubMasterNoCabinCamera,
                                                          HandsOnTorque,
                                                          HANDS_ON_TORQUE,
+                                                         TORQUE_PER_INERTIA_ACCEL,
+                                                         SAMPLE_DT, SMOOTH_N, CHAIN_N, ACCEL_DELAY, GAP_S, WINDOW_N,
+                                                         centred_accel,
+                                                         carstate_feed,
                                                          NO_CABIN_CAMERA_IGNORE,
                                                          CALIBRATION_VALIDITY_NOT_REQUIRED)
 from openpilot.selfdrive.monitoring.policy import DriverMonitoring
@@ -218,29 +225,179 @@ class TestNoCabinCameraWiring(OpenpilotTestCase):
       )
 
 
+SONG_PLUS = "BYD_SONG_PLUS_DMI_23"
+ZERO = HANDS_ON_TORQUE[SONG_PLUS]["zero"]
+INERTIA = HANDS_ON_TORQUE[SONG_PLUS]["inertia"]
+
+
+def song_plus():
+  return HandsOnTorque.for_car(SONG_PLUS)
+
+
+def feed_ticks(det, torques, angles=None, t0=0.0):
+  """Feed 100 Hz carStates (torque, angle) and ask once per DM tick (every 5th carState)."""
+  if angles is None:
+    angles = [0.0] * len(torques)
+  out = []
+  for n, (tq, ang) in enumerate(zip(torques, angles, strict=True)):
+    det.feed(t0 + n * SAMPLE_DT, tq, ang)
+    if n % 5 == 4:
+      out.append(det.tick())
+  return out
+
+
+def resting_hand(level, wobble, n, hz=2.0):
+  """A hand on the wheel: a mean torque with a small wobble, on the sensor's 0.1 grid."""
+  return [round(level + wobble * math.sin(2 * math.pi * hz * i * SAMPLE_DT), 1) for i in range(n)]
+
+
+def eps_turning(amplitude_deg, hz, n):
+  """The EPS swinging the wheel, hands off: the angle on the sensor's 0.1 deg grid and the torque
+  the sensor reads from the wheel's own inertia alone (on its 0.1 grid)."""
+  w = 2 * math.pi * hz
+  angles = [round(amplitude_deg * math.sin(w * i * SAMPLE_DT), 1) for i in range(n)]
+  accel = [-amplitude_deg * w * w * math.sin(w * i * SAMPLE_DT) for i in range(n)]
+  torques = [round(ZERO - TORQUE_PER_INERTIA_ACCEL * INERTIA * a, 1) for a in accel]
+  return torques, angles, max(abs(a) for a in accel)
+
+
+class TestHandsOnTorque(OpenpilotTestCase):
+  """Driver monitoring counts a hand resting on the wheel as a touch, without lowering steeringPressed.
+
+  The rule (dmonitoringd.HANDS_ON_TORQUE): c = torque - zero + K * inertia * thetaddot; with the
+  wheel quiet (max |thetaddot| over 1 s < 100 deg/s^2) a touch is a 1 s peak-to-peak of c of at
+  least 1.5, otherwise |c| > 3.0; held for 2 DM ticks. Levels are openpilot-a0's labelled capture
+  of 2026-11-13 (route 00000013): untouched -1.33, natural two-hand hold mean +2.64, driving zero -1.1.
+  """
+
+  def test_only_the_song_plus_has_values(self):
+    assert song_plus() is not None
+    assert HandsOnTorque.for_car("BYD_ATTO_3") is None
+    assert HandsOnTorque.for_car("TOYOTA_RAV4") is None
+    assert set(HANDS_ON_TORQUE) == {SONG_PLUS}
+
+  def test_thetaddot_is_the_offline_chain(self):
+    # the online detector must compute what migration-audit/closed-course-20261114 evaluated
+    import numpy as np
+    rng = np.random.default_rng(1)
+    ang = np.round(np.cumsum(rng.normal(0, 0.3, 300)), 1)
+    k = np.ones(SMOOTH_N) / SMOOTH_N
+    ref = np.gradient(np.convolve(np.gradient(np.convolve(ang, k, mode="same"), SAMPLE_DT), k, mode="same"), SAMPLE_DT)
+    for n in range(30, 290):
+      assert abs(centred_accel(list(ang[n - CHAIN_N + 1:n + 1])) - ref[n - ACCEL_DELAY]) < 1e-6
+    # and it is exact on a parabola: 200 deg/s^2
+    assert abs(centred_accel([100. * (i * SAMPLE_DT) ** 2 for i in range(CHAIN_N)]) - 200.) < 1e-6
+
+  def test_the_step_is_the_carstate_period_not_the_timestamps(self):
+    # carState timestamps jitter by several ms (pandad batches); the same angles must give the
+    # same result however the timestamps fall
+    torques, angles, _ = eps_turning(10., 0.5, 300)
+    jittered = [n * SAMPLE_DT + (0.004 if n % 3 == 0 else -0.003 if n % 3 == 1 else 0.) for n in range(300)]
+    a, b = song_plus(), song_plus()
+    for n in range(300):
+      a.feed(n * SAMPLE_DT, torques[n], angles[n])
+      b.feed(jittered[n], torques[n], angles[n])
+    assert list(a._window) == list(b._window)
+
+  def test_torque_is_paired_with_the_thetaddot_of_the_same_carstate(self):
+    # thetaddot of carState n-6 is final once carState n is in; the torque of n-6 goes with it
+    det = song_plus()
+    torques = [0.1 * i for i in range(40)]                       # a different torque in every carState
+    angles = [100. * (i * SAMPLE_DT) ** 2 for i in range(40)]    # 200 deg/s^2 throughout
+    for i in range(40):
+      det.feed(i * SAMPLE_DT, torques[i], angles[i])
+    c = [w[0] for w in det._window]
+    expected = [torques[n - ACCEL_DELAY] - ZERO + TORQUE_PER_INERTIA_ACCEL * INERTIA * 200. for n in range(CHAIN_N - 1, 40)]
+    assert len(c) == len(expected) and all(abs(a - b) < 1e-6 for a, b in zip(c, expected, strict=True))
+    assert all(abs(w[1] - 200.) < 1e-6 for w in det._window)
+
+  def test_activity_is_remembered_for_one_second(self):
+    # the peak-to-peak looks back WINDOW_N carStates: a hand that has let go still counts until
+    # its last swing has left the window, at most a second later, then no longer
+    burst = resting_hand(2.64, 0.8, 100) + [2.6] * 300           # 1 s of a hand, then a steady offset
+    ticks = feed_ticks(song_plus(), burst)
+    last_touch = max(i for i, x in enumerate(ticks) if x) * 5 * SAMPLE_DT
+    assert 1.0 + 0.5 <= last_touch <= 1.0 + (WINDOW_N + ACCEL_DELAY) * SAMPLE_DT + 0.1, last_touch
+    assert not any(ticks[int(2.2 / (5 * SAMPLE_DT)):])
+
+  def test_an_untouched_still_wheel_never_counts(self):
+    rng = random.Random(0)
+    sensor_noise = [round(ZERO + rng.choice((-0.1, 0., 0., 0.1)), 1) for _ in range(1000)]
+    assert not any(feed_ticks(song_plus(), sensor_noise))
+    assert not any(feed_ticks(song_plus(), [-1.33] * 1000))      # standstill zero
+    assert not any(feed_ticks(song_plus(), [-3.2] * 1000))       # residue after a turn (11/12), held
+
+  def test_a_resting_hand_counts(self):
+    ticks = feed_ticks(song_plus(), resting_hand(2.64, 0.8, 400))
+    assert not ticks[0]
+    assert all(ticks[20:]), "a hand wobbling 1.6 peak-to-peak counts from the first second on"
+    assert all(feed_ticks(song_plus(), resting_hand(-1.1, 0.8, 400))[20:]), "measured from the zero's side too"
+
+  def test_a_wobble_under_the_activity_level_does_not_count(self):
+    assert not any(feed_ticks(song_plus(), resting_hand(2.64, 0.6, 400)))   # 1.2 peak-to-peak
+
+  def test_a_steady_offset_on_a_still_wheel_is_not_a_hand(self):
+    # A quiet wheel is judged on activity only, so a constant torque - a zero that has drifted, a
+    # residue after a turn - cannot hide the alerts however far it is from the zero. A real hand
+    # is never that still (vendor lateral control: activity in 94 % of ticks).
+    assert not any(feed_ticks(song_plus(), [3.41] * 400))
+
+  def test_the_eps_turning_the_wheel_hands_off_is_not_a_touch(self):
+    # The angle's 0.1 deg steps put 8-20 deg/s^2 rms of noise on thetaddot (up to 41), so these
+    # stay clear of quiet_accel: near it the branch may change from one tick to the next.
+    # quiet wheel, thetaddot up to 69 deg/s^2
+    torques, angles, peak = eps_turning(7., 0.5, 600)
+    assert peak < HANDS_ON_TORQUE[SONG_PLUS]["quiet_accel"] - 25
+    assert not any(feed_ticks(song_plus(), torques, angles))
+    # wheel moving fast, thetaddot up to 395 deg/s^2: the inertia alone reads |torque - zero| 3.4
+    torques, angles, peak = eps_turning(10., 1.0, 600)
+    assert peak > HANDS_ON_TORQUE[SONG_PLUS]["quiet_accel"] + 25
+    assert max(abs(x - ZERO) for x in torques) > 3.0
+    assert not any(feed_ticks(song_plus(), torques, angles))
+    no_inertia = HandsOnTorque(**{**HANDS_ON_TORQUE[SONG_PLUS], "inertia": 0.0})
+    assert any(feed_ticks(no_inertia, torques, angles)), "without the inertia term this is a touch"
+
+  def test_a_hand_on_a_moving_wheel_counts(self):
+    torques, angles, _ = eps_turning(5., 0.5, 600)       # quiet: judged on activity
+    hand = resting_hand(0., 1.0, 600, hz=3.0)
+    assert all(feed_ticks(song_plus(), [x + h for x, h in zip(torques, hand, strict=True)], angles)[20:])
+    torques, angles, _ = eps_turning(10., 1.0, 600)      # fast: judged on |c| > 3.0
+    assert all(feed_ticks(song_plus(), [x + 4.5 for x in torques], angles)[20:])
+
+  def test_on_a_moving_wheel_a_touch_must_last_two_ticks(self):
+    torques, angles, _ = eps_turning(10., 1.0, 600)
+    short = [x + (4.5 if 300 <= i < 305 else 0.) for i, x in enumerate(torques)]   # one tick long
+    assert not any(feed_ticks(song_plus(), short, angles))
+    held = [x + (4.5 if 300 <= i < 315 else 0.) for i, x in enumerate(torques)]    # three ticks
+    assert any(feed_ticks(song_plus(), held, angles))
+
+  def test_no_new_carstate_resets(self):
+    det = song_plus()
+    assert feed_ticks(det, resting_hand(2.64, 0.8, 200))[-1]
+    assert det.tick(fresh=False) is False and det.ticks == 0
+    assert det.tick() is False             # counts again from one
+    assert det.tick() is True
+
+  def test_a_pause_in_carstate_starts_over(self):
+    det = song_plus()
+    assert feed_ticks(det, resting_hand(2.64, 0.8, 200))[-1]
+    det.feed(200 * SAMPLE_DT + GAP_S + 0.05, 2.64, 0.)
+    assert len(det._window) == 0 and det.tick() is False
+
+
 class FakeCarState:
-  def __init__(self, steering_torque, steering_pressed=False):
-    self.steeringTorque = steering_torque
-    self.steeringPressed = steering_pressed
+  def __init__(self):
+    self.steeringPressed = False
     self.gasPressed = False
     self.vEgo = 8.3
 
 
 class FakeSubMaster:
-  """Stands in for messaging.SubMaster: update() moves to the next carState in a script."""
-  def __init__(self, torques, pressed=False, stall_after=None):
-    self._script = list(torques)
-    self._pressed = pressed
-    self._stall_after = stall_after
-    self.cs = None
+  def __init__(self):
+    self.cs = FakeCarState()
     self.updates = 0
-    self.updated = {'carState': False}
 
   def update(self, timeout=100):
-    stalled = self._stall_after is not None and self.updates >= self._stall_after
-    if not stalled:
-      self.cs = FakeCarState(self._script[min(self.updates, len(self._script) - 1)], self._pressed)
-    self.updated = {'carState': not stalled}
     self.updates += 1
 
   def __getitem__(self, service):
@@ -248,82 +405,79 @@ class FakeSubMaster:
     return self.cs
 
 
-class TestHandsOnTorque(OpenpilotTestCase):
-  """Driver monitoring counts a light hold on the wheel as a touch, without lowering steeringPressed.
+class ScriptedFeed:
+  """Stands in for carstate_feed(): each call returns the carStates of one DM tick (5 at 100 Hz)."""
+  def __init__(self, torques, ticks_with_data=None):
+    samples = [(i * SAMPLE_DT, tq, 0.) for i, tq in enumerate(torques)]
+    self._batches = [samples[i:i + 5] for i in range(0, len(samples), 5)][:ticks_with_data]
 
-  Numbers are openpilot-a0's labelled capture of 2026-11-13 (route 00000013): untouched -1.33,
-  natural two-hand hold mean +2.64, one hand mean +3.41, driving zero -1.1.
-  """
+  def __call__(self):
+    return self._batches.pop(0) if self._batches else []
 
-  def _ticks(self, torques):
-    det = HandsOnTorque.for_car("BYD_SONG_PLUS_DMI_23")
-    return [det.update(t) for t in torques]
 
-  def test_only_the_song_plus_has_values(self):
-    assert HandsOnTorque.for_car("BYD_SONG_PLUS_DMI_23") is not None
-    assert HandsOnTorque.for_car("BYD_ATTO_3") is None
-    assert HandsOnTorque.for_car("TOYOTA_RAV4") is None
-    assert set(HANDS_ON_TORQUE) == {"BYD_SONG_PLUS_DMI_23"}
-
-  def test_untouched_wheel_never_counts(self):
-    # standstill untouched readings, plus the -3.2 residue after a turn (11/12) is still under
-    assert not any(self._ticks([-1.33, -1.27, -1.39, -1.1, -3.2, -1.33] * 20))
-
-  def test_natural_hold_counts_after_two_ticks(self):
-    assert self._ticks([2.64, 2.64]) == [False, True]
-    assert self._ticks([3.41, 3.41, 3.41]) == [False, True, True]
-    # either direction, measured from the zero, not from 0
-    assert self._ticks([-4.2, -4.2]) == [False, True]     # |-4.2 + 1.1| = 3.1
-    assert self._ticks([-3.9, -3.9]) == [False, False]    # |-3.9 + 1.1| = 2.8
-
-  def test_a_single_bump_does_not_count(self):
-    assert not any(self._ticks([-1.3, 4.0, -1.3, 4.0, -1.3]))
-
-  def test_proxy_widens_steering_pressed_for_monitoring_only(self):
-    det = HandsOnTorque.for_car("BYD_SONG_PLUS_DMI_23")
-    real = FakeSubMaster([2.64, 2.64, 2.64])
-    sm = SubMasterNoCabinCamera(real, no_face_driver_state(), det)
-    sm.update(0)
-    assert sm['carState'].steeringPressed is False         # one tick is not enough
-    sm.update(0)
-    seen = sm['carState']
-    assert seen.steeringPressed is True                    # what driver monitoring sees
-    assert seen.vEgo == 8.3 and seen.gasPressed is False   # everything else passes through
-    assert real['carState'].steeringPressed is False        # the real carState is untouched
-    # several reads in one tick must not advance the detector
-    for _ in range(5):
+class TestSubMasterNoCabinCamera(OpenpilotTestCase):
+  def test_steering_pressed_is_widened_for_monitoring_only(self):
+    det = song_plus()
+    real = FakeSubMaster()
+    sm = SubMasterNoCabinCamera(real, no_face_driver_state(), det, ScriptedFeed(resting_hand(2.64, 0.8, 300)))
+    seen = []
+    for _ in range(60):
+      sm.update(0)
+      seen.append(sm['carState'].steeringPressed)
+    assert seen[0] is False and all(seen[20:])
+    cs = sm['carState']
+    assert cs.vEgo == 8.3 and cs.gasPressed is False       # everything else passes through
+    assert real['carState'].steeringPressed is False       # the real carState is untouched
+    ticks = det.ticks
+    for _ in range(5):                                     # reads do not advance the detector
       _ = sm['carState']
-    assert det.ticks == 2
+    assert det.ticks == ticks
 
-  def test_a_stalled_carstate_is_not_counted_as_a_held_touch(self):
-    det = HandsOnTorque.for_car("BYD_SONG_PLUS_DMI_23")
-    real = FakeSubMaster([3.41] * 10, stall_after=2)   # two fresh samples, then carState stops
-    sm = SubMasterNoCabinCamera(real, no_face_driver_state(), det)
-    sm.update(0); sm.update(0)
+  def test_a_stalled_carstate_is_not_a_held_touch(self):
+    det = song_plus()
+    sm = SubMasterNoCabinCamera(FakeSubMaster(), no_face_driver_state(), det,
+                                ScriptedFeed(resting_hand(2.64, 0.8, 300), ticks_with_data=40))
+    for _ in range(40):
+      sm.update(0)
     assert sm['carState'].steeringPressed is True
-    sm.update(0)                                        # stale: same carState object, not new
+    sm.update(0)                                           # no carState since the last tick
     assert sm['carState'].steeringPressed is False
     assert det.ticks == 0
 
   def test_without_a_detector_carstate_is_the_real_one(self):
-    real = FakeSubMaster([9.9])
+    real = FakeSubMaster()
     sm = SubMasterNoCabinCamera(real, no_face_driver_state())
     sm.update(0)
     assert sm['carState'] is real.cs
 
-  def test_dmonitoringd_passes_the_detector_and_keeps_steering_pressed_at_24(self):
+  def test_carstate_feed_returns_every_message_since_the_last_call(self):
+    from unittest import mock
+    from openpilot.selfdrive.monitoring import dmonitoringd
+
+    def msg(mono_ns, torque, angle):
+      m = mock.Mock()
+      m.logMonoTime, m.carState.steeringTorque, m.carState.steeringAngleDeg = mono_ns, torque, angle
+      return m
+    queue = [[msg(1_000_000_000, 2.5, -3.0), msg(1_010_000_000, 2.6, -3.1)], []]
+    with mock.patch.object(dmonitoringd.messaging, 'drain_sock', side_effect=lambda sock: queue.pop(0)):
+      drain = carstate_feed('sock')
+      assert drain() == [(1.0, 2.5, -3.0), (1.01, 2.6, -3.1)]
+      assert drain() == []
+
+  def test_dmonitoringd_wires_the_detector_and_keeps_steering_pressed_at_24(self):
     import ast
     import inspect
     from openpilot.selfdrive.monitoring import dmonitoringd
     from opendbc.car.byd.values import CarControllerParams
     tree = ast.parse(inspect.getsource(dmonitoringd.dmonitoringd_thread))
-    proxies = [n for n in ast.walk(tree) if isinstance(n, ast.Call)
-               and getattr(n.func, 'id', None) == 'SubMasterNoCabinCamera']
-    assert proxies and all(len(n.args) == 3 for n in proxies), "the hands-on detector is not passed in"
+    proxies = [n for n in ast.walk(tree) if isinstance(n, ast.Call) and getattr(n.func, 'id', None) == 'SubMasterNoCabinCamera']
+    assert proxies and all(len(n.args) == 4 for n in proxies), "the hands-on detector and its carState feed are not passed in"
+    feed = ast.unparse(proxies[0].args[3])
+    assert "carstate_feed" in feed and "sub_sock('carState', conflate=False)" in feed, \
+      f"the detector needs every carState, from its own unconflated socket; got {feed}"
     calls = [ast.unparse(n.func) for n in ast.walk(tree) if isinstance(n, ast.Call)]
     assert 'HandsOnTorque.for_car' in calls
     # The decoupling: the port's steeringPressed stays a deliberate-override signal, because it
-    # also drives the lateral override state and the lane-change nudge (and, planned, dropping
-    # STEER_REQ while the driver overrides). Lowering it is a separate decision.
+    # also drives the lateral override state, the lane-change nudge and the port's release of
+    # STEER_REQ while the driver overrides. Lowering it is a separate decision.
     assert CarControllerParams.STEER_DRIVER_OVERRIDE_NM == 24.0
-
