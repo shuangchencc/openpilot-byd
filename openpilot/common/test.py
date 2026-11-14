@@ -3,6 +3,7 @@ import gc
 import inspect
 import os
 import subprocess
+import sys
 import unittest
 from unittest import mock
 
@@ -21,10 +22,36 @@ def clean_env():
     os.environ.update(starting_env)
 
 
+class HardwareTestRefused(RuntimeError):
+  pass
+
+
+def refuse_hardware_test(cls) -> str | None:
+  """Why this hardware test class must not run on this device, or None if it may.
+
+  Upstream's COMMA_HARDWARE_TEST classes were written for comma's test benches. Among other
+  things test_pandad resets and reflashes whichever panda it finds and holds the internal one
+  in reset through GPIO, and test_pandad_loopback sets allOutput and sends random CAN frames.
+  This port runs on a comma three-class device (device type tici) that is installed in a car
+  and has an internal panda that must never be reset or flashed. On 2026-11-14 running
+  test_amplifier.py there reset that panda. So on tici a hardware test is refused, loudly,
+  unless its class declares SAFE_ON_TICI after someone has read what it does.
+  """
+  if cls.COMMA_HARDWARE_TEST and COMMA_HARDWARE and not cls.SAFE_ON_TICI and HARDWARE.get_device_type() == "tici":
+    name = f"{cls.__module__}.{cls.__qualname__}"
+    return " ".join([
+      f"{name} is a comma hardware test and is refused on tici:",
+      "this device is installed in a car and its internal panda must never be reset or flashed.",
+      "Nothing was run. See refuse_hardware_test() in openpilot/common/test.py.",
+    ])
+  return None
+
+
 class OpenpilotTestCase(unittest.TestCase):
   """TestCase with openpilot's per-test isolation."""
 
   COMMA_HARDWARE_TEST = False
+  SAFE_ON_TICI = False
   SHARED_DOWNLOAD_CACHE = False
 
   def __init_subclass__(cls, **kwargs):
@@ -63,6 +90,20 @@ class OpenpilotTestCase(unittest.TestCase):
     # are allowed to override those hooks without calling super().
     if (self.COMMA_HARDWARE_TEST and not COMMA_HARDWARE) or getattr(type(self), "__unittest_skip__", False):
       return super().run(result)
+    refused = refuse_hardware_test(type(self))
+    if refused is not None:
+      # Reached when a test runs without its class fixtures or the class overrides setUpClass;
+      # otherwise setUpClass has refused already. A class skipped by decorator stays a skip (above).
+      # Report an error rather than a skip, so that "nothing ran" cannot be read as "passed".
+      result = result if result is not None else self.defaultTestResult()
+      result.startTest(self)
+      try:
+        raise HardwareTestRefused(refused)
+      except HardwareTestRefused:
+        result.addError(self, sys.exc_info())
+      finally:
+        result.stopTest(self)
+      return result
     test_env = clean_env()
     test_env.__enter__()
     prefix = OpenpilotPrefix(shared_download_cache=self.SHARED_DOWNLOAD_CACHE)
@@ -82,6 +123,9 @@ class OpenpilotTestCase(unittest.TestCase):
     super().setUpClass()
     if cls.COMMA_HARDWARE_TEST and not COMMA_HARDWARE:
       raise unittest.SkipTest("Skipping comma hardware test on PC")
+    refused = refuse_hardware_test(cls)
+    if refused is not None:
+      raise HardwareTestRefused(refused)
     cls._class_env = clean_env()
     cls._class_env.__enter__()
     setup_class = getattr(cls, "setup_class", None)
