@@ -55,6 +55,14 @@ class CarControllerParams:
   # all 20 recorded requests (18 of the vendor's stack, 2 of ours) within 46 ms, so
   # 0.5 s is ten times the worst seen.
   EPS_UNANSWERED_REQUEST_FRAMES = 50  # at 100 Hz
+  # ... and how many steering frames asking to steer panda may refuse within a window
+  # before that counts as the same fault. A refused frame never reaches the EPS and
+  # the stock camera's are behind the relay, so while panda refuses frame after frame
+  # the EPS gets no steering frame at all. A single one, or two, is what a brake press
+  # costs: panda withdraws permission on the brake frame itself, before openpilot can
+  # stop asking (one in the car on 2026-11-14, two in a closed-loop replay).
+  STEER_REJECTED_LIMIT = 3
+  STEER_REJECTED_WINDOW = 50  # steps at 100 Hz
   # Platforms with BydFlags.YIELD_TO_DRIVER: how long after the driver has stopped
   # turning the wheel (steeringPressed) the EPS is asked to steer again. Long enough
   # that a torque hovering at the threshold is one withdrawal and not a string of them.
@@ -123,6 +131,8 @@ class BydFlags(IntFlag):
   # fault indication: the camera-side LKAS_STATE the Atto 3 path reads is constant 0
   # here, and the EPS's TORQUE_FAILED / TORQUE_TEMP_FAILED bits have never been seen
   # set, not even when it aborted.
+  # The flag also makes the port watch the steering frames panda refuses to send,
+  # which the EPS would otherwise only show as not steering, half a second later.
   # Evidence: migration-audit/byd-safety-verification-20261114/out/eps-request-answer-*.txt
   EPS_LKA_STATE = 128
   # Do not ask the EPS to steer while the driver is turning the wheel.

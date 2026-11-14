@@ -33,6 +33,8 @@ class CarState(CarStateBase):
     self.acc_key_prev = False
     self.acc_key_cancel = False
     self.eps_lka_state = EPS_LKA_OFF
+    # steering frames asking the EPS to steer that panda refused, in this update
+    self.steer_requests_rejected = 0
     # set by the CarController, which is the side that knows whether we are asking
     self.lka_request_unanswered = False
     self.lka_request_given_up = False
@@ -128,6 +130,10 @@ class CarState(CarStateBase):
       # openpilot has disengaged, and makes it permanent if that takes too long.
       ret.steerFaultTemporary = ret.steerFaultTemporary or self.lka_request_unanswered
       ret.steerFaultPermanent = ret.steerFaultPermanent or self.lka_request_given_up
+      # A steering frame panda refuses to send never reaches the EPS, and pandad hands it
+      # back to us on its bus + 0xC0. Counted here, judged by the CarController.
+      rejected = can_parsers[Bus.loopback].vl_all["STEERING_MODULE_ADAS"]["STEER_REQ"]
+      self.steer_requests_rejected = sum(1 for steer_req in rejected if steer_req)
 
     # gas / brake
     if self.CP.flags & BydFlags.PEDALS_ALT:
@@ -242,7 +248,16 @@ class CarState(CarStateBase):
 
   @staticmethod
   def get_can_parsers(CP):
-    return {
+    parsers = {
       Bus.pt: CANParser(DBC[CP.carFingerprint][Bus.pt], [], 0),
       Bus.cam: CANParser(DBC[CP.carFingerprint][Bus.pt], [], 2),
     }
+    if CP.flags & BydFlags.EPS_LKA_STATE:
+      # Our own steering frames that panda refused to send (pandad adds 0xC0 to the bus
+      # number of a rejected frame). Normally there are none, and the few there are come
+      # with any counter, so neither their absence (nan: no frequency check) nor their
+      # counter may make the parser, and with it canValid, invalid.
+      rejected = CANParser(DBC[CP.carFingerprint][Bus.pt], [("STEERING_MODULE_ADAS", float('nan'))], 0xC0)
+      rejected.message_states[rejected.dbc.name_to_msg["STEERING_MODULE_ADAS"].address].ignore_counter = True
+      parsers[Bus.loopback] = rejected
+    return parsers

@@ -1,3 +1,5 @@
+from collections import deque
+
 from opendbc.can.packer import CANPacker
 from opendbc.car import Bus
 from opendbc.car.lateral import apply_steer_angle_limits_vm, get_max_angle_delta_vm, get_max_angle_vm
@@ -51,6 +53,7 @@ class CarController(CarControllerBase):
     self.unanswered_frames = 0
     self.request_unanswered = False
     self.unanswered_reported_frames = 0
+    self.rejected_frames: deque[int] = deque()
 
   def update(self, CC, CS, now_nanos):
     can_sends = []
@@ -110,6 +113,9 @@ class CarController(CarControllerBase):
       # The request and the EPS's answer meet here: this side knows whether STEER_REQ
       # is being sent, CarState has just read what the EPS says it is doing.
       self.unanswered_frames = self.unanswered_frames + 1 if (steer_req and CS.eps_lka_state != EPS_LKA_ACTIVE) else 0
+      # The same goes for steering frames asking to steer that panda refused: none of
+      # them reaches the EPS. They come back to CarState a step or two after we built
+      # them; STEER_REJECTED_LIMIT of them within STEER_REJECTED_WINDOW is the fault.
       # CarState reports this as a temporary steering fault, and openpilot stops asking
       # while one is reported, which by itself would end the fault two steps after it
       # began and start the whole thing over. So once it has happened it stays reported
@@ -117,8 +123,14 @@ class CarController(CarControllerBase):
       if not CC.enabled:
         self.request_unanswered = False
         self.unanswered_reported_frames = 0
-      elif self.unanswered_frames > CarControllerParams.EPS_UNANSWERED_REQUEST_FRAMES:
-        self.request_unanswered = True
+        self.rejected_frames.clear()
+      else:
+        self.rejected_frames.extend([self.frame] * CS.steer_requests_rejected)
+        while self.rejected_frames and self.frame - self.rejected_frames[0] >= CarControllerParams.STEER_REJECTED_WINDOW:
+          self.rejected_frames.popleft()
+        if (self.unanswered_frames > CarControllerParams.EPS_UNANSWERED_REQUEST_FRAMES or
+            len(self.rejected_frames) >= CarControllerParams.STEER_REJECTED_LIMIT):
+          self.request_unanswered = True
       self.unanswered_reported_frames += self.request_unanswered
       CS.lka_request_unanswered = self.request_unanswered
       # A temporary fault ends the engagement through a 3 s soft disable, except when

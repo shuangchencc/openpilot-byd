@@ -1,9 +1,13 @@
+import random
 import unittest
 from collections import defaultdict
 
+from opendbc.can.packer import CANPacker
 from opendbc.car import Bus, structs
+from opendbc.car.byd import bydcan
+from opendbc.car.can_definitions import CanData
 from opendbc.car.car_helpers import interfaces
-from opendbc.car.byd.values import CAR, CarControllerParams
+from opendbc.car.byd.values import CAR, DBC, CarControllerParams
 
 SONG_PLUS = CAR.BYD_SONG_PLUS_DMI_23
 ButtonType = structs.CarState.ButtonEvent.Type
@@ -16,6 +20,7 @@ class FakeParser:
   """Stands in for CANParser: every signal reads 0 unless set."""
   def __init__(self):
     self.vl = defaultdict(lambda: defaultdict(float))
+    self.vl_all = defaultdict(lambda: defaultdict(list))
     self.can_valid = True
 
 
@@ -24,7 +29,7 @@ class Car:
     CarInterface = interfaces[platform]
     self.CI = CarInterface(CarInterface.get_non_essential_params(platform))
     self.CS = self.CI.CS
-    self.pt, self.cam = FakeParser(), FakeParser()
+    self.pt, self.cam, self.rejected = FakeParser(), FakeParser(), FakeParser()
     self.frame = 0
     self.sent = []
 
@@ -75,8 +80,14 @@ class Car:
   def key(self, pressed):
     self.pt.vl["PCM_BUTTONS"]["ACC_ON_BTN"] = int(pressed)
 
+  def reject(self, *steer_reqs):
+    """Steering frames panda refused, as pandad hands them back for the next update: their STEER_REQ bits."""
+    self.rejected.vl_all["STEERING_MODULE_ADAS"]["STEER_REQ"] = list(steer_reqs)
+
   def step(self):
-    return self.CS.update({Bus.pt: self.pt, Bus.cam: self.cam})
+    ret = self.CS.update({Bus.pt: self.pt, Bus.cam: self.cam, Bus.loopback: self.rejected})
+    self.rejected.vl_all["STEERING_MODULE_ADAS"]["STEER_REQ"] = []    # CANParser starts every update afresh
+    return ret
 
 
 class TestSongPlusCruiseEnabled(unittest.TestCase):
@@ -678,6 +689,176 @@ class TestSongPlusRequestStartsInsideTheLimit(unittest.TestCase):
     car.wheel(25.0)
     car.drive(False, 50)
     assert {req for req, _, _ in self.frames(car, 50)} == {1}
+
+
+class TestSongPlusRefusedSteeringFrames(unittest.TestCase):
+  """Steering frames asking to steer that panda refused to send come back from pandad with 0xC0
+  added to their bus. Three within half a second are the same fault as an unanswered request."""
+
+  def engaged(self):
+    car = Car()
+    car.speed(30)
+    car.eps(EPS_ACTIVE)
+    assert not car.drive(True, 100).steerFaultTemporary
+    return car
+
+  def drive_rejecting(self, car, steps, every=2, steer_req=1, enabled=True):
+    """Drive `steps` steps; panda refuses one steering frame every `every` steps (a frame is built every other step)."""
+    out = []
+    for i in range(steps):
+      if i % every == 0:
+        car.reject(steer_req)
+      out.append(car.drive(enabled, enabled=enabled))
+    return out
+
+  def test_refusing_every_frame_is_a_fault_after_the_third(self):
+    car = self.engaged()
+    faults = [r.steerFaultTemporary for r in self.drive_rejecting(car, 20)]
+    # refusals seen in steps 0, 2, 4; the CarController latches in step 4, CarState reports from step 5
+    assert faults.index(True) == 5
+    assert all(faults[5:])
+
+  def test_it_is_latched_like_an_unanswered_request(self):
+    car = self.engaged()
+    self.drive_rejecting(car, 6)
+    rets = [car.drive(True, enabled=True) for _ in range(400)]       # no refusals any more, the EPS steering
+    assert all(r.steerFaultTemporary for r in rets)
+    permanent = [r.steerFaultPermanent for r in rets]
+    assert 340 <= permanent.index(True) <= 352                       # still engaged 3.5 s after it began
+    rets = [car.drive(False, enabled=False) for _ in range(3)]
+    assert not rets[-1].steerFaultTemporary and not rets[-1].steerFaultPermanent
+    assert not car.drive(True, 300).steerFaultTemporary              # the next engagement starts from nothing
+
+  def test_one_or_two_refusals_are_not_a_fault(self):
+    # what a brake press costs: panda withdraws permission on the brake frame, before openpilot stops asking
+    for n in (1, 2):
+      car = self.engaged()
+      faults = [r.steerFaultTemporary for r in self.drive_rejecting(car, 2 * n)]
+      faults += [car.drive(True).steerFaultTemporary for _ in range(500)]
+      assert not any(faults), n
+
+  def test_refusals_further_apart_than_half_a_second_are_not_a_fault(self):
+    car = self.engaged()
+    faults = [r.steerFaultTemporary for r in self.drive_rejecting(car, 1000, every=26)]   # three take 52 steps
+    assert not any(faults)
+    car = self.engaged()
+    faults = [r.steerFaultTemporary for r in self.drive_rejecting(car, 60, every=24)]     # three take 48 steps
+    assert any(faults)
+
+  def test_several_in_one_update_count_each(self):
+    car = self.engaged()
+    car.reject(1, 1, 1)                     # pandad can hand back a batch after a stall
+    car.drive(True)
+    assert car.drive(True).steerFaultTemporary
+    car = self.engaged()
+    car.reject(1, 0, 1)
+    car.drive(True)
+    assert not car.drive(True, 100).steerFaultTemporary
+
+  def test_refused_frames_that_do_not_ask_do_not_count(self):
+    # e.g. before panda is in the car's safety mode it refuses every frame, asking or not
+    car = self.engaged()
+    faults = [r.steerFaultTemporary for r in self.drive_rejecting(car, 400, every=1, steer_req=0)]
+    assert not any(faults)
+
+  def test_refusals_while_not_engaged_count_for_nothing_later(self):
+    car = Car()
+    car.speed(30)
+    car.eps(EPS_READY)
+    faults = [r.steerFaultTemporary for r in self.drive_rejecting(car, 10, every=1, enabled=False)]
+    car.eps(EPS_ACTIVE)
+    faults += [car.drive(True).steerFaultTemporary for _ in range(300)]     # engaged at once, nothing refused since
+    assert not any(faults)
+
+  def test_refusals_before_a_disengagement_count_for_nothing_after_it(self):
+    car = self.engaged()
+    self.drive_rejecting(car, 4)               # two refusals while engaged: a brake press
+    car.drive(False, 2, enabled=False)         # openpilot lets go
+    car.reject(1)                              # engaged again at once, and one more refusal
+    faults = [car.drive(True).steerFaultTemporary for _ in range(100)]
+    assert not any(faults)
+
+  def test_with_openpilot_in_the_loop_it_stops_asking_and_disengages(self):
+    # From now on panda refuses every frame that asks to steer (permission lost, or a check that
+    # keeps failing). controlsd stops asking on the fault, frames that do not ask pass, and the
+    # 3 s soft disable ends the engagement.
+    car = self.engaged()
+    fault, soft_disable, refused, pending, trace = False, 300, 0, [], []
+    for step in range(500):
+      enabled = soft_disable > 0
+      asking = enabled and not fault
+      due = [s for s in pending if s == step]
+      pending = [s for s in pending if s != step]
+      if due:
+        car.reject(*[1] * len(due))           # back from pandad two steps after it was built
+        refused += len(due)
+      mark = len(car.sent)
+      ret = car.drive(asking, enabled=enabled)
+      pending += [step + 2 for req, _, _ in car.steering_frames(mark) if req]
+      fault = ret.steerFaultTemporary
+      soft_disable -= fault
+      trace.append((asking, fault, enabled))
+    first = [f for _, f, _ in trace].index(True)
+    assert first <= 8                          # 80 ms
+    assert 3 <= refused <= 5
+    assert not any(a for a, _, _ in trace[first + 1:])     # asked no more once the fault was reported
+    assert [e for _, _, e in trace].index(False) == first + 300
+    assert not ret.steerFaultTemporary and not ret.steerFaultPermanent
+
+  def test_atto3_does_not_watch(self):
+    car = Car(CAR.BYD_ATTO_3)
+    faults = []
+    for _ in range(50):
+      car.reject(1, 1)
+      faults.append(car.drive(True).steerFaultTemporary)
+    assert not any(faults)
+
+
+class TestSongPlusRefusedFramesParser(unittest.TestCase):
+  """The real CANParser that reads them: it must count them and never make canValid false."""
+
+  def setUp(self):
+    CarInterface = interfaces[SONG_PLUS]
+    self.CI = CarInterface(CarInterface.get_non_essential_params(SONG_PLUS))
+    self.packer = CANPacker(DBC[SONG_PLUS][Bus.pt])
+    self.t = 0
+
+  def frame(self, steer_req, counter, src):
+    msg = bydcan.create_steering_control(self.packer, 1.5, steer_req, counter, 500 if steer_req else 300, 0)
+    return CanData(msg[0], bytes(msg[1]), src)
+
+  def update(self, frames=()):
+    self.t += 10_000_000
+    self.CI.update([(self.t, list(frames))])
+    return self.CI.CS.steer_requests_rejected
+
+  def test_only_refused_frames_that_ask_are_counted(self):
+    assert self.update([self.frame(True, 3, 0xC0)]) == 1
+    assert self.update([self.frame(True, 4, 0xC0), self.frame(True, 9, 0xC0)]) == 2
+    assert self.update([self.frame(False, 5, 0xC0)]) == 0
+    assert self.update() == 0
+    for src in (0, 2, 0x80, 0x82, 0xC2):      # sent and echoed, the camera's, and refused on another bus
+      assert self.update([self.frame(True, 6, src)]) == 0, src
+
+  def test_a_frame_with_a_broken_checksum_is_not_counted(self):
+    good = self.frame(True, 7, 0xC0)
+    bad = CanData(good.address, good.dat[:7] + bytes([good.dat[7] ^ 0xFF]), 0xC0)
+    assert self.update([bad]) == 0
+
+  def test_they_never_make_the_parser_invalid(self):
+    cp = self.CI.can_parsers[Bus.loopback]
+    rng = random.Random(0)
+    for i in range(3000):                     # 30 s: mostly nothing, now and then a refused frame with any counter
+      frames = [self.frame(rng.random() < 0.5, rng.randrange(16), 0xC0)] if rng.random() < 0.03 else []
+      self.update(frames)
+      assert cp.can_valid and not cp.bus_timeout, i
+    assert all(st.counter_fail == 0 for st in cp.message_states.values())
+
+  def test_the_parser_is_the_song_plus_only(self):
+    assert self.CI.can_parsers[Bus.loopback].bus == 0xC0
+    CarInterface = interfaces[CAR.BYD_ATTO_3]
+    atto3 = CarInterface(CarInterface.get_non_essential_params(CAR.BYD_ATTO_3))
+    assert set(atto3.can_parsers) == {Bus.pt, Bus.cam}
 
 
 if __name__ == "__main__":
