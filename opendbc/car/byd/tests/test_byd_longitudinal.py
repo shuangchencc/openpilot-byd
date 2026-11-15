@@ -178,7 +178,7 @@ class TestSongPlusLongitudinalController(unittest.TestCase):
     floor = Long.MIN_REQUEST[Long.LEVEL]
     car = Car()
     car.drive(0.0, 10)
-    for accel in (-1.0, -1.01, -2.0, -3.5, -10.0):
+    for accel in (Long.ACCEL_MIN, Long.ACCEL_MIN - 0.01, -3.5, -10.0):
       _, sent, reported = car.step(accel)
       assert sent and sent[0][0] == floor, (accel, sent)
       assert abs(reported - (floor - 100) * 0.05) < 1e-6
