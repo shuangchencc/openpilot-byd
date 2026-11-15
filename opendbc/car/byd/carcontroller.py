@@ -1,8 +1,10 @@
 import math
 from collections import deque
 
+import numpy as np
+
 from opendbc.can.packer import CANPacker
-from opendbc.car import Bus
+from opendbc.car import Bus, DT_CTRL
 from opendbc.car.lateral import apply_steer_angle_limits_vm, get_max_angle_delta_vm, get_max_angle_vm
 from opendbc.car.interfaces import CarControllerBase
 from opendbc.car.byd import bydcan
@@ -53,6 +55,7 @@ class CarController(CarControllerBase):
     self.yield_to_driver = bool(CP.flags & BydFlags.YIELD_TO_DRIVER)
     self.yield_frames = 0
     self.lane_change_push_frames = 0
+    self.smoothed_angle = 0.0
     self.request_frames = 0
     self.steer_req_last = False
 
@@ -219,7 +222,18 @@ class CarController(CarControllerBase):
       self.steer_frame_refused = True
 
     if self.frame % 2:
-      apply_angle = apply_steer_angle_limits_vm(actuators.steeringAngleDeg, self.apply_angle_last, CS.out.vEgoRaw,
+      target = actuators.steeringAngleDeg
+      if self.yield_to_driver:
+        # openpilot's angle, smoothed at low speed (STEER_SMOOTH_TAU_S), starting from the wheel with every request
+        tau = float(np.interp(CS.out.vEgoRaw * 3.6, CarControllerParams.STEER_SMOOTH_BP_KPH, CarControllerParams.STEER_SMOOTH_TAU_S))
+        if not steer_req:
+          self.smoothed_angle = CS.out.steeringAngleDeg
+        elif tau > 0:
+          self.smoothed_angle += (target - self.smoothed_angle) * 2 * DT_CTRL / (tau + 2 * DT_CTRL)
+          target = self.smoothed_angle
+        else:
+          self.smoothed_angle = target
+      apply_angle = apply_steer_angle_limits_vm(target, self.apply_angle_last, CS.out.vEgoRaw,
                                                 CS.out.steeringAngleDeg, steer_req, CarControllerParams, self.VM)
       if self.yield_to_driver:
         # Every request starts gently. The first angle asked for is the wheel's own, and
