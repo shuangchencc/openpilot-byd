@@ -6,6 +6,13 @@ from opendbc.car.common.conversions import Conversions as CV
 from opendbc.car.byd.values import DBC, BydFlags, CarControllerParams as CCP
 from opendbc.car.interfaces import CarStateBase
 
+# STEERING_WHEEL_KEYS: the custom key's short press. Its long press (0x26) opens the head unit's
+# setting for the key and is not used. The whole frame must be this one.
+CUSTOM_KEY_FRAME = {"KEY_PAGE": 1, "KEY_CODE": 0x25, "KEY_BYTE_2": 0x80, "KEY_BYTES_3_7": 0}
+# The key frames come every 100 ms while a key is down and a release frame follows. If that
+# frame is lost, the key counts as released this many updates (10 ms each) after the last frame.
+CUSTOM_KEY_RELEASE_FRAMES = 30
+
 GearShifter = structs.CarState.GearShifter
 ButtonType = structs.CarState.ButtonEvent.Type
 
@@ -31,6 +38,8 @@ class CarState(CarStateBase):
     super().__init__(CP)
     self.lkas_hud = {}
     self.acc_key_prev = False
+    self.custom_key_down = False
+    self.custom_key_age = 0      # updates since the last key frame
     self.acc_key_cancel = False
     self.eps_lka_state = EPS_LKA_OFF
     # steering frames asking the EPS to steer that panda refused, in this update,
@@ -50,6 +59,7 @@ class CarState(CarStateBase):
     cp = can_parsers[Bus.pt]
     cp_cam = can_parsers[Bus.cam]
     ret = structs.CarState()
+    button_events = []   # set once at the end: a capnp list cannot be grown in place
 
     # speed
     if self.CP.flags & BydFlags.FOUR_WHEEL_SPEEDS:
@@ -226,10 +236,10 @@ class CarState(CarStateBase):
       acc_key = bool(cp.vl["PCM_BUTTONS"]["ACC_ON_BTN"])
       if acc_key and not self.acc_key_prev and ret.cruiseState.enabled:
         self.acc_key_cancel = True
-        ret.buttonEvents = [structs.CarState.ButtonEvent(pressed=True, type=ButtonType.cancel)]
+        button_events.append(structs.CarState.ButtonEvent(pressed=True, type=ButtonType.cancel))
       elif not acc_key and self.acc_key_prev and self.acc_key_cancel:
         self.acc_key_cancel = False
-        ret.buttonEvents = [structs.CarState.ButtonEvent(pressed=False, type=ButtonType.cancel)]
+        button_events.append(structs.CarState.ButtonEvent(pressed=False, type=ButtonType.cancel))
       self.acc_key_prev = acc_key
       ret.cruiseState.speed = (cp_cam.vl["ACC_HUD_ADAS"]["SET_SPEED"] * CV.KPH_TO_MS
                                if ret.cruiseState.available else 0.0)
@@ -267,15 +277,44 @@ class CarState(CarStateBase):
       ret.cruiseState.enabled = acc_state in (3, 5)
       ret.cruiseState.standstill = bool(cp_cam.vl["ACC_CMD"]["STANDSTILL_STATE"])
 
+    if self.CP.flags & BydFlags.CUSTOM_KEY:
+      button_events += self.update_custom_key(cp)
+    if button_events:
+      ret.buttonEvents = button_events
+
     # forward stock LKAS HUD
     self.lkas_hud = copy.copy(cp_cam.vl["LKAS_HUD_ADAS"])
 
     return ret
 
+  def update_custom_key(self, cp):
+    """The custom key, published as the lkas button: pressed on the first frame of a short press,
+    released at its release frame (or CUSTOM_KEY_RELEASE_FRAMES after the last frame). Panda sees
+    the same frames and keeps its own count (byd.h, the lateral key)."""
+    frames = cp.vl_all["STEERING_WHEEL_KEYS"]
+    n = len(frames["KEY_CODE"])
+    down = self.custom_key_down
+    if n:
+      self.custom_key_age = 0
+      down = all(frames[sig][-1] == val for sig, val in CUSTOM_KEY_FRAME.items())
+    else:
+      self.custom_key_age += 1
+      if self.custom_key_age > CUSTOM_KEY_RELEASE_FRAMES:
+        down = False
+    events = []
+    if down != self.custom_key_down:
+      events.append(structs.CarState.ButtonEvent(pressed=down, type=ButtonType.lkas))
+    self.custom_key_down = down
+    return events
+
   @staticmethod
   def get_can_parsers(CP):
+    pt_messages = []
+    if CP.flags & BydFlags.CUSTOM_KEY:
+      # an event frame: no frequency to check, and absent until a key is pressed
+      pt_messages.append(("STEERING_WHEEL_KEYS", float('nan')))
     parsers = {
-      Bus.pt: CANParser(DBC[CP.carFingerprint][Bus.pt], [], 0),
+      Bus.pt: CANParser(DBC[CP.carFingerprint][Bus.pt], pt_messages, 0),
       Bus.cam: CANParser(DBC[CP.carFingerprint][Bus.pt], [], 2),
     }
     if CP.flags & BydFlags.EPS_LKA_STATE:
