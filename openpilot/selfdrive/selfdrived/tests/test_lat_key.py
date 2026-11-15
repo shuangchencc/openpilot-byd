@@ -11,7 +11,8 @@ from opendbc.car.byd.values import CAR
 from opendbc.car.car_helpers import interfaces
 from openpilot.selfdrive.car.car_events import CarEvents
 from openpilot.selfdrive.selfdrived.events import Events
-from openpilot.selfdrive.selfdrived.lat_key import LatKey, lat_key_enabled, songplus_lat_key, BYD_SAFETY_LAT_KEY
+from openpilot.selfdrive.selfdrived.lat_key import LatKey, lat_key_enabled, songplus_lat_key, BYD_SAFETY_LAT_KEY, \
+                                                  OVERRIDE_TORQUE, OVERRIDE_TORQUE_BLINKER, OVERRIDE_FRAMES
 from openpilot.selfdrive.selfdrived.state import StateMachine
 
 EventName = log.OnroadEvent.EventName
@@ -45,6 +46,8 @@ class Drive:
     CS.gearShifter = getattr(self, "gear", GearShifter.drive)
     CS.brakePressed = getattr(self, "brake", False)
     CS.cruiseState.enabled = getattr(self, "acc_enabled", False)
+    CS.steeringTorque = getattr(self, "torque", 0.)
+    CS.leftBlinker = getattr(self, "blinker", False)
     CS.cruiseState.available = getattr(self, "acc_available", False) or CS.cruiseState.enabled
     if press or release:
       CS.buttonEvents = [car.CarState.ButtonEvent(type=ButtonType.lkas, pressed=press)]
@@ -157,6 +160,56 @@ class TestLatKey(unittest.TestCase):
     assert d.lat_key.lat_only
     d.acc_enabled = False         # and the ACC leaving does not end it
     assert d.step(n=20)
+
+  def test_a_firm_turn_of_the_wheel_ends_it(self):
+    for sign in (1, -1):
+      d = Drive()
+      d.press()
+      d.torque = sign * (OVERRIDE_TORQUE + 0.5)
+      for _ in range(OVERRIDE_FRAMES - 1):
+        assert d.step()
+      assert not d.step()
+      d.torque = 0.
+      assert not d.step(n=50)        # stays off until the key is pressed again
+      assert d.press()
+
+  def test_corrections_and_short_peaks_do_not(self):
+    d = Drive()
+    d.press()
+    d.torque = OVERRIDE_TORQUE        # at the limit, not above
+    assert d.step(n=100)
+    for _ in range(20):               # peaks shorter than OVERRIDE_FRAMES
+      d.torque = 45.
+      assert d.step(n=OVERRIDE_FRAMES - 1)
+      d.torque = 20.
+      assert d.step()
+    assert d.lat_key.lat_only
+
+  def test_a_lane_change_push_needs_more(self):
+    d = Drive()
+    d.press()
+    d.blinker = True
+    d.torque = 35.
+    assert d.step(n=50)
+    d.torque = OVERRIDE_TORQUE_BLINKER + 0.5
+    assert d.step(n=OVERRIDE_FRAMES - 1)
+    assert not d.step()
+
+  def test_an_acc_engagement_only_yields(self):
+    # the firm turn rule is the key's: an ACC engagement goes on as before (the port withdraws its request)
+    d = Drive()
+    d.step()
+    d.acc_enabled = True
+    assert d.step()
+    d.torque = 45.
+    assert d.step(n=20)
+
+  def test_pressing_while_turning_firmly_ends_it_right_after(self):
+    d = Drive()
+    d.torque = 45.
+    d.step(n=10)
+    assert d.step(press=True)         # engaged; the next steps end it, the driver is still turning
+    assert not d.step(n=OVERRIDE_FRAMES)
 
   def test_without_the_panda_bit_the_key_is_nothing(self):
     d = Drive(song_plus_CP(lat_key=False))

@@ -13,6 +13,9 @@ steering, and the pedals are the driver's alone):
 - while engaged by the key, neither the ACC being off, nor it engaging or leaving, nor the brake
   ends it (no pcmDisable, wrongCarMode, pedalPressed; panda: brake_keeps_controls); everything
   else does, as before;
+- a firm turn of the wheel ends a key engagement (the owner: the driver taking over), see
+  OVERRIDE_* below; a lighter one only makes the port withdraw its request for a moment, as in
+  any engagement;
 - a press while openpilot is engaged ends it, however it was engaged. The stock ACC is left as it
   is: if it was on, it goes on controlling the speed by itself.
 Longitudinal stays the stock ACC's: controlsd never sets longActive on a pcmCruise car while the
@@ -29,6 +32,18 @@ ButtonType = car.CarState.ButtonEvent.Type
 # depend on the BYD port being present
 BYD_SAFETY_SONG_PLUS = 1
 BYD_SAFETY_LAT_KEY = 16   # bit 4 (bit 3 is the longitudinal work's)
+
+
+# A key engagement ends when the driver's torque (CarState.steeringTorque, STEERING_TORQUE.DRIVER_TORQUE,
+# the DBC's scale, about 0.1 Nm) is above OVERRIDE_TORQUE for OVERRIDE_FRAMES carStates in a row; with a
+# blinker on (a lane change, whose push the port lets go up to 35) above OVERRIDE_TORQUE_BLINKER.
+# From the routes: engaged, ordinary corrections peaked at 25.9-27.5 (00000033), lane change pushes at
+# 26.2-32.5 (0000002e), the owner's deliberate turns against the wheel at 33.0-37.4 (0000002a); not
+# engaged and moving the torque never passed 26.1. The EPS lets go within 30-40 ms of a push above 24,
+# so the torque of a firm turn is a short peak: the frames are few on purpose.
+OVERRIDE_TORQUE = 32.0
+OVERRIDE_TORQUE_BLINKER = 40.0
+OVERRIDE_FRAMES = 3   # 30 ms at 100 Hz
 
 
 def songplus_lat_key(environ) -> bool:
@@ -48,6 +63,7 @@ class LatKey:
     self.on = lat_key_enabled(CP)
     self.lat_only = False   # engaged by the key, with the ACC off
     self.pending = False    # asked to engage in this step
+    self.override_frames = 0
 
   def update(self, events, CS, enabled: bool) -> None:
     """After the car's events and the brake rule, before the state machine. `enabled` is openpilot's
@@ -57,6 +73,12 @@ class LatKey:
       return
     if not enabled:
       self.lat_only = False
+
+    limit = OVERRIDE_TORQUE_BLINKER if (CS.leftBlinker or CS.rightBlinker) else OVERRIDE_TORQUE
+    self.override_frames = self.override_frames + 1 if abs(CS.steeringTorque) > limit else 0
+    if self.lat_only and enabled and self.override_frames >= OVERRIDE_FRAMES:
+      events.add(EventName.steerDisengage)
+      return
 
     if any(be.type == ButtonType.lkas and be.pressed for be in CS.buttonEvents):
       if enabled:
