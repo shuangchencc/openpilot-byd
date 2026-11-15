@@ -91,6 +91,14 @@ class CarControllerParams:
   # Evidence: migration-audit/lane-change-sim-20261115/RESULT.txt, migration-audit/free-drive-20261115
   STEER_YIELD_LANE_CHANGE_PUSH_MAX = 35.0   # driver torque, the DBC's scale (as STEER_DRIVER_OVERRIDE_NM)
   STEER_YIELD_LANE_CHANGE_PUSH_FRAMES = 50  # at 100 Hz, counted while steeringPressed
+  # Below 40 km/h openpilot's angle is smoothed before the limits, with a first-order lag of this time constant,
+  # fading out by 60 km/h. In this openpilot modeld does not smooth the model's curvature (LAT_SMOOTH_SECONDS is
+  # 0), so it reaches the car in 20 Hz steps, and clip_curvature's jerk limit, which smooths them at speed
+  # (5 m/s^3 / v^2), lets them through at low speed. In a curve at 33-35 km/h on 2026-11-15 (route 00000031)
+  # that was the wheel jerking by 2-4 deg every 0.1 s, and the owner felt it below 40 km/h. 0.1 s is what
+  # modeld itself used to apply; above 60 km/h nothing changes.
+  STEER_SMOOTH_BP_KPH = [40., 60.]   # road speed (vEgoRaw)
+  STEER_SMOOTH_TAU_S = [0.10, 0.0]
 
   # ... and how long that fault may be reported with openpilot still engaged before it
   # is made permanent. Longer than selfdrived's 3 s soft disable, so that only the
