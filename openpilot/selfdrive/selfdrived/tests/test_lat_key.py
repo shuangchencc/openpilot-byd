@@ -92,22 +92,24 @@ class TestLatKey(unittest.TestCase):
     assert d.press()
     assert d.step(release=True)
 
-  def test_brake_ends_it(self):
-    d = Drive()
-    d.press()
-    d.brake = True
-    assert not d.step()
-    d.brake = False
-    assert not d.step(n=100)
-    assert not d.lat_key.lat_only
+  def test_brake_does_not_end_it(self):
+    for stopped in (False, True):
+      d = Drive()
+      d.press()
+      d.stopped = stopped
+      for _ in range(3):
+        d.brake = True
+        assert d.step(n=50), stopped
+        d.brake = False
+        assert d.step(n=50), stopped
+      assert d.lat_key.lat_only
 
-  def test_no_entry_with_the_brake_pressed_while_moving(self):
+  def test_press_with_the_brake_held(self):
     d = Drive()
     d.brake = True
     d.step()
-    assert not d.press()
-
-  def test_brake_held_at_standstill_waits_for_the_brake(self):
+    assert d.press()
+    # stopped with the brake held it waits for the brake, as any engagement does, and then steers
     d = Drive()
     d.stopped = True
     d.brake = True
@@ -117,6 +119,16 @@ class TestLatKey(unittest.TestCase):
     d.brake = False
     d.step()
     assert d.sm.state == log.SelfdriveState.OpenpilotState.enabled
+
+  def test_brake_with_the_acc_engaged_after_the_key(self):
+    # the brake ends the stock ACC; steering stays
+    d = Drive()
+    d.press()
+    d.acc_enabled = True
+    d.step(n=10)
+    d.brake = True
+    d.acc_enabled = False
+    assert d.step(n=20)
 
   def test_usual_no_entry_still_applies(self):
     d = Drive()
