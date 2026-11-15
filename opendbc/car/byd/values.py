@@ -186,11 +186,12 @@ class BydSafetyFlags(IntFlag):
   # Selects the Song Plus wheel-speed scale (road) and brake source (IPB) in panda.
   # And the steering geometry panda checks angles with (see byd.h / SONG_PLUS_SAFETY_STEER_RATIO).
   SONG_PLUS = 1
-  # Panda param bit 3; MUST match BYD_PARAM_LAT_KEY in byd.h (bits 1-2 are the longitudinal level).
+  # Panda param bit 4; MUST match BYD_PARAM_LAT_KEY in byd.h (bits 1-2 are the longitudinal level,
+  # bit 3 is taken by the longitudinal work, BYD_PARAM_LONG_RAISE).
   # Song Plus only: a short press of the custom key with the stock ACC not engaged and the brake
   # released allows lateral control, and the stock ACC being off then does not end it.
   # Not set by the car interface: card sets it, only when the launcher asks for it.
-  LAT_KEY = 8
+  LAT_KEY = 16
 
 
 class SongPlusLongitudinal:

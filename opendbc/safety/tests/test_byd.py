@@ -1044,7 +1044,7 @@ class TestBydSongPlusLatKeySafety(TestBydSongPlusSafety):
   checks and openpilot's heartbeat still do, and that is how the second press ends them.
   """
 
-  SAFETY_PARAM = 1 | 8   # BYD_PARAM_SONG_PLUS, BYD_PARAM_LAT_KEY
+  SAFETY_PARAM = 1 | 16   # BYD_PARAM_SONG_PLUS, BYD_PARAM_LAT_KEY (bit 4)
   KEY_FRAME_US = 100000  # the key frames come every 100 ms while a key is down
 
   def setUp(self):
@@ -1242,7 +1242,8 @@ class TestBydSongPlusLatKeySafety(TestBydSongPlusSafety):
     self.assertFalse(self.safety.get_controls_allowed())
 
   def test_needs_its_param_bit_and_the_song_plus(self):
-    for param in (1, 8, 1 | 2):
+    # bit 3 is the longitudinal work's (BYD_PARAM_LONG_RAISE): it must not turn the key on
+    for param in (1, 8, 16, 1 | 2, 1 | 8, 1 | 2 | 8, 8 | 16):
       with self.subTest(param=param):
         self.safety.set_safety_hooks(CarParams.SafetyModel.byd, param)
         self.safety.init_tests()
@@ -1250,11 +1251,21 @@ class TestBydSongPlusLatKeySafety(TestBydSongPlusSafety):
         self._press()
         self.assertFalse(self.safety.get_controls_allowed())
 
+  def test_the_key_bit_with_the_other_bits(self):
+    # and the key works whatever the level and bit 3 say
+    for param in (1 | 16, 1 | 8 | 16, 1 | 2 | 16, 1 | 2 | 8 | 16, 1 | 6 | 8 | 16):
+      with self.subTest(param=param):
+        self.safety.set_safety_hooks(CarParams.SafetyModel.byd, param)
+        self.safety.init_tests()
+        self._acc(0, 2)
+        self._press()
+        self.assertTrue(self.safety.get_controls_allowed())
+
 
 class TestBydSongPlusLongLatKeySafety(TestBydSongPlusLongSafety):
   """The longitudinal suite with the lateral key bit as well; and no ACC_CMD while engaged by the key."""
 
-  SAFETY_PARAM = TestBydSongPlusLongSafety.SAFETY_PARAM | 8
+  SAFETY_PARAM = TestBydSongPlusLongSafety.SAFETY_PARAM | 16
 
   def test_no_acc_cmd_while_engaged_by_the_key(self):
     self._reset_safety_hooks()
