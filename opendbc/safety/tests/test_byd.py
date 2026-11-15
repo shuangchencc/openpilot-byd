@@ -1478,9 +1478,9 @@ class TestBydSongPlusLatKeySafety(TestBydSongPlusSafety):
   """The Song Plus suite once more with the lateral key, then what the key adds (top of byd.h).
 
   The owner's rule: the custom key (STEERING_WHEEL_KEYS, one exact frame) is an on/off switch for
-  steering. A press allows controls whatever the ACC is doing; while the key allowed them, the ACC
-  does not end them. The brake, RX checks and openpilot's heartbeat still do; the heartbeat is how
-  the second press ends them.
+  steering and the pedals are the driver's alone. A press allows controls whatever the ACC and
+  the brake are doing; while the key allowed them, neither the ACC nor the brake ends them. RX
+  checks and openpilot's heartbeat still do, and that is how the second press ends them.
   """
 
   SAFETY_PARAM = 1 | 8   # BYD_PARAM_SONG_PLUS, BYD_PARAM_LAT_KEY
@@ -1539,38 +1539,46 @@ class TestBydSongPlusLatKeySafety(TestBydSongPlusSafety):
         self._press(**kw)
         self.assertFalse(self.safety.get_controls_allowed())
 
-  def test_brake_ends_it(self):
-    self._start()
-    self._press()
-    self._brake(True)
-    self.assertFalse(self.safety.get_controls_allowed())
-    self._brake(False)
-    for _ in range(10):
-      self._acc(0, 2)
-    self.assertFalse(self.safety.get_controls_allowed())
-    self._press()                                # a new press is a new engagement
-    self.assertTrue(self.safety.get_controls_allowed())
+  def test_brake_does_not_end_it(self):
+    for moving in (True, False):
+      with self.subTest(moving=moving):
+        self._start(moving)
+        self._press()
+        for _ in range(3):
+          self._brake(True)
+          for _ in range(20):
+            self._brake(True)
+            self._acc(0, 2)
+          self._brake(False)
+        self.assertTrue(self.safety.get_controls_allowed())
+        self.assertTrue(self._tx(self._angle_cmd_msg(0, True)))
 
   def test_press_with_the_brake_held(self):
-    # moving: the common rule ends it in the same frame; stopped: it is allowed
-    self._start(moving=True)
+    self._start()
     self._brake(True)
     self._press()
-    self.assertFalse(self.safety.get_controls_allowed())
-    self._start(moving=False)
+    self.assertTrue(self.safety.get_controls_allowed())
     self._brake(True)
-    self._press()
     self.assertTrue(self.safety.get_controls_allowed())
 
-  def test_ended_by_the_heartbeat_then_the_acc_rule_is_back(self):
+  def test_brake_still_ends_an_engagement_by_the_acc(self):
     self._start()
-    self._press()
-    self.safety.set_controls_allowed(False)      # openpilot disengaged (second press): heartbeat
-    self._acc(0, 2)
-    self.assertFalse(self.safety.get_controls_allowed())
     self._acc(1, 3)
     self.assertTrue(self.safety.get_controls_allowed())
-    self._acc(1, 4)                              # an ACC engagement ends with the ACC again
+    self._brake(True)
+    self.assertFalse(self.safety.get_controls_allowed())
+
+  def test_ended_by_the_heartbeat_then_the_brake_rule_is_back(self):
+    # openpilot disengaged (second press): its heartbeat ends the controls here ...
+    self._start()
+    self._press()
+    self.safety.set_controls_allowed(False)
+    self._acc(0, 2)
+    self.assertFalse(self.safety.get_controls_allowed())
+    # ... and the key's engagement with them: controls allowed again by the ACC end with the brake
+    self._acc(1, 3)
+    self.assertTrue(self.safety.get_controls_allowed())
+    self._brake(True)
     self.assertFalse(self.safety.get_controls_allowed())
 
   def test_held_key_is_one_press(self):
@@ -1597,8 +1605,9 @@ class TestBydSongPlusLatKeySafety(TestBydSongPlusSafety):
     self._acc(1, 3)
     self.assertTrue(self.safety.get_controls_allowed())
     self._press()
+    self._acc(1, 4)       # the ACC on its way out, e.g. after the brake
+    self._brake(True)
     for _ in range(10):
-      self._acc(1, 4)     # the ACC on its way out, then off
       self._acc(0, 2)
     self.assertTrue(self.safety.get_controls_allowed())
 
@@ -1646,6 +1655,29 @@ class TestBydSongPlusLatKeySafety(TestBydSongPlusSafety):
     self._press()
     self.safety.set_timer(self.t + 3_000_000)    # nothing for 3 s
     self.safety.safety_tick()
+    self.assertFalse(self.safety.get_controls_allowed())
+
+  def test_exemption_is_cleared_by_any_mode_change(self):
+    for model in (CarParams.SafetyModel.toyota, CarParams.SafetyModel.hyundai, CarParams.SafetyModel.noOutput,
+                  CarParams.SafetyModel.byd):
+      with self.subTest(model=model):
+        self.safety.set_safety_hooks(self.SAFETY_MODEL, self.SAFETY_PARAM)   # back from the last one
+        self._start()
+        self._press()
+        self._brake(True)
+        self.assertTrue(self.safety.get_brake_keeps_controls())
+        self.safety.set_safety_hooks(model, 0)
+        self.assertFalse(self.safety.get_brake_keeps_controls())
+
+  def test_brake_rule_is_back_after_a_mode_change(self):
+    self._start()
+    self._press()
+    self._brake(True)            # leaves the common flag set
+    self._reset_safety_hooks()
+    self._rx(self._speed_msg(15))
+    self._brake(False)
+    self.safety.set_controls_allowed(True)
+    self._brake(True)
     self.assertFalse(self.safety.get_controls_allowed())
 
   def test_needs_its_param_bit_and_the_song_plus(self):
