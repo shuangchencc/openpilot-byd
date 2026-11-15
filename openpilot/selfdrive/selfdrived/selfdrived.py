@@ -20,6 +20,7 @@ from openpilot.selfdrive.car.car_events import CarEvents
 from openpilot.selfdrive.locationd.helpers import PoseCalibrator, Pose
 from openpilot.selfdrive.selfdrived.events import Events, ET
 from openpilot.selfdrive.selfdrived.helpers import ExcessiveActuationCheck
+from openpilot.selfdrive.selfdrived.lat_key import LatKey
 from openpilot.selfdrive.selfdrived.state import StateMachine
 from openpilot.selfdrive.selfdrived.alertmanager import AlertManager, set_offroad_alert
 
@@ -146,6 +147,10 @@ class SelfdriveD:
     if self.dm_disabled:
       cloudlog.error("SONGPLUS_DM_OFF=1: driver monitoring alerts and lockout are OFF for this launch only")
     self.state_machine = StateMachine()
+    # Song PLUS: the custom key engages lateral control alone (lat_key.py); off unless card set it
+    self.lat_key = LatKey(self.CP)
+    if self.lat_key.on:
+      cloudlog.error("Song PLUS lateral key ON: a short press of the custom key engages lateral control without the ACC")
     self.rk = Ratekeeper(100, print_delay_threshold=None)
 
     # Determine startup event
@@ -257,6 +262,7 @@ class SelfdriveD:
     if CS.canValid:
       car_events = self.car_events.update(CS, self.CS_prev, self.sm['carControl']).to_msg()
       self.events.add_from_msg(car_events)
+      self.lat_key.update(self.events, CS, self.enabled)
 
       if self.CP.notCar:
         # wait for everything to init first
@@ -573,6 +579,7 @@ class SelfdriveD:
     self.update_events(CS)
     if not self.CP.passive and self.initialized:
       self.enabled, self.active = self.state_machine.update(self.events)
+      self.lat_key.after_state_machine(self.enabled)
     self.update_alerts(CS)
 
     self.publish_selfdriveState(CS)

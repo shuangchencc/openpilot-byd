@@ -100,6 +100,9 @@ class Controls:
     CC.latActive = self.sm['selfdriveState'].active and not CS.steerFaultTemporary and not CS.steerFaultPermanent and \
                    (not standstill or self.CP.steerAtStandstill)
     CC.longActive = CC.enabled and not any(e.overrideLongitudinal for e in self.sm['onroadEvents']) and self.CP.openpilotLongitudinalControl
+    # With the car's own cruise doing the engaging, openpilot controls speed only while that cruise is
+    # engaged. Engaged without it (the Song PLUS lateral key, selfdrived/lat_key.py) is lateral only.
+    CC.longActive = CC.longActive and (not self.CP.pcmCruise or CS.cruiseState.enabled)
 
     actuators = CC.actuators
     actuators.longControlState = self.LoC.long_control_state

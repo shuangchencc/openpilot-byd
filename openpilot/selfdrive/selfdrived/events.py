@@ -67,6 +67,9 @@ class Events:
       bisect.insort(self.static_events, event_name)
     bisect.insort(self.events, event_name)
 
+  def remove(self, event_name: int) -> None:
+    self.events = [e for e in self.events if e != event_name]
+
   def clear(self) -> None:
     self.event_counters = {k: (v + 1 if k in self.events else 0) for k, v in self.event_counters.items()}
     self.events = self.static_events.copy()
