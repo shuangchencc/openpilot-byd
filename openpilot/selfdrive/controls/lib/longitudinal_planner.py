@@ -8,6 +8,7 @@ from openpilot.common.filter_simple import FirstOrderFilter
 from openpilot.common.realtime import DT_MDL
 from openpilot.selfdrive.modeld.constants import ModelConstants
 from openpilot.selfdrive.controls.lib.accel_boost import AccelBoost
+from openpilot.selfdrive.controls.lib.e2e_gate import E2EGate
 from openpilot.selfdrive.controls.lib.longcontrol import LongCtrlState
 from openpilot.selfdrive.controls.lib.longitudinal_mpc_lib.long_mpc import LongitudinalMpc, LongitudinalPlanSource
 from openpilot.selfdrive.controls.lib.longitudinal_mpc_lib.long_mpc import T_IDXS as T_IDXS_MPC
@@ -36,6 +37,8 @@ class LongitudinalPlanner:
     self.fcw = False
     self.dt = dt
     self.accel_boost = AccelBoost()
+    # BYD Song PLUS: the model's own acceleration only before a big curve or a planned stop (e2e_gate.py)
+    self.e2e_gate = E2EGate(dt) if CP.carFingerprint == "BYD_SONG_PLUS_DMI_23" else None
 
     self.v_desired_filter = FirstOrderFilter(init_v, 2.0, self.dt)
     self.a_cruise = init_a
@@ -104,8 +107,9 @@ class LongitudinalPlanner:
     output_a_target_e2e = self.accel_boost.update(sm, output_a_target_e2e, output_a_target_mpc, self.a_cruise)
 
     candidates = [(output_a_target_mpc, self.mpc.source, output_should_stop_mpc),
-                  (self.a_cruise, LongitudinalPlanSource.cruise, cruise_should_stop),
-                  (output_a_target_e2e, LongitudinalPlanSource.e2e, output_should_stop_e2e)]
+                  (self.a_cruise, LongitudinalPlanSource.cruise, cruise_should_stop)]
+    if self.e2e_gate is None or self.e2e_gate.update(sm['modelV2'], v_ego):
+      candidates.append((output_a_target_e2e, LongitudinalPlanSource.e2e, output_should_stop_e2e))
 
     output_a_target, self.mpc.source, _ = min(candidates, key=lambda c: c[0])
     self.output_should_stop = any(should_stop for _, _, should_stop in candidates)
