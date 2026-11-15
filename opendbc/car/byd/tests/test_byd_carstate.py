@@ -1,6 +1,9 @@
 import random
 import unittest
 from collections import defaultdict
+from unittest import mock
+
+import numpy as np
 
 from opendbc.can.packer import CANPacker
 from opendbc.car import Bus, structs
@@ -714,6 +717,87 @@ class TestSongPlusYieldsToTheDriver(unittest.TestCase):
     assert set(self.requests(car, mark)) == {1}
 
 
+class TestSongPlusLowSpeedSmoothing(unittest.TestCase):
+  """Below 40 km/h openpilot's angle is smoothed (0.1 s) before the limits, less up to 60 km/h, not above."""
+
+  def engaged(self, kph):
+    car = Car()
+    car.speed(kph)
+    car.eps(EPS_ACTIVE)
+    car.drive(True, 200, target_deg=10.0)                     # past the gentle start, at the target
+    return car
+
+  def asked(self, car, targets):
+    mark = len(car.sent)
+    for target in targets:
+      car.drive(True, 1, target_deg=target)
+    return [angle for req, angle, _ in car.steering_frames(mark) if req]
+
+  def test_twenty_hertz_steps_are_smoothed_at_low_speed(self):
+    # the model's curvature arrives in 20 Hz steps: here 3 deg up and down every 0.05 s
+    steps = [10.0 if (i // 5) % 2 == 0 else 13.0 for i in range(200)]
+    seen = steps[-100:][1::2]                                            # what the 50 Hz frames are built from
+    for kph in (20, 30, 39):
+      asked = self.asked(self.engaged(kph), steps)
+      assert np.ptp(asked[-50:]) < 1.0, (kph, np.ptp(asked[-50:]))        # from 3 deg peak to peak
+      assert abs(sum(asked[-50:]) / 50 - sum(seen) / len(seen)) < 0.2, kph  # around the same middle
+
+  def test_a_turn_is_followed_with_little_lag_at_low_speed(self):
+    asked = self.asked(self.engaged(30), [30.0] * 50)                    # 20 deg more, at once
+    assert asked[24] > 29.0, asked[24]                                     # within half a second
+    assert all(b >= a for a, b in zip(asked, asked[1:], strict=False))    # without overshoot or wobble
+    assert max(asked) <= 30.0
+
+  def test_nothing_changes_at_speed(self):
+    # Car.speed is the speedometer's km/h; the road speed the smoothing goes by is 0.9453 of it
+    steps = [10.0 if (i // 5) % 2 == 0 else 13.0 for i in range(200)]
+    for kph in (64, 80, 110):
+      car, ref = self.engaged(kph), self.engaged(kph)
+      with mock.patch.object(CarControllerParams, "STEER_SMOOTH_TAU_S", [0.0, 0.0]):
+        unsmoothed = self.asked(ref, steps)
+      assert self.asked(car, steps) == unsmoothed, kph
+
+  def test_less_smoothing_between_40_and_60(self):
+    steps = [10.0 if (i // 5) % 2 == 0 else 13.0 for i in range(200)]
+    spread = [np.ptp(self.asked(self.engaged(kph), steps)[-50:]) for kph in (42, 50, 58)]   # 40, 47, 55 km/h on the road
+    assert spread[0] < spread[1] < spread[2], spread
+
+  def test_slowing_down_into_the_smoothing_is_seamless(self):
+    # steering at speed, where nothing is smoothed, the smoothing takes over from where openpilot's angle is
+    car = self.engaged(80)
+    car.drive(True, 100, target_deg=15.0)                     # inside the 24 deg the limit allows at 80
+    mark = len(car.sent)
+    for kph in range(80, 20, -1):
+      car.speed(kph)
+      car.drive(True, 4, target_deg=15.0)
+    asked = [angle for req, angle, _ in car.steering_frames(mark) if req]
+    assert max(abs(a - 15.0) for a in asked) < 0.05, max(abs(a - 15.0) for a in asked)
+
+  def test_after_a_yield_the_smoothing_starts_again_from_the_wheel(self):
+    car = self.engaged(30)
+    car.drive(True, 100, target_deg=30.0)                    # steering at 30 deg
+    car.driver_torque(30.0)                                  # the driver takes the wheel to -10
+    car.wheel(-10.0)
+    car.drive(True, 100, target_deg=-10.0)
+    car.driver_torque(0)
+    mark = len(car.sent)
+    car.drive(True, 150, target_deg=-10.0)
+    asked = [angle for req, angle, _ in car.steering_frames(mark) if req]
+    assert max(asked) < -9.5, max(asked)                     # not pulled back towards where it was before
+
+  def test_a_request_starts_from_the_wheel(self):
+    car = Car()
+    car.speed(30)
+    car.eps(EPS_READY)
+    car.wheel(20.0)
+    car.drive(False, 50)
+    mark = len(car.sent)
+    car.drive(True, 100, target_deg=0.0)
+    asked = [angle for req, angle, _ in car.steering_frames(mark) if req]
+    assert abs(asked[0] - 20.0) < 0.2, asked[0]                            # not from a stale smoothed angle
+    assert asked[-1] < asked[0]
+
+
 class TestSongPlusRequestStartsGently(unittest.TestCase):
   """For the first second of every request the commanded angle may change less per frame than
   the limits allow: from nothing, growing evenly to the usual amount."""
@@ -763,8 +847,9 @@ class TestSongPlusRequestStartsGently(unittest.TestCase):
     assert abs(plain[-1] - 130.0) < 0.051 and abs(gentle[-1] - 130.0) < 0.051
 
   def test_a_target_close_by_is_reached_at_once_all_the_same(self):
+    # the gentle start does not hold it back; at 30 km/h the low-speed smoothing (0.1 s) does, a little
     asked = self.asked_from(target_deg=0.5)
-    assert abs(asked[5] - 0.5) < 0.051                         # within 6 frames, 120 ms
+    assert abs(asked[14] - 0.5) < 0.051                        # within 15 frames, 300 ms
 
   def test_it_starts_over_with_every_request(self):
     car = Car()
