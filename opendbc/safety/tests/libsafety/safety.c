@@ -48,6 +48,10 @@ bool get_controls_allowed(void){
   return controls_allowed;
 }
 
+bool get_brake_keeps_controls(void){
+  return brake_keeps_controls;
+}
+
 bool get_ignition_can(void){
   return ignition_can;
 }

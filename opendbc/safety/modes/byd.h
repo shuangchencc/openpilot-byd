@@ -108,12 +108,13 @@ static uint32_t byd_acc_ref_arrival = 0U;
 // Measured 2026-11-15 (route 00000032): 76 frames, key codes 0x00 0x15 0x25 0x26 0x0C only,
 // bytes 0 and 2-7 always 01 / 80 00 00 00 00 00. migration-audit/button-survey-20261115.
 //
-// The owner's rule (2026-11-15): the key is an on/off switch for steering. So a press allows
-// controls whatever the ACC is doing, unless the key already did (byd_lat_only); and while it
-// did, the stock ACC being off or leaving does not end them. What still ends them: the brake
-// (the common rule: a press, or held while moving), a failed RX check, and openpilot not being
-// engaged (the heartbeat) - which is how the second press ends them: openpilot disengages and
-// its heartbeat says so. The key never ends anything itself.
+// The owner's rule (2026-11-15): the key is an on/off switch for steering, and the pedals are the
+// driver's alone. So a press allows controls whatever the ACC and the pedals are doing, unless
+// the key already did (byd_lat_only); and while it did, neither the stock ACC being off or
+// leaving nor the brake ends them (brake_keeps_controls, read by the common brake rule).
+// What still ends them: a failed RX check, and openpilot not being engaged (the heartbeat) -
+// which is how the second press ends them: openpilot disengages and its heartbeat says so.
+// The key never ends anything itself.
 // Nothing else changes: the steering checks are those of any engagement, and ACC_CMD is never
 // replaced while the key engaged them (openpilot does no longitudinal then).
 #define BYD_CUSTOM_KEY_NEW_PRESS_US 300000U  // a key frame this long after the last one starts a new press
@@ -290,6 +291,9 @@ static void byd_rx_hook(const CANPacket_t *msg) {
       }
     }
   }
+
+  // for the common brake rule, which runs after this hook
+  brake_keeps_controls = byd_lat_only;
 }
 
 // May openpilot's request be above the stock one? See "Raising" at the top of the file. Asked only
