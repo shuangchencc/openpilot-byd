@@ -450,12 +450,13 @@ class TestSongPlusYieldsToTheDriver(unittest.TestCase):
   def test_the_push_that_starts_a_lane_change_is_not_a_withdrawal(self):
     # openpilot starts a lane change on steeringPressed toward the blinker; the push is not the driver
     # taking the wheel (positive torque is the wheel turned left, as DesireHelper reads it)
+    # the owner's 16 on 2026-11-15 peaked at 26.2-32.5 and were above 24 for 0.10-0.18 s
     for side, sign in (("left", 1.0), ("right", -1.0)):
-      for torque in (24.5, 26.6, 27.9):
+      for torque in (24.5, 26.6, 28.0, 32.5, 34.9):
         car = self.engaged()
         mark = len(car.sent)
         car.driver_torque(sign * torque)
-        ret = car.drive(True, 60, lane_change=side)       # 0.6 s
+        ret = car.drive(True, 30, lane_change=side)       # 0.3 s
         assert ret.steeringPressed, (side, torque)        # still what starts the change
         car.driver_torque(0)
         car.drive(True, 100, lane_change=side)
@@ -479,11 +480,23 @@ class TestSongPlusYieldsToTheDriver(unittest.TestCase):
     for side, sign in (("left", 1.0), ("right", -1.0)):
       car = self.engaged()
       mark = len(car.sent)
-      car.driver_torque(sign * 28.0)
+      car.driver_torque(sign * 35.0)
       car.drive(True, 100, lane_change=side)
       reqs = self.requests(car, mark)
       assert 0 in reqs[:5], side
       assert set(reqs[reqs.index(0):]) == {0}, side
+
+  def test_a_push_held_toward_the_lane_change_is_a_withdrawal_after_half_a_second(self):
+    # held, it is the driver steering: withdrawn from 0.5 s after steeringPressed, which comes 50 ms in
+    for side, sign in (("left", 1.0), ("right", -1.0)):
+      car = self.engaged()
+      mark = len(car.sent)
+      car.driver_torque(sign * 30.0)
+      car.drive(True, 100, lane_change=side)
+      reqs = self.requests(car, mark)
+      first = reqs.index(0)
+      assert 26 <= first <= 29, (side, first)
+      assert set(reqs[first:]) == {0}, side
 
   def test_a_push_against_the_lane_change_is_a_withdrawal(self):
     for side, sign in (("left", -1.0), ("right", 1.0)):
@@ -507,14 +520,17 @@ class TestSongPlusYieldsToTheDriver(unittest.TestCase):
     assert set(reqs[reqs.index(0):]) == {0}
 
   def test_easing_off_below_the_push_limit_during_a_lane_change(self):
-    # a firm push is a withdrawal; once it eases below the limit (still above steeringPressed's 24) the
-    # request comes back half a second later, gently, as after any other withdrawal
+    # a firm push is a withdrawal; once it eases below the limit (still above steeringPressed's 24, for
+    # less than the half second a push may last) the request comes back half a second after the firm
+    # part, gently, as after any other withdrawal
     car = self.engaged()
-    car.driver_torque(32.0)
+    car.driver_torque(36.0)
     car.drive(True, 30, lane_change="left")
-    car.driver_torque(25.0)
     mark = len(car.sent)
-    car.drive(True, 100, lane_change="left")
+    car.driver_torque(25.0)
+    car.drive(True, 40, lane_change="left")
+    car.driver_torque(-1.1)
+    car.drive(True, 60, lane_change="left")
     reqs = self.requests(car, mark)
     back = reqs.index(1)
     assert 24 <= back <= 26, back             # 50 frames of hold at 100 Hz: 25 steering frames

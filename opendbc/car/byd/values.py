@@ -81,11 +81,16 @@ class CarControllerParams:
   # push that starts the lane change, not the driver taking the wheel: the request stays up. openpilot
   # starts a lane change on steeringPressed (above 24) in the blinker's direction, the same signal we
   # withdraw on, so without this every lane change began with the EPS letting go for 0.8-1.1 s and then
-  # one second of gentle start, the car meanwhile wherever the driver's push had put it. 28 is the
-  # threshold of the stack that made the 116 min recording (see BydFlags.YIELD_TO_DRIVER): it changed
-  # lanes left at 97 km/h on a push of 24.7-26.6 without withdrawing, and the EPS never aborted below it.
-  # Evidence: migration-audit/lane-change-sim-20261115/RESULT.txt
-  STEER_YIELD_LANE_CHANGE_PUSH_MAX = 28.0   # driver torque, the DBC's scale (as STEER_DRIVER_OVERRIDE_NM)
+  # one second of gentle start, the car meanwhile wherever the driver's push had put it.
+  # The owner's 16 lane changes with openpilot on 2026-11-15 (route 0000002e, 49-95 km/h) were pushes
+  # peaking at 26.2-32.5, above 24 for 0.10-0.18 s, the EPS motor torque at 301-352 (its limit is 499);
+  # every one was a withdrawal of 0.58-1.2 s. The stack that made the 116 min recording withdrew above 28
+  # (see BydFlags.YIELD_TO_DRIVER), which half of those pushes reached. The one abort seen took 36-41
+  # held for 0.68 s. So the push may go up to 35, and only for its first half second: a push held longer
+  # is the driver steering, and is withdrawn from as any other.
+  # Evidence: migration-audit/lane-change-sim-20261115/RESULT.txt, migration-audit/free-drive-20261115
+  STEER_YIELD_LANE_CHANGE_PUSH_MAX = 35.0   # driver torque, the DBC's scale (as STEER_DRIVER_OVERRIDE_NM)
+  STEER_YIELD_LANE_CHANGE_PUSH_FRAMES = 50  # at 100 Hz, counted while steeringPressed
 
   # ... and how long that fault may be reported with openpilot still engaged before it
   # is made permanent. Longer than selfdrived's 3 s soft disable, so that only the
