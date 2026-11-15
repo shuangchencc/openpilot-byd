@@ -17,6 +17,57 @@ PRESERVE_ATTR_NAME = 'user.preserve'
 PRESERVE_ATTR_VALUE = b'1'
 PRESERVE_COUNT = 5
 
+# Song PLUS / C3XL data archive. The Mac archiver copies finished segments, verifies them by
+# sha256 and then writes "<segment>\t<file>\t<size>" lines into <log_root>.archived (atomic
+# rename). When space runs out the deleter frees space in this order:
+#   1. whole segments whose every file is listed with the same size (safe: a copy exists),
+#   2. full-size video (*.hevc) of not-yet-archived segments, keeping rlog/qlog/qcamera,
+#   3. the stock rule (oldest segment first), only if nothing else is left.
+# Within each tier the stock order applies (oldest first, boot/crash and preserved last).
+ARCHIVE_ACK_SUFFIX = ".archived"
+BIG_VIDEO_SUFFIXES = (".hevc",)
+_ack_cache: dict = {"key": None, "acked": {}}
+
+
+def archive_ack_path() -> str:
+  return Paths.log_root().rstrip("/") + ARCHIVE_ACK_SUFFIX
+
+
+def load_archive_acks() -> dict[str, dict[str, int]]:
+  path = archive_ack_path()
+  try:
+    st = os.stat(path)
+  except OSError:
+    return {}
+  key = (path, st.st_mtime_ns, st.st_size)
+  if _ack_cache["key"] != key:
+    acked: dict[str, dict[str, int]] = {}
+    try:
+      with open(path) as f:
+        for line in f:
+          parts = line.rstrip("\n").split("\t")
+          if len(parts) == 3 and parts[2].isdigit():
+            acked.setdefault(parts[0], {})[parts[1]] = int(parts[2])
+    except OSError:
+      cloudlog.exception(f"cannot read {path}")
+      return {}
+    _ack_cache["key"], _ack_cache["acked"] = key, acked
+  return _ack_cache["acked"]
+
+
+def is_archived(d: str, names: list[str], acked: dict[str, dict[str, int]]) -> bool:
+  files = acked.get(d)
+  if files is None:
+    return False
+  for n in names:
+    try:
+      size = os.path.getsize(os.path.join(Paths.log_root(), d, n))
+    except OSError:
+      return False
+    if files.get(n) != size:
+      return False
+  return True
+
 
 def has_preserve_xattr(d: str) -> bool:
   return getxattr(os.path.join(Paths.log_root(), d), PRESERVE_ATTR_NAME) == PRESERVE_ATTR_VALUE
@@ -55,20 +106,53 @@ def deleter_step() -> tuple[bool, str | None]:
   dirs = listdir_by_creation(Paths.log_root())
   preserved_dirs = get_preserved_segments(dirs)
 
-  # remove the earliest directory we can
-  for delete_dir in sorted(dirs, key=lambda d: (d in DELETE_LAST, d in preserved_dirs)):
-    delete_path = os.path.join(Paths.log_root(), delete_dir)
-
-    if any(name.endswith(".lock") for name in os.listdir(delete_path)):
-      continue
-
+  acked = load_archive_acks()
+  order = sorted(dirs, key=lambda d: (d in DELETE_LAST, d in preserved_dirs))
+  unlocked = []
+  for d in order:
     try:
-      cloudlog.info(f"deleting {delete_path}")
-      shutil.rmtree(delete_path)
-      return True, delete_path
+      names = os.listdir(os.path.join(Paths.log_root(), d))
     except OSError:
-      cloudlog.exception(f"issue deleting {delete_path}")
+      continue
+    if not any(name.endswith(".lock") for name in names):
+      unlocked.append((d, names))
+
+  # tier 1: segments with a verified copy on the Mac
+  for d, names in unlocked:
+    if is_archived(d, names, acked):
+      deleted = _rmtree(d)
+      if deleted:
+        return True, deleted
+
+  # tier 2: big video of segments not archived yet; logs stay
+  for d, names in unlocked:
+    for n in sorted(names):
+      if n.endswith(BIG_VIDEO_SUFFIXES):
+        path = os.path.join(Paths.log_root(), d, n)
+        try:
+          cloudlog.info(f"deleting unarchived video {path}")
+          os.remove(path)
+          return True, path
+        except OSError:
+          cloudlog.exception(f"issue deleting {path}")
+
+  # tier 3: stock behaviour
+  for d, _ in unlocked:
+    deleted = _rmtree(d)
+    if deleted:
+      return True, deleted
   return True, None
+
+
+def _rmtree(d: str) -> str | None:
+  delete_path = os.path.join(Paths.log_root(), d)
+  try:
+    cloudlog.info(f"deleting {delete_path}")
+    shutil.rmtree(delete_path)
+    return delete_path
+  except OSError:
+    cloudlog.exception(f"issue deleting {delete_path}")
+  return None
 
 
 def deleter_thread(exit_event: threading.Event):
