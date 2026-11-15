@@ -78,9 +78,11 @@ class TestBydSafety(common.CarSafetyTest, common.AngleSteeringSafetyTest):
   def _get_steer_cmd_angle_max(self, speed):
     return get_max_angle_vm(max(speed, 1), self.VM, CarControllerParams)
 
+  SAFETY_VM = CAR.BYD_ATTO_3   # whose geometry byd.h checks this param's angles with
+
   def setUp(self):
     super().setUp()
-    self.VM = VehicleModel(get_safety_CP())
+    self.VM = VehicleModel(get_safety_CP(self.SAFETY_VM))
 
   def _angle_cmd_msg(self, angle: float, enabled: bool, increment_timer: bool = True):
     values = {"STEER_ANGLE": angle, "STEER_REQ": 1 if enabled else 0, "STEER_REQ_ACTIVE_LOW": 0 if enabled else 1}
@@ -263,12 +265,13 @@ class TestBydSongPlusSafety(TestBydSafety):
   rule as carstate.py. Each was fitted to recordings of the car and each is exercised here
   both through the common suite and by the focused cases at the end.
 
-  Steering geometry is still the Atto 3's for every BYD (see byd_tx_hook), so the angle-limit
-  tests run with the same vehicle model; only the speed they are fed is encoded differently.
+  The param also selects the Song PLUS's own steering geometry (see byd_tx_hook), so the angle-limit
+  tests run with its vehicle model, the one the controller limits with (carcontroller.get_safety_CP).
   """
 
   DBC = "byd_song_plus"
   SAFETY_PARAM = 1   # BYD_PARAM_SONG_PLUS
+  SAFETY_VM = CAR.BYD_SONG_PLUS_DMI_23
 
   # Must match byd.h's Song Plus speed constant: DBC wheel scale * wheelSpeedFactor.
   DBC_WHEEL_SCALE = 0.0725  # WHEELSPEED_FL kph/LSB in byd_song_plus.dbc
