@@ -60,6 +60,9 @@ bool gas_pressed = false;
 bool gas_pressed_prev = false;
 bool brake_pressed = false;
 bool brake_pressed_prev = false;
+// set by a safety mode while the driver has engaged lateral control alone with a key of the car's:
+// the brake does not end the controls then (byd.h, the Song Plus lateral key). Reset with the mode.
+bool brake_keeps_controls = false;
 bool regen_braking = false;
 bool regen_braking_prev = false;
 bool steering_disengage;
@@ -356,7 +359,7 @@ static void generic_rx_checks(void) {
   gas_pressed_prev = gas_pressed;
 
   // exit controls on rising edge of brake press
-  if (brake_pressed && (!brake_pressed_prev || vehicle_moving)) {
+  if (brake_pressed && (!brake_pressed_prev || vehicle_moving) && !brake_keeps_controls) {
     controls_allowed = false;
   }
   brake_pressed_prev = brake_pressed;
@@ -461,6 +464,7 @@ int set_safety_hooks(uint16_t mode, uint16_t param) {
   reset_sample(&angle_meas);
 
   controls_allowed = false;
+  brake_keeps_controls = false;
   relay_malfunction_reset();
   safety_rx_checks_invalid = false;
 
