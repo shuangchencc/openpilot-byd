@@ -2,6 +2,7 @@
 import numpy as np
 from dataclasses import dataclass
 
+from opendbc.car.structs import car
 from openpilot.cereal import messaging
 from openpilot.common.constants import CV
 from openpilot.common.realtime import DT_MDL
@@ -25,6 +26,10 @@ class Maneuver:
   actions: list[Action]
   repeat: int = 0
   initial_speed: float = 0.  # m/s
+  # how close to initial_speed counts as being there, and what is asked for while getting there:
+  # None steers towards initial_speed (see SONGPLUS_MANEUVERS for why not always)
+  speed_tolerance: float = 0.3  # m/s
+  setup_accel: float | None = None  # m/s^2
 
   _active: bool = False
   _finished: bool = False
@@ -60,7 +65,7 @@ class Maneuver:
     return float(action_accel)
 
   def get_accel(self, v_ego: float, long_active: bool, standstill: bool, cruise_standstill: bool, /) -> float:
-    ready = abs(v_ego - self.initial_speed) < 0.3 and long_active and not cruise_standstill
+    ready = abs(v_ego - self.initial_speed) < self.speed_tolerance and long_active and not cruise_standstill
     if self.initial_speed < 0.01:
       ready = ready and standstill
     self._ready_cnt = (self._ready_cnt + 1) if ready else 0
@@ -69,6 +74,8 @@ class Maneuver:
       self._active = True
 
     if not self._active:
+      if self.setup_accel is not None:
+        return self.setup_accel
       return min(max(self.initial_speed - v_ego, -2.), 2.)
 
     return self._step()
@@ -137,15 +144,47 @@ MANEUVERS = [
 ]
 
 
+def _square(amplitude: float, period: float, duration: float) -> Action:
+  """-amplitude for the first half of every period and +amplitude for the second, for `duration` s."""
+  accel_bp, time_bp = [], []
+  for i in range(round(duration / period)):
+    t = i * period
+    accel_bp += [-amplitude, -amplitude, amplitude, amplitude]
+    time_bp += [t, t + period / 2 - 0.001, t + period / 2, t + period - 0.001]
+  return Action(accel_bp, time_bp)
+
+
+# BYD Song PLUS with openpilot longitudinal (migration-audit/longitudinal-l1-20261114/DESIGN.txt 7.3, "L4"): there
+# openpilot can only make the car ask for LESS than the stock ACC, which stays engaged and keeps its set speed, and
+# panda takes no request below -1.0 m/s^2. The maneuvers above stop the car, start it, or ask for more than the stock
+# ACC does, none of which it can do. These are steps and swings below the stock request - about 0 at a steady speed -
+# from anywhere between 28 and 42 km/h (the driver sets the ACC so that the car holds about 35). Before each run, and
+# after the last, +2 m/s^2 is asked for: never below the stock request, so the stock ACC alone brings the car back to
+# its set speed, as it would without openpilot.
+SONGPLUS_SETUP = {"initial_speed": 35. * CV.KPH_TO_MS, "speed_tolerance": 2.0, "setup_accel": 2.0}
+SONGPLUS_IDLE_ACCEL = 2.0
+SONGPLUS_MANEUVERS = [
+  Maneuver("L4 step 1: -0.3 m/s^2 for 3 s", [Action([-0.3], [3])], repeat=1, **SONGPLUS_SETUP),
+  Maneuver("L4 step 2: -0.5 m/s^2 for 3 s", [Action([-0.5], [3])], repeat=1, **SONGPLUS_SETUP),
+  Maneuver("L4 step 2: -1.0 m/s^2 for 3 s", [Action([-1.0], [3])], repeat=1, **SONGPLUS_SETUP),
+  Maneuver("L4 step 3: slow swing +0.3 .. -0.3 m/s^2, 60 s", [Action([0.3, -0.3] * 6 + [0.3], [5. * i for i in range(13)])], **SONGPLUS_SETUP),
+  Maneuver("L4 step 4: +-0.1 m/s^2 at 5 Hz, 10 s", [_square(0.1, 0.2, 10.)], **SONGPLUS_SETUP),
+  Maneuver("L4 step 4: +-0.3 m/s^2 at 5 Hz, 10 s", [_square(0.3, 0.2, 10.)], **SONGPLUS_SETUP),
+  Maneuver("L4 step 4: +-0.5 m/s^2 at 5 Hz, 10 s", [_square(0.5, 0.2, 10.)], **SONGPLUS_SETUP),
+  Maneuver("L4 step 5: -0.3 m/s^2 for 10 s, the host fails in the middle", [Action([-0.3], [10])], **SONGPLUS_SETUP),
+]
+
+
 def main():
   params = Params()
   cloudlog.info("maneuversd is waiting for CarParams")
-  params.get("CarParams", block=True)
+  CP = messaging.log_from_bytes(params.get("CarParams", block=True), car.CarParams)
+  songplus = CP.carFingerprint == "BYD_SONG_PLUS_DMI_23"
 
   sm = messaging.SubMaster(['carState', 'carControl', 'controlsState', 'selfdriveState', 'modelV2'], poll='modelV2')
   pm = messaging.PubMaster(['longitudinalPlan', 'driverAssistance', 'alertDebug'])
 
-  maneuvers = iter(MANEUVERS)
+  maneuvers = iter(SONGPLUS_MANEUVERS if songplus else MANEUVERS)
   maneuver = None
 
   while True:
@@ -161,7 +200,7 @@ def main():
     plan_send.valid = sm.all_checks()
 
     longitudinalPlan = plan_send.longitudinalPlan
-    accel = 0
+    accel = SONGPLUS_IDLE_ACCEL if songplus else 0
     v_ego = max(sm['carState'].vEgo, 0)
 
     if maneuver is not None:
