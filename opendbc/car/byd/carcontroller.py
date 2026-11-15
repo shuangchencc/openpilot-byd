@@ -105,6 +105,20 @@ class CarController(CarControllerBase):
     msg = bydcan.create_acc_cmd(self.packer, request, stock["STOCK_BYTES_1_4"], stock["STOCK_BYTE_5"], (stock["COUNTER"] + 1) % 16)
     return msg, accel
 
+  @staticmethod
+  def lane_change_push(CC, CS):
+    """While openpilot shows a lane change, steeringPressed is the push that starts it, not the driver taking
+    the wheel, unless the torque is firm (STEER_YIELD_LANE_CHANGE_PUSH_MAX) or above the steeringPressed
+    threshold against the lane change. Below that threshold either way it is the push easing off:
+    steeringPressed outlasts the torque by a few frames, and a released wheel reads about -1.1.
+    Positive torque is the wheel turned left, as for openpilot's DesireHelper, which takes the same sign to
+    start a change to the left."""
+    side = 1 if CC.leftBlinker else -1 if CC.rightBlinker else 0
+    torque = CS.out.steeringTorque
+    firm = abs(torque) >= CarControllerParams.STEER_YIELD_LANE_CHANGE_PUSH_MAX
+    against = torque * side < -CarControllerParams.STEER_DRIVER_OVERRIDE_NM
+    return side != 0 and not firm and not against
+
   def update(self, CC, CS, now_nanos):
     can_sends = []
     actuators = CC.actuators
@@ -116,10 +130,11 @@ class CarController(CarControllerBase):
     # drive when that has lasted 0.7 s (see BydFlags.YIELD_TO_DRIVER). So the request
     # is withdrawn while steeringPressed and for a moment after, exactly as if openpilot
     # were not steering: STEER_REQ 0, the commanded angle following the wheel, so that
-    # the next request starts from where the wheel then is.
+    # the next request starts from where the wheel then is. The push that starts a lane change openpilot
+    # shows is not such a turn (lane_change_push).
     steer_req = CC.latActive
     if self.yield_to_driver:
-      if CS.out.steeringPressed:
+      if CS.out.steeringPressed and not self.lane_change_push(CC, CS):
         self.yield_frames = CarControllerParams.STEER_YIELD_HOLD_FRAMES
       elif self.yield_frames > 0:
         self.yield_frames -= 1

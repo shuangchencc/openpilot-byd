@@ -46,9 +46,11 @@ class Car:
     for wheel in ("WHEELSPEED_FL", "WHEELSPEED_FR", "WHEELSPEED_BL", "WHEELSPEED_BR", "WHEELSPEED_CLEAN"):   # the last is the Atto 3's
       self.pt.vl["WHEELSPEED_CLEAN"][wheel] = kph
 
-  def drive(self, lat_active, steps=1, enabled=None, target_deg=0.0):
+  def drive(self, lat_active, steps=1, enabled=None, target_deg=0.0, lane_change=None):
     """CarState then CarController, as the interface runs them, `steps` times at 100 Hz.
     `enabled` is openpilot being engaged; unless given, it is engaged exactly while it asks to steer.
+    `lane_change` ("left" / "right") is openpilot showing a lane change, as controlsd does in
+    CC.leftBlinker / CC.rightBlinker whenever its lane change state is not off.
     Every frame the controller builds is appended to self.sent as (address, data)."""
     ret = None
     for _ in range(steps):
@@ -58,6 +60,8 @@ class Car:
       CC.latActive = lat_active
       CC.enabled = lat_active if enabled is None else enabled
       CC.actuators.steeringAngleDeg = target_deg
+      CC.leftBlinker = lane_change == "left"
+      CC.rightBlinker = lane_change == "right"
       _, can_sends = self.CI.CC.update(CC.as_reader(), self.CS, self.frame * 10_000_000)
       self.sent += [(msg[0], bytes(msg[1])) for msg in can_sends]
       self.frame += 1
@@ -442,6 +446,91 @@ class TestSongPlusYieldsToTheDriver(unittest.TestCase):
       car.driver_torque(0)
       car.drive(True, 100)
       assert set(self.requests(car, mark)) == {1}, (torque, steps)
+
+  def test_the_push_that_starts_a_lane_change_is_not_a_withdrawal(self):
+    # openpilot starts a lane change on steeringPressed toward the blinker; the push is not the driver
+    # taking the wheel (positive torque is the wheel turned left, as DesireHelper reads it)
+    for side, sign in (("left", 1.0), ("right", -1.0)):
+      for torque in (24.5, 26.6, 27.9):
+        car = self.engaged()
+        mark = len(car.sent)
+        car.driver_torque(sign * torque)
+        ret = car.drive(True, 60, lane_change=side)       # 0.6 s
+        assert ret.steeringPressed, (side, torque)        # still what starts the change
+        car.driver_torque(0)
+        car.drive(True, 100, lane_change=side)
+        assert set(self.requests(car, mark)) == {1}, (side, torque)
+
+  def test_letting_go_after_the_push_is_not_a_withdrawal(self):
+    # steeringPressed outlasts the push by a few frames, and a released wheel reads about -1.1: against a
+    # change to the left, but nowhere near the driver taking the wheel
+    for side, sign in (("left", 1.0), ("right", -1.0)):
+      car = self.engaged()
+      mark = len(car.sent)
+      car.driver_torque(sign * 26.0)
+      car.drive(True, 30, lane_change=side)
+      for released in (-1.1, -3.0, 1.1, 3.0):
+        car.driver_torque(released)
+        car.drive(True, 3, lane_change=side)
+      car.drive(True, 100, lane_change=side)
+      assert set(self.requests(car, mark)) == {1}, side
+
+  def test_a_firm_push_during_a_lane_change_is_a_withdrawal(self):
+    for side, sign in (("left", 1.0), ("right", -1.0)):
+      car = self.engaged()
+      mark = len(car.sent)
+      car.driver_torque(sign * 28.0)
+      car.drive(True, 100, lane_change=side)
+      reqs = self.requests(car, mark)
+      assert 0 in reqs[:5], side
+      assert set(reqs[reqs.index(0):]) == {0}, side
+
+  def test_a_push_against_the_lane_change_is_a_withdrawal(self):
+    for side, sign in (("left", -1.0), ("right", 1.0)):
+      car = self.engaged()
+      mark = len(car.sent)
+      car.driver_torque(sign * 25.0)
+      car.drive(True, 100, lane_change=side)
+      reqs = self.requests(car, mark)
+      assert 0 in reqs[:5], side
+      assert set(reqs[reqs.index(0):]) == {0}, side
+
+  def test_the_cars_own_blinker_is_not_enough(self):
+    # below 20 mph openpilot shows no lane change with the blinker on: the push is the driver steering
+    car = self.engaged()
+    car.pt.vl["STALKS"]["LEFT_BLINKER"] = 1
+    mark = len(car.sent)
+    car.driver_torque(25.0)
+    car.drive(True, 100)
+    reqs = self.requests(car, mark)
+    assert 0 in reqs[:5]
+    assert set(reqs[reqs.index(0):]) == {0}
+
+  def test_easing_off_below_the_push_limit_during_a_lane_change(self):
+    # a firm push is a withdrawal; once it eases below the limit (still above steeringPressed's 24) the
+    # request comes back half a second later, gently, as after any other withdrawal
+    car = self.engaged()
+    car.driver_torque(32.0)
+    car.drive(True, 30, lane_change="left")
+    car.driver_torque(25.0)
+    mark = len(car.sent)
+    car.drive(True, 100, lane_change="left")
+    reqs = self.requests(car, mark)
+    back = reqs.index(1)
+    assert 24 <= back <= 26, back             # 50 frames of hold at 100 Hz: 25 steering frames
+    assert set(reqs[back:]) == {1}
+
+  def test_the_push_stays_light_while_openpilot_shows_the_lane_change(self):
+    # with the blinker left on after a change, DesireHelper goes back to preLaneChange and openpilot keeps
+    # showing it: a light push toward it then starts the next change, and is not a withdrawal either
+    car = self.engaged()
+    mark = len(car.sent)
+    for _ in range(3):
+      car.driver_torque(26.0)
+      car.drive(True, 40, lane_change="left")
+      car.driver_torque(0)
+      car.drive(True, 200, lane_change="left")
+    assert set(self.requests(car, mark)) == {1}
 
   def test_commanded_angle_follows_the_wheel_and_restarts_from_it(self):
     car = self.engaged()                       # asking for 0 deg, wheel at 0

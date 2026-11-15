@@ -76,6 +76,16 @@ class CarControllerParams:
   # for a request to start. The margin is for panda measuring the speed, and with it
   # the limit, a little differently (it allows for 1 m/s, 8 % of the angle at 90 km/h).
   STEER_REQUEST_START_ANGLE_RATIO = 0.9
+  # ... except that while openpilot is changing lanes (CC.leftBlinker / CC.rightBlinker, from the moment it
+  # shows the lane change until the driver's blinker goes off), a torque toward that side below this is the
+  # push that starts the lane change, not the driver taking the wheel: the request stays up. openpilot
+  # starts a lane change on steeringPressed (above 24) in the blinker's direction, the same signal we
+  # withdraw on, so without this every lane change began with the EPS letting go for 0.8-1.1 s and then
+  # one second of gentle start, the car meanwhile wherever the driver's push had put it. 28 is the
+  # threshold of the stack that made the 116 min recording (see BydFlags.YIELD_TO_DRIVER): it changed
+  # lanes left at 97 km/h on a push of 24.7-26.6 without withdrawing, and the EPS never aborted below it.
+  # Evidence: migration-audit/lane-change-sim-20261115/RESULT.txt
+  STEER_YIELD_LANE_CHANGE_PUSH_MAX = 28.0   # driver torque, the DBC's scale (as STEER_DRIVER_OVERRIDE_NM)
 
   # ... and how long that fault may be reported with openpilot still engaged before it
   # is made permanent. Longer than selfdrived's 3 s soft disable, so that only the
