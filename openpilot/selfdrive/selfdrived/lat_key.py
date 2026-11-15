@@ -7,11 +7,12 @@ in CarParams is what turns this on here as well: openpilot and panda cannot disa
 
 The rule, the same on both sides (the owner's, 2026-11-15: the key is an on/off switch for
 steering, and the pedals are the driver's alone):
-- a press with openpilot not engaged engages it, whatever the stock ACC is doing ("lateral
-  only"). The usual no-entry conditions still apply (gear, seatbelt, doors, the brake, ...),
-  except the ACC being unavailable;
-- while engaged by the key, neither the ACC being off, nor it engaging or leaving ends it (no
-  pcmDisable, wrongCarMode); everything else does, as before, the brake included;
+- a press with openpilot not engaged engages it, whatever the stock ACC and the pedals are doing
+  ("lateral only"). The usual no-entry conditions still apply (gear, seatbelt, doors, ...),
+  except the ACC being unavailable and a pedal being pressed;
+- while engaged by the key, neither the ACC being off, nor it engaging or leaving, nor the brake
+  ends it (no pcmDisable, wrongCarMode, pedalPressed; panda: brake_keeps_controls); everything
+  else does, as before;
 - a press while openpilot is engaged ends it, however it was engaged. The stock ACC is left as it
   is: if it was on, it goes on controlling the speed by itself.
 Longitudinal stays the stock ACC's: controlsd never sets longActive on a pcmCruise car while the
@@ -65,7 +66,7 @@ class LatKey:
       self.pending = True
 
     if self.lat_only or self.pending:
-      for name in (EventName.pcmDisable, EventName.wrongCarMode):
+      for name in (EventName.pcmDisable, EventName.wrongCarMode, EventName.pedalPressed):
         events.remove(name)
 
   def after_state_machine(self, enabled: bool) -> None:
