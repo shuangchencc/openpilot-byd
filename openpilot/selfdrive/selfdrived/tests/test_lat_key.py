@@ -79,17 +79,18 @@ class TestLatKey(unittest.TestCase):
       assert d.step(n=500), available
       assert d.lat_key.lat_only
 
+  def test_second_press_ends_it(self):
+    d = Drive()
+    assert d.press()
+    assert not d.press()
+    assert not d.lat_key.lat_only
+    assert d.press()
+
   def test_the_release_is_nothing(self):
     d = Drive()
     assert not d.step(release=True)
     assert d.press()
     assert d.step(release=True)
-
-  def test_second_press_ends_it(self):
-    d = Drive()
-    assert d.press()
-    assert not d.press()
-    assert d.press()
 
   def test_brake_ends_it(self):
     d = Drive()
@@ -100,21 +101,22 @@ class TestLatKey(unittest.TestCase):
     assert not d.step(n=100)
     assert not d.lat_key.lat_only
 
-  def test_no_entry_with_the_brake_held(self):
+  def test_no_entry_with_the_brake_pressed_while_moving(self):
     d = Drive()
     d.brake = True
     d.step()
     assert not d.press()
-    assert not d.lat_key.lat_only
 
-  def test_no_entry_with_the_brake_held_at_standstill(self):
-    # stopped with the brake held openpilot would otherwise pre-enable, which panda does not follow
+  def test_brake_held_at_standstill_waits_for_the_brake(self):
     d = Drive()
     d.stopped = True
     d.brake = True
     d.step()
-    assert not d.press()
-    assert d.sm.state == log.SelfdriveState.OpenpilotState.disabled
+    assert d.press()
+    assert d.sm.state == log.SelfdriveState.OpenpilotState.preEnabled
+    d.brake = False
+    d.step()
+    assert d.sm.state == log.SelfdriveState.OpenpilotState.enabled
 
   def test_usual_no_entry_still_applies(self):
     d = Drive()
@@ -125,37 +127,33 @@ class TestLatKey(unittest.TestCase):
     d.gear = GearShifter.drive
     assert d.press()
 
-  def test_acc_engaging_makes_it_an_ordinary_engagement(self):
+  def test_the_acc_coming_and_going_does_not_end_it(self):
     d = Drive()
     d.press()
-    d.acc_enabled = True
-    assert d.step(n=10)
-    assert not d.lat_key.lat_only
-    d.acc_enabled = False
-    d.acc_available = True
-    assert not d.step()
+    for enabled in (True, False, True, False):
+      d.acc_enabled = enabled
+      assert d.step(n=20)
+    assert d.lat_key.lat_only
 
-  def test_press_while_the_acc_is_engaged_does_nothing(self):
+  def test_press_while_engaged_by_the_acc_ends_it_and_the_next_one_engages(self):
     d = Drive()
     d.step()
     d.acc_enabled = True
     assert d.step()
-    assert d.press()
-    assert not d.lat_key.lat_only
-    d.acc_enabled = False
-    assert not d.step()
-    # nor does it engage openpilot while the ACC is engaged without it
-    d = Drive()
-    d.acc_enabled = True
-    d.step()
-    d.sm.state = log.SelfdriveState.OpenpilotState.disabled
-    d.enabled = False
-    assert not d.press()
+    assert not d.press()          # off; the ACC goes on by itself
+    assert d.press()              # on again, now by the key
+    assert d.lat_key.lat_only
+    d.acc_enabled = False         # and the ACC leaving does not end it
+    assert d.step(n=20)
 
   def test_without_the_panda_bit_the_key_is_nothing(self):
     d = Drive(song_plus_CP(lat_key=False))
     assert not d.lat_key.on
     assert not d.press()
+    d.step()
+    d.acc_enabled = True
+    assert d.step()
+    assert d.press()              # the key does not end an ACC engagement either
 
   def test_acc_without_the_key_is_as_before(self):
     d = Drive()

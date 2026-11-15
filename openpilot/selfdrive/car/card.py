@@ -140,7 +140,7 @@ class Car:
     self.CP.passive = not controller_available or self.CP.dashcamOnly
     # Song PLUS lateral key (selfdrived/lat_key.py): the panda bit is set only for a launch that asks
     # for it, and selfdrived reads it back from CarParams.
-    if songplus_lat_key(os.environ) and not self.CP.passive and self.CP.brand == "byd" and \
+    if songplus_lat_key(os.environ) and not self.CP.passive and not self.CP.openpilotLongitudinalControl and self.CP.brand == "byd" and \
        (self.CP.safetyConfigs[0].safetyParam & BYD_SAFETY_SONG_PLUS):
       self.CP.safetyConfigs[0].safetyParam |= BYD_SAFETY_LAT_KEY
       cloudlog.error("SONGPLUS_LAT_KEY=1 with SONGPLUS_ALLOW_CONTROL=1: the custom key engages lateral control alone")
