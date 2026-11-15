@@ -104,9 +104,8 @@ static void byd_rx_hook(const CANPacket_t *msg) {
       // Atto 3: WHEELSPEED_CLEAN is 16 bits. Song Plus: WHEELSPEED_FL is the low 12
       // bits only; bits 12-15 were 0 in every recorded frame, but they are not part
       // of the signal.
-      uint8_t speed_msb = byd_song_plus ? (msg->data[1] & 0xFU) : msg->data[1];
-      int speed = (speed_msb << 8) | msg->data[0];
-      vehicle_moving = speed > 0;
+      uint32_t speed = GET_BYTES_LE(msg, 0, 2) & (byd_song_plus ? 0xFFFU : 0xFFFFU);
+      vehicle_moving = speed > 0U;
       UPDATE_VEHICLE_SPEED(speed * (byd_song_plus ? 0.06853425 : 0.1) * KPH_TO_MS);
     }
 
@@ -337,42 +336,40 @@ static safety_config byd_init(uint16_t param) {
     {0x32E, 0, 8, .check_relay = true, .disable_static_blocking = true},  // ACC_CMD (stock request, lowered)
   };
 
-  // Atto 3: brake comes from DRIVE_STATE (0x242); its DBC has no IPB (0x123).
-  static RxCheck byd_atto3_rx_checks[] = {
-    {.msg = {{0x11F, 0, 5, 100U, .ignore_checksum = true, .ignore_counter = true, .ignore_quality_flag = true}, { 0 }, { 0 }}},  // STEER_MODULE_2 (steering angle)
-    {.msg = {{0x1F0, 0, 8,  50U, .max_counter = 15U, .ignore_quality_flag = true}, { 0 }, { 0 }}},  // WHEELSPEED_CLEAN (vehicle speed)
-    {.msg = {{0x242, 0, 8,  50U, .ignore_checksum = true, .ignore_counter = true, .ignore_quality_flag = true}, { 0 }, { 0 }}},  // DRIVE_STATE (gas and brake pressed)
-    {.msg = {{0x32D, 2, 8,  50U, .max_counter = 15U, .ignore_quality_flag = true}, { 0 }, { 0 }}},  // ACC_HUD_ADAS (cruise state)
-  };
-
-  // Song Plus: brake comes from IPB (0x123, 100 Hz) and gas from PEDAL (0x342,
-  // 50 Hz), both with valid checksum and counter on every recorded frame.
-  // DRIVE_STATE (0x242) is not read on this platform.
-  static RxCheck byd_song_plus_rx_checks[] = {
-    {.msg = {{0x11F, 0, 5, 100U, .ignore_checksum = true, .ignore_counter = true, .ignore_quality_flag = true}, { 0 }, { 0 }}},  // STEER_MODULE_2 (steering angle)
-    {.msg = {{0x1F0, 0, 8,  50U, .max_counter = 15U, .ignore_quality_flag = true}, { 0 }, { 0 }}},  // WHEELSPEED_CLEAN (vehicle speed)
-    {.msg = {{0x123, 0, 8, 100U, .max_counter = 15U, .ignore_quality_flag = true}, { 0 }, { 0 }}},  // IPB (brake pressed)
-    {.msg = {{0x342, 0, 8,  50U, .max_counter = 15U, .ignore_quality_flag = true}, { 0 }, { 0 }}},  // PEDAL (gas pressed)
-    {.msg = {{0x32D, 2, 8,  50U, .max_counter = 15U, .ignore_quality_flag = true}, { 0 }, { 0 }}},  // ACC_HUD_ADAS (cruise state)
-  };
-
-  // The same, and the stock ACC_CMD (50 Hz, next to ACC_HUD_ADAS): openpilot's
-  // replacement is checked against it, so it has to be alive and valid as well.
-  static RxCheck byd_song_plus_long_rx_checks[] = {
-    {.msg = {{0x11F, 0, 5, 100U, .ignore_checksum = true, .ignore_counter = true, .ignore_quality_flag = true}, { 0 }, { 0 }}},  // STEER_MODULE_2 (steering angle)
-    {.msg = {{0x1F0, 0, 8,  50U, .max_counter = 15U, .ignore_quality_flag = true}, { 0 }, { 0 }}},  // WHEELSPEED_CLEAN (vehicle speed)
-    {.msg = {{0x123, 0, 8, 100U, .max_counter = 15U, .ignore_quality_flag = true}, { 0 }, { 0 }}},  // IPB (brake pressed)
-    {.msg = {{0x342, 0, 8,  50U, .max_counter = 15U, .ignore_quality_flag = true}, { 0 }, { 0 }}},  // PEDAL (gas pressed)
-    {.msg = {{0x32D, 2, 8,  50U, .max_counter = 15U, .ignore_quality_flag = true}, { 0 }, { 0 }}},  // ACC_HUD_ADAS (cruise state)
-    {.msg = {{0x32E, 2, 8,  50U, .max_counter = 15U, .ignore_quality_flag = true}, { 0 }, { 0 }}},  // ACC_CMD (the stock request)
-  };
-
+  // Each set of RX checks is declared in the branch that uses it (MISRA: the smallest scope).
   safety_config ret;
   if (byd_song_plus && (byd_long_level != 0U)) {
+    // The Song Plus's below, and the stock ACC_CMD (50 Hz, next to ACC_HUD_ADAS): openpilot's
+    // replacement is checked against it, so it has to be alive and valid as well.
+    static RxCheck byd_song_plus_long_rx_checks[] = {
+      {.msg = {{0x11F, 0, 5, 100U, .ignore_checksum = true, .ignore_counter = true, .ignore_quality_flag = true}, { 0 }, { 0 }}},  // STEER_MODULE_2 (steering angle)
+      {.msg = {{0x1F0, 0, 8,  50U, .max_counter = 15U, .ignore_quality_flag = true}, { 0 }, { 0 }}},  // WHEELSPEED_CLEAN (vehicle speed)
+      {.msg = {{0x123, 0, 8, 100U, .max_counter = 15U, .ignore_quality_flag = true}, { 0 }, { 0 }}},  // IPB (brake pressed)
+      {.msg = {{0x342, 0, 8,  50U, .max_counter = 15U, .ignore_quality_flag = true}, { 0 }, { 0 }}},  // PEDAL (gas pressed)
+      {.msg = {{0x32D, 2, 8,  50U, .max_counter = 15U, .ignore_quality_flag = true}, { 0 }, { 0 }}},  // ACC_HUD_ADAS (cruise state)
+      {.msg = {{0x32E, 2, 8,  50U, .max_counter = 15U, .ignore_quality_flag = true}, { 0 }, { 0 }}},  // ACC_CMD (the stock request)
+    };
     ret = BUILD_SAFETY_CFG(byd_song_plus_long_rx_checks, BYD_LONG_TX_MSGS);
   } else if (byd_song_plus) {
+    // Song Plus: brake comes from IPB (0x123, 100 Hz) and gas from PEDAL (0x342,
+    // 50 Hz), both with valid checksum and counter on every recorded frame.
+    // DRIVE_STATE (0x242) is not read on this platform.
+    static RxCheck byd_song_plus_rx_checks[] = {
+      {.msg = {{0x11F, 0, 5, 100U, .ignore_checksum = true, .ignore_counter = true, .ignore_quality_flag = true}, { 0 }, { 0 }}},  // STEER_MODULE_2 (steering angle)
+      {.msg = {{0x1F0, 0, 8,  50U, .max_counter = 15U, .ignore_quality_flag = true}, { 0 }, { 0 }}},  // WHEELSPEED_CLEAN (vehicle speed)
+      {.msg = {{0x123, 0, 8, 100U, .max_counter = 15U, .ignore_quality_flag = true}, { 0 }, { 0 }}},  // IPB (brake pressed)
+      {.msg = {{0x342, 0, 8,  50U, .max_counter = 15U, .ignore_quality_flag = true}, { 0 }, { 0 }}},  // PEDAL (gas pressed)
+      {.msg = {{0x32D, 2, 8,  50U, .max_counter = 15U, .ignore_quality_flag = true}, { 0 }, { 0 }}},  // ACC_HUD_ADAS (cruise state)
+    };
     ret = BUILD_SAFETY_CFG(byd_song_plus_rx_checks, BYD_TX_MSGS);
   } else {
+    // Atto 3: brake comes from DRIVE_STATE (0x242); its DBC has no IPB (0x123).
+    static RxCheck byd_atto3_rx_checks[] = {
+      {.msg = {{0x11F, 0, 5, 100U, .ignore_checksum = true, .ignore_counter = true, .ignore_quality_flag = true}, { 0 }, { 0 }}},  // STEER_MODULE_2 (steering angle)
+      {.msg = {{0x1F0, 0, 8,  50U, .max_counter = 15U, .ignore_quality_flag = true}, { 0 }, { 0 }}},  // WHEELSPEED_CLEAN (vehicle speed)
+      {.msg = {{0x242, 0, 8,  50U, .ignore_checksum = true, .ignore_counter = true, .ignore_quality_flag = true}, { 0 }, { 0 }}},  // DRIVE_STATE (gas and brake pressed)
+      {.msg = {{0x32D, 2, 8,  50U, .max_counter = 15U, .ignore_quality_flag = true}, { 0 }, { 0 }}},  // ACC_HUD_ADAS (cruise state)
+    };
     ret = BUILD_SAFETY_CFG(byd_atto3_rx_checks, BYD_TX_MSGS);
   }
   return ret;
