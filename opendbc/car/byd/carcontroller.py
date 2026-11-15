@@ -9,14 +9,23 @@ from opendbc.car.lateral import apply_steer_angle_limits_vm, get_max_angle_delta
 from opendbc.car.interfaces import CarControllerBase
 from opendbc.car.byd import bydcan
 from opendbc.car.byd.carstate import EPS_LKA_ACTIVE
-from opendbc.car.byd.values import BydFlags, CarControllerParams, SAFETY_VM_PLATFORM, SongPlusLongitudinal as Long
+from opendbc.car.byd.values import CAR, BydFlags, CarControllerParams, SAFETY_VM_PLATFORM, SONG_PLUS_SAFETY_SLIP_FACTOR, \
+                                   SONG_PLUS_SAFETY_STEER_RATIO, SongPlusLongitudinal as Long
 from opendbc.car.vehicle_model import VehicleModel
 
 
-def get_safety_CP():
-  # Must stay in step with panda's byd.h; see SAFETY_VM_PLATFORM in values.py.
+def get_safety_CP(platform=SAFETY_VM_PLATFORM):
+  """The vehicle model panda's byd.h checks steering angles with, for this platform; the controller must limit with
+  the same one (values.py, SONG_PLUS_SAFETY_STEER_RATIO)."""
   from opendbc.car.byd.interface import CarInterface
-  return CarInterface.get_non_essential_params(SAFETY_VM_PLATFORM)
+  if platform != CAR.BYD_SONG_PLUS_DMI_23:
+    return CarInterface.get_non_essential_params(SAFETY_VM_PLATFORM)
+  CP = CarInterface.get_non_essential_params(CAR.BYD_SONG_PLUS_DMI_23)
+  CP.steerRatio = SONG_PLUS_SAFETY_STEER_RATIO
+  # the front tyre stiffness that gives the slip factor: (cF aF - cR aR) / (L^2 cF cR), all per unit mass
+  a_f, a_r, c_r = CP.centerToFront, CP.wheelbase - CP.centerToFront, CP.tireStiffnessRearPerMass
+  CP.tireStiffnessFrontPerMass = c_r * a_r / (a_f - SONG_PLUS_SAFETY_SLIP_FACTOR * CP.wheelbase ** 2 * c_r)
+  return CP
 
 
 class CarController(CarControllerBase):
@@ -26,7 +35,7 @@ class CarController(CarControllerBase):
     self.apply_angle_last = 0.0
 
     # Vehicle model used for lateral limiting
-    self.VM = VehicleModel(get_safety_CP())
+    self.VM = VehicleModel(get_safety_CP(CP.carFingerprint))
 
     # Steering-command constants this car's EPS expects, measured from accepted frames.
     # ANGLE_RATE_LIMIT is `engaged` while asking the EPS to steer and `idle` while not,

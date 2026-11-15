@@ -10,7 +10,11 @@ from opendbc.car import Bus, structs
 from opendbc.car.byd import bydcan
 from opendbc.car.can_definitions import CanData
 from opendbc.car.car_helpers import interfaces
+from opendbc.car.byd.carcontroller import get_safety_CP
 from opendbc.car.byd.values import CAR, DBC, CarControllerParams
+from opendbc.car.common.conversions import Conversions as CV
+from opendbc.car.lateral import get_max_angle_delta_vm, get_max_angle_vm
+from opendbc.car.vehicle_model import VehicleModel
 
 SONG_PLUS = CAR.BYD_SONG_PLUS_DMI_23
 ButtonType = structs.CarState.ButtonEvent.Type
@@ -98,6 +102,36 @@ class Car:
     for signal in ("STEER_REQ", "COUNTER"):                          # CANParser starts every update afresh
       self.rejected.vl_all["STEERING_MODULE_ADAS"][signal] = []
     return ret
+
+
+def safety_limits(kph, platform=SONG_PLUS):
+  """(the angle the lateral acceleration limit allows, the change per steering frame the limits allow) at this
+  speedometer speed, with the geometry panda checks and the controller limits with (carcontroller.get_safety_CP)."""
+  CP = interfaces[platform].get_non_essential_params(platform)
+  v = max(kph * CV.KPH_TO_MS * CP.wheelSpeedFactor, 1.0)
+  VM = VehicleModel(get_safety_CP(platform))
+  return (get_max_angle_vm(v, VM, CarControllerParams),
+          min(get_max_angle_delta_vm(v, VM, CarControllerParams), CarControllerParams.ANGLE_LIMITS.MAX_ANGLE_RATE))
+
+
+class TestSongPlusSafetyGeometry(unittest.TestCase):
+  """The geometry panda checks Song PLUS angles with turns less than the car at every speed it was measured at,
+  so the angle the limit allows never stands for more than the limit's lateral acceleration (values.py)."""
+
+  # apparent steering ratio (wheel angle over road wheel angle) by road speed, from the gyroscope on 2026-11-15
+  MEASURED = {20: 17.84, 40: 20.21, 60: 25.45, 80: 27.54}
+
+  def test_it_turns_less_than_the_car(self):
+    VM = VehicleModel(get_safety_CP(SONG_PLUS))
+    for kph, measured in self.MEASURED.items():
+      v = kph * CV.KPH_TO_MS
+      modelled = VM.sR / VM.curvature_factor(v) / VM.l          # the wheel angle per unit curvature, over the wheelbase
+      assert modelled < measured, (kph, modelled, measured)
+      assert modelled > 0.75 * measured, (kph, modelled, measured)   # and not needlessly far off
+
+  def test_the_atto3_keeps_its_own(self):
+    from opendbc.car.byd.interface import CarInterface
+    assert get_safety_CP(CAR.BYD_ATTO_3).steerRatio == CarInterface.get_non_essential_params(CAR.BYD_ATTO_3).steerRatio
 
 
 class TestSongPlusCruiseEnabled(unittest.TestCase):
@@ -739,13 +773,13 @@ class TestSongPlusRequestStartsGently(unittest.TestCase):
   def test_change_per_frame_grows_evenly_to_the_usual_amount(self):
     asked = self.asked_from()
     changes = [b - a for a, b in zip([0.0] + asked, asked, strict=False)]
-    usual = sum(changes[52:62]) / 10
-    assert 2.0 < usual < 3.5                                   # what the limits allow at 30 km/h
-    assert all(abs(c - usual) < 0.11 for c in changes[49:65])  # reached after 50 frames (1 s), and kept (0.1 deg steps on the bus)
+    usual = sum(changes[52:58]) / 6
+    assert abs(usual - safety_limits(30)[1]) < 0.06            # what the limits allow at 30 km/h
+    assert all(abs(c - usual) < 0.11 for c in changes[49:60])  # reached after 50 frames (1 s), and kept (0.1 deg steps on the bus)
     for k in range(1, 50):                                     # before that: k fiftieths of it in frame k
       assert abs(changes[k - 1] - usual * k / 50) < 0.11, (k, changes[k - 1])
     assert asked[0] < 0.11                                     # the first angle asked for is the wheel's own
-    assert abs(asked[24] - usual * 6.5) < 0.2                  # 18 deg after half a second, where it used to be 71
+    assert abs(asked[24] - usual * 6.5) < 0.2                  # 21 deg after half a second, where it used to be 71
 
   def test_at_walking_pace_it_grows_to_the_ports_own_rate_limit(self):
     # below about 20 km/h the jerk limit allows more than MAX_ANGLE_RATE (5 deg per frame), which then is "the usual amount"
@@ -791,7 +825,8 @@ class TestSongPlusRequestStartsGently(unittest.TestCase):
     asked = [angle for _, angle, _ in frames[back:]]
     changes = [a - b for a, b in zip([30.0] + asked, asked, strict=False)]
     assert changes[0] < 0.11 and changes[1] < 0.21             # gentle again
-    assert 0.4 < changes[9] < 0.8 and 1.2 < changes[24] < 1.7  # and growing again: a fifth and a half of the usual 2.8
+    usual = safety_limits(30)[1]
+    assert abs(changes[9] - usual / 5) < 0.15 and abs(changes[24] - usual / 2) < 0.15   # and growing again: a fifth and a half of the usual
 
   def test_atto3_starts_at_the_usual_rate(self):
     asked = self.asked_from(CAR.BYD_ATTO_3)
@@ -801,7 +836,11 @@ class TestSongPlusRequestStartsGently(unittest.TestCase):
 class TestSongPlusRequestStartsInsideTheLimit(unittest.TestCase):
   """A request does not start while the wheel is beyond the angle the lateral acceleration limit
   allows at that speed: no angle could be asked for there that panda would let through.
-  At the 85 km/h these run at the limit is 19.9 deg, and a request may start below 0.9 of it, 17.9."""
+  At the 85 km/h on the road these run at (90 on the speedometer) the limit is 25.3 deg with the Song PLUS's
+  own geometry, and a request may start below 0.9 of it, 22.8."""
+
+  LIMIT = safety_limits(90)[0]
+  START = CarControllerParams.STEER_REQUEST_START_ANGLE_RATIO * LIMIT
 
   def car(self, wheel_deg, kph=90):
     car = Car()
@@ -817,47 +856,51 @@ class TestSongPlusRequestStartsInsideTheLimit(unittest.TestCase):
     return car.steering_frames(mark)
 
   def test_no_request_while_the_wheel_is_outside(self):
-    car = self.car(25.0)
+    wheel = round(self.LIMIT + 3.0, 1)
+    car = self.car(wheel)
     frames = self.frames(car, 300)
     assert {req for req, _, _ in frames} == {0}
-    assert all(abs(angle - 25.0) < 0.051 for _, angle, _ in frames)     # "not steering": the wheel's own angle
+    assert all(abs(angle - wheel) < 0.051 for _, angle, _ in frames)    # "not steering": the wheel's own angle
     assert {limit for _, _, limit in frames} == {300}
 
   def test_it_starts_once_the_wheel_is_back_inside(self):
-    car = self.car(25.0)
+    start = round(self.LIMIT + 3.0, 1)
+    car = self.car(start)
     self.frames(car, 100)
     mark = len(car.sent)
     wheel = []
     for i in range(100):                                                # the wheel comes back at 10 deg/s
-      car.wheel(25.0 - 0.1 * (i + 1))
+      car.wheel(start - 0.1 * (i + 1))
       car.drive(True)
-      wheel += [25.0 - 0.1 * (i + 1)] * (len(car.steering_frames(mark)) - len(wheel))
+      wheel += [start - 0.1 * (i + 1)] * (len(car.steering_frames(mark)) - len(wheel))
     frames = car.steering_frames(mark)
     reqs = [req for req, _, _ in frames]
     first = reqs.index(1)
     assert set(reqs[:first]) == {0} and set(reqs[first:]) == {1}
-    assert 17.5 < wheel[first] < 17.95                                  # as soon as it is under 17.9
+    assert self.START - 0.45 < wheel[first] < self.START + 0.05         # as soon as it is under 0.9 of the limit
     # from the last angle sent, one frame old (panda checks the first request against that one)
     assert abs(frames[first][1] - wheel[first - 1]) < 0.11
     assert abs(frames[first][1] - frames[first - 1][1]) < 0.11
 
   def test_the_margin(self):
-    for wheel, starts in ((17.5, True), (-17.5, True), (18.3, False), (-18.3, False), (19.8, False)):
+    inside, outside = round(self.START - 0.4, 1), round(self.START + 0.5, 1)
+    for wheel, starts in ((inside, True), (-inside, True), (outside, False), (-outside, False), (round(self.LIMIT - 0.1, 1), False)):
       reqs = {req for req, _, _ in self.frames(self.car(wheel), 50)}
       assert reqs == ({1} if starts else {0}), wheel
 
   def test_the_limit_is_the_speeds(self):
-    # 28 km/h: 138 deg, so 100 deg is inside; 113 km/h: 13.4 deg, so 12.5 deg is not inside 0.9 of it
+    # 28 km/h on the road: 165 deg, so 100 deg is inside; 113 km/h: 17.7 deg, 0.9 of it 15.9
     assert {req for req, _, _ in self.frames(self.car(100.0, kph=30), 50)} == {1}
-    assert {req for req, _, _ in self.frames(self.car(12.5, kph=120), 50)} == {0}
-    assert {req for req, _, _ in self.frames(self.car(11.5, kph=120), 50)} == {1}
+    start_120 = CarControllerParams.STEER_REQUEST_START_ANGLE_RATIO * safety_limits(120)[0]
+    assert {req for req, _, _ in self.frames(self.car(round(start_120 + 0.6, 1), kph=120), 50)} == {0}
+    assert {req for req, _, _ in self.frames(self.car(round(start_120 - 0.4, 1), kph=120), 50)} == {1}
 
   def test_a_running_request_is_not_ended_by_it(self):
     car = self.car(10.0)
     assert {req for req, _, _ in self.frames(car, 100, target_deg=10.0)} == {1}
-    car.wheel(19.0)                                                     # past 17.9, still inside the limit itself
+    car.wheel(round(self.START + 1.0, 1))                               # past 0.9 of the limit, still inside the limit itself
     assert {req for req, _, _ in self.frames(car, 100, target_deg=10.0)} == {1}
-    car.speed(120)                                                      # the limit shrinks to 13.4 under the wheel
+    car.speed(120)                                                      # the limit shrinks to 17.7 under the wheel
     assert {req for req, _, _ in self.frames(car, 100, target_deg=10.0)} == {1}
 
   def test_it_holds_after_the_driver_has_turned_the_wheel_too(self):
