@@ -20,6 +20,7 @@ from opendbc.car.car_helpers import get_car, interfaces
 from opendbc.car.interfaces import CarInterfaceBase, RadarInterfaceBase
 from openpilot.selfdrive.pandad import can_capnp_to_list, can_list_to_can_capnp
 from openpilot.selfdrive.car.cruise import VCruiseHelper
+from openpilot.selfdrive.selfdrived.lat_key import songplus_lat_key, BYD_SAFETY_SONG_PLUS, BYD_SAFETY_LAT_KEY
 
 REPLAY = "REPLAY" in os.environ
 
@@ -137,6 +138,12 @@ class Car:
     openpilot_enabled_toggle = self.params.get_bool("OpenpilotEnabledToggle")
     controller_available = self.CI.CC is not None and openpilot_enabled_toggle and not self.CP.dashcamOnly
     self.CP.passive = not controller_available or self.CP.dashcamOnly
+    # Song PLUS lateral key (selfdrived/lat_key.py): the panda bit is set only for a launch that asks
+    # for it, and selfdrived reads it back from CarParams.
+    if songplus_lat_key(os.environ) and not self.CP.passive and self.CP.brand == "byd" and \
+       (self.CP.safetyConfigs[0].safetyParam & BYD_SAFETY_SONG_PLUS):
+      self.CP.safetyConfigs[0].safetyParam |= BYD_SAFETY_LAT_KEY
+      cloudlog.error("SONGPLUS_LAT_KEY=1 with SONGPLUS_ALLOW_CONTROL=1: the custom key engages lateral control alone")
     if self.CP.passive:
       safety_config = structs.CarParams.SafetyConfig()
       safety_config.safetyModel = structs.CarParams.SafetyModel.noOutput
