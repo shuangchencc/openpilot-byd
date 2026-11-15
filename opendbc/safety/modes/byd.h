@@ -49,10 +49,30 @@ static bool byd_song_plus = false;
 // other pattern, any state other than "controlling", or one of the warning bits of
 // ACC_HUD_ADAS (16, 17, 23) within the last two seconds, and nothing may be replaced.
 // Details: migration-audit/longitudinal-l0-20261114 and longitudinal-l1-20261114.
+//
+// Raising (safety param bit 3, BYD_PARAM_LONG_RAISE, which means something only together with a
+// level): openpilot may also ask for a little MORE than the stock ACC, in the same kind of frame,
+// but only where the stock ACC's own view says the road ahead is free (byd_acc_cmd_raise_ok):
+// the stock ACC is not braking (its request is 0 or more); its radar has shown nothing ahead for
+// two seconds, neither "lead" (bit 9 of ACC_HUD_ADAS, which it sets for standing objects as
+// well) nor a distance bar (bits 13-15); and the car is moving, at 3 m/s or more, and below the
+// set speed. Then the request may be up to 0.5 m/s^2 above the stock one and +1.2 m/s^2 at most,
+// and no more than 0.05 m/s^2 above the request the car got in the slot just past: 2.5 m/s^3,
+// the stock ACC's own fastest change. Once a request may be higher, the stock ACC is no longer
+// the upper bound, and these conditions are what is left of it. openpilot adds one the panda
+// cannot check, that its own camera sees nothing ahead either. Nothing is raised while the stock
+// ACC brakes, at standstill or when starting, at or above the set speed, or within two seconds
+// of the stock radar showing something. Details: migration-audit/longitudinal-l6-20261114.
 #define BYD_ACC_CMD_MAX_AGE_US 25000U      // a replacement must come from a stock frame no older than this (they arrive every 20 ms)
 #define BYD_ACC_SUPPLIED_MAX_AGE_US 100000U  // a replacement withholds the stock frame that follows it, not one that arrives this much later
 #define BYD_ACC_WARNING_HOLD_US 2000000U   // nothing is replaced for this long after a warning bit was last seen
 #define BYD_ACC_STATE_CONTROLLING 3U
+#define BYD_ACC_LEAD_HOLD_US 2000000U      // nothing is raised for this long after the stock radar last showed something ahead
+#define BYD_ACC_REQUEST_ZERO 100U          // the raw request for 0 m/s^2
+#define BYD_RAISE_MAX_ABOVE_STOCK 10U      // a raised request is no more than this many counts above the stock one (+0.5 m/s^2),
+#define BYD_RAISE_MAX_REQUEST 124U         // nor above this (+1.2 m/s^2, the most the stock ACC has been seen to ask for),
+#define BYD_RAISE_MAX_STEP 1U              // nor more than this many counts above the request the car got in the slot just past
+#define BYD_RAISE_MIN_SPEED 3000           // mm/s (vehicle_speed is m/s * VEHICLE_SPEED_FACTOR): nothing is raised below 3 m/s
 
 static uint8_t byd_long_level = 0U;            // 0 = openpilot cannot send ACC_CMD; 1-3 select the lowest request it may make
 static uint8_t byd_acc_cmd[6] = {0};           // bytes 0-5 of the latest valid stock ACC_CMD; all zero is no frame that may be copied
@@ -65,6 +85,18 @@ static uint32_t byd_acc_cmd_supplied_ts = 0U;  // and when
 static uint8_t byd_acc_state_code = 0U;        // the stock ACC's own state, from ACC_HUD_ADAS
 static bool byd_acc_warning = false;           // a warning bit was seen less than BYD_ACC_WARNING_HOLD_US ago
 static uint32_t byd_acc_warning_ts = 0U;
+static bool byd_long_raise = false;            // openpilot may raise the request as well (BYD_PARAM_LONG_RAISE)
+static bool byd_acc_lead = true;               // the stock radar showed something ahead less than BYD_ACC_LEAD_HOLD_US ago
+static uint32_t byd_acc_lead_ts = 0U;
+static uint8_t byd_acc_set_speed = 0U;         // the stock ACC's set speed, 0.5 km/h per count, on the speedometer's scale
+static bool byd_acc_cmd_forwarded = false;     // the forward decision let the newest stock ACC_CMD through
+// The request the car got in one slot, the slot of stock frame number byd_acc_ref_arrival (counted
+// like byd_acc_cmd_arrivals): openpilot's, when the TX hook took a frame of ours for that slot, or
+// the stock frame's own, when the forward decision let it through. A raised request is held against
+// it, and only when it is the slot just past.
+static bool byd_acc_ref_valid = false;
+static uint8_t byd_acc_ref = 0U;
+static uint32_t byd_acc_ref_arrival = 0U;
 
 static uint8_t byd_get_counter(const CANPacket_t *msg) {
   // Speed (0x1F0) and the Song Plus pedal message (0x342) use the high nibble;
@@ -160,6 +192,18 @@ static void byd_rx_hook(const CANPacket_t *msg) {
         } else {
           // no warning, or one that is still being held
         }
+
+        // for byd_acc_cmd_raise_ok: whether the stock radar shows anything ahead, "lead" (bit 9) or a
+        // distance bar (bits 13-15), held the same way; and the set speed (bits 0-7)
+        if ((msg->data[1] & 0xE2U) != 0U) {
+          byd_acc_lead = true;
+          byd_acc_lead_ts = ts;
+        } else if (byd_acc_lead && (safety_get_ts_elapsed(ts, byd_acc_lead_ts) >= BYD_ACC_LEAD_HOLD_US)) {
+          byd_acc_lead = false;
+        } else {
+          // nothing ahead, or something that is still being held
+        }
+        byd_acc_set_speed = msg->data[0];
       } else {
         // ACC_STATE: 0=OFF, 2=ACC_ON, 3=ACC_ACTIVE, 5=FORCE_ACCEL, 7=ERROR
         uint8_t acc_state = (msg->data[2] >> 3) & 0x7U;
@@ -178,8 +222,43 @@ static void byd_rx_hook(const CANPacket_t *msg) {
       byd_acc_cmd_counter = msg->data[6] & 0xFU;
       byd_acc_cmd_ts = microsecond_timer_get();
       byd_acc_cmd_saved_arrival = byd_acc_cmd_arrivals;
+
+      // if it was let through, its request is what the car got in this slot. The forward decision
+      // for this same frame was made just before, in the same interrupt.
+      if (byd_acc_cmd_forwarded) {
+        byd_acc_ref = msg->data[0];
+        byd_acc_ref_arrival = byd_acc_cmd_arrivals;
+        byd_acc_ref_valid = true;
+      }
     }
   }
+}
+
+// May openpilot's request be above the stock one? See "Raising" at the top of the file. Asked only
+// about a frame with a request above the stock one; every other check is byd_acc_cmd_replacement_ok's.
+static bool byd_acc_cmd_raise_ok(uint8_t request) {
+  // raising is on, and the stock ACC is not braking: above a negative stock request, a higher one
+  // would take away from its braking (a0's review)
+  bool ok = byd_long_raise && (byd_acc_cmd[0] >= BYD_ACC_REQUEST_ZERO);
+
+  // its radar has shown nothing ahead for two seconds
+  ok = ok && !byd_acc_lead;
+
+  // the car is moving, and slower than the set speed. Of the panda's last few speeds the lowest is
+  // held against 3 m/s and the highest against the set speed. The set speed is on the speedometer's
+  // scale, which reads 1 / 0.9453 of the road speed the panda keeps (see the wheel speed in
+  // byd_rx_hook): speed [mm/s] * 3.6 / 1000 / 0.9453 < count * 0.5 [km/h], or in whole numbers
+  // speed * 72 < count * 9453.
+  ok = ok && (vehicle_speed.min > BYD_RAISE_MIN_SPEED);
+  ok = ok && ((vehicle_speed.max * 72) < ((int)byd_acc_set_speed * 9453));
+
+  // no more than 0.5 m/s^2 above the stock request, nor more than +1.2 m/s^2 ...
+  ok = ok && (request <= (byd_acc_cmd[0] + BYD_RAISE_MAX_ABOVE_STOCK)) && (request <= BYD_RAISE_MAX_REQUEST);
+  // ... nor more than 0.05 m/s^2 above what the car got in the slot just past (a0's review)
+  ok = ok && byd_acc_ref_valid && (byd_acc_ref_arrival == byd_acc_cmd_arrivals);
+  ok = ok && (request <= (byd_acc_ref + BYD_RAISE_MAX_STEP));
+
+  return ok;
 }
 
 // May this ACC_CMD from openpilot stand in for the next stock one? See the top of the file.
@@ -217,8 +296,11 @@ static bool byd_acc_cmd_replacement_ok(const CANPacket_t *msg) {
     ok = ok && (msg->data[i] == byd_acc_cmd[i]);
   }
 
-  // a request that is lower than the stock one, and not below this level's floor
-  ok = ok && (msg->data[0] < byd_acc_cmd[0]) && (msg->data[0] >= BYD_LONG_MIN_REQUEST[byd_long_level]);
+  // a request that is lower than the stock one, and not below this level's floor; or one that is
+  // higher, where raising allows it. Never the stock request itself: that frame goes by itself.
+  bool lower = (msg->data[0] < byd_acc_cmd[0]) && (msg->data[0] >= BYD_LONG_MIN_REQUEST[byd_long_level]);
+  bool higher = (msg->data[0] > byd_acc_cmd[0]) && byd_acc_cmd_raise_ok(msg->data[0]);
+  ok = ok && (lower || higher);
 
   return ok;
 }
@@ -270,12 +352,16 @@ static bool byd_tx_hook(const CANPacket_t *msg) {
     tx = !other_buttons && (!cancel || cruise_engaged_prev);
   }
 
-  // The stock ACC request with a lower value, one per stock frame
+  // The stock ACC request with a lower value (or a higher one, see "Raising"), one per stock frame
   if (msg->addr == 0x32EU) {
     tx = byd_acc_cmd_replacement_ok(msg);
     if (tx) {
       byd_acc_cmd_supplied = true;
       byd_acc_cmd_supplied_ts = microsecond_timer_get();
+      // the car gets this request in the slot of the next stock frame
+      byd_acc_ref = msg->data[0];
+      byd_acc_ref_arrival = byd_acc_cmd_arrivals + 1U;
+      byd_acc_ref_valid = true;
     }
   }
 
@@ -294,6 +380,7 @@ static bool byd_fwd_hook(int bus_num, int addr) {
     block = byd_acc_cmd_supplied && (safety_get_ts_elapsed(microsecond_timer_get(), byd_acc_cmd_supplied_ts) <= BYD_ACC_SUPPLIED_MAX_AGE_US);
     byd_acc_cmd_supplied = false;
     byd_acc_cmd_arrivals += 1U;
+    byd_acc_cmd_forwarded = !block;
   }
 
   return block;
@@ -306,8 +393,11 @@ static safety_config byd_init(uint16_t param) {
   // request; 1, 2, 3 = it may lower it, down to -1.0, -2.0 or -3.5 m/s^2.
   const uint16_t BYD_PARAM_LONG_LEVEL_SHIFT = 1U;
   const uint16_t BYD_PARAM_LONG_LEVEL_MASK = 3U;
+  // Bit 3: it may raise the request as well, see "Raising" at the top. Nothing without a level.
+  const uint16_t BYD_PARAM_LONG_RAISE = 8U;
   byd_song_plus = GET_FLAG(param, BYD_PARAM_SONG_PLUS);
   byd_long_level = (uint8_t)((param >> BYD_PARAM_LONG_LEVEL_SHIFT) & BYD_PARAM_LONG_LEVEL_MASK);
+  byd_long_raise = GET_FLAG(param, BYD_PARAM_LONG_RAISE);
 
   for (int i = 0; i < 6; i++) {
     byd_acc_cmd[i] = 0U;
@@ -321,6 +411,15 @@ static safety_config byd_init(uint16_t param) {
   byd_acc_state_code = 0U;
   byd_acc_warning = false;
   byd_acc_warning_ts = 0U;
+  // nothing is raised before the stock radar has been seen to show nothing ahead for two seconds,
+  // nor before ACC_HUD_ADAS has given a set speed, nor before the car has got a request in some slot
+  byd_acc_lead = true;
+  byd_acc_lead_ts = microsecond_timer_get();
+  byd_acc_set_speed = 0U;
+  byd_acc_cmd_forwarded = false;
+  byd_acc_ref_valid = false;
+  byd_acc_ref = 0U;
+  byd_acc_ref_arrival = 0U;
 
   static const CanMsg BYD_TX_MSGS[] = {
     {0x1E2, 0, 8, .check_relay = true},   // STEERING_MODULE_ADAS (lateral steering command)
@@ -335,7 +434,7 @@ static safety_config byd_init(uint16_t param) {
     {0x1E2, 0, 8, .check_relay = true},   // STEERING_MODULE_ADAS (lateral steering command)
     {0x316, 0, 8, .check_relay = true},   // LKAS_HUD_ADAS (dash HUD)
     {0x3B0, 0, 8, .check_relay = false},  // PCM_BUTTONS (cruise cancel button spoof)
-    {0x32E, 0, 8, .check_relay = true, .disable_static_blocking = true},  // ACC_CMD (stock request, lowered)
+    {0x32E, 0, 8, .check_relay = true, .disable_static_blocking = true},  // ACC_CMD (stock request, lowered or raised)
   };
 
   // Each set of RX checks is declared in the branch that uses it (MISRA: the smallest scope).

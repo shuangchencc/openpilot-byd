@@ -128,6 +128,8 @@ BO_ 790 LKAS_HUD_ADAS: 8 MPC_CAM
 BO_ 813 ACC_HUD_ADAS: 8 ADAS_ECU
  SG_ ACC_ENGAGED_STATE : 10|2@1+ (1,0) [0|3] "" MCU
  SG_ SET_SPEED : 0|8@1+ (0.5,0) [0|127.5] "kph" MCU
+ SG_ HAS_LEAD : 9|1@1+ (1,0) [0|1] "" MCU
+ SG_ LEAD_DISTANCE : 13|3@1+ (1,0) [0|7] "" MCU
  SG_ SET_DISTANCE : 12|3@0+ (1,0) [0|7] "" MCU
  SG_ ACC_STATE : 19|3@1+ (1,0) [0|7] "" MCU
  SG_ ACC_ON2 : 20|1@0+ (1,0) [0|1] "" MCU
@@ -204,6 +206,8 @@ CM_ BO_ 813 "ACC HUD ADAS message (cruise set speed, distance, ACC state).";
 CM_ SG_ 813 ACC_STATE_CODE "The stock ACC's own state, high nibble of byte 5 (the low nibble is 0). Measured on the Song PLUS: 2 standby, 3 controlling, 5 driver overriding with the gas pedal (the ACC stays on), 4 exiting (seen after the ACC key was pressed while the ACC was braking: it keeps braking until the driver brakes), 7 holding the car at standstill (seen once: ACC switched on while stopped; a brake press did not end it, the ACC key did), 1 unavailable (brake held, and for a moment after a brake cancel). Overlaps SET_ME_XFF, which is not a constant on this car.";
 CM_ SG_ 813 ACC_ENGAGED_STATE "Same bits as SET_DISTANCE: the follow-distance setting, shown only while the ACC is on (0 when off). It changed 2->1 0.23 s after DEC_DISTANCE_BTN and 1->2 0.21 s after INC_DISTANCE_BTN. Non-zero means the ACC is on, including while it is exiting; use ACC_STATE_CODE to tell.";
 CM_ SG_ 813 WARNING_BIT_17 "Called FCW in the DBC of the stack this car came with; what the instrument cluster shows for it is not known. Set once in all recordings: route 00000280 segment 64, 2026-10-22 07:16:43.92 UTC, 200 frames (3.99 s), at about 92 km/h with the driver already braking and the ACC in standby; ACC_CMD carried no request, 0x32F did not change and the car slowed by 0.9 m/s2 at most (migration-audit/longitudinal-l0-20261114/RESULT.txt, section 6). byd.h lets openpilot replace no ACC_CMD while this bit, bit 16 or bit 23 was set in the last two seconds.";
+CM_ SG_ 813 HAS_LEAD "Set while the stock ACC's radar shows something ahead. Not only cars: on a closed course with no other car it was set 38 of 79 s. On the highway (route 0000026f, 699 s in which openpilot saw a lead within a 4 s time headway) it had been clear for 2 s in 4.3 of those seconds (0.6%), LEAD_DISTANCE as well. byd.h raises no request while it or LEAD_DISTANCE was non-zero in the last two seconds (migration-audit/longitudinal-l6-20261114).";
+CM_ SG_ 813 LEAD_DISTANCE "How far away what HAS_LEAD reports is, in bars (0-4 seen); 0 when there is nothing. See HAS_LEAD.";
 CM_ SG_ 813 WARNING_BIT_16 "Called AEB in the DBC of the stack this car came with. 0 in every recorded frame (541,652). See WARNING_BIT_17.";
 CM_ SG_ 813 WARNING_BIT_23 "Called TOO_CLOSE in the DBC of the stack this car came with. 0 in every recorded frame (541,652). See WARNING_BIT_17.";
 CM_ BO_ 814 "ACC acceleration command from the ADAS ECU, 50 Hz on bus 2. The panda forwards every frame to the car, except the one whose place a frame from openpilot has taken (byd.h, only with a longitudinal level in the safety param).";

@@ -227,6 +227,37 @@ class SongPlusLongitudinal:
 
   ACCEL_MIN = (MIN_REQUEST[LEVEL] - REQUEST_ZERO) * REQUEST_SCALE   # m/s^2
 
+  # Raising: openpilot may also ask for a little more than the stock ACC, on a free road only - the
+  # stock ACC not braking, neither its radar nor openpilot seeing anything ahead for two seconds,
+  # the car moving and below the set speed - by at most RAISE_MAX_ABOVE_STOCK and never above
+  # RAISE_MAX_REQUEST, climbing by RAISE_MAX_STEP per frame over what the car got in the frame
+  # before. byd.h checks all of it (byd_acc_cmd_raise_ok) except what openpilot sees, which the
+  # panda cannot know. Design: migration-audit/longitudinal-l6-20261114/DESIGN.txt.
+  # RAISE: the CarController raises, and panda is told it may (safety param bit 3). To be switched
+  # on only with a panda firmware that has the rule; one without it refuses every raised frame, and
+  # the stock frame goes to the car instead.
+  RAISE = False
+  PANDA_RAISE_BIT = 8
+  # MUST match byd.h: BYD_RAISE_MAX_ABOVE_STOCK, BYD_RAISE_MAX_REQUEST, BYD_RAISE_MAX_STEP, BYD_RAISE_MIN_SPEED
+  RAISE_MAX_ABOVE_STOCK = 10      # counts: +0.5 m/s^2 over the stock request
+  RAISE_MAX_REQUEST = 124         # +1.2 m/s^2
+  RAISE_MAX_STEP = 1              # counts over the request the car got in the frame before: 2.5 m/s^3
+  RAISE_MIN_SPEED = 3.0           # m/s of road speed
+  # How far above the stock request the CarController itself goes: no more than panda allows, and
+  # less while raising is first driven (the closed-course plan starts at +0.2 m/s^2, 4 counts)
+  RAISE_ABOVE_STOCK_USED = RAISE_MAX_ABOVE_STOCK
+  # panda holds the lowest of its last six wheel speeds (120 ms) against RAISE_MIN_SPEED and the
+  # highest against the set speed; we only have the newest, so we keep these margins
+  RAISE_MIN_SPEED_MARGIN = 0.5            # m/s
+  RAISE_SET_SPEED_MARGIN = 1.0 / 3.6      # m/s (1 km/h), on the speedometer's scale
+  # panda raises nothing for 2 s after its radar last showed something ahead; we wait a little
+  # longer, and as long after openpilot itself last saw a lead
+  LEAD_HOLD_NANOS = 2_100_000_000
+  # After panda refused a frame of ours (it comes back on bus 0xC0), nothing is raised for this
+  # long: what the car got in that slot was not ours. It also keeps the refusals down to about
+  # one a second should RAISE ever be on with a panda that cannot raise.
+  RAISE_AFTER_REFUSAL_NANOS = 1_000_000_000
+
 
 @dataclass
 class BydPlatformConfig(PlatformConfig):

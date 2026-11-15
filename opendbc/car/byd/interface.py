@@ -12,8 +12,9 @@ class CarInterface(CarInterfaceBase):
   @staticmethod
   def get_pid_accel_limits(CP, current_speed, cruise_speed):
     # Matters only with openpilot longitudinal, which is the Song Plus alone: openpilot
-    # may ask for no less than the level allows (see SongPlusLongitudinal), and whatever
-    # it asks for above the stock ACC's own request the car never sees.
+    # may ask for no less than the level allows (see SongPlusLongitudinal). Above the stock
+    # ACC's own request the car gets nothing, or with raising a little, on a free road: the
+    # CarController and panda hold that, not this.
     return SongPlusLongitudinal.ACCEL_MIN, ACCEL_MAX
 
   @staticmethod
@@ -48,6 +49,8 @@ class CarInterface(CarInterfaceBase):
       ret.openpilotLongitudinalControl = alpha_long
       if alpha_long:
         ret.safetyConfigs[0].safetyParam |= SongPlusLongitudinal.PANDA_LEVEL << SongPlusLongitudinal.PANDA_LEVEL_SHIFT
+        if SongPlusLongitudinal.RAISE:
+          ret.safetyConfigs[0].safetyParam |= SongPlusLongitudinal.PANDA_RAISE_BIT
         # the lag at which the car's acceleration followed the stock ACC's own requests best
         ret.longitudinalActuatorDelay = 0.3
 

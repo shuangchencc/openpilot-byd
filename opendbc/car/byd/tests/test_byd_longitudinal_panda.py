@@ -6,12 +6,19 @@ The controller's own behaviour is in test_byd_longitudinal.py, the rule's in
 opendbc/safety/tests/test_byd.py.
 """
 import unittest
+from unittest.mock import patch
 
-from opendbc.car.byd.tests.test_byd_longitudinal import Car, Panda, checksum, run_with_panda
+from opendbc.car.byd.tests.test_byd_longitudinal import RAISE_DRIVE_SPELLS, Car, Panda, checksum, run_with_panda
 from opendbc.car.byd.values import SongPlusLongitudinal as Long
 
 
 class TestSongPlusLongitudinalWithPanda(unittest.TestCase):
+  def setUp(self):
+    # lowering unless a test switches raising on
+    patcher = patch.object(Long, "RAISE", False)
+    patcher.start()
+    self.addCleanup(patcher.stop)
+
   def test_panda_takes_every_frame_the_controller_builds(self):
     for level in sorted(Long.MIN_REQUEST):
       if Long.MIN_REQUEST[level] > Long.MIN_REQUEST[Long.LEVEL]:
@@ -39,6 +46,42 @@ class TestSongPlusLongitudinalWithPanda(unittest.TestCase):
         else:
           assert dat == stock_sent[n]
       assert ours == len(built)
+
+  def test_panda_takes_every_raised_frame_as_well(self):
+    # RAISE on, and a panda that may raise: still nothing refused, through spells of something
+    # ahead, of walking speed and of the set speed below the car's speed
+    with patch.object(Long, "RAISE", True):
+      panda, stock_sent, built = run_with_panda(1 | (Long.LEVEL << 1) | Long.PANDA_RAISE_BIT, steps=4000, raise_drive=True)
+    assert panda.refused == [], (len(panda.refused), panda.refused[:1])
+    if len(panda.on_bus) == len(stock_sent) + 1:
+      stock_sent.append(None)
+    assert len(panda.on_bus) == len(stock_sent)
+    counters = [dat[6] & 0xF for _, dat in panda.on_bus]
+    assert counters == [(counters[0] + n) % 16 for n in range(len(counters))]
+    raised = 0
+    for n, (source, dat) in enumerate(panda.on_bus):
+      before = stock_sent[n - 1]
+      if source == "openpilot" and dat[0] > before[0]:
+        raised += 1
+        t = (panda.on_bus_us[n] - 1_000_000) / 1e6
+        # what the car got: no more than 10 counts above the stock request it replaced, never above 124,
+        # one count above the frame before at most; and nothing near a spell in which the road was not free
+        assert before[0] >= 100 and dat[0] <= before[0] + 10 and dat[0] <= 124, (n, dat.hex(), before.hex())
+        assert dat[0] <= panda.on_bus[n - 1][1][0] + 1, (n, dat.hex(), panda.on_bus[n - 1][1].hex())
+        for what, (t0, t1) in RAISE_DRIVE_SPELLS.items():
+          assert not (t0 <= t < t1 + (2.1 if what in ("lead", "bars", "lead_visible") else 0.0)), (what, t)
+    assert raised > 100, raised
+
+  def test_a_panda_that_cannot_raise_refuses_about_one_frame_a_second(self):
+    # RAISE on by mistake with a panda that has no raise bit: every raised frame is refused, the stock
+    # frame goes instead, and the controller tries again only a second later
+    with patch.object(Long, "RAISE", True):
+      panda, stock_sent, built = run_with_panda(1 | (Long.LEVEL << 1), steps=4000, raise_drive=True)
+    # (lowered frames it takes, see test_panda_takes_every_frame_the_controller_builds: these are the raised ones)
+    assert 1 <= len(panda.refused) <= 40, len(panda.refused)          # 40 s of driving
+    for n, (source, dat) in enumerate(panda.on_bus):
+      if source == "openpilot":
+        assert dat[0] < stock_sent[n - 1][0]        # every one that went is a lowered one
 
   def test_a_late_frame_is_refused_and_the_stock_frame_has_gone_instead(self):
     # openpilot's frame comes 21 ms after the stock frame it copies, 1 ms after the next one
