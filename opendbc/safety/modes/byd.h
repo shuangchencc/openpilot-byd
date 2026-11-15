@@ -136,16 +136,18 @@ static void byd_rx_hook(const CANPacket_t *msg) {
     if (msg->addr == 0x32DU) {
       bool acc_on;
       if (byd_song_plus) {
-        // The same rule as carstate.py: the ACC is on (ACC_ENGAGED_STATE, bits 10-11,
-        // non-zero) and its own state (ACC_STATE_CODE, high nibble of byte 5) is 3
-        // controlling, 5 overridden with the gas pedal or 7 holding at standstill.
-        // Bits 10-11 alone stay set while the ACC is on its way out (state 4), which
-        // is when openpilot has already let go. The Atto 3 field below (bits 19-21) is
-        // constant 0 on this car - 0 in all 21,621 frames of an ACC drive while bits
-        // 10-11 read 2 in 13,693 of them - so with it the panda never saw cruise
-        // engage and never allowed controls.
+        // The same rule as carstate.py: the ACC is on (the follow-distance setting,
+        // SET_DISTANCE, bits 10-12, non-zero) and its own state (ACC_STATE_CODE, high
+        // nibble of byte 5) is 3 controlling, 5 overridden with the gas pedal or 7
+        // holding at standstill. The setting alone stays set while the ACC is on its
+        // way out (state 4), which is when openpilot has already let go. All three
+        // bits: the fourth setting is 0b100, and with bits 10-11 alone the ACC looked
+        // off at it while it went on controlling (route 00000033, 2026-11-15). The
+        // Atto 3 field below (bits 19-21) is constant 0 on this car - 0 in all 21,621
+        // frames of an ACC drive while bits 10-11 read 2 in 13,693 of them - so with
+        // it the panda never saw cruise engage and never allowed controls.
         uint8_t state_code = msg->data[5] >> 4;
-        bool acc_shown = ((msg->data[1] >> 2) & 0x3U) != 0U;
+        bool acc_shown = ((msg->data[1] >> 2) & 0x7U) != 0U;
         acc_on = acc_shown && ((state_code == 3U) || (state_code == 5U) || (state_code == 7U));
 
         // for byd_acc_cmd_replacement_ok

@@ -198,8 +198,16 @@ class CarState(CarStateBase):
       # high nibble of byte 5. Engaged is "on" AND that state being 3, 5 or 7; over
       # 997 s of engaged driving in the recording this never drops out mid-ACC (it
       # differs twice, by 0.02 s and 0.36 s, both real exits seen earlier).
-      # panda's byd.h still uses bits 10-11 alone, so it allows for longer than this.
-      acc_on = int(cp_cam.vl["ACC_HUD_ADAS"]["ACC_ENGAGED_STATE"]) != 0
+      #
+      # The setting is three bits, 10-12 (SET_DISTANCE), not two: on 2026-11-15 the
+      # driver pressed the distance key twice while engaged (route 00000033, 12:55:11
+      # and 12:55:12) and it went 2, 3, 4. 4 is 0b100, so bits 10-11 read 0 and the
+      # ACC looked off while it went on controlling (state 3): openpilot disengaged
+      # (pcmDisable) and the panda refused the next steering frame. Over 1.46 million
+      # frames of 13 recordings SET_DISTANCE is non-zero exactly when the state is 3,
+      # 4, 5 or 7; bits 10-11 alone differ only in those 430 frames at 4.
+      # byd.h reads the same three bits.
+      acc_on = int(cp_cam.vl["ACC_HUD_ADAS"]["SET_DISTANCE"]) != 0
       ret.cruiseState.enabled = acc_on and int(cp_cam.vl["ACC_HUD_ADAS"]["ACC_STATE_CODE"]) in SONG_PLUS_ACC_ENGAGED_STATES
       ret.cruiseState.available = bool(cp_cam.vl["ACC_CMD"]["ACC_AVAILABLE"]) or ret.cruiseState.enabled
 

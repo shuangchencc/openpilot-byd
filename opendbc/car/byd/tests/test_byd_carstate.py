@@ -82,7 +82,10 @@ class Car:
     return out
 
   def acc(self, distance_bars, state):
-    self.cam.vl["ACC_HUD_ADAS"]["ACC_ENGAGED_STATE"] = distance_bars
+    # the follow-distance setting is bits 10-12 (SET_DISTANCE); the DBC's ACC_ENGAGED_STATE
+    # is bits 10-11 of the same frame, so it reads the setting's two low bits
+    self.cam.vl["ACC_HUD_ADAS"]["SET_DISTANCE"] = distance_bars
+    self.cam.vl["ACC_HUD_ADAS"]["ACC_ENGAGED_STATE"] = distance_bars & 3
     self.cam.vl["ACC_HUD_ADAS"]["ACC_STATE_CODE"] = state
 
   def key(self, pressed):
@@ -145,9 +148,24 @@ class TestSongPlusCruiseEnabled(unittest.TestCase):
       (1, EXITING, False), (2, EXITING, False),            # on its way out: distance still shown
       (1, UNAVAILABLE, False), (1, STANDBY, False),
       (0, ACTIVE, False),                                  # never seen; needs both to count
+      (3, ACTIVE, True), (4, ACTIVE, True),                # 4 is 0b100: bits 10-11 alone read 0
+      (4, GAS_OVERRIDE, True), (4, STANDSTILL_HOLD, True),
+      (5, ACTIVE, True), (6, ACTIVE, True), (7, ACTIVE, True),
+      (4, EXITING, False), (4, STANDBY, False), (4, UNAVAILABLE, False),
     ):
       car.acc(bars, state)
       assert car.step().cruiseState.enabled == expected, (bars, state)
+
+  def test_the_distance_key_pressed_while_engaged(self):
+    # 2026-11-15, route 00000033, 12:55:11-12:55:20: controlling at setting 2, the distance
+    # key twice (3 for 1.15 s, then 4), the ACC still controlling until the driver turned it off
+    car = Car()
+    seq = [(2, ACTIVE)] * 100 + [(3, ACTIVE)] * 115 + [(4, ACTIVE)] * 859 + [(0, UNAVAILABLE)] * 10
+    enabled = []
+    for bars, state in seq:
+      car.acc(bars, state)
+      enabled.append(car.step().cruiseState.enabled)
+    assert enabled == [True] * 1074 + [False] * 10
 
   def test_the_exit_recorded_in_the_car(self):
     # 2026-11-14, 06:04:45: on, braking; the ACC key four times; EXITING for 2.5 s; brake

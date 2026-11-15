@@ -260,9 +260,9 @@ class TestBydSongPlusSafety(TestBydSafety):
   """The whole BYD suite again under BYD_PARAM_SONG_PLUS, built from this car's messages.
 
   What the param changes in byd.h: vehicle speed is WHEELSPEED_FL (12 bits) scaled to road
-  speed, brake comes from IPB, gas from PEDAL, and cruise-engaged from ACC_ENGAGED_STATE
-  (bits 10-11 of ACC_HUD_ADAS) together with ACC_STATE_CODE (the ACC's own state), the same
-  rule as carstate.py. Each was fitted to recordings of the car and each is exercised here
+  speed, brake comes from IPB, gas from PEDAL, and cruise-engaged from the follow-distance
+  setting (SET_DISTANCE, bits 10-12 of ACC_HUD_ADAS) together with ACC_STATE_CODE (the ACC's
+  own state), the same rule as carstate.py. Each was fitted to recordings of the car and each is exercised here
   both through the common suite and by the focused cases at the end.
 
   The param also selects the Song PLUS's own steering geometry (see byd_tx_hook), so the angle-limit
@@ -375,17 +375,32 @@ class TestBydSongPlusSafety(TestBydSafety):
       self.assertEqual(pressed, self.safety.get_gas_pressed_prev(), counts)
 
   def test_cruise_engaged_needs_the_acc_on_and_its_state(self):
-    # carstate.py's rule: ACC_ENGAGED_STATE non-zero and ACC_STATE_CODE 3 (controlling),
-    # 5 (driver on the gas) or 7 (holding at standstill). Every combination, each one
-    # entered from "not engaged" so that engaging is seen as well.
-    for shown, code in itertools.product(range(4), range(16)):
-      with self.subTest(acc_engaged_state=shown, acc_state_code=code):
+    # carstate.py's rule: the follow-distance setting (SET_DISTANCE, bits 10-12) non-zero
+    # and ACC_STATE_CODE 3 (controlling), 5 (driver on the gas) or 7 (holding at
+    # standstill). Every combination, each one entered from "not engaged" so that engaging
+    # is seen as well.
+    for distance, code in itertools.product(range(8), range(16)):
+      with self.subTest(set_distance=distance, acc_state_code=code):
         self._rx(self._pcm_status_msg(False))
         self.assertFalse(self.safety.get_controls_allowed())
-        self._rx(self.packer.make_can_msg_safety("ACC_HUD_ADAS", self.CAM_BUS, {"ACC_ENGAGED_STATE": shown, "ACC_STATE_CODE": code}))
-        engaged = shown != 0 and code in (3, 5, 7)
+        self._rx(self.packer.make_can_msg_safety("ACC_HUD_ADAS", self.CAM_BUS, {"SET_DISTANCE": distance, "ACC_STATE_CODE": code}))
+        engaged = distance != 0 and code in (3, 5, 7)
         self.assertEqual(engaged, self.safety.get_cruise_engaged_prev())
         self.assertEqual(engaged, self.safety.get_controls_allowed())
+
+  def test_cruise_stays_engaged_through_the_distance_key(self):
+    # 2026-11-15, route 00000033: controlling, the distance key twice, 2 -> 3 -> 4. At 4
+    # (0b100) bits 10-11 read 0; the ACC went on controlling and so must controls.
+    self._rx(self._pcm_status_msg(True))
+    self.assertTrue(self.safety.get_controls_allowed())
+    for distance in (2, 3, 4, 4):
+      self._rx(self.packer.make_can_msg_safety("ACC_HUD_ADAS", self.CAM_BUS, {"SET_DISTANCE": distance, "ACC_STATE_CODE": 3}))
+      self.assertTrue(self.safety.get_cruise_engaged_prev(), distance)
+      self.assertTrue(self.safety.get_controls_allowed(), distance)
+    # then the driver turned the ACC off
+    self._rx(self.packer.make_can_msg_safety("ACC_HUD_ADAS", self.CAM_BUS, {"SET_DISTANCE": 0, "ACC_STATE_CODE": 1}))
+    self.assertFalse(self.safety.get_cruise_engaged_prev())
+    self.assertFalse(self.safety.get_controls_allowed())
 
   def test_cruise_ends_when_the_acc_starts_exiting(self):
     # State 4: the ACC is on its way out and still shows the follow distance. Seen in the
