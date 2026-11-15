@@ -90,7 +90,12 @@ class CarControllerParams:
   # is the driver steering, and is withdrawn from as any other.
   # Evidence: migration-audit/lane-change-sim-20261115/RESULT.txt, migration-audit/free-drive-20261115
   STEER_YIELD_LANE_CHANGE_PUSH_MAX = 35.0   # driver torque, the DBC's scale (as STEER_DRIVER_OVERRIDE_NM)
-  STEER_YIELD_LANE_CHANGE_PUSH_FRAMES = 50  # at 100 Hz, counted while steeringPressed
+  STEER_YIELD_LANE_CHANGE_PUSH_FRAMES = 50  # at 100 Hz, of the push's frames at STEER_YIELD_LANE_CHANGE_HELD_TORQUE or more
+  # Only firm frames count towards that half second. On the car (route 00000033, 2026-11-15) the owner's pushes lasted
+  # 56-62 frames of steeringPressed and ended in a gentle 23.3-27.6 towards the change, a hand kept on the wheel, and
+  # three of seven changes were withdrawn from at frame 51. Below 28, the threshold of the stack that made the 116 min
+  # recording, the EPS never aborted, so a push lighter than that may last as long as openpilot shows the change.
+  STEER_YIELD_LANE_CHANGE_HELD_TORQUE = 28.0
 
   # ... and how long that fault may be reported with openpilot still engaged before it
   # is made permanent. Longer than selfdrived's 3 s soft disable, so that only the

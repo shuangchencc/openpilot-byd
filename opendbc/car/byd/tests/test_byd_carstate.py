@@ -532,6 +532,30 @@ class TestSongPlusYieldsToTheDriver(unittest.TestCase):
       assert 26 <= first <= 29, (side, first)
       assert set(reqs[first:]) == {0}, side
 
+  def test_a_light_push_may_last_while_the_lane_change_shows(self):
+    # route 00000033: a push of 29-31 easing into 23-28 toward the change, steeringPressed for 0.6 s and more
+    for side, sign in (("left", 1.0), ("right", -1.0)):
+      car = self.engaged()
+      mark = len(car.sent)
+      car.driver_torque(sign * 30.0)
+      car.drive(True, 20, lane_change=side)                # firm for 0.2 s
+      car.driver_torque(sign * 26.0)
+      car.drive(True, 200, lane_change=side)               # then light for 2 s
+      car.driver_torque(-1.1)
+      car.drive(True, 60, lane_change=side)
+      assert set(self.requests(car, mark)) == {1}, side
+
+  def test_firm_frames_add_up_within_one_push(self):
+    # firm for 0.3 s, light, firm again for 0.3 s: 60 firm frames in one push, past the half second
+    car = self.engaged()
+    mark = len(car.sent)
+    for torque, steps in ((30.0, 30), (26.0, 50), (30.0, 30)):
+      car.driver_torque(torque)
+      car.drive(True, steps, lane_change="left")
+    reqs = self.requests(car, mark)
+    assert 0 in reqs[40:], reqs
+    assert set(reqs[:40]) == {1}
+
   def test_a_push_against_the_lane_change_is_a_withdrawal(self):
     for side, sign in (("left", -1.0), ("right", 1.0)):
       car = self.engaged()
