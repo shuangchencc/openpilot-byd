@@ -121,7 +121,7 @@ class CarController(CarControllerBase):
     the wheel, unless the torque is firm (STEER_YIELD_LANE_CHANGE_PUSH_MAX) or above the steeringPressed
     threshold against the lane change. Below that threshold either way it is the push easing off:
     steeringPressed outlasts the torque by a few frames, and a released wheel reads about -1.1. How long
-    the push may last is update()'s (STEER_YIELD_LANE_CHANGE_PUSH_FRAMES).
+    the push may be firm is update()'s (STEER_YIELD_LANE_CHANGE_PUSH_FRAMES, STEER_YIELD_LANE_CHANGE_HELD_TORQUE).
     Positive torque is the wheel turned left, as for openpilot's DesireHelper, which takes the same sign to
     start a change to the left."""
     side = 1 if CC.leftBlinker else -1 if CC.rightBlinker else 0
@@ -146,7 +146,10 @@ class CarController(CarControllerBase):
     steer_req = CC.latActive
     if self.yield_to_driver:
       push = CS.out.steeringPressed and self.lane_change_push(CC, CS)
-      self.lane_change_push_frames = self.lane_change_push_frames + 1 if push else 0
+      if not push:
+        self.lane_change_push_frames = 0
+      elif abs(CS.out.steeringTorque) >= CarControllerParams.STEER_YIELD_LANE_CHANGE_HELD_TORQUE:
+        self.lane_change_push_frames += 1          # only the push's firm frames count towards its half second
       push = push and self.lane_change_push_frames <= CarControllerParams.STEER_YIELD_LANE_CHANGE_PUSH_FRAMES
       if CS.out.steeringPressed and not push:
         self.yield_frames = CarControllerParams.STEER_YIELD_HOLD_FRAMES
