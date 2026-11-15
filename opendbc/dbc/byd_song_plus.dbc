@@ -182,6 +182,12 @@ BO_ 944 PCM_BUTTONS: 8 MCU
  SG_ COUNTER : 55|4@0+ (1,0) [0|15] "" MCU
  SG_ CHECKSUM : 63|8@0+ (1,0) [0|255] "" MCU
 
+BO_ 1192 STEERING_WHEEL_KEYS: 8 XXX
+ SG_ KEY_PAGE : 7|8@0+ (1,0) [0|255] "" XXX
+ SG_ KEY_CODE : 15|8@0+ (1,0) [0|255] "" XXX
+ SG_ KEY_BYTE_2 : 23|8@0+ (1,0) [0|255] "" XXX
+ SG_ KEY_BYTES_3_7 : 31|40@0+ (1,0) [0|1099511627775] "" XXX
+
 BO_ 1048 BSD_RADAR: 8 BSD
  SG_ LEFT_APPROACH : 9|2@0+ (1,0) [0|3] "" MCU,ADAS_ECU
  SG_ RIGHT_APPROACH : 11|2@0+ (1,0) [0|3] "" MCU,ADAS_ECU
@@ -212,6 +218,8 @@ CM_ SG_ 814 STOCK_BYTES_1_4 "Bytes 1-4 as one number: the comfort band, the jerk
 CM_ SG_ 814 STOCK_BYTE_5 "Byte 5 as one number, see STOCK_BYTES_1_4. While the stock ACC is controlling it is 0xD8 in 99.8% of frames, 0xE8 while the driver overrides with the gas pedal, 0xD0 in standby, 0x48 when unavailable, 0x20 while exiting and 0xF0 (with bit 39 set) while holding at standstill.";
 CM_ BO_ 834 "Gas/brake pedal percentages.";
 CM_ BO_ 944 "Steering-wheel cruise control buttons.";
+CM_ BO_ 1192 "Steering-wheel keys (360 view, custom, phone). Sent only while a key is down: every 100 ms, then one frame with KEY_CODE 0 at the release. Measured 2026-11-15 (route 00000032): KEY_PAGE always 1, KEY_BYTE_2 0x80, KEY_BYTES_3_7 0.";
+CM_ SG_ 1192 KEY_CODE "0 released, 0x15 360-view key, 0x25 custom key short press, 0x26 custom key held, 0x0C phone key.";
 CM_ SG_ 944 ACC_ON_BTN "Song PLUS: the ACC on/off key. A press reads as a 150-250 ms pulse. From standby it turns the ACC on 0.19-0.20 s later (2 presses). With the ACC engaged it turns it off: either 0.19-0.27 s later, straight to standby (10 presses), or only 1.7-1.8 s later and then to EXITING (3 presses; in one of them three more presses in between changed nothing). What decides between the two is not known.";
 CM_ SG_ 944 LKAS_ON_BTN "Song PLUS: also turns the ACC on (40 ms later). Pressing it with the ACC on does nothing.";
 VAL_ 508 TORQUE_TEMP_FAILED 1 "TooLarge" 2 "TooFast" 3 "Both";
