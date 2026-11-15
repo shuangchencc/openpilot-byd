@@ -262,7 +262,6 @@ class SelfdriveD:
     if CS.canValid:
       car_events = self.car_events.update(CS, self.CS_prev, self.sm['carControl']).to_msg()
       self.events.add_from_msg(car_events)
-      self.lat_key.update(self.events, CS, self.enabled)
 
       if self.CP.notCar:
         # wait for everything to init first
@@ -275,6 +274,9 @@ class SelfdriveD:
         (CS.brakePressed and (not self.CS_prev.brakePressed or not CS.standstill)) or \
         (CS.regenBraking and (not self.CS_prev.regenBraking or not CS.standstill)):
         self.events.add(EventName.pedalPressed)
+
+      # Song PLUS lateral key: after the brake rule, which it may set aside
+      self.lat_key.update(self.events, CS, self.enabled)
 
     # Create events for temperature, disk space, and memory
     if self.sm['deviceState'].thermalStatus >= ThermalStatus.overheated:
