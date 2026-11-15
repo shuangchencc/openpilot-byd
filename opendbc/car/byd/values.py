@@ -179,7 +179,7 @@ class BydFlags(IntFlag):
 class BydSafetyFlags(IntFlag):
   # Panda safety param; MUST match BYD_PARAM_SONG_PLUS in opendbc/safety/modes/byd.h.
   # Selects the Song Plus wheel-speed scale (road) and brake source (IPB) in panda.
-  # Steering geometry is deliberately NOT gated on it (see byd.h / SAFETY_VM_PLATFORM).
+  # And the steering geometry panda checks angles with (see byd.h / SONG_PLUS_SAFETY_STEER_RATIO).
   SONG_PLUS = 1
 
 
@@ -257,23 +257,25 @@ class CAR(Platforms):
   )
 
 
-# Panda's byd.h uses the BYD_ATTO_3 vehicle model for its own angle check on every
-# BYD platform, so the controller must limit with the SAME geometry or panda rejects
-# its commands.
-#
-# For BYD_SONG_PLUS_DMI_23 this is a settled choice, not a stopgap. Its CarSpecs
-# steerRatio is 20.6, paramsd's in-model estimate on this car (median 20.59 over
-# 139,788 samples, converged up from 19.5 and never back). A model-free kinematic fit
-# against raw GPS yaw instead brackets the *geometric* ratio at 13.2-17.6 on strong
-# low-speed turns. Those are different quantities - paramsd reports what makes
-# openpilot's own vehicle model reproduce the observed yaw, including whatever its
-# slip term under-models on a heavier car - so neither measurement confirms the other,
-# and a safety backstop should not move on an unresolved number.
-#
-# Staying on Atto 3 geometry allows ~1.39x less steering angle than 20.6 would. That
-# is the conservative direction, so it is a capability limit, not a safety hazard.
-# Changing only this side would desynchronise the two and get commands rejected.
+# Panda's byd.h checks steering angles with a vehicle model, and the controller must limit with the same one or
+# panda rejects its commands (carcontroller.get_safety_CP). The Atto 3 uses its own CarSpecs.
 SAFETY_VM_PLATFORM = "BYD_ATTO_3"
+#
+# The Song PLUS uses its own geometry, measured model-free on 2026-11-15 with the device's gyroscope: yaw rate against
+# speed x wheel angle over route 0000002e (78 min, 38-109 km/h), migration-audit/byd-safety-verification-20261114/
+# scripts/steer_ratio_imu.py. Apparent steering ratio (wheel angle over road wheel angle that the turn implies):
+#   10-30 km/h 17.84 (90% over segments 17.48-18.19, r2 0.993), 30-50 km/h 20.21, 50-70 km/h 25.45, 70-90 km/h 27.54
+# - the ratio itself at low speed, and an understeer that grows with speed, as it does. (CarSpecs' 20.6 above is
+# paramsd's estimate, the fit of openpilot's own model, not this.)
+# Panda and controller take steerRatio 17.2 and slip factor -0.0008 (the front tyre stiffness solved for it), which
+# turn LESS than the car at every measured speed, so that the angle the limit allows never means more than the
+# 3.6 m/s^2 of lateral acceleration it stands for. In real terms the limit is 3.56 m/s^2 at 20 km/h, 3.37 at 40,
+# 2.97 at 60 and 3.14 at 80; with the Atto 3's geometry, used for the Song PLUS until then, it was 2.99, 2.79,
+# 2.41 and 2.48, which the owner felt as not enough steering in tight curves. Above 90 km/h nothing is measured
+# (no curves were driven there); the model's 27.8 at 100 and 32.5 at 120 km/h assume the understeer goes on growing
+# at least that much, which it did up to 90.
+SONG_PLUS_SAFETY_STEER_RATIO = 17.2
+SONG_PLUS_SAFETY_SLIP_FACTOR = -0.0008
 
 
 FW_QUERY_CONFIG = FwQueryConfig(

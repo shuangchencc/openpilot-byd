@@ -4,7 +4,7 @@
 
 // Set via the safety param (BYD_PARAM_SONG_PLUS) for the BYD Song Plus DM-i 2023.
 // Selects that car's wheel-speed scale and field, its brake, gas and cruise-engaged
-// sources. Steering geometry is deliberately NOT selected by it - see byd_tx_hook.
+// sources, and its steering geometry - see byd_tx_hook.
 // Unset (default) keeps the BYD Atto 3 behaviour.
 static bool byd_song_plus = false;
 
@@ -229,21 +229,22 @@ static bool byd_tx_hook(const CANPacket_t *msg) {
     .frequency = 50U,
   };
 
-  // Vehicle geometry for the angle check: the Atto 3 numbers, for every BYD.
-  // The allowed angle scales with steer_ratio, so this is the tighter side, and
-  // openpilot's controller limits with the same geometry (SAFETY_VM_PLATFORM in
-  // values.py), which is what keeps the two in step.
-  //
-  // The Song PLUS is a different car, but there is no confirmed steer_ratio to put
-  // here. paramsd's in-model estimate on it converged to 20.6, while a model-free
-  // kinematic fit against raw GPS yaw brackets the geometric ratio at 13.2-17.6
-  // on strong low-speed turns. Those are not the same quantity, so the second does
-  // not confirm the first; the cost of staying on Atto 3 geometry is capability,
-  // not safety, which is the right way to be wrong about an unresolved number.
+  // Vehicle geometry for the angle check, the same as openpilot's controller limits with (carcontroller.py,
+  // get_safety_CP), which is what keeps the two in step. The Atto 3: its own CarSpecs. The Song PLUS: its geometry
+  // as measured with the device's gyroscope on 2026-11-15 - an apparent steering ratio of 17.84 at 10-30 km/h,
+  // rising with understeer to 27.54 at 70-90 km/h - taken a little short of the car at every measured speed
+  // (ratio 17.2, slip factor -0.0008), so that the angle allowed never stands for more lateral acceleration than
+  // the limit's. Until then it used the Atto 3's, which allowed it 19-27% less steering. Measurements and margins:
+  // values.py, SONG_PLUS_SAFETY_STEER_RATIO.
   const AngleSteeringParams BYD_STEERING_PARAMS = {
     .slip_factor = -0.0006166479109059387,  // calc_slip_factor(VM), unchanged literal
     .steer_ratio = 14.8,
     .wheelbase = 2.72,
+  };
+  const AngleSteeringParams BYD_SONG_PLUS_STEERING_PARAMS = {
+    .slip_factor = -0.0008000000648791277,  // calc_slip_factor(VehicleModel(get_safety_CP(BYD_SONG_PLUS_DMI_23)))
+    .steer_ratio = 17.2,
+    .wheelbase = 2.765,
   };
 
   bool tx = true;
@@ -253,7 +254,8 @@ static bool byd_tx_hook(const CANPacket_t *msg) {
     int desired_angle = to_signed((msg->data[4] << 8) | msg->data[3], 16);  // STEER_ANGLE
     bool steer_req = ((msg->data[2] >> 5) & 0x1U) != 0U;                    // STEER_REQ
 
-    if (steer_angle_cmd_checks_vm(desired_angle, steer_req, BYD_STEERING_LIMITS, BYD_STEERING_PARAMS)) {
+    const AngleSteeringParams params = byd_song_plus ? BYD_SONG_PLUS_STEERING_PARAMS : BYD_STEERING_PARAMS;
+    if (steer_angle_cmd_checks_vm(desired_angle, steer_req, BYD_STEERING_LIMITS, params)) {
       tx = false;
     }
   }
