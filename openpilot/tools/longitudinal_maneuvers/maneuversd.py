@@ -174,17 +174,29 @@ SONGPLUS_MANEUVERS = [
   Maneuver("L4 step 5: -0.3 m/s^2 for 10 s, the host fails in the middle", [Action([-0.3], [10])], **SONGPLUS_SETUP),
 ]
 
+# Level 2, floor -2.0 m/s^2 ("L5", the same DESIGN.txt 7.4): steps 1-2 of L4 beyond level 1's floor, from 50 km/h so that
+# 3 s at -2.0 m/s^2 still ends above 25 km/h (the driver sets the ACC so that the car holds about 50).
+SONGPLUS_L5_SETUP = {"initial_speed": 50. * CV.KPH_TO_MS, "speed_tolerance": 2.0, "setup_accel": 2.0}
+SONGPLUS_L5_MANEUVERS = [
+  Maneuver("L5 step 1: -1.0 m/s^2 for 3 s", [Action([-1.0], [3])], **SONGPLUS_L5_SETUP),
+  Maneuver("L5 step 2: -1.5 m/s^2 for 3 s", [Action([-1.5], [3])], repeat=1, **SONGPLUS_L5_SETUP),
+  Maneuver("L5 step 2: -2.0 m/s^2 for 3 s", [Action([-2.0], [3])], repeat=1, **SONGPLUS_L5_SETUP),
+]
+# by the longitudinal level in the safety param (bits 1-2); any other level gets level 1's list, which stays above every floor
+SONGPLUS_MANEUVERS_BY_LEVEL = {1: SONGPLUS_MANEUVERS, 2: SONGPLUS_L5_MANEUVERS}
+
 
 def main():
   params = Params()
   cloudlog.info("maneuversd is waiting for CarParams")
   CP = messaging.log_from_bytes(params.get("CarParams", block=True), car.CarParams)
   songplus = CP.carFingerprint == "BYD_SONG_PLUS_DMI_23"
+  level = (CP.safetyConfigs[0].safetyParam >> 1) & 3 if len(CP.safetyConfigs) else 0
 
   sm = messaging.SubMaster(['carState', 'carControl', 'controlsState', 'selfdriveState', 'modelV2'], poll='modelV2')
   pm = messaging.PubMaster(['longitudinalPlan', 'driverAssistance', 'alertDebug'])
 
-  maneuvers = iter(SONGPLUS_MANEUVERS if songplus else MANEUVERS)
+  maneuvers = iter(SONGPLUS_MANEUVERS_BY_LEVEL.get(level, SONGPLUS_MANEUVERS) if songplus else MANEUVERS)
   maneuver = None
 
   while True:
