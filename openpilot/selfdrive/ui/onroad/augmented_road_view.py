@@ -4,10 +4,10 @@ from openpilot.cereal import log
 from openpilot.cereal.visionipc import VisionStreamType
 from openpilot.selfdrive.ui import UI_BORDER_SIZE
 from openpilot.selfdrive.ui.ui_state import ui_state, UIStatus
-from openpilot.selfdrive.ui.onroad.alert_renderer import AlertRenderer
+from openpilot.selfdrive.ui.onroad.ar_alert_renderer import ARAlertRenderer
 from openpilot.selfdrive.ui.onroad.driver_state import DriverStateRenderer
-from openpilot.selfdrive.ui.onroad.hud_renderer import HudRenderer
-from openpilot.selfdrive.ui.onroad.model_renderer import ModelRenderer
+from openpilot.selfdrive.ui.onroad.ar_hud import ARHudRenderer
+from openpilot.selfdrive.ui.onroad.ar_model_renderer import ARModelRenderer
 from openpilot.selfdrive.ui.onroad.cameraview import CameraView
 from openpilot.system.ui.lib.application import gui_app
 from openpilot.common.transformations.camera import DEVICE_CAMERAS, DeviceCameraConfig, view_frame_from_device_frame
@@ -43,9 +43,10 @@ class AugmentedRoadView(CameraView):
     self._cached_matrix: np.ndarray | None = None
     self._content_rect = rl.Rectangle()
 
-    self.model_renderer = ModelRenderer()
-    self._hud_renderer = HudRenderer()
-    self.alert_renderer = AlertRenderer()
+    # Song PLUS AR look (migration-audit/ui-fsd-mockups-20261115): no status border, state lives in the overlays
+    self.model_renderer = ARModelRenderer()
+    self._hud_renderer = ARHudRenderer()
+    self.alert_renderer = ARAlertRenderer()
     self.driver_state_renderer = DriverStateRenderer()
 
   def _render(self, rect):
@@ -58,13 +59,8 @@ class AugmentedRoadView(CameraView):
     # Update calibration before rendering
     self._update_calibration()
 
-    # Create inner content area with border padding
-    self._content_rect = rl.Rectangle(
-      rect.x + UI_BORDER_SIZE,
-      rect.y + UI_BORDER_SIZE,
-      rect.width - 2 * UI_BORDER_SIZE,
-      rect.height - 2 * UI_BORDER_SIZE,
-    )
+    # Full-bleed camera: the AR overlays carry the engagement state instead of a coloured border
+    self._content_rect = rl.Rectangle(rect.x, rect.y, rect.width, rect.height)
 
     # Enable scissor mode to clip all rendering within content rectangle boundaries
     # This creates a rendering viewport that prevents graphics from drawing outside the border
@@ -89,9 +85,6 @@ class AugmentedRoadView(CameraView):
 
     # End clipping region
     rl.end_scissor_mode()
-
-    # Draw colored border based on driving state
-    self._draw_border(rect)
 
   def _handle_mouse_press(self, _):
     if self._click_callback is not None:
