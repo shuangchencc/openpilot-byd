@@ -323,6 +323,11 @@ void safety_tick(void) {
   bool rx_checks_invalid = false;
   uint32_t ts = microsecond_timer_get();
   for (int i=0; i < current_safety_config.rx_checks_len; i++) {
+    if (current_safety_config.rx_checks[i].msg[current_safety_config.rx_checks[i].status.index].event_frame) {
+      // checked for checksum and counter as it arrives (as configured), never for being late
+      current_safety_config.rx_checks[i].status.lagging = false;
+      continue;
+    }
     uint32_t elapsed_time = safety_get_ts_elapsed(ts, current_safety_config.rx_checks[i].status.last_timestamp);
     // lag threshold is max of: 1s and MAX_MISSED_MSGS * expected timestep.
     // Quite conservative to not risk false triggers.

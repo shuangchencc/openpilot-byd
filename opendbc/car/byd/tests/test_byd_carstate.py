@@ -288,6 +288,92 @@ class TestSongPlusAccKey(unittest.TestCase):
     assert self.events(car) == []
 
 
+class TestSongPlusCustomKey(unittest.TestCase):
+  """The custom key's short press is published as the lkas button (BydFlags.CUSTOM_KEY)."""
+
+  PRESS = {"KEY_PAGE": 1, "KEY_CODE": 0x25, "KEY_BYTE_2": 0x80, "KEY_BYTES_3_7": 0}
+
+  def update(self, car, frames=()):
+    """one CarState update with these STEERING_WHEEL_KEYS frames (dicts of signal values) in it"""
+    for sig in self.PRESS:
+      car.pt.vl_all["STEERING_WHEEL_KEYS"][sig] = [f.get(sig, 0) for f in frames]
+    ret = car.step()
+    for sig in self.PRESS:
+      car.pt.vl_all["STEERING_WHEEL_KEYS"][sig] = []
+    return [(e.type, e.pressed) for e in ret.buttonEvents]
+
+  def press(self, car, **kw):
+    return self.update(car, [{**self.PRESS, **kw}])
+
+  def test_short_press(self):
+    car = Car()
+    assert self.update(car) == []
+    assert self.press(car) == [(ButtonType.lkas, True)]
+    for _ in range(9):
+      assert self.update(car) == []                     # 100 ms to the next frame
+    assert self.press(car) == []                        # held: no repeat
+    assert self.update(car, [{**self.PRESS, "KEY_CODE": 0}]) == [(ButtonType.lkas, False)]
+    assert self.update(car) == []
+
+  def test_press_in_any_acc_state(self):
+    # what the press does is openpilot's to decide; the car only reports it
+    for state in (UNAVAILABLE, STANDBY, ACTIVE, EXITING):
+      car = Car()
+      car.acc(1 if state == ACTIVE else 0, state)
+      car.step()
+      assert self.press(car) == [(ButtonType.lkas, True)], state
+
+  def test_only_the_exact_frame(self):
+    for kw in ({"KEY_CODE": 0x26}, {"KEY_CODE": 0x15}, {"KEY_CODE": 0x0C}, {"KEY_PAGE": 2}, {"KEY_BYTE_2": 0},
+               {"KEY_BYTES_3_7": 1}):
+      car = Car()
+      assert self.press(car, **kw) == [], kw
+
+  def test_holding_into_the_long_press_is_released_when_the_code_changes(self):
+    car = Car()
+    assert self.press(car) == [(ButtonType.lkas, True)]
+    assert self.press(car, KEY_CODE=0x26) == [(ButtonType.lkas, False)]
+
+  def test_lost_release_frame(self):
+    car = Car()
+    self.press(car)
+    events = []
+    for _ in range(40):
+      events += self.update(car)
+    assert events == [(ButtonType.lkas, False)]
+    # released after 300 ms without a frame, so a new press is one again
+    assert self.press(car) == [(ButtonType.lkas, True)]
+
+  def test_last_frame_of_an_update_decides(self):
+    car = Car()
+    assert self.update(car, [self.PRESS, {**self.PRESS, "KEY_CODE": 0}]) == []
+    assert self.update(car, [{**self.PRESS, "KEY_CODE": 0}, self.PRESS]) == [(ButtonType.lkas, True)]
+
+  def test_with_the_acc_key_in_the_same_update(self):
+    car = Car()
+    car.acc(1, ACTIVE)
+    car.step()
+    car.key(True)
+    assert sorted(self.press(car)) == sorted([(ButtonType.cancel, True), (ButtonType.lkas, True)])
+
+  def test_atto3_reads_no_key(self):
+    car = Car(CAR.BYD_ATTO_3)
+    assert self.press(car) == []
+
+
+class TestSongPlusCustomKeyParser(unittest.TestCase):
+  def test_key_frames_never_make_can_invalid(self):
+    # the real parser: an event frame that has not been seen is not a missing message
+    CP = interfaces[SONG_PLUS].get_non_essential_params(SONG_PLUS)
+    pt = interfaces[SONG_PLUS].CarState.get_can_parsers(CP)[Bus.pt]
+    state = pt.message_states[0x4A8]
+    assert state.ignore_alive
+
+  def test_atto3_parser_has_no_key(self):
+    CP = interfaces[CAR.BYD_ATTO_3].get_non_essential_params(CAR.BYD_ATTO_3)
+    pt = interfaces[CAR.BYD_ATTO_3].CarState.get_can_parsers(CP)[Bus.pt]
+    assert 0x4A8 not in pt.message_states
+
 # STEERING_TORQUE.LKA_STATE
 EPS_OFF, EPS_READY, EPS_ACTIVE, EPS_ABORTED = 0, 1, 2, 3
 

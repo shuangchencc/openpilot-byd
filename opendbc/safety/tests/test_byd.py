@@ -1474,5 +1474,193 @@ class TestBydAtto3IgnoresSongPlusFields(unittest.TestCase):
       self.assertFalse(self.safety.get_relay_malfunction())
 
 
+class TestBydSongPlusLatKeySafety(TestBydSongPlusSafety):
+  """The Song Plus suite once more with the lateral key, then what the key adds (top of byd.h).
+
+  A short press of the custom key (STEERING_WHEEL_KEYS, one exact frame) with the stock ACC not
+  engaged and the brake released allows controls, and the ACC being off does not end them.
+  Everything else ends them as before; the ACC engaging makes it an ordinary engagement.
+  """
+
+  SAFETY_PARAM = 1 | 8   # BYD_PARAM_SONG_PLUS, BYD_PARAM_LAT_KEY
+  KEY_FRAME_US = 100000  # the key frames come every 100 ms while a key is down
+
+  def setUp(self):
+    super().setUp()
+    self.t = 10_000_000
+
+  def _key(self, code=0x25, page=1, byte2=0x80, rest=0, after_us=None):
+    self.t += self.KEY_FRAME_US if after_us is None else after_us
+    self.safety.set_timer(self.t)
+    values = {"KEY_PAGE": page, "KEY_CODE": code, "KEY_BYTE_2": byte2, "KEY_BYTES_3_7": rest}
+    return self._rx(self.packer.make_can_msg_safety("STEERING_WHEEL_KEYS", self.MAIN_BUS, values))
+
+  def _press(self, **kw):
+    """a short press: the key frame, then the release frame"""
+    self._key(**kw)
+    self._key(code=0)
+
+  def _acc(self, shown, code):
+    self._rx(self.packer.make_can_msg_safety("ACC_HUD_ADAS", self.CAM_BUS, {"ACC_ENGAGED_STATE": shown, "ACC_STATE_CODE": code}))
+
+  def _start(self):
+    self._reset_safety_hooks()
+    self.t = 10_000_000
+    self._acc(0, 2)      # stock ACC in standby
+    self._rx(self._user_brake_msg(False))
+    self.assertFalse(self.safety.get_controls_allowed())
+
+  def test_press_allows_controls_and_acc_off_does_not_end_them(self):
+    for standby_code in (1, 2):    # unavailable, standby
+      self._start()
+      self._key()
+      self.assertTrue(self.safety.get_controls_allowed())
+      self._key(code=0)
+      for _ in range(100):
+        self._acc(0, standby_code)
+      self.assertTrue(self.safety.get_controls_allowed())
+      self.assertTrue(self._tx(self._angle_cmd_msg(0, True)))
+
+  def test_no_press_no_controls(self):
+    self._start()
+    self._acc(0, 2)
+    self.assertFalse(self._tx(self._angle_cmd_msg(0, True)))
+
+  def test_only_the_exact_frame_is_a_press(self):
+    for kw in ({"code": 0x26}, {"code": 0x15}, {"code": 0x0C}, {"code": 0x24}, {"page": 2}, {"byte2": 0x00},
+               {"rest": 1}, {"rest": 1 << 39}):
+      with self.subTest(**kw):
+        self._start()
+        self._press(**kw)
+        self.assertFalse(self.safety.get_controls_allowed())
+
+  def test_press_with_the_brake_held_is_nothing(self):
+    self._start()
+    self._rx(self._user_brake_msg(True))
+    self._press()
+    self.assertFalse(self.safety.get_controls_allowed())
+    # and releasing the brake while the key is still down does not make it a press
+    self._start()
+    self._rx(self._user_brake_msg(True))
+    self._key()
+    self._rx(self._user_brake_msg(False))
+    for _ in range(5):
+      self._key()
+    self.assertFalse(self.safety.get_controls_allowed())
+
+  def test_brake_ends_it_and_acc_off_keeps_it_ended(self):
+    self._start()
+    self._press()
+    self._rx(self._speed_msg(10))
+    self._rx(self._user_brake_msg(True))
+    self.assertFalse(self.safety.get_controls_allowed())
+    self._rx(self._user_brake_msg(False))
+    for _ in range(10):
+      self._acc(0, 2)
+    self.assertFalse(self.safety.get_controls_allowed())
+    # a new press after the brake is a new engagement
+    self._press()
+    self.assertTrue(self.safety.get_controls_allowed())
+
+  def test_held_key_is_one_press(self):
+    self._start()
+    self._key()
+    self.assertTrue(self.safety.get_controls_allowed())
+    self.safety.set_controls_allowed(False)     # e.g. openpilot was not engaged (heartbeat)
+    for _ in range(30):                          # still held, 3 s
+      self._key()
+      self._acc(0, 2)
+    self.assertFalse(self.safety.get_controls_allowed())
+
+  def test_lost_release_frame_and_a_new_press_later(self):
+    self._start()
+    self._key()
+    self.safety.set_controls_allowed(False)
+    self._key(after_us=300_000)                  # 300 ms later: still the same press
+    self.assertFalse(self.safety.get_controls_allowed())
+    self._key(after_us=301_000)                  # more than 300 ms later: a new one
+    self.assertTrue(self.safety.get_controls_allowed())
+
+  def test_press_while_the_acc_is_engaged_changes_nothing(self):
+    self._start()
+    self._acc(1, 3)
+    self.assertTrue(self.safety.get_controls_allowed())
+    self._press()
+    self._acc(1, 4)       # the ACC on its way out ends it as always
+    self.assertFalse(self.safety.get_controls_allowed())
+    # nor does it allow controls the ACC's engagement no longer gives
+    self._start()
+    self._acc(1, 3)
+    self.safety.set_controls_allowed(False)
+    self._press()
+    self.assertFalse(self.safety.get_controls_allowed())
+
+  def test_acc_engaging_makes_it_an_ordinary_engagement(self):
+    self._start()
+    self._press()
+    self._acc(1, 3)
+    self.assertTrue(self.safety.get_controls_allowed())
+    self._acc(1, 4)
+    self.assertFalse(self.safety.get_controls_allowed())
+    for _ in range(10):
+      self._acc(0, 2)
+    self.assertFalse(self.safety.get_controls_allowed())
+
+  def test_the_key_never_ends_anything(self):
+    self._start()
+    self._press()
+    for _ in range(3):
+      self._press()
+    self.assertTrue(self.safety.get_controls_allowed())
+
+  def test_absent_key_frames_are_no_rx_fault(self):
+    self._start()
+    self._acc(1, 3)
+    self.assertTrue(self.safety.get_controls_allowed())
+    # 5 s with every periodic message fresh and not one key frame
+    for ms in range(0, 5000, 10):
+      self.safety.set_timer(self.t + ms * 1000)
+      self._rx(self._speed_msg(10))
+      self._rx(self._user_brake_msg(False))
+      self._rx(self._user_gas_msg(0))
+      self._rx(self._angle_meas_msg(0))
+      if ms % 20 == 0:
+        self._acc(1, 3)
+      if ms % 1000 == 0:
+        self.safety.safety_tick()
+    self.assertTrue(self.safety.get_controls_allowed())
+
+  def test_needs_its_param_bit_and_the_song_plus(self):
+    for param in (1, 8, 1 | 2):
+      with self.subTest(param=param):
+        self.safety.set_safety_hooks(CarParams.SafetyModel.byd, param)
+        self.safety.init_tests()
+        self._acc(0, 2)
+        self._press()
+        self.assertFalse(self.safety.get_controls_allowed())
+
+
+class TestBydSongPlusLongLatKeySafety(TestBydSongPlusLongSafety):
+  """The longitudinal suite with the lateral key bit as well; and no ACC_CMD while engaged by the key."""
+
+  SAFETY_PARAM = TestBydSongPlusLongSafety.SAFETY_PARAM | 8
+
+  def test_no_acc_cmd_while_engaged_by_the_key(self):
+    self._reset_safety_hooks()
+    self.safety.set_timer(self.T0)
+    self._rx(self.packer.make_can_msg_safety("ACC_HUD_ADAS", self.CAM_BUS, {"ACC_ENGAGED_STATE": 0, "ACC_STATE_CODE": 2}))
+    self.safety.set_timer(self.T0 + 1000)
+    self._rx(self.packer.make_can_msg_safety("STEERING_WHEEL_KEYS", self.MAIN_BUS, {"KEY_PAGE": 1, "KEY_CODE": 0x25, "KEY_BYTE_2": 0x80}))
+    self.assertTrue(self.safety.get_controls_allowed())
+    # an ACC frame claiming "controlling" without the distance shown leaves acc_on false
+    self._rx(self.packer.make_can_msg_safety("ACC_HUD_ADAS", self.CAM_BUS, {"ACC_ENGAGED_STATE": 0, "ACC_STATE_CODE": 3}))
+    self.assertTrue(self.safety.get_controls_allowed())
+    self.safety.set_timer(self.T0 + 2000)
+    self._rx(self._acc_cmd(2, self.STOCK, 4))
+    self.safety.set_timer(self.T0 + 2000 + self.REPLY_US)
+    lowered = bytes([self.STOCK[0] - 5]) + self.STOCK[1:]
+    self.assertFalse(self._tx(self._acc_cmd(0, lowered, 5)))
+
+
 if __name__ == "__main__":
   unittest.main()
