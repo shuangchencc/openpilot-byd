@@ -42,6 +42,9 @@ class CarState(CarStateBase):
     self.acc_cmd = {"REQUEST": 0, "STOCK_BYTES_1_4": 0, "STOCK_BYTE_5": 0, "COUNTER": 0}
     self.acc_state_code = 0
     self.acc_warning = False
+    self.acc_lead = False       # the stock radar shows something ahead (ACC_HUD_ADAS bit 9 or bits 13-15)
+    # the counters of our ACC_CMD frames that panda refused, in this update
+    self.acc_cmd_counters_rejected: list[int] = []
     # set by the CarController, which is the side that knows whether we are asking
     self.lka_request_unanswered = False
     self.lka_request_given_up = False
@@ -142,6 +145,9 @@ class CarState(CarStateBase):
       rejected = can_parsers[Bus.loopback].vl_all["STEERING_MODULE_ADAS"]
       self.steer_requests_rejected = sum(1 for steer_req in rejected["STEER_REQ"] if steer_req)
       self.steer_counters_rejected = [int(counter) for counter in rejected["COUNTER"]]
+      # Our ACC_CMD frames come back there as well when panda refuses one (SongPlusLongitudinal):
+      # the car then got the stock frame in that slot, where the CarController counted on ours.
+      self.acc_cmd_counters_rejected = [int(counter) for counter in can_parsers[Bus.loopback].vl_all["ACC_CMD"]["COUNTER"]]
 
     # gas / brake
     if self.CP.flags & BydFlags.PEDALS_ALT:
@@ -245,6 +251,7 @@ class CarState(CarStateBase):
       acc_hud = cp_cam.vl["ACC_HUD_ADAS"]
       self.acc_state_code = int(acc_hud["ACC_STATE_CODE"])
       self.acc_warning = bool(acc_hud["WARNING_BIT_16"] or acc_hud["WARNING_BIT_17"] or acc_hud["WARNING_BIT_23"])
+      self.acc_lead = bool(acc_hud["HAS_LEAD"] or acc_hud["LEAD_DISTANCE"])
       # cruiseState.standstill is deliberately left False here. ACC_CMD's
       # STANDSTILL_STATE and STANDSTILL_RESUME are BOTH constant 0 across all
       # 698,956 samples of the recording, so the Atto 3 read below would be inert
@@ -280,10 +287,12 @@ class CarState(CarStateBase):
     }
     if CP.flags & BydFlags.EPS_LKA_STATE:
       # Our own steering frames that panda refused to send (pandad adds 0xC0 to the bus
-      # number of a rejected frame). Normally there are none, and the few there are come
-      # with any counter, so neither their absence (nan: no frequency check) nor their
-      # counter may make the parser, and with it canValid, invalid.
-      rejected = CANParser(DBC[CP.carFingerprint][Bus.pt], [("STEERING_MODULE_ADAS", float('nan'))], 0xC0)
-      rejected.message_states[rejected.dbc.name_to_msg["STEERING_MODULE_ADAS"].address].ignore_counter = True
+      # number of a rejected frame), and our ACC_CMD frames likewise. Normally there are
+      # none, and the few there are come with any counter, so neither their absence (nan:
+      # no frequency check) nor their counter may make the parser, and with it canValid,
+      # invalid.
+      rejected = CANParser(DBC[CP.carFingerprint][Bus.pt], [("STEERING_MODULE_ADAS", float('nan')), ("ACC_CMD", float('nan'))], 0xC0)
+      for name in ("STEERING_MODULE_ADAS", "ACC_CMD"):
+        rejected.message_states[rejected.dbc.name_to_msg[name].address].ignore_counter = True
       parsers[Bus.loopback] = rejected
     return parsers

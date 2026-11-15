@@ -79,15 +79,39 @@ class CarController(CarControllerBase):
     # See SongPlusLongitudinal
     self.acc_cmd_counter_last = -1
     self.acc_warning_until_nanos = 0
+    # As in panda, the start counts as "something was just ahead": nothing is raised in the first
+    # LEAD_HOLD_NANOS (set at the first step)
+    self.acc_lead_until_nanos: int | None = None
+    # Our frame for the slot after the newest stock frame, if we sent one: (its counter, its request)
+    self.acc_cmd_sent: tuple[int, int] | None = None
+    # The request the car got in the newest stock frame's slot, as far as we can tell: ours if
+    # we sent one for that slot, the stock frame's own otherwise. A raised request may be no
+    # more than RAISE_MAX_STEP above it.
+    self.acc_car_request: int | None = None
+    # panda refused a frame of ours, and where we had counted on ours the car got a stock frame:
+    # nothing is raised until this, by which time slots without a raised frame have set it right
+    self.acc_raise_after_nanos = 0
+
+  def acc_raise_limit(self, CS, stock, lead, now_nanos):
+    """The highest request panda will take above the stock one for the next slot, with our margins
+    (byd_acc_cmd_raise_ok); the stock request when it takes none."""
+    fl = CS.out.wheelSpeeds.fl        # the wheel panda reads, in m/s on the speedometer's scale
+    free_road = (Long.RAISE and not lead and now_nanos >= self.acc_raise_after_nanos and self.acc_car_request is not None and
+                 stock["REQUEST"] >= Long.REQUEST_ZERO and
+                 fl * self.CP.wheelSpeedFactor > Long.RAISE_MIN_SPEED + Long.RAISE_MIN_SPEED_MARGIN and
+                 fl < CS.out.cruiseState.speed - Long.RAISE_SET_SPEED_MARGIN)
+    if not free_road:
+      return stock["REQUEST"]
+    return min(stock["REQUEST"] + Long.RAISE_ABOVE_STOCK_USED, Long.RAISE_MAX_REQUEST, self.acc_car_request + Long.RAISE_MAX_STEP)
 
   def acc_cmd_replacement(self, CC, CS, now_nanos):
     """What the car is asked for in this step when openpilot does the longitudinal control.
 
     Returns (frame to send or None, the request the car gets [m/s^2]). A frame is sent only
-    when there is a stock frame that has not been answered yet, that frame may be copied,
-    and openpilot wants less than it asks for. The conditions are byd.h's, on the same
-    stock frame, so that panda refuses nothing we send except a frame that comes too late
-    or one sent in the moment the driver touched a pedal.
+    when a stock frame has just arrived, that frame may be copied, and openpilot wants less than
+    it asks for - or more, where raising allows it. The conditions are byd.h's, on the same stock
+    frame, so that panda refuses nothing we send except a frame that comes too late or one sent
+    in the moment the driver touched a pedal.
     """
     stock = CS.acc_cmd
     # the stock frames count up by one, 20 ms apart: another counter is another frame
@@ -97,23 +121,46 @@ class CarController(CarControllerBase):
     if CS.acc_warning:
       self.acc_warning_until_nanos = now_nanos + Long.WARNING_HOLD_NANOS
     warning = CS.acc_warning or now_nanos < self.acc_warning_until_nanos
+    # anything ahead, as the stock radar or openpilot sees it, now or a little while ago
+    lead_now = CS.acc_lead or CC.hudControl.leadVisible
+    if lead_now or self.acc_lead_until_nanos is None:
+      self.acc_lead_until_nanos = now_nanos + Long.LEAD_HOLD_NANOS
+    lead = lead_now or now_nanos < self.acc_lead_until_nanos
+
+    if CS.acc_cmd_counters_rejected:
+      self.acc_raise_after_nanos = now_nanos + Long.RAISE_AFTER_REFUSAL_NANOS
+    if new_stock_frame:
+      sent = self.acc_cmd_sent
+      self.acc_car_request = sent[1] if (sent is not None and sent[0] == stock["COUNTER"]) else stock["REQUEST"]
+      self.acc_cmd_sent = None
+
+    def to_accel(request):
+      return (request - Long.REQUEST_ZERO) * Long.REQUEST_SCALE
+
+    if not new_stock_frame:
+      # answered when the stock frame arrived: the car gets that answer, or the stock frame
+      return None, to_accel(self.acc_cmd_sent[1] if self.acc_cmd_sent is not None else stock["REQUEST"])
 
     # what the car gets whenever no frame of ours stands in for the stock one
-    stock_accel = (stock["REQUEST"] - Long.REQUEST_ZERO) * Long.REQUEST_SCALE
+    stock_accel = to_accel(stock["REQUEST"])
     copyable = (CS.acc_state_code == Long.CONTROLLING_STATE_CODE and not warning and
                 stock["STOCK_BYTE_5"] == Long.CONTROLLING_BYTE_5 and not stock["STOCK_BYTES_1_4"] >> 31)   # bit 39
     if not (CC.longActive and copyable and math.isfinite(CC.actuators.accel)):
       return None, stock_accel
 
-    # the nearest count to what openpilot wants, but never below this level's floor
+    # the nearest count to what openpilot wants, but never below this level's floor ...
     request = max(round(CC.actuators.accel / Long.REQUEST_SCALE) + Long.REQUEST_ZERO, Long.MIN_REQUEST[Long.LEVEL])
-    if request >= stock["REQUEST"]:
-      return None, stock_accel          # the stock ACC wants no more than we do: its frames go to the car
-    accel = (request - Long.REQUEST_ZERO) * Long.REQUEST_SCALE
-    if not new_stock_frame:
-      return None, accel                # already answered; the next stock frame is 20 ms after the last
-    msg = bydcan.create_acc_cmd(self.packer, request, stock["STOCK_BYTES_1_4"], stock["STOCK_BYTE_5"], (stock["COUNTER"] + 1) % 16)
-    return msg, accel
+    if request > stock["REQUEST"]:
+      # ... and above the stock request only as far as raising allows
+      request = min(request, self.acc_raise_limit(CS, stock, lead, now_nanos))
+      if request <= stock["REQUEST"]:
+        return None, stock_accel        # no raising now: the stock frame is the nearest the car can get
+    elif request == stock["REQUEST"]:
+      return None, stock_accel          # openpilot wants what the stock ACC wants: its frame goes to the car
+    counter = (stock["COUNTER"] + 1) % 16
+    self.acc_cmd_sent = (counter, request)
+    msg = bydcan.create_acc_cmd(self.packer, request, stock["STOCK_BYTES_1_4"], stock["STOCK_BYTE_5"], counter)
+    return msg, to_accel(request)
 
   @staticmethod
   def lane_change_push(CC, CS):

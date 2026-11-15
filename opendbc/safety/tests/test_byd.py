@@ -2,6 +2,7 @@
 import itertools
 import random
 import unittest
+from fractions import Fraction
 import numpy as np
 
 from opendbc.car.byd.carcontroller import get_safety_CP
@@ -437,22 +438,32 @@ class TestBydSongPlusSafety(TestBydSafety):
 class AccCmdRule:
   """byd.h's rule for ACC_CMD written out a second time, for test_against_the_rule_written_out.
 
-  It keeps only what byd.h keeps for this rule. Whether controls are allowed, the gas pedal
-  and the relay state are the common safety code's and are handed in.
+  It keeps only what byd.h keeps for this rule. Whether controls are allowed, the gas pedal,
+  the relay state and the vehicle speed are the common safety code's and are handed in.
+  Raising is written the way DESIGN.txt states it (longitudinal-l6-20261114), in exact numbers.
   """
   MIN_REQUEST = {1: 80, 2: 60, 3: 30}
   MAX_AGE_US = 25000
   SUPPLIED_MAX_AGE_US = 100000
   WARNING_HOLD_US = 2000000
+  LEAD_HOLD_US = 2000000
+  RAISE_ABOVE_STOCK = 10      # counts, +0.5 m/s^2
+  RAISE_MAX = 124             # +1.2 m/s^2
+  RAISE_STEP = 1              # counts over what the car got in the slot just past
 
-  def __init__(self, level):
+  def __init__(self, level, may_raise=False, now=0):
     self.level = level
+    self.may_raise = may_raise
     self.stock = (bytes(6), 0, 0)   # (bytes 0-5, counter, time of arrival); all zero until a frame has come
     self.supplied = None         # when openpilot's frame for the next slot was sent
     self.arrivals = 0            # stock frames that reached the forward decision
     self.saved_arrival = 0       # ... when the frame in self.stock arrived
     self.state_code = 0
     self.warning_ts = None
+    self.lead_ts = now           # when the stock radar last showed something ahead; the mode starts as if just then
+    self.set_speed = 0           # counts of 0.5 km/h on the speedometer
+    self.forwarded = False       # the newest stock frame went to the car
+    self.ref = None              # (the request the car got in a slot, that slot's arrival count)
 
   @staticmethod
   def _elapsed(now, then):
@@ -462,22 +473,40 @@ class AccCmdRule:
     """A stock frame passed the RX checks (after forward())."""
     self.stock = (bytes(payload), counter, now)
     self.saved_arrival = self.arrivals
+    if self.forwarded:
+      self.ref = (payload[0], self.arrivals)
 
-  def stock_acc_hud(self, state_code, warning, now):
+  def stock_acc_hud(self, state_code, warning, now, lead=False, set_speed=0):
     self.state_code = state_code
     if warning:
       self.warning_ts = now
     elif self.warning_ts is not None and self._elapsed(now, self.warning_ts) >= self.WARNING_HOLD_US:
       self.warning_ts = None
+    if lead:
+      self.lead_ts = now
+    elif self.lead_ts is not None and self._elapsed(now, self.lead_ts) >= self.LEAD_HOLD_US:
+      self.lead_ts = None
+    self.set_speed = set_speed
 
   def forward(self, now):
     """A stock ACC_CMD arrives: is it withheld?"""
     withheld = self.supplied is not None and self._elapsed(now, self.supplied) <= self.SUPPLIED_MAX_AGE_US
     self.supplied = None
     self.arrivals += 1
+    self.forwarded = not withheld
     return withheld
 
-  def may_send(self, dat, now, longitudinal_allowed, relay_malfunction):
+  def raise_ok(self, request, stock_request, speed_min_mm, speed_max_mm):
+    """Raising: the stock ACC not braking, nothing ahead for two seconds, moving faster than 3 m/s and,
+    on the speedometer's scale (road speed / 0.9453), slower than the set speed; at most 10 counts
+    above the stock request and 124, and one above what the car got in the slot just past."""
+    speedometer_kph = Fraction(speed_max_mm, 1000) * Fraction(36, 10) / Fraction(9453, 10000)
+    return (self.may_raise and stock_request >= 100 and self.lead_ts is None and
+            speed_min_mm > 3000 and speedometer_kph < Fraction(self.set_speed, 2) and
+            request <= stock_request + self.RAISE_ABOVE_STOCK and request <= self.RAISE_MAX and
+            self.ref is not None and self.ref[1] == self.arrivals and request <= self.ref[0] + self.RAISE_STEP)
+
+  def may_send(self, dat, now, longitudinal_allowed, relay_malfunction, speed_min_mm=0, speed_max_mm=0):
     ok = longitudinal_allowed and not relay_malfunction and self.supplied is None and self.saved_arrival == self.arrivals
     if ok:
       payload, counter, ts = self.stock
@@ -487,9 +516,12 @@ class AccCmdRule:
       ok = ok and dat[6] == 0xF0 | ((counter + 1) & 0xF)
       ok = ok and dat[7] == (0xFF - sum(dat[:7])) & 0xFF
       ok = ok and bytes(dat[1:6]) == payload[1:6]
-      ok = ok and self.MIN_REQUEST[self.level] <= dat[0] < payload[0]
+      lower = self.MIN_REQUEST[self.level] <= dat[0] < payload[0]
+      higher = dat[0] > payload[0] and self.raise_ok(dat[0], payload[0], speed_min_mm, speed_max_mm)
+      ok = ok and (lower or higher)
     if ok:
       self.supplied = now
+      self.ref = (dat[0], self.arrivals + 1)
     return ok
 
 
@@ -529,8 +561,9 @@ class TestBydSongPlusLongSafety(TestBydSongPlusSafety):
               "STOCK_BYTE_5": payload[5], "SET_ME_XF": set_me_xf, "COUNTER": counter % 16}
     return self.packer.make_can_msg_safety("ACC_CMD", bus, values)
 
-  def _acc_hud(self, state_code=3, shown=2, warning_bits=()):
-    values = {"ACC_ENGAGED_STATE": shown, "ACC_STATE_CODE": state_code}
+  def _acc_hud(self, state_code=3, shown=2, warning_bits=(), set_speed=0, lead=0, bars=0):
+    # set_speed in counts of 0.5 km/h; lead and bars: HAS_LEAD (bit 9) and LEAD_DISTANCE (bits 13-15)
+    values = {"ACC_ENGAGED_STATE": shown, "ACC_STATE_CODE": state_code, "SET_SPEED": set_speed * 0.5, "HAS_LEAD": lead, "LEAD_DISTANCE": bars}
     values.update({f"WARNING_BIT_{bit}": 1 for bit in warning_bits})
     return self.packer.make_can_msg_safety("ACC_HUD_ADAS", self.CAM_BUS, values)
 
@@ -599,7 +632,7 @@ class TestBydSongPlusLongSafety(TestBydSongPlusSafety):
     # every request value, against several stock requests and at every level
     for level, floor in AccCmdRule.MIN_REQUEST.items():
       for stock_request in (0, 29, 30, 59, 60, 79, 80, 81, 100, 101, 123, 255):
-        self.safety.set_safety_hooks(CarParams.SafetyModel.byd, 1 | (level << 1))
+        self.safety.set_safety_hooks(CarParams.SafetyModel.byd, 1 | (level << 1) | (self.SAFETY_PARAM & 8))
         self.safety.init_tests()
         stock = self._lowered(stock_request)
         self._controlling(payload=stock, counter=3)
@@ -919,17 +952,22 @@ class TestBydSongPlusLongSafety(TestBydSongPlusSafety):
   def test_against_the_rule_written_out(self):
     """Random traffic and random frames from openpilot, every decision compared with AccCmdRule."""
     rng = random.Random(20261114)
+    raise_bit = self.SAFETY_PARAM & 8
     for level in (1, 2, 3):
-      self.safety.set_safety_hooks(CarParams.SafetyModel.byd, 1 | (level << 1))
-      self.safety.init_tests()
-      rule = AccCmdRule(level)
       now = 0xFFFFFFFF - 3000000          # the 32-bit timer rolls over three seconds in
+      self.safety.set_timer(now)          # the mode is set at `now`, which raising starts from
+      self.safety.set_safety_hooks(CarParams.SafetyModel.byd, 1 | (level << 1) | raise_bit)
+      self.safety.init_tests()
+      rule = AccCmdRule(level, bool(raise_bit), now)
       counter, hud_counter = 0, 0
       stock = self.STOCK
-      sent = allowed_n = 0
+      sent = allowed_n = raised_n = raised_allowed_n = 0
+      # the stock request, the set speed and the car's speed each stay put for a while and then jump,
+      # so that the conditions for raising hold for stretches, and fail on either side of each edge
+      stock_request, set_speed, speed_counts = 100, 120, 525
       for step in range(40000):
         # mostly a few ms between events, so that openpilot's frames are usually in time;
-        # now and then long enough for a stock frame to go stale or a warning hold to end
+        # now and then long enough for a stock frame to go stale or a hold to end
         now = (now + rng.choice((500, 1000, 2000, 3000, 5000, 8000, 12000, 20000, 26000) if rng.random() < 0.995 else (60000, 2500000))) & 0xFFFFFFFF
         self.safety.set_timer(now)
         what = rng.random()
@@ -937,7 +975,9 @@ class TestBydSongPlusLongSafety(TestBydSongPlusSafety):
           # a stock ACC_CMD: mostly the usual frame with a wandering request, sometimes something else
           counter = (counter + rng.choice((1,) * 30 + (2, 0))) % 16
           stock = bytearray(self.STOCK)
-          stock[0] = rng.choice((100, 100, 100, 96, 104, 110, 85, 70, 40, 20, 0, 130))
+          if rng.random() < 0.1:
+            stock_request = rng.choice((100, 100, 100, 96, 104, 110, 85, 70, 40, 20, 0, 130, 99, 101, 114, 118, 124))
+          stock[0] = stock_request
           if rng.random() < 0.05:
             stock[rng.randrange(1, 6)] ^= 1 << rng.randrange(8)
           msg = self._acc_cmd(self.CAM_BUS, bytes(stock), counter)
@@ -950,21 +990,36 @@ class TestBydSongPlusLongSafety(TestBydSongPlusSafety):
           state_code = rng.choice((3,) * 40 + (5, 7, 2, 1, 4))
           shown = rng.choice((2,) * 20 + (1, 0))
           bits = tuple(b for b in (16, 17, 23) if rng.random() < 0.0015)
-          values = {"ACC_ENGAGED_STATE": shown, "ACC_STATE_CODE": state_code, "COUNTER": hud_counter}
+          # now and then the stock radar shows something; the set speed around the speeds below
+          lead, bars = rng.choice(((1, 0), (0, 1), (1, 3), (0, 4))) if rng.random() < 0.003 else (0, 0)
+          if rng.random() < 0.02:
+            set_speed = rng.choice((0, 20, 58, 120, 120, 120, 120, 203, 255))
+          values = {"ACC_ENGAGED_STATE": shown, "ACC_STATE_CODE": state_code, "COUNTER": hud_counter,
+                    "SET_SPEED": set_speed * 0.5, "HAS_LEAD": lead, "LEAD_DISTANCE": bars}
           values.update({f"WARNING_BIT_{b}": 1 for b in bits})
           hud_counter = (hud_counter + 1) % 16
           if self._rx(self.packer.make_can_msg_safety("ACC_HUD_ADAS", self.CAM_BUS, values)):
-            rule.stock_acc_hud(state_code, bool(bits), now)
-        elif what < 0.48:
+            rule.stock_acc_hud(state_code, bool(bits), now, bool(lead or bars), set_speed)
+        elif what < 0.47:
           self._rx(self._user_gas_msg(rng.choice((0, 0, 0, 0, 1))))
-        elif what < 0.50:
-          self._rx(self._user_brake_msg(rng.choice((0, 0, 0, 0, 1))))
-        elif what < 0.51:
+        elif what < 0.48:
+          # rarer than the others: with the car moving, every press ends the engagement
+          self._rx(self._user_brake_msg(rng.random() < 0.05))
+        elif what < 0.49:
           self.safety.set_controls_allowed(rng.random() < 0.9)
+        elif what < 0.55:
+          # the wheel speed, on both sides of 3 m/s and of the set speeds above
+          if rng.random() < 0.03:
+            speed_counts = rng.choice((0, 100, 157, 158, 399, 400, 525, 525, 525, 525, 525, 827, 828, 1400, 1401, 2000))
+          self._rx(self._wheelspeed_counts(speed_counts))
         else:
-          # openpilot offers a frame: usually the right one, often with one thing wrong
+          # openpilot offers a frame: usually the right one, often with one thing wrong; its request
+          # around the stock one, or around one step above what the car got last
           dat = bytearray(stock) + bytes([0xF0 | ((counter + 1) % 16), 0])
-          dat[0] = max(0, min(255, stock[0] - rng.choice((1, 1, 1, 3, 10, 25, 50, 0, -1, -5))))
+          if rule.ref is not None and rng.random() < 0.5:
+            dat[0] = max(0, min(255, rule.ref[0] + rng.choice((1, 1, 1, 1, 2, 0, -1, 5))))
+          else:
+            dat[0] = max(0, min(255, stock[0] - rng.choice((1, 1, 1, 3, 10, 25, 50, 0, -1, -5, -10, -11))))
           wrong = rng.random()
           if wrong < 0.06:
             dat[rng.randrange(1, 6)] ^= 1 << rng.randrange(8)
@@ -975,14 +1030,23 @@ class TestBydSongPlusLongSafety(TestBydSongPlusSafety):
           dat[7] = (0xFF - sum(dat[:7])) & 0xFF
           if 0.12 <= wrong < 0.14:
             dat[7] ^= 1 << rng.randrange(8)
+          raised = dat[0] > rule.stock[0][0]
+          speeds = (round(self.safety.get_vehicle_speed_min() * 1000), round(self.safety.get_vehicle_speed_max() * 1000))
           expected = rule.may_send(dat, now, self.safety.get_controls_allowed() and not self.safety.get_gas_pressed_prev(),
-                                   self.safety.get_relay_malfunction())
+                                   self.safety.get_relay_malfunction(), *speeds)
           self.assertEqual(expected, self._tx(common.make_msg(self.MAIN_BUS, ACC_CMD, 8, bytes(dat))), (level, step, bytes(dat).hex()))
           sent += 1
           allowed_n += expected
-      # the comparison means something only if both answers came up often
+          raised_n += raised
+          raised_allowed_n += raised and expected
+      # the comparison means something only if each answer came up often
       self.assertGreater(allowed_n, 800, (level, sent))
       self.assertGreater(sent - allowed_n, 5000, (level, sent))
+      self.assertGreater(raised_n - raised_allowed_n, 1000, (level, raised_n))
+      if raise_bit:
+        self.assertGreater(raised_allowed_n, 100, (level, raised_n))
+      else:
+        self.assertEqual(raised_allowed_n, 0, level)
 
 
 class TestBydSongPlusLongLevel2Safety(TestBydSongPlusLongSafety):
@@ -995,6 +1059,381 @@ class TestBydSongPlusLongLevel3Safety(TestBydSongPlusLongSafety):
   LONG_LEVEL = 3
   SAFETY_PARAM = 1 | (LONG_LEVEL << 1)
   MIN_REQUEST = AccCmdRule.MIN_REQUEST[LONG_LEVEL]
+
+
+class TestBydSongPlusLongRaiseSafety(TestBydSongPlusLongSafety):
+  """The Song Plus suites again with raising allowed (safety param bit 3), then what raising adds.
+
+  Everything in the longitudinal suite above still holds with the bit: none of its scenarios is a
+  free road (the car is not moving in them), and off a free road the rule is the same with or
+  without it. Here: a request above the stock one, and only on a free road - the stock ACC not
+  braking, its radar showing nothing ahead for two seconds, the car moving and below the set speed -
+  no more than 10 counts above the stock request nor above 124, and no more than one count above
+  what the car got in the slot just past. See "Raising" at the top of byd.h.
+  """
+
+  SAFETY_PARAM = 1 | (1 << 1) | 8
+  SET_SPEED = 120            # counts of 0.5 km/h: 60 km/h on the speedometer
+  SPEED_COUNTS = 525         # WHEELSPEED_FL: 10.0 m/s of road speed, 38 km/h on the speedometer
+
+  def setUp(self):
+    super().setUp()
+    # set the mode again with the timer at 0: what the mode starts with ("something was just
+    # ahead") then dates from a known time, whatever the test before left the timer at
+    self._new_mode()
+
+  def _new_mode(self, param=None, t=0):
+    self.safety.set_timer(t)
+    self.safety.set_safety_hooks(CarParams.SafetyModel.byd, self.SAFETY_PARAM if param is None else param)
+    self.safety.init_tests()      # as setUp does (it also puts the timer back to 0)
+    self.safety.set_timer(t)
+
+  def _road(self, counts=None, set_speed=None, lead=0, bars=0, hud=None):
+    """The frames of a 20 ms slot besides the stock ACC_CMD: the wheel speed and ACC_HUD_ADAS."""
+    self.assertTrue(self._rx(self._wheelspeed_counts(self.SPEED_COUNTS if counts is None else counts)))
+    if hud is None:
+      hud = self._acc_hud(set_speed=self.SET_SPEED if set_speed is None else set_speed, lead=lead, bars=bars)
+    self.assertTrue(self._rx(hud))
+
+  def _free_road(self, request=100, counter=3, t0=None):
+    """2.2 s of a free road, the stock ACC controlling and asking for `request`, nothing from openpilot.
+    Ends like _controlling: stock frame `counter` arrived at t0 (default T0) and went to the car, and
+    the timer is REPLY_US past it."""
+    self.t = self.T0 if t0 is None else t0
+    self.k = counter
+    self.stock = self._lowered(request)
+    for n in range(110, -1, -1):
+      self.safety.set_timer(self.t - n * self.FRAME_US)
+      self._road()
+      self.assertFalse(self._stock_frame(counter - n, self.stock))
+    self.assertTrue(self.safety.get_controls_allowed())
+    self.safety.set_timer(self.t + self.REPLY_US)
+
+  def _slot(self, request=None, stock_request=None, **road):
+    """openpilot sends `request` for the next slot, REPLY_US after the newest stock frame (None: nothing),
+    then that slot's frames arrive, 20 ms after the stock frame before; the stock ACC_CMD asks for
+    `stock_request` from then on (default: as before). Returns whether openpilot's frame was taken
+    (None when there was none); a frame that was taken stands in for that slot's stock frame."""
+    taken = None
+    if request is not None:
+      self.safety.set_timer(self.t + self.REPLY_US)
+      taken = self._tx(self._acc_cmd(self.MAIN_BUS, self._lowered(request, self.stock), self.k + 1))
+    self.t += self.FRAME_US
+    self.k += 1
+    if stock_request is not None:
+      self.stock = self._lowered(stock_request, self.stock)
+    self.safety.set_timer(self.t)
+    self._road(**road)
+    self.assertEqual(bool(taken), self._stock_frame(self.k, self.stock))
+    return taken
+
+  def _hud_byte_1(self, bits):
+    """ACC_HUD_ADAS of a free road with `bits` set in byte 1 as well (bit 8 of the frame is bit 0 there)."""
+    msg = self._acc_hud(set_speed=self.SET_SPEED)
+    msg[0].data[1] |= bits
+    return self._fix_checksum(msg)
+
+  # ---- what is allowed
+
+  def test_raised_copy_takes_the_place_of_the_next_stock_frame(self):
+    self._free_road(request=100)
+    self.assertTrue(self._slot(101))
+    self.assertIsNone(self._slot())                 # and the next stock frame goes to the car again
+    self.assertTrue(self._slot(101))
+    # a raised frame is the stock frame with another request, like a lowered one
+    self.safety.set_timer(self.t + self.REPLY_US)
+    sent = self._acc_cmd(self.MAIN_BUS, self._lowered(102, self.stock), self.k + 1)
+    self.assertEqual(bytes([102]) + self.STOCK[1:], bytes(sent[0].data[i] for i in range(6)))
+    self.assertTrue(self._tx(sent))
+
+  def test_climbs_one_count_per_frame_to_ten_above_the_stock_request(self):
+    self._free_road(request=104)
+    for request in range(105, 115):
+      self.assertTrue(self._slot(request), request)
+    self.assertFalse(self._slot(115))               # 11 above the stock request
+    self.assertFalse(self._slot(114))               # the stock frame went instead: the car got 104 last
+    self.assertTrue(self._slot(105))
+    self.assertTrue(self._slot(104 + 2))
+
+  def test_at_most_one_count_above_what_the_car_got_last(self):
+    self._free_road(request=100)
+    self.assertFalse(self._slot(102))               # the car got 100
+    self.assertTrue(self._slot(101))                # it still got 100 (the stock frame took the refused frame's slot)
+    self.assertTrue(self._slot(102))
+    self.assertTrue(self._slot(102))                # the same again
+    self.assertFalse(self._slot(104))
+    self.assertTrue(self._slot(101))                # the car got 100, the stock frame
+    self.assertTrue(self._slot(102))
+    self.assertTrue(self._slot(101))                # down by any amount, while still above the stock request
+    self.assertTrue(self._slot(99))                 # or below it: the rule for a lower request
+    self.assertFalse(self._slot(101))               # the car got 99: 101 is two above it
+    self.assertTrue(self._slot(100 - 2))
+    self.assertFalse(self._slot(100))               # the stock request itself is never sent
+    self.assertTrue(self._slot(101))                # the car got 100 last
+
+  def test_every_request_against_the_stock_one_and_the_last(self):
+    # the car got `last` in the slot just past (climbing from the stock request), the stock frame
+    # to copy asks for `stock_request`; every request from 0 to 255 in turn, each from the same start
+    for stock_request, last, climb_from in ((100, 100, 100), (100, 110, 100), (104, 110, 104), (110, 114, 104),
+                                            (114, 124, 114), (118, 124, 114), (99, 105, 100), (124, 124, 124), (130, 124, 114)):
+      for request in [*range(stock_request - 3, 132), 0, 79, 80, 255]:
+        with self.subTest(stock_request=stock_request, last=last, request=request):
+          self._new_mode()
+          self._free_road(request=climb_from)
+          for step in range(climb_from + 1, last):
+            self.assertTrue(self._slot(step))
+          # the last step of the climb, in the slot whose stock frame asks for stock_request
+          self.assertEqual(last != climb_from, bool(self._slot(last if last != climb_from else None, stock_request=stock_request)))
+          lower = 80 <= request < stock_request
+          higher = (stock_request >= 100 and stock_request < request <= min(stock_request + 10, 124, last + 1))
+          self.assertEqual(lower or higher, self._slot(request))
+
+  # ---- what is not
+
+  def test_not_while_the_stock_acc_brakes(self):
+    for stock_request in (0, 50, 80, 98, 99, 100, 101):
+      with self.subTest(stock_request=stock_request):
+        self._new_mode()
+        self._free_road(request=stock_request)
+        self.assertEqual(stock_request >= 100, self._slot(stock_request + 1))
+
+  def test_a_raise_ends_the_moment_the_stock_acc_brakes(self):
+    self._free_road(request=100)
+    for request in range(101, 106):
+      self.assertTrue(self._slot(request))
+    self.assertTrue(self._slot(105, stock_request=99))   # the stock frame ours stands in for asks for -0.05 m/s^2
+    self.assertFalse(self._slot(100))
+    self.assertTrue(self._slot(98))                       # lower is lower
+    self.assertFalse(self._slot(99 + 1, stock_request=100))
+    self.assertTrue(self._slot(101))                      # the stock ACC is back at 0, and the car got that
+
+  def test_the_cap_follows_the_stock_request_down(self):
+    for first in (111, 112):
+      with self.subTest(first=first):
+        self._new_mode()
+        self._free_road(request=104)
+        for request in range(105, 115):
+          self.assertTrue(self._slot(request))
+        self.assertTrue(self._slot(114, stock_request=101))   # the frame ours stands in for asks for 101
+        self.assertEqual(first == 111, self._slot(first))     # 101 + 10 at most
+        if first == 112:
+          self.assertFalse(self._slot(111))                   # the stock frame went instead: the car got 101 last
+          self.assertTrue(self._slot(102))
+
+  def test_never_above_124(self):
+    for stock_request in (114, 118, 123, 124, 125, 140):
+      with self.subTest(stock_request=stock_request):
+        self._new_mode()
+        self._free_road(request=stock_request)
+        for request in range(stock_request + 1, 125):
+          self.assertTrue(self._slot(request))
+        self.assertFalse(self._slot(max(125, stock_request + 1)))
+
+  def test_each_lead_field_holds_raising_for_two_seconds(self):
+    for lead, bars in ((1, 0), (0, 1), (0, 2), (0, 4), (1, 3)):
+      with self.subTest(lead=lead, bars=bars):
+        self._new_mode()
+        self._free_road(request=100)
+        self.assertTrue(self._slot(101))
+        self.assertIsNone(self._slot(lead=lead, bars=bars))
+        # the radar shows nothing again from the next frame on; frames keep coming every 20 ms,
+        # and the first one two seconds after the one that showed something ends the hold
+        for n in range(1, 110):
+          self.assertEqual(n >= 101, self._slot(101), n)
+
+  def test_each_bit_of_the_lead_fields_on_its_own(self):
+    for bit in (9, 13, 14, 15):
+      with self.subTest(bit=bit):
+        self._new_mode()
+        self._free_road(request=100)
+        self.assertIsNone(self._slot(hud=self._hud_byte_1(1 << (bit - 8))))
+        self.assertFalse(self._slot(101))
+
+  def test_the_other_bits_of_byte_1_are_no_lead(self):
+    # bit 8 (above the set speed's 8 bits), 10-11 (the ACC shown, its follow distance), 12
+    for bits in (0x01, 0x04, 0x08, 0x0C, 0x10, 0x1D):
+      with self.subTest(bits=hex(bits)):
+        self._new_mode()
+        self._free_road(request=100)
+        self.assertIsNone(self._slot(hud=self._hud_byte_1(bits)))
+        self.assertTrue(self._slot(101))
+
+  def test_lead_hold_ends_at_two_seconds_exactly(self):
+    # the hold ends with the first ACC_HUD_ADAS frame that arrives 2,000,000 us or more after the last one with a lead
+    for after_us, held in ((1999999, True), (2000000, False), (2000001, False)):
+      with self.subTest(after_us=after_us):
+        self._new_mode()
+        self._free_road(request=100)
+        lead_t = self.t + 5000
+        self.safety.set_timer(lead_t)
+        self.assertTrue(self._rx(self._acc_hud(set_speed=self.SET_SPEED, lead=1)))
+        self.t = lead_t + after_us - self.FRAME_US
+        self.assertIsNone(self._slot())
+        self.assertEqual(not held, self._slot(101))
+
+  def test_lead_hold_restarts_with_every_lead_frame(self):
+    self._free_road(request=100)
+    # the radar shows something in the frames of the first 150 slots (3 s); each frame of ours is
+    # sent before its slot's frames arrive, so the first one still goes, and then none until two
+    # seconds after the last frame that showed something
+    for n in range(1, 260):
+      self.assertEqual(n == 1 or n >= 251, self._slot(101, lead=1 if n <= 150 else 0), n)
+
+  def test_not_below_three_metres_per_second(self):
+    # the lowest of the panda's last six speeds; 157 counts are 2.989 m/s, 158 are 3.008
+    for counts, allowed in ((0, False), (100, False), (157, False), (158, True), (159, True)):
+      with self.subTest(counts=counts):
+        self._new_mode()
+        self._free_road(request=100)
+        for _ in range(6):
+          self.assertIsNone(self._slot(counts=counts))
+        self.assertEqual(allowed, self._slot(101, counts=counts))
+    # one slow frame among fast ones is enough, for as long as it is one of the last six
+    self._new_mode()
+    self._free_road(request=100)
+    self.assertIsNone(self._slot(counts=157))
+    for _ in range(6):
+      self.assertFalse(self._slot(101))
+    self.assertTrue(self._slot(101))
+
+  def test_only_below_the_set_speed(self):
+    # road speed / 0.9453 < set speed, against the highest of the panda's last six speeds. The pairs
+    # put the wheel speed one count on each side of the line; for 58 and 203 the line falls within a
+    # tenth of a mm/s of a count, which pins the numbers down
+    cases = [(58, 399), (58, 400), (203, 1400), (203, 1401), (120, 827), (120, 828), (40, 200), (40, 300),
+             (255, 1730), (255, 1740), (20, 158), (0, 158)]
+    outcomes = set()
+    for set_speed, counts in cases:
+      with self.subTest(set_speed=set_speed, counts=counts):
+        self._new_mode()
+        self._free_road(request=100)
+        for _ in range(6):
+          self.assertIsNone(self._slot(counts=counts, set_speed=set_speed))
+        speed_mm = round(self.safety.get_vehicle_speed_max() * 1000)
+        allowed = Fraction(speed_mm, 1000) * Fraction(36, 10) / Fraction(9453, 10000) < Fraction(set_speed, 2)
+        self.assertEqual(allowed, self._slot(101, counts=counts, set_speed=set_speed))
+        outcomes.add((set_speed, allowed))
+    self.assertTrue({(58, True), (58, False), (203, True), (203, False), (120, True), (120, False)} <= outcomes)
+    # one fast frame among slow ones is enough, for as long as it is one of the last six
+    self._new_mode()
+    self._free_road(request=100)
+    self.assertIsNone(self._slot(counts=828))
+    for _ in range(6):
+      self.assertFalse(self._slot(101, counts=827))
+    self.assertTrue(self._slot(101, counts=827))
+
+  def test_the_set_speed_is_bits_0_to_7(self):
+    # 10 km/h: below the car's 38. Bit 8 next to it does not make it 138
+    self._free_road(request=100)
+    self.assertIsNone(self._slot(hud=self._fix_checksum(self._with_bit_8(self._acc_hud(set_speed=20)))))
+    self.assertFalse(self._slot(101))
+
+  @staticmethod
+  def _with_bit_8(msg):
+    msg[0].data[1] |= 0x01
+    return msg
+
+  def test_a_raised_frame_needs_everything_a_lowered_one_needs(self):
+    spoils = {
+      "wrong counter": lambda dat: dat.__setitem__(6, 0xF0 | ((dat[6] + 1) & 0xF)),
+      "other band": lambda dat: dat.__setitem__(1, dat[1] ^ 0x01),
+      "bad checksum": lambda dat: dat.__setitem__(7, dat[7] ^ 0x01),
+    }
+    for name, spoil in spoils.items():
+      with self.subTest(spoil=name):
+        self._new_mode()
+        self._free_road(request=100)
+        msg = self._acc_cmd(self.MAIN_BUS, self._lowered(101, self.stock), self.k + 1)
+        dat = bytearray(msg[0].data[i] for i in range(8))
+        spoil(dat)
+        if name != "bad checksum":
+          dat[7] = (0xFF - sum(dat[:7])) & 0xFF
+        self.assertFalse(self._tx(common.make_msg(self.MAIN_BUS, ACC_CMD, 8, bytes(dat))))
+    for case in ("gas", "controls", "state 5", "warning", "late"):
+      with self.subTest(case=case):
+        self._new_mode()
+        self._free_road(request=100)
+        if case == "gas":
+          self._rx(self._user_gas_msg(1))
+        elif case == "controls":
+          self.safety.set_controls_allowed(False)
+        elif case == "state 5":
+          self._rx(self._acc_hud(state_code=5, set_speed=self.SET_SPEED))
+          self.assertTrue(self.safety.get_controls_allowed())
+        elif case == "warning":
+          self._rx(self._acc_hud(warning_bits=(17,), set_speed=self.SET_SPEED))
+        else:
+          self.safety.set_timer(self.t + 25001)
+        self.assertFalse(self._tx(self._acc_cmd(self.MAIN_BUS, self._lowered(101, self.stock), self.k + 1)))
+
+  def test_the_withheld_stock_frame_is_not_what_the_car_got(self):
+    # ours took the slot; the stock frame for it asks for 104, but what the car got there is ours
+    self._free_road(request=100)
+    self.assertTrue(self._slot(101, stock_request=104))
+    self.assertFalse(self._slot(105))              # one above the withheld frame's 104, but four above the 101 the car got
+    self.assertTrue(self._slot(105))               # that refused frame's slot went to the stock frame: the car got 104 last
+
+  def test_a_forwarded_stock_frame_is_what_the_car_got(self):
+    # ours went out, the stock frames paused, and the next one came after the mark had run out, so it
+    # went to the car as well: the car got that one last
+    self._free_road(request=100)
+    for request in range(101, 106):
+      self.assertTrue(self._slot(request))
+    self.safety.set_timer(self.t + self.REPLY_US)
+    self.assertTrue(self._tx(self._acc_cmd(self.MAIN_BUS, self._lowered(106, self.stock), self.k + 1)))
+    self.t += self.REPLY_US + 100001
+    self.k += 1
+    self.safety.set_timer(self.t)
+    self._road()
+    self.assertFalse(self._stock_frame(self.k, self.stock))
+    self.assertFalse(self._slot(107))              # one above ours, two..seven above what the car got last
+    self.assertFalse(self._slot(102))
+    self.assertTrue(self._slot(101))
+
+  def test_after_a_frame_the_rx_checks_never_see(self):
+    # a 0x32E on bus 2 of another length: nothing may be copied until the next stock frame, which is
+    # then what the car got last, whatever ours had been
+    self._free_road(request=100)
+    for request in range(101, 104):
+      self.assertTrue(self._slot(request))
+    self.safety.set_timer(self.t + 10000)
+    self.assertEqual(self.MAIN_BUS, self.safety.safety_fwd_hook(self.CAM_BUS, ACC_CMD))
+    self._rx(common.make_msg(self.CAM_BUS, ACC_CMD, 7))
+    self.assertFalse(self._slot(104))
+    self.assertFalse(self._slot(102))
+    self.assertTrue(self._slot(101))
+
+  def test_nothing_is_raised_for_two_seconds_after_the_mode_is_set(self):
+    # the mode is set again on a free road; the stock ACC is engaged again at once, and lowering works
+    # again with the first stock frame, but raising waits for two seconds of frames with nothing ahead
+    self._free_road(request=100)
+    self.assertTrue(self._slot(101))
+    self._new_mode(t=self.t + 5000)
+    for n in range(1, 110):
+      self.assertEqual(n >= 102, self._slot(101), n)
+    self._new_mode(t=self.t + 5000)
+    self.assertIsNone(self._slot())
+    self.assertTrue(self._slot(99))
+
+  def test_without_the_raise_bit_a_free_road_changes_nothing(self):
+    for param in (self.SAFETY_PARAM & ~8, 1 | (2 << 1), 1 | (3 << 1)):
+      with self.subTest(param=param):
+        self._new_mode(param)
+        self._free_road(request=100)
+        self.assertFalse(self._slot(101))
+        self.assertTrue(self._slot(99))
+
+  def test_the_raise_bit_needs_a_level(self):
+    # without a level ACC_CMD is no TX message at all, raise bit or not, Song Plus or not
+    for param in (1 | 8, 8):
+      with self.subTest(param=param):
+        self._new_mode(param)
+        self.safety.set_controls_allowed(True)
+        for c in range(4):
+          self.assertEqual(self.MAIN_BUS, self.safety.safety_fwd_hook(self.CAM_BUS, ACC_CMD))
+          self._rx(self._acc_cmd(self.CAM_BUS, self.STOCK, c))
+        self.assertFalse(self._tx(self._acc_cmd(self.MAIN_BUS, self._lowered(101), 4)))
+        self.assertFalse(self._tx(self._acc_cmd(self.MAIN_BUS, self._lowered(99), 4)))
 
 
 class TestBydAtto3IgnoresSongPlusFields(unittest.TestCase):
