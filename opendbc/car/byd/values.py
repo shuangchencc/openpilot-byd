@@ -174,6 +174,11 @@ class BydFlags(IntFlag):
   # while steering, not the Atto 3's. See bydcan.create_lkas_hud.
   # Evidence: migration-audit/byd-safety-verification-20261114/out/hud-replay-*.txt
   LKAS_HUD_ALT = 256
+  # The steering wheel's custom key (STEERING_WHEEL_KEYS, 0x4A8, an event frame) is published
+  # as the lkas button, for openpilot's lateral-only engagement; see BydSafetyFlags.LAT_KEY.
+  # 4096 and not 1024 / 2048, which are left to the longitudinal work.
+  # Evidence: migration-audit/button-survey-20261115/RESULT.txt
+  CUSTOM_KEY = 4096
 
 
 class BydSafetyFlags(IntFlag):
@@ -181,6 +186,11 @@ class BydSafetyFlags(IntFlag):
   # Selects the Song Plus wheel-speed scale (road) and brake source (IPB) in panda.
   # And the steering geometry panda checks angles with (see byd.h / SONG_PLUS_SAFETY_STEER_RATIO).
   SONG_PLUS = 1
+  # Panda param bit 3; MUST match BYD_PARAM_LAT_KEY in byd.h (bits 1-2 are the longitudinal level).
+  # Song Plus only: a short press of the custom key with the stock ACC not engaged and the brake
+  # released allows lateral control, and the stock ACC being off then does not end it.
+  # Not set by the car interface: card sets it, only when the launcher asks for it.
+  LAT_KEY = 8
 
 
 class SongPlusLongitudinal:
@@ -284,7 +294,8 @@ class CAR(Platforms):
     CarSpecs(wheelbase=2.765, steerRatio=20.6),
     {Bus.pt: 'byd_song_plus'},
     flags=BydFlags.FOUR_WHEEL_SPEEDS | BydFlags.NO_BSM | BydFlags.DRIVER_TORQUE_NM | BydFlags.ACC_STATE_ALT | BydFlags.TX_CONSTANTS_ALT | BydFlags.PEDALS_ALT |
-          BydFlags.NO_CANCEL_BUTTON | BydFlags.EPS_LKA_STATE | BydFlags.LKAS_HUD_ALT | BydFlags.YIELD_TO_DRIVER,
+          BydFlags.NO_CANCEL_BUTTON | BydFlags.EPS_LKA_STATE | BydFlags.LKAS_HUD_ALT | BydFlags.YIELD_TO_DRIVER |
+          BydFlags.CUSTOM_KEY,
   )
 
 

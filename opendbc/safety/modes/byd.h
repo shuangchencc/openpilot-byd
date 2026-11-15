@@ -98,6 +98,40 @@ static bool byd_acc_ref_valid = false;
 static uint8_t byd_acc_ref = 0U;
 static uint32_t byd_acc_ref_arrival = 0U;
 
+// Song Plus lateral key: the steering-wheel custom key engages lateral control alone, with the
+// stock ACC off. Off unless the safety param says so (BYD_PARAM_LAT_KEY).
+//
+// The key is the driver's own act, seen here on the bus: STEERING_WHEEL_KEYS (0x4A8, bus 0) is
+// sent only while a key on the wheel is down (every 100 ms, then one frame of key code 0 at the
+// release), and the custom key's short press is the one exact frame below. Its long press is
+// another code (0x26), so is every other key, and any other byte means no press.
+// Measured 2026-11-15 (route 00000032): 76 frames, key codes 0x00 0x15 0x25 0x26 0x0C only,
+// bytes 0 and 2-7 always 01 / 80 00 00 00 00 00. migration-audit/button-survey-20261115.
+//
+// A press with the stock ACC not engaged and the brake released allows controls, the same as
+// the ACC engaging does; and while it is the press that allowed them (byd_lat_only), the stock
+// ACC not being engaged does not end them. Everything else ends them as before: the brake, a
+// failed RX check, openpilot not engaged (heartbeat). The stock ACC engaging makes it an
+// ordinary engagement, which ends with the ACC. The key never ends anything itself: openpilot
+// does that, and its heartbeat then ends it here.
+// Nothing else changes: the steering checks are those of any engagement, and ACC_CMD may only
+// be replaced while the stock ACC is controlling, which it is not here.
+#define BYD_CUSTOM_KEY_NEW_PRESS_US 300000U  // a key frame this long after the last one starts a new press
+
+static bool byd_lat_key = false;               // the safety param allows the lateral key
+static bool byd_lat_only = false;              // controls were allowed by the lateral key, not by the ACC
+static bool byd_custom_key_down = false;       // the last key frame was the custom key's short press
+static uint32_t byd_custom_key_ts = 0U;        // and when it arrived
+
+static bool byd_is_custom_key_press(const CANPacket_t *msg) {
+  static const uint8_t BYD_CUSTOM_KEY_FRAME[8] = {0x01U, 0x25U, 0x80U, 0x00U, 0x00U, 0x00U, 0x00U, 0x00U};
+  bool press = true;
+  for (int i = 0; i < 8; i++) {
+    press = press && (msg->data[i] == BYD_CUSTOM_KEY_FRAME[i]);
+  }
+  return press;
+}
+
 static uint8_t byd_get_counter(const CANPacket_t *msg) {
   // Speed (0x1F0) and the Song Plus pedal message (0x342) use the high nibble;
   // cruise status and IPB use the low nibble. Measured on the Song Plus over
@@ -119,7 +153,25 @@ static uint32_t byd_compute_checksum(const CANPacket_t *msg) {
 }
 
 static void byd_rx_hook(const CANPacket_t *msg) {
+  // whatever ended the controls (brake, RX checks, heartbeat) also ended the key's engagement
+  if (!controls_allowed) {
+    byd_lat_only = false;
+  }
+
   if (msg->bus == 0U) {
+    // The custom key (Song Plus; the message is RX-checked on that platform alone)
+    if (msg->addr == 0x4A8U) {
+      uint32_t ts = microsecond_timer_get();
+      bool down = byd_is_custom_key_press(msg);
+      bool new_press = down && (!byd_custom_key_down || (safety_get_ts_elapsed(ts, byd_custom_key_ts) > BYD_CUSTOM_KEY_NEW_PRESS_US));
+      if (new_press && byd_lat_key && !cruise_engaged_prev && !brake_pressed) {
+        controls_allowed = true;
+        byd_lat_only = true;
+      }
+      byd_custom_key_down = down;
+      byd_custom_key_ts = ts;
+    }
+
     // Steering angle: 0.1 deg/LSB, signed
     if (msg->addr == 0x11FU) {
       int angle_meas_new = to_signed((msg->data[1] << 8) | msg->data[0], 16);  // STEER_ANGLE_2
@@ -180,6 +232,10 @@ static void byd_rx_hook(const CANPacket_t *msg) {
         uint8_t state_code = msg->data[5] >> 4;
         bool acc_shown = ((msg->data[1] >> 2) & 0x7U) != 0U;
         acc_on = acc_shown && ((state_code == 3U) || (state_code == 5U) || (state_code == 7U));
+        // engaged by the ACC from here on: it ends with the ACC (pcm_cruise_check below)
+        if (acc_on) {
+          byd_lat_only = false;
+        }
 
         // for byd_acc_cmd_replacement_ok
         uint32_t ts = microsecond_timer_get();
@@ -209,7 +265,13 @@ static void byd_rx_hook(const CANPacket_t *msg) {
         uint8_t acc_state = (msg->data[2] >> 3) & 0x7U;
         acc_on = (acc_state == 3U) || (acc_state == 5U);
       }
-      pcm_cruise_check(acc_on);
+      if (byd_lat_only) {
+        // engaged by the lateral key, so acc_on is false here: what pcm_cruise_check does, but
+        // without ending the controls
+        cruise_engaged_prev = acc_on;
+      } else {
+        pcm_cruise_check(acc_on);
+      }
     }
 
     // The stock request, kept to check openpilot's replacement against. Only reaches
@@ -275,6 +337,8 @@ static bool byd_acc_cmd_replacement_ok(const CANPacket_t *msg) {
   // depend on the TX list or on the common code staying as it is.
   // And controls allowed with the gas pedal released.
   bool ok = (byd_long_level != 0U) && !relay_malfunction && get_longitudinal_allowed();
+  // never while engaged by the lateral key alone, whatever the ACC's frames say
+  ok = ok && !byd_lat_only;
 
   // the stock frame it must be a copy of is the one that has just arrived: the newest
   // ACC_CMD to reach the forward decision, not only the newest that passed the RX checks.
@@ -395,7 +459,13 @@ static safety_config byd_init(uint16_t param) {
   const uint16_t BYD_PARAM_LONG_LEVEL_MASK = 3U;
   // Bit 3: it may raise the request as well, see "Raising" at the top. Nothing without a level.
   const uint16_t BYD_PARAM_LONG_RAISE = 8U;
+  // Bit 3: the lateral key, see the top of the file. Song Plus only.
+  const uint16_t BYD_PARAM_LAT_KEY = 8U;
   byd_song_plus = GET_FLAG(param, BYD_PARAM_SONG_PLUS);
+  byd_lat_key = byd_song_plus && GET_FLAG(param, BYD_PARAM_LAT_KEY);
+  byd_lat_only = false;
+  byd_custom_key_down = false;
+  byd_custom_key_ts = 0U;
   byd_long_level = (uint8_t)((param >> BYD_PARAM_LONG_LEVEL_SHIFT) & BYD_PARAM_LONG_LEVEL_MASK);
   byd_long_raise = GET_FLAG(param, BYD_PARAM_LONG_RAISE);
 
@@ -448,6 +518,7 @@ static safety_config byd_init(uint16_t param) {
       {.msg = {{0x123, 0, 8, 100U, .max_counter = 15U, .ignore_quality_flag = true}, { 0 }, { 0 }}},  // IPB (brake pressed)
       {.msg = {{0x342, 0, 8,  50U, .max_counter = 15U, .ignore_quality_flag = true}, { 0 }, { 0 }}},  // PEDAL (gas pressed)
       {.msg = {{0x32D, 2, 8,  50U, .max_counter = 15U, .ignore_quality_flag = true}, { 0 }, { 0 }}},  // ACC_HUD_ADAS (cruise state)
+      {.msg = {{0x4A8, 0, 8, 0U, .ignore_checksum = true, .ignore_counter = true, .ignore_quality_flag = true, .event_frame = true}, { 0 }, { 0 }}},  // STEERING_WHEEL_KEYS (only while a key is down)
       {.msg = {{0x32E, 2, 8,  50U, .max_counter = 15U, .ignore_quality_flag = true}, { 0 }, { 0 }}},  // ACC_CMD (the stock request)
     };
     ret = BUILD_SAFETY_CFG(byd_song_plus_long_rx_checks, BYD_LONG_TX_MSGS);
@@ -461,6 +532,7 @@ static safety_config byd_init(uint16_t param) {
       {.msg = {{0x123, 0, 8, 100U, .max_counter = 15U, .ignore_quality_flag = true}, { 0 }, { 0 }}},  // IPB (brake pressed)
       {.msg = {{0x342, 0, 8,  50U, .max_counter = 15U, .ignore_quality_flag = true}, { 0 }, { 0 }}},  // PEDAL (gas pressed)
       {.msg = {{0x32D, 2, 8,  50U, .max_counter = 15U, .ignore_quality_flag = true}, { 0 }, { 0 }}},  // ACC_HUD_ADAS (cruise state)
+      {.msg = {{0x4A8, 0, 8, 0U, .ignore_checksum = true, .ignore_counter = true, .ignore_quality_flag = true, .event_frame = true}, { 0 }, { 0 }}},  // STEERING_WHEEL_KEYS (only while a key is down)
     };
     ret = BUILD_SAFETY_CFG(byd_song_plus_rx_checks, BYD_TX_MSGS);
   } else {
