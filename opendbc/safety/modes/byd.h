@@ -76,14 +76,14 @@ static uint32_t byd_acc_warning_ts = 0U;
 // Measured 2026-11-15 (route 00000032): 76 frames, key codes 0x00 0x15 0x25 0x26 0x0C only,
 // bytes 0 and 2-7 always 01 / 80 00 00 00 00 00. migration-audit/button-survey-20261115.
 //
-// A press with the stock ACC not engaged and the brake released allows controls, the same as
-// the ACC engaging does; and while it is the press that allowed them (byd_lat_only), the stock
-// ACC not being engaged does not end them. Everything else ends them as before: the brake, a
-// failed RX check, openpilot not engaged (heartbeat). The stock ACC engaging makes it an
-// ordinary engagement, which ends with the ACC. The key never ends anything itself: openpilot
-// does that, and its heartbeat then ends it here.
-// Nothing else changes: the steering checks are those of any engagement, and ACC_CMD may only
-// be replaced while the stock ACC is controlling, which it is not here.
+// The owner's rule (2026-11-15): the key is an on/off switch for steering. So a press allows
+// controls whatever the ACC is doing, unless the key already did (byd_lat_only); and while it
+// did, the stock ACC being off or leaving does not end them. What still ends them: the brake
+// (the common rule: a press, or held while moving), a failed RX check, and openpilot not being
+// engaged (the heartbeat) - which is how the second press ends them: openpilot disengages and
+// its heartbeat says so. The key never ends anything itself.
+// Nothing else changes: the steering checks are those of any engagement, and ACC_CMD is never
+// replaced while the key engaged them (openpilot does no longitudinal then).
 #define BYD_CUSTOM_KEY_NEW_PRESS_US 300000U  // a key frame this long after the last one starts a new press
 
 static bool byd_lat_key = false;               // the safety param allows the lateral key
@@ -132,7 +132,7 @@ static void byd_rx_hook(const CANPacket_t *msg) {
       uint32_t ts = microsecond_timer_get();
       bool down = byd_is_custom_key_press(msg);
       bool new_press = down && (!byd_custom_key_down || (safety_get_ts_elapsed(ts, byd_custom_key_ts) > BYD_CUSTOM_KEY_NEW_PRESS_US));
-      if (new_press && byd_lat_key && !cruise_engaged_prev && !brake_pressed) {
+      if (new_press && byd_lat_key && !byd_lat_only) {
         controls_allowed = true;
         byd_lat_only = true;
       }
@@ -200,10 +200,6 @@ static void byd_rx_hook(const CANPacket_t *msg) {
         uint8_t state_code = msg->data[5] >> 4;
         bool acc_shown = ((msg->data[1] >> 2) & 0x7U) != 0U;
         acc_on = acc_shown && ((state_code == 3U) || (state_code == 5U) || (state_code == 7U));
-        // engaged by the ACC from here on: it ends with the ACC (pcm_cruise_check below)
-        if (acc_on) {
-          byd_lat_only = false;
-        }
 
         // for byd_acc_cmd_replacement_ok
         uint32_t ts = microsecond_timer_get();
@@ -222,8 +218,8 @@ static void byd_rx_hook(const CANPacket_t *msg) {
         acc_on = (acc_state == 3U) || (acc_state == 5U);
       }
       if (byd_lat_only) {
-        // engaged by the lateral key, so acc_on is false here: what pcm_cruise_check does, but
-        // without ending the controls
+        // engaged by the lateral key: whatever the ACC does, it neither allows nor ends the
+        // controls; only its state is kept
         cruise_engaged_prev = acc_on;
       } else {
         pcm_cruise_check(acc_on);
