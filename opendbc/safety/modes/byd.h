@@ -459,8 +459,9 @@ static safety_config byd_init(uint16_t param) {
   const uint16_t BYD_PARAM_LONG_LEVEL_MASK = 3U;
   // Bit 3: it may raise the request as well, see "Raising" at the top. Nothing without a level.
   const uint16_t BYD_PARAM_LONG_RAISE = 8U;
-  // Bit 3: the lateral key, see the top of the file. Song Plus only.
-  const uint16_t BYD_PARAM_LAT_KEY = 8U;
+  // Bit 4: the lateral key, see the top of the file. Song Plus only. (Bit 3 is the longitudinal
+  // work's, BYD_PARAM_LONG_RAISE in cb's L6a.)
+  const uint16_t BYD_PARAM_LAT_KEY = 16U;
   byd_song_plus = GET_FLAG(param, BYD_PARAM_SONG_PLUS);
   byd_lat_key = byd_song_plus && GET_FLAG(param, BYD_PARAM_LAT_KEY);
   byd_lat_only = false;
