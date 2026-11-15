@@ -1020,9 +1020,10 @@ class TestBydAtto3IgnoresSongPlusFields(unittest.TestCase):
 class TestBydSongPlusLatKeySafety(TestBydSongPlusSafety):
   """The Song Plus suite once more with the lateral key, then what the key adds (top of byd.h).
 
-  A short press of the custom key (STEERING_WHEEL_KEYS, one exact frame) with the stock ACC not
-  engaged and the brake released allows controls, and the ACC being off does not end them.
-  Everything else ends them as before; the ACC engaging makes it an ordinary engagement.
+  The owner's rule: the custom key (STEERING_WHEEL_KEYS, one exact frame) is an on/off switch for
+  steering and the pedals are the driver's alone. A press allows controls whatever the ACC and
+  the brake are doing; while the key allowed them, neither the ACC nor the brake ends them. RX
+  checks and openpilot's heartbeat still do, and that is how the second press ends them.
   """
 
   SAFETY_PARAM = 1 | 8   # BYD_PARAM_SONG_PLUS, BYD_PARAM_LAT_KEY
@@ -1046,11 +1047,15 @@ class TestBydSongPlusLatKeySafety(TestBydSongPlusSafety):
   def _acc(self, shown, code):
     self._rx(self.packer.make_can_msg_safety("ACC_HUD_ADAS", self.CAM_BUS, {"ACC_ENGAGED_STATE": shown, "ACC_STATE_CODE": code}))
 
-  def _start(self):
+  def _brake(self, pressed):
+    self._rx(self._user_brake_msg(pressed))
+
+  def _start(self, moving=True):
     self._reset_safety_hooks()
     self.t = 10_000_000
+    self._rx(self._speed_msg(15 if moving else 0))
     self._acc(0, 2)      # stock ACC in standby
-    self._rx(self._user_brake_msg(False))
+    self._brake(False)
     self.assertFalse(self.safety.get_controls_allowed())
 
   def test_press_allows_controls_and_acc_off_does_not_end_them(self):
@@ -1077,33 +1082,47 @@ class TestBydSongPlusLatKeySafety(TestBydSongPlusSafety):
         self._press(**kw)
         self.assertFalse(self.safety.get_controls_allowed())
 
-  def test_press_with_the_brake_held_is_nothing(self):
-    self._start()
-    self._rx(self._user_brake_msg(True))
-    self._press()
-    self.assertFalse(self.safety.get_controls_allowed())
-    # and releasing the brake while the key is still down does not make it a press
-    self._start()
-    self._rx(self._user_brake_msg(True))
-    self._key()
-    self._rx(self._user_brake_msg(False))
-    for _ in range(5):
-      self._key()
-    self.assertFalse(self.safety.get_controls_allowed())
+  def test_brake_does_not_end_it(self):
+    for moving in (True, False):
+      with self.subTest(moving=moving):
+        self._start(moving)
+        self._press()
+        for _ in range(3):
+          self._brake(True)
+          for _ in range(20):
+            self._brake(True)
+            self._acc(0, 2)
+          self._brake(False)
+        self.assertTrue(self.safety.get_controls_allowed())
+        self.assertTrue(self._tx(self._angle_cmd_msg(0, True)))
 
-  def test_brake_ends_it_and_acc_off_keeps_it_ended(self):
+  def test_press_with_the_brake_held(self):
     self._start()
-    self._press()
-    self._rx(self._speed_msg(10))
-    self._rx(self._user_brake_msg(True))
-    self.assertFalse(self.safety.get_controls_allowed())
-    self._rx(self._user_brake_msg(False))
-    for _ in range(10):
-      self._acc(0, 2)
-    self.assertFalse(self.safety.get_controls_allowed())
-    # a new press after the brake is a new engagement
+    self._brake(True)
     self._press()
     self.assertTrue(self.safety.get_controls_allowed())
+    self._brake(True)
+    self.assertTrue(self.safety.get_controls_allowed())
+
+  def test_brake_still_ends_an_engagement_by_the_acc(self):
+    self._start()
+    self._acc(1, 3)
+    self.assertTrue(self.safety.get_controls_allowed())
+    self._brake(True)
+    self.assertFalse(self.safety.get_controls_allowed())
+
+  def test_ended_by_the_heartbeat_then_the_brake_rule_is_back(self):
+    # openpilot disengaged (second press): its heartbeat ends the controls here ...
+    self._start()
+    self._press()
+    self.safety.set_controls_allowed(False)
+    self._acc(0, 2)
+    self.assertFalse(self.safety.get_controls_allowed())
+    # ... and the key's engagement with them: controls allowed again by the ACC end with the brake
+    self._acc(1, 3)
+    self.assertTrue(self.safety.get_controls_allowed())
+    self._brake(True)
+    self.assertFalse(self.safety.get_controls_allowed())
 
   def test_held_key_is_one_press(self):
     self._start()
@@ -1124,30 +1143,31 @@ class TestBydSongPlusLatKeySafety(TestBydSongPlusSafety):
     self._key(after_us=301_000)                  # more than 300 ms later: a new one
     self.assertTrue(self.safety.get_controls_allowed())
 
-  def test_press_while_the_acc_is_engaged_changes_nothing(self):
+  def test_press_while_the_acc_is_engaged_keeps_steering_after_the_acc(self):
     self._start()
     self._acc(1, 3)
     self.assertTrue(self.safety.get_controls_allowed())
     self._press()
-    self._acc(1, 4)       # the ACC on its way out ends it as always
-    self.assertFalse(self.safety.get_controls_allowed())
-    # nor does it allow controls the ACC's engagement no longer gives
+    self._acc(1, 4)       # the ACC on its way out, e.g. after the brake
+    self._brake(True)
+    for _ in range(10):
+      self._acc(0, 2)
+    self.assertTrue(self.safety.get_controls_allowed())
+
+  def test_press_with_the_acc_engaged_and_controls_ended(self):
     self._start()
     self._acc(1, 3)
     self.safety.set_controls_allowed(False)
     self._press()
-    self.assertFalse(self.safety.get_controls_allowed())
+    self.assertTrue(self.safety.get_controls_allowed())
 
-  def test_acc_engaging_makes_it_an_ordinary_engagement(self):
+  def test_the_acc_coming_and_going_does_not_end_it(self):
     self._start()
     self._press()
-    self._acc(1, 3)
-    self.assertTrue(self.safety.get_controls_allowed())
-    self._acc(1, 4)
-    self.assertFalse(self.safety.get_controls_allowed())
-    for _ in range(10):
-      self._acc(0, 2)
-    self.assertFalse(self.safety.get_controls_allowed())
+    for code in (3, 5, 3, 4, 2, 1, 3, 4, 2):
+      for _ in range(5):
+        self._acc(0 if code in (1, 2) else 1, code)
+      self.assertTrue(self.safety.get_controls_allowed(), code)
 
   def test_the_key_never_ends_anything(self):
     self._start()
@@ -1172,6 +1192,24 @@ class TestBydSongPlusLatKeySafety(TestBydSongPlusSafety):
       if ms % 1000 == 0:
         self.safety.safety_tick()
     self.assertTrue(self.safety.get_controls_allowed())
+
+  def test_rx_fault_still_ends_it(self):
+    self._start()
+    self._press()
+    self.safety.set_timer(self.t + 3_000_000)    # nothing for 3 s
+    self.safety.safety_tick()
+    self.assertFalse(self.safety.get_controls_allowed())
+
+  def test_brake_rule_is_back_after_a_mode_change(self):
+    self._start()
+    self._press()
+    self._brake(True)            # leaves the common flag set
+    self._reset_safety_hooks()
+    self._rx(self._speed_msg(15))
+    self._brake(False)
+    self.safety.set_controls_allowed(True)
+    self._brake(True)
+    self.assertFalse(self.safety.get_controls_allowed())
 
   def test_needs_its_param_bit_and_the_song_plus(self):
     for param in (1, 8, 1 | 2):
